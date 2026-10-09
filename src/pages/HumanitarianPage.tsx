@@ -1732,7 +1732,7 @@ function DonorAidCard() {
         <button
           type="button"
           onClick={() => setShowAll((v) => !v)}
-          className="mt-2 text-[10px] font-sans uppercase tracking-wider cursor-pointer hover:underline"
+          className="show-more mt-2 text-[10px] font-sans uppercase tracking-wider cursor-pointer hover:underline"
           style={{ color: muted }}
         >
           {showAll ? "Show top 15" : `Show all ${DONOR_AID.length}`}

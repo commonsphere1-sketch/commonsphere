@@ -108,7 +108,7 @@ export function DataLog() {
           type="button"
           onClick={() => setAll((v) => !v)}
           aria-expanded={all}
-          className="mt-2 text-[10px] font-sans font-semibold px-2 py-1 rounded-lg transition-opacity hover:opacity-80 cursor-pointer"
+          className="show-more mt-2 text-[10px] font-sans font-semibold px-2 py-1 rounded-lg transition-opacity hover:opacity-80 cursor-pointer"
           style={{ background: t.tile, border: `1px solid ${t.gridLine}`, color: t.headText }}
         >
           {all ? `Show the newest ${FIRST}` : `Show all ${DATA_LOG.length}`}

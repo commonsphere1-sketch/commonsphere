@@ -229,7 +229,7 @@ export function EconomyCompanies({ economy }: { economy: Economy }) {
             })}
           </div>
           {companies.length > 10 && (
-            <button type="button" onClick={() => setAll((v) => !v)} className="text-[10px] font-sans text-secondary mt-1.5 cursor-pointer hover:underline">
+            <button type="button" onClick={() => setAll((v) => !v)} className="show-more text-[10px] font-sans text-secondary mt-1.5 cursor-pointer hover:underline">
               {all ? "Show the first ten" : `Show all ${companies.length}`}
             </button>
           )}

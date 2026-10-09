@@ -1378,3 +1378,40 @@ html.light .modal-tabs {
   background-color: rgba(250, 248, 243, 0.92) !important;
   box-shadow: 0 6px 18px rgba(120, 100, 60, 0.12);
 }
+
+/* The control that brings in the rest of a list - "Show more", "Show all" -
+   made plain to see on every page: a filled pill across the foot of its
+   list, in the tone a selected chip has, where it was a small outline or a
+   line of coloured text that was easy to pass over. The rule overrides each
+   control's own small look, so it is marked important. */
+.show-more {
+  display: flex !important;
+  align-items: center;
+  justify-content: center;
+  align-self: stretch !important;
+  width: 100%;
+  margin-top: 0.75rem !important;
+  padding: 0.65rem 1rem !important;
+  border-radius: 9999px !important;
+  font-size: 12px !important;
+  font-weight: 700 !important;
+  letter-spacing: 0.01em !important;
+  text-transform: none !important;
+  text-decoration: none !important;
+  cursor: pointer;
+  background: var(--color-foreground) !important;
+  color: var(--color-background) !important;
+  border: 1px solid var(--color-foreground) !important;
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.22);
+  transition:
+    opacity 0.15s,
+    transform 0.15s;
+}
+.show-more:hover {
+  opacity: 0.88 !important;
+  transform: translateY(-1px);
+}
+.show-more:focus-visible {
+  outline: 2px solid var(--color-ring, currentColor);
+  outline-offset: 2px;
+}

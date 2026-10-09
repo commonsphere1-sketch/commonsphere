@@ -1073,7 +1073,7 @@ function RegionDetail({ t, region: r, byGdp, onExplorer }: { t: Tokens; region: 
               type="button"
               onClick={() => setShowAll((v) => !v)}
               aria-expanded={showAll}
-              className="self-start text-[10px] font-sans font-semibold px-2 py-1 rounded-lg transition-opacity hover:opacity-80 cursor-pointer"
+              className="show-more self-start text-[10px] font-sans font-semibold px-2 py-1 rounded-lg transition-opacity hover:opacity-80 cursor-pointer"
               style={{ background: t.tile, border: `1px solid ${t.gridLine}`, color: t.headText }}
             >
               {showAll ? "Show the largest 8" : `Show all ${mine.length}`}

@@ -653,7 +653,7 @@ function CountryWindow({ row, top, asked, onOpen, onClose }: { row: Row; /** Whe
             </div>
             {cities.length === 0 && <p className="text-[12px] font-sans text-muted-foreground">Nothing matches.</p>}
             {cities.length > shown && (
-              <button type="button" onClick={() => setShown((n) => n + PAGE * 4)} className="mt-4 text-[11px] font-semibold font-sans px-4 py-1.5 rounded-full border border-border text-foreground hover:bg-muted/60 cursor-pointer">
+              <button type="button" onClick={() => setShown((n) => n + PAGE * 4)} className="show-more mt-4 text-[11px] font-semibold font-sans px-4 py-1.5 rounded-full border border-border text-foreground hover:bg-muted/60 cursor-pointer">
                 Show more · {Math.min(shown, cities.length).toLocaleString("en-US")} of {cities.length.toLocaleString("en-US")} shown
               </button>
             )}

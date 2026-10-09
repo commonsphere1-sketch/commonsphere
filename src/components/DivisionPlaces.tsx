@@ -259,7 +259,7 @@ export function DivisionPlaces({
       </div>
       {rows.length === 0 && <p className="text-[11px] font-sans text-muted-foreground py-2">None by that name.</p>}
       {rows.length > shown && (
-        <button type="button" onClick={() => setShown((n) => n + PAGE * 5)} className="mt-2 text-[11px] font-semibold font-sans px-3 py-1 rounded-full border border-border text-foreground hover:bg-muted/60 cursor-pointer">
+        <button type="button" onClick={() => setShown((n) => n + PAGE * 5)} className="show-more mt-2 text-[11px] font-semibold font-sans px-3 py-1 rounded-full border border-border text-foreground hover:bg-muted/60 cursor-pointer">
           Show more · {Math.min(shown, rows.length).toLocaleString("en-US")} of {rows.length.toLocaleString("en-US")} shown
         </button>
       )}
@@ -413,7 +413,7 @@ export function PlacesInside({
       </div>
       {found.length === 0 && rows.length > 0 && <p className="text-[11px] font-sans text-muted-foreground py-2">None by that name.</p>}
       {found.length > shown && (
-        <button type="button" onClick={() => setShown((n) => n + PAGE * 5)} className="mt-2 text-[11px] font-semibold font-sans px-3 py-1 rounded-full border border-border text-foreground hover:bg-muted/60 cursor-pointer">
+        <button type="button" onClick={() => setShown((n) => n + PAGE * 5)} className="show-more mt-2 text-[11px] font-semibold font-sans px-3 py-1 rounded-full border border-border text-foreground hover:bg-muted/60 cursor-pointer">
           Show more · {Math.min(shown, found.length).toLocaleString("en-US")} of {found.length.toLocaleString("en-US")} shown
         </button>
       )}

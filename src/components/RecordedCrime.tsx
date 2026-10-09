@@ -309,7 +309,7 @@ function OffenceExplorer({ look }: { look: Look }) {
         ))}
       </ul>
       {rows.length > SHOWN && (
-        <button type="button" onClick={() => setAll((v) => !v)} className="mt-3 text-[10px] font-semibold underline underline-offset-2 decoration-dotted" style={{ color: look.head }}>
+        <button type="button" onClick={() => setAll((v) => !v)} className="show-more mt-3 text-[10px] font-semibold underline underline-offset-2 decoration-dotted" style={{ color: look.head }}>
           {all ? `Show the ${SHOWN} highest only` : `Show all ${rows.length} places`}
         </button>
       )}

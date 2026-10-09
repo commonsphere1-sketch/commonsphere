@@ -455,7 +455,7 @@ function Alliances({ t, accent }: { t: Tokens; accent: string }) {
       </ul>
       <div className="flex flex-wrap items-center gap-x-4 gap-y-1 mt-3">
         {mine.length > 6 && (
-          <button type="button" onClick={() => setAll((v) => !v)} aria-expanded={all} className="text-[11px] font-semibold font-sans hover:opacity-70 transition-opacity cursor-pointer" style={{ color: accent }}>
+          <button type="button" onClick={() => setAll((v) => !v)} aria-expanded={all} className="show-more text-[11px] font-semibold font-sans hover:opacity-70 transition-opacity cursor-pointer" style={{ color: accent }}>
             {all ? "Show six" : `Show all ${mine.length}`}
           </button>
         )}

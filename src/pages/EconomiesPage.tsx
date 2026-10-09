@@ -127,6 +127,13 @@ const WORLD_GDP_T = 118.4;
  */
 const fmtUsdB = (b: number) => usdFromBillions(b);
 const fmtUsdT = (t: number) => fmtUsdB(t * 1000);
+/** The flag an economy's card carries behind it: its country's, by its own code or by its name; the European Union's own; none for a region of several countries. */
+const FLAG_CODE_BY_NAME = new Map(countriesData.map((c) => [c.name, c.code]));
+const economyFlag = (e: Economy) => {
+  // Three go by a name the list of countries does not use for them.
+  const code = e.iso2 ?? ({ "European Union": "EU", Turkey: "TR", Czechia: "CZ" } as Record<string, string>)[e.name] ?? FLAG_CODE_BY_NAME.get(e.name);
+  return code ? `https://flagcdn.com/w320/${code.toLowerCase()}.png` : null;
+};
 
 /**
  * The unit a GDP series reads best in: trillions for the largest economies,
@@ -2564,6 +2571,18 @@ export function EconomiesPage() {
                     className="modal-tile relative overflow-hidden rounded-xl p-2 pl-3.5 cursor-pointer transition-all duration-200 hover:scale-[1.01] hover:shadow-lg hover:border-secondary/40 flex-1 min-w-0"
                     title={statusOf(economy).detail}
                   >
+                    {/* Its flag behind the whole card, dimmed, as the country and state cards have theirs: under the inflation tab and everything written on the card. */}
+                    {economyFlag(economy) && (
+                      <img
+                        src={economyFlag(economy)!}
+                        alt=""
+                        aria-hidden="true"
+                        loading="lazy"
+                        className="absolute inset-0 w-full h-full object-cover opacity-[0.16] scale-105 select-none pointer-events-none"
+                        onError={(e) => (e.currentTarget.style.display = "none")}
+                      />
+                    )}
+
                     {/* The degree of inflation the economy is at, as a coloured tab down the card's left side - the edge the
                         Worldview's pillars have. A strip, not a shadow: the card's own shadow is set !important and would win. */}
                     <div aria-hidden className="absolute inset-y-0 left-0 w-[3px] pointer-events-none" style={{ background: statusOf(economy).edge }} />

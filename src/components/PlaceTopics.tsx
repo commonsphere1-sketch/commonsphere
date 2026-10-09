@@ -138,7 +138,7 @@ export function PlaceTopics({ tag, name, days = 14, className = "mb-4" }: { /** 
             ))}
           </ul>
           {shown.length > 8 && (
-            <button type="button" onClick={() => setAll((v) => !v)} aria-expanded={all} className="mt-2 text-[11px] font-semibold font-sans text-secondary hover:opacity-70 transition-opacity cursor-pointer">
+            <button type="button" onClick={() => setAll((v) => !v)} aria-expanded={all} className="show-more mt-2 text-[11px] font-semibold font-sans text-secondary hover:opacity-70 transition-opacity cursor-pointer">
               {all ? "Show the newest eight" : `Show all ${shown.length}`}
             </button>
           )}
