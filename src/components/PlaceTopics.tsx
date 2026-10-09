@@ -15,6 +15,7 @@
  * read), asked for by the place's tag: "c:DE" for a country, "s:oh" for a
  * state.
  */
+import { ChipRow } from "./ChipRow";
 import { useEffect, useState } from "react";
 import { ChatsCircle } from "@phosphor-icons/react";
 import { supabase } from "@/lib/supabase";
@@ -113,7 +114,7 @@ export function PlaceTopics({ tag, name, days = 14, className = "mb-4" }: { /** 
         </p>
       ) : (
         <>
-          <div className="flex flex-wrap gap-1.5 mb-3" role="group" aria-label="Show the headlines of one desk">
+          <ChipRow className="mb-3" label="Show the headlines of one desk">
             <button type="button" onClick={() => setDesk("all")} aria-pressed={desk === "all"} className={chip(desk === "all")}>
               All <span className="font-mono font-normal opacity-70">{rows.length}</span>
             </button>
@@ -122,7 +123,7 @@ export function PlaceTopics({ tag, name, days = 14, className = "mb-4" }: { /** 
                 {DESK[d.t]} <span className="font-mono font-normal opacity-70">{d.n}</span>
               </button>
             ))}
-          </div>
+          </ChipRow>
           <ul className="flex flex-col">
             {list.map((r) => (
               <li key={r.url} className="border-b border-border last:border-b-0">

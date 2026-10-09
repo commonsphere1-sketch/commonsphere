@@ -3,7 +3,8 @@ import { CaretLeft, CaretRight } from "@phosphor-icons/react";
 
 /**
  * One row of chips that scrolls sideways when it runs out of room - the
- * section bars and the sticky filter bars. The scrollbar is hidden, so the
+ * section bars, the sticky filter bars, and the rows of chips inside the
+ * pages' containers, which once wrapped onto several lines. The scrollbar is hidden, so the
  * row stays the height of its chips; an edge that has more chips beyond it
  * fades out and gets a small arrow to move along, which a mouse without a
  * sideways wheel needs. Keyboard focus scrolls the row by itself.
@@ -12,9 +13,12 @@ export function ChipRow({
   children,
   className = "",
   rowRef,
+  label,
 }: {
   children: ReactNode;
   className?: string;
+  /** What the chips choose between, for a screen reader: the row is then a named group. */
+  label?: string;
   /** The scrolling element, for a parent that brings a chip into view. */
   rowRef?: MutableRefObject<HTMLDivElement | null>;
 }) {
@@ -51,7 +55,8 @@ export function ChipRow({
   const arrow = "absolute top-1/2 -translate-y-1/2 w-6 h-6 rounded-full border border-border bg-background/85 text-muted-foreground hover:text-foreground flex items-center justify-center cursor-pointer";
 
   return (
-    <div className={`relative min-w-0 ${className}`}>
+    <div className={`relative min-w-0 ${className}`} role={label ? "group" : undefined} aria-label={label}>
+
       <div ref={ref} className="cs-chip-row flex items-center gap-1.5 overflow-x-auto" style={{ maskImage: mask, WebkitMaskImage: mask }}>
         {children}
       </div>

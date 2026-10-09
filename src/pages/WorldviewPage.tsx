@@ -1,3 +1,4 @@
+import { ChipRow } from "../components/ChipRow";
 import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import { useNavigate } from "react-router-dom";
 import {
@@ -3193,7 +3194,7 @@ function Rankings() {
         <p className="text-[11px] font-sans text-muted-foreground -mt-2 mb-3">
           The comparisons people most often look up, from the figures on each country's page, by pillar. Pick a country to open it.
         </p>
-        <div className="flex flex-wrap gap-1.5 mb-4" role="group" aria-label="Rankings by pillar">
+        <ChipRow className="mb-4" label="Rankings by pillar">
           {[
             { id: "all" as const, label: "All" },
             // Only the pillars that have rankings.
@@ -3211,7 +3212,7 @@ function Rankings() {
               {x.label}
             </button>
           ))}
-        </div>
+        </ChipRow>
         {/* Three lists to a row on a desktop, two on a tablet, one on a phone. */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
           {shown.map((r) => (

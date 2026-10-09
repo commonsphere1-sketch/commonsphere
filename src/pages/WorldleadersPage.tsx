@@ -1,3 +1,4 @@
+import { ChipRow } from "../components/ChipRow";
 import { decodeEntities } from "../lib/security";
 import React, { useState, useMemo } from "react";
 import { createPortal } from "react-dom";
@@ -16886,7 +16887,7 @@ function RichestFamiliesView() {
       </div>
 
       {/* Filters */}
-      <div className="flex flex-wrap items-center gap-2">
+      <ChipRow>
         {sectors.map((s) => (
           <button
             key={s}
@@ -16908,7 +16909,7 @@ function RichestFamiliesView() {
             <option value="founded">Founded</option>
           </select>
         </div>
-      </div>
+      </ChipRow>
 
       {/* Cards grid */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
@@ -17343,7 +17344,7 @@ function AlliancesView() {
 
   return (
     <div className="space-y-4">
-      <div className="flex flex-wrap items-center gap-2">
+      <ChipRow>
         {kinds.map((k) => (
           <button
             key={k}
@@ -17359,7 +17360,7 @@ function AlliancesView() {
           placeholder="Search an organisation or a country…"
           className="ml-auto min-w-0 flex-1 sm:flex-none sm:w-64 bg-card border border-border rounded-lg px-3 py-1.5 text-xs font-sans text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-secondary/50"
         />
-      </div>
+      </ChipRow>
 
       <p className="text-[11px] text-muted-foreground font-sans">
         Membership checked against each organisation's own list on {ALLIANCES_CHECKED}, except where
@@ -17908,7 +17909,7 @@ export function WorldLeadersPage() {
               ))}
             </div>
             {/* Region filter */}
-            <div className="flex flex-wrap items-center gap-2">
+            <ChipRow>
               {[
                 "All Regions",
                 "Europe",
@@ -17929,7 +17930,7 @@ export function WorldLeadersPage() {
                   {r === "All Regions" ? "All" : r}
                 </button>
               ))}
-            </div>
+            </ChipRow>
             {/* Monarch cards grid */}
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
               {filteredMonarchs.map((m) => (

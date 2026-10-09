@@ -1,3 +1,4 @@
+import { ChipRow } from "../components/ChipRow";
 import { na, has, orZero } from "../lib/na";
 import { LAND_USE, LAND_USE_SOURCE } from "@/data/landUse";
 import { usdFromBillions } from "../lib/money";
@@ -3284,7 +3285,7 @@ export function WorldMapsPage() {
       const additionalLayers = OVERLAYS.filter(o => ["capitals", "cities", "climate"].includes(o.id));
       return (
         <>
-          <div className="flex flex-wrap items-center gap-2 mb-3">
+          <ChipRow className="mb-3">
             <span className="text-[10px] font-mono uppercase tracking-widest text-secondary mr-1">
               Layers
             </span>
@@ -3293,19 +3294,19 @@ export function WorldMapsPage() {
             {mainLayers.map((o) => (
               layerButton(o, layers, set)
             ))}
-          </div>
-          <div className="flex flex-wrap items-center gap-2 mb-3">
+          </ChipRow>
+          <ChipRow className="mb-3">
             {additionalLayers.map((o) => (
               layerButton(o, layers, set)
             ))}
-          </div>
+          </ChipRow>
         </>
       );
     }
 
     return (
       <>
-        <div className="flex flex-wrap items-center gap-2 mb-3">
+        <ChipRow className="mb-3">
           <span className="text-[10px] font-mono uppercase tracking-widest text-secondary mr-1">
             Layers
           </span>
@@ -3324,7 +3325,7 @@ export function WorldMapsPage() {
           {markChip}
           {/* Which place that is: any country, or a US state. Pressing one on a map chooses it too. */}
           <CountrySearch chip options={markOptions} onPick={pickMark} placeholder="Highlight a country or state" label="Choose the country or US state to pick out on the maps" />
-        </div>
+        </ChipRow>
         {showAdditionalLayers && (
           <div className="flex flex-wrap items-center gap-2 mb-3 pl-6">
             {OVERLAYS.map((o) => (
@@ -3456,7 +3457,7 @@ export function WorldMapsPage() {
             </span>
           </div>
 
-          <div className="flex flex-wrap items-center gap-2 mb-3">
+          <ChipRow className="mb-3">
             {SCOPES.map((sc) => (
               <button
                 key={sc.id}
@@ -3478,7 +3479,7 @@ export function WorldMapsPage() {
                 {i.label}
               </button>
             ))}
-          </div>
+          </ChipRow>
 
           {activeCountry.source && (
             <p className="text-[10px] font-sans text-muted-foreground mb-3 leading-snug">

@@ -728,35 +728,24 @@ function YearFold({ title, latest, order, onOrder, children, note }: { title: st
 }
 
 /**
- * The long humanitarian sections, folded away under the short one. Closed, the page stays a page about rights;
- * a press opens every chart and list the humanitarian page held.
+ * The long humanitarian sections, under the short one: every chart and list the humanitarian page held. They were
+ * folded away behind a Show button; as asked, they are always open now, under their title, and the button is gone.
  */
 function FullFold({ title, children }: { title: string; children: ReactNode }) {
-  const { head, isLight } = useLook();
-  const [open, setOpen] = useState(false);
-  const id = useId();
+  const { head } = useLook();
   return (
     <div>
-      <button
-        type="button"
-        aria-expanded={open}
-        aria-controls={open ? id : undefined}
-        onClick={() => setOpen((o) => !o)}
-        className="flex items-center gap-2 text-left cursor-pointer max-w-full rounded-full pl-3 pr-1.5 py-1 transition-opacity hover:opacity-80"
-        style={{ color: head, background: isLight ? "rgba(15,23,42,0.06)" : "rgba(255,255,255,0.09)", border: isLight ? "1px solid rgba(15,23,42,0.28)" : "1px solid rgba(255,255,255,0.32)" }}
-      >
-        <CaretDown size={11} weight="bold" className={`shrink-0 transition-transform ${open ? "" : "-rotate-90"}`} aria-hidden />
-        <span className="text-[10px] font-mono uppercase tracking-widest min-w-0">{title}</span>
-        <span className="text-[10px] font-sans font-bold px-2 py-0.5 rounded-full bg-secondary text-secondary-foreground shrink-0">{open ? "Hide" : "Show"}</span>
-      </button>
-      {open && (
-        <div id={id} className="flex flex-col gap-6 mt-6">
-          {children}
-        </div>
-      )}
+      <div className="flex items-center gap-3">
+        <h3 className="text-[10px] font-mono uppercase tracking-widest min-w-0" style={{ color: head }}>
+          {title}
+        </h3>
+        <div className="flex-1 h-px bg-border/60" />
+      </div>
+      <div className="flex flex-col gap-6 mt-6">{children}</div>
     </div>
   );
 }
+
 
 const usdShort = (v: number) => (v >= 1e9 ? `$${(v / 1e9).toFixed(v >= 1e10 ? 0 : 1)}bn` : `$${Math.round(v / 1e6)}m`);
 /** The colour of a disaster's kind, by the first kind the list gives it. */

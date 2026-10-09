@@ -1,3 +1,4 @@
+import { ChipRow } from "../components/ChipRow";
 import React, { useState, useMemo, useCallback, useEffect, useRef } from "react";
 import { countriesData } from "../data/countriesData";
 import { usStatesData } from "../data/statesData";
@@ -2125,7 +2126,7 @@ export function RankingsPage() {
           <span className="text-[10px] text-muted-foreground font-semibold uppercase tracking-wide shrink-0">
             Continent:
           </span>
-          <div className="flex flex-wrap gap-1">
+          <ChipRow>
             {CONTINENTS.map((c) => (
               <button
                 key={c}
@@ -2142,7 +2143,7 @@ export function RankingsPage() {
                 {c === "all" ? "All" : c}
               </button>
             ))}
-          </div>
+          </ChipRow>
         </div>
       )}
 

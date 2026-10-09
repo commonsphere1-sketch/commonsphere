@@ -844,6 +844,12 @@ html.light .search-sticky {
 .cs-chip-row::-webkit-scrollbar {
   display: none;
 }
+/* What sits in the row keeps its own width and stays on one line: the row
+   scrolls, it does not squeeze its chips. */
+.cs-chip-row > * {
+  flex-shrink: 0;
+  white-space: nowrap;
+}
 
 @media (prefers-reduced-transparency: reduce) {
   .search-sticky {
