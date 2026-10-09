@@ -3281,6 +3281,8 @@ export function WorldMapsPage() {
 
   /* The chip rows of a map's card are bars that stay at the head of the card while the card is on the screen, as asked - drawn as the pages' own sticky bars are, and gone with the card once it has scrolled past. */
   const mapBar = "search-sticky sticky z-20 border border-border/60 rounded-2xl px-3 py-2 mb-3 flex flex-col gap-2";
+  /* The bar of scopes and measures over the world map was taken off the page as asked. It is kept here, not drawn, so that it can be put back: the map shows the measure and the scope it opens on. */
+  const SHOW_SCOPES = false as boolean;
   const layerToggles = (layers: Record<OverlayId, boolean>, set: LayerSetter, showMore = true) => {
     if (!showMore) {
       const mainLayers = OVERLAYS.filter(o => !["capitals", "cities", "climate"].includes(o.id));
@@ -3296,8 +3298,7 @@ export function WorldMapsPage() {
             {mainLayers.map((o) => (
               layerButton(o, layers, set)
             ))}
-          </ChipRow>
-          <ChipRow>
+            {/* One row for every layer, as asked: the capitals, the cities and the climate follow the rest and are reached by moving along the row. */}
             {additionalLayers.map((o) => (
               layerButton(o, layers, set)
             ))}
@@ -3307,8 +3308,7 @@ export function WorldMapsPage() {
     }
 
     return (
-      // Under the bar of scopes and measures, which sticks first: this one stops just below it.
-      <div className={`${mapBar} top-[7.25rem]`}>
+      <div className={`${mapBar} top-16`}>
         <ChipRow>
           <span className="text-[10px] font-mono uppercase tracking-widest text-secondary mr-1">
             Layers
@@ -3460,6 +3460,7 @@ export function WorldMapsPage() {
             </span>
           </div>
 
+          {SHOW_SCOPES && (
           <div className={`${mapBar} top-16`}>
           <ChipRow>
             {SCOPES.map((sc) => (
@@ -3485,8 +3486,10 @@ export function WorldMapsPage() {
             ))}
           </ChipRow>
           </div>
+          )}
 
           {activeCountry.source && (
+
 
             <p className="text-[10px] font-sans text-muted-foreground mb-3 leading-snug">
               {activeCountry.source.note} Source:{" "}
