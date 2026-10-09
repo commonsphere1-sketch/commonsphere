@@ -127,6 +127,11 @@ const WORLD_GDP_T = 118.4;
  */
 const fmtUsdB = (b: number) => usdFromBillions(b);
 const fmtUsdT = (t: number) => fmtUsdB(t * 1000);
+/** Whether an economy is a group of countries - a region or a bloc - and not one place. */
+const isGroup = (e: Economy) => e.entityType === "Region" || e.entityType === "Bloc";
+/** The largest GDP among single places, and among groups of them: what a card's GDP bar is measured against, each kind beside its own. */
+const largestGdp = (group: boolean) => economiesData.filter((e) => isGroup(e) === group && Number.isFinite(e.gdpTrillions)).reduce((top, e) => (e.gdpTrillions > top.gdpTrillions ? e : top));
+const LARGEST_GDP = { place: largestGdp(false), group: largestGdp(true) };
 /** The flag an economy's card carries behind it: its country's, by its own code or by its name; the European Union's own; none for a region of several countries. */
 const FLAG_CODE_BY_NAME = new Map(countriesData.map((c) => [c.name, c.code]));
 const economyFlag = (e: Economy) => {
@@ -2590,33 +2595,33 @@ export function EconomiesPage() {
                     <div className="flex items-start justify-between mb-1">
                       <div>
                         <div className="flex items-center gap-1.5 mb-0.5">
-                          <h3 className="text-sm font-semibold font-sans text-foreground leading-tight">
+                          <h3 className="text-base font-semibold font-sans text-foreground leading-tight">
                             {economy.name}
                           </h3>
                           {economy.creditRating && (
                             <span
-                              className={`text-[10px] border px-1.5 py-px rounded-full font-mono font-semibold ${ratingColor(economy.creditRating)}`}
+                              className={`text-xs border px-1.5 py-px rounded-full font-mono font-semibold ${ratingColor(economy.creditRating)}`}
                             >
                               {economy.creditRating}
                             </span>
                           )}
-                          <span className="text-[10px] text-muted-foreground border border-border px-1.5 py-px rounded-full font-sans">
+                          <span className="text-xs text-muted-foreground border border-border px-1.5 py-px rounded-full font-sans">
                             {economy.entityType}
                           </span>
                           {/* The degree the hue stands for, in words. */}
-                          <span className={`text-[10px] font-semibold px-1.5 py-px rounded-full font-sans ${statusOf(economy).chip}`} title={statusOf(economy).detail}>
+                          <span className={`text-xs font-semibold px-1.5 py-px rounded-full font-sans ${statusOf(economy).chip}`} title={statusOf(economy).detail}>
                             {statusOf(economy).label}
                           </span>
                           {economy.limitedData && (
                             <span
-                              className="text-[10px] border border-amber-600/40 bg-amber-50 text-amber-800 dark:border-amber-500/30 dark:bg-amber-500/15 dark:text-amber-300 px-1.5 py-px rounded-full font-sans"
+                              className="text-xs border border-amber-600/40 bg-amber-50 text-amber-800 dark:border-amber-500/30 dark:bg-amber-500/15 dark:text-amber-300 px-1.5 py-px rounded-full font-sans"
                               title="Built from what the World Bank, the IMF and UN Comtrade publish; no credit rating or maritime profile. Open the card for details."
                             >
                               {limitedLabel(economy)}
                             </span>
                           )}
                         </div>
-                        <p className="text-[10px] text-muted-foreground font-sans leading-tight">
+                        <p className="text-xs text-muted-foreground font-sans leading-tight">
                           {getCurrencyDisplay(
                             economy.currencyCode,
                             economy.currencyName,
@@ -2626,12 +2631,12 @@ export function EconomiesPage() {
                         </p>
                       </div>
                       <div className="text-right shrink-0">
-                        <p className="text-base font-bold font-mono text-secondary leading-tight">
+                        <p className="text-lg font-bold font-mono text-secondary leading-tight">
                           {na(economy.gdpTrillions, fmtUsdT)}
                         </p>
                         {has(economy.gdpGrowthRate) && (
                           <p
-                            className={`text-[10px] font-mono flex items-center gap-0.5 justify-end ${economy.gdpGrowthRate >= 0 ? "text-success" : "text-destructive"}`}
+                            className={`text-xs font-mono flex items-center gap-0.5 justify-end ${economy.gdpGrowthRate >= 0 ? "text-success" : "text-destructive"}`}
                           >
                             {economy.gdpGrowthRate >= 0 ? (
                               <TrendUp size={10} weight="bold" />
@@ -2647,64 +2652,67 @@ export function EconomiesPage() {
 
                     <div className="grid grid-cols-2 sm:grid-cols-5 gap-x-2 gap-y-0.5 mb-1.5">
                       <div>
-                        <p className="text-[9px] text-muted-foreground font-sans">
+                        <p className="text-[11px] text-muted-foreground font-sans">
                           GDP/Capita
                         </p>
-                        <p className="text-xs font-bold font-mono text-foreground leading-tight">
+                        <p className="text-sm font-bold font-mono text-foreground leading-tight">
                           {na(economy.gdpPerCapita, (v) => `$${v.toLocaleString()}`)}
                         </p>
                       </div>
                       <div>
-                        <p className="text-[9px] text-muted-foreground font-sans">
+                        <p className="text-[11px] text-muted-foreground font-sans">
                           Inflation
                         </p>
                         <p
-                          className={`text-xs font-bold font-mono leading-tight ${has(economy.inflationRate) ? "text-foreground" : "text-muted-foreground"}`}
+                          className={`text-sm font-bold font-mono leading-tight ${has(economy.inflationRate) ? "text-foreground" : "text-muted-foreground"}`}
                         >
                           {na(economy.inflationRate, (v) => `${v}%`)}
                         </p>
                       </div>
                       <div>
-                        <p className="text-[9px] text-muted-foreground font-sans">
+                        <p className="text-[11px] text-muted-foreground font-sans">
                           Unemployment
                         </p>
-                        <p className="text-xs font-bold font-mono text-foreground leading-tight">
+                        <p className="text-sm font-bold font-mono text-foreground leading-tight">
                           {na(economy.unemploymentRate, (v) => `${v}%`)}
                         </p>
                       </div>
                       <div>
-                        <p className="text-[9px] text-muted-foreground font-sans">
+                        <p className="text-[11px] text-muted-foreground font-sans">
                           Debt/GDP
                         </p>
                         <p
-                          className={`text-xs font-bold font-mono leading-tight ${has(economy.debtToGDPRatio) ? "text-foreground" : "text-muted-foreground"}`}
+                          className={`text-sm font-bold font-mono leading-tight ${has(economy.debtToGDPRatio) ? "text-foreground" : "text-muted-foreground"}`}
                         >
                           {na(economy.debtToGDPRatio, (v) => `${v}%`)}
                         </p>
                       </div>
                     </div>
 
-                    {/* GDP share bar */}
+                    {/* GDP bar: the economy's own GDP, as asked - it was its share of the world's, which left most bars a sliver. */}
                     <div className="mb-1">
-                      <div className="flex justify-between text-[9px] mb-0.5">
+                      <div className="flex justify-between text-[11px] mb-0.5">
                         <span className="text-muted-foreground font-sans">
-                          Share of Global GDP
+                          GDP
                         </span>
                         <span className="font-mono text-muted-foreground">
                           {na(economy.gdpTrillions, (v) => {
                             const pct = (v / WORLD_GDP_T) * 100;
-                            // A real share too small to show at one decimal.
-                            return pct < 0.1 ? "<0.1%" : `${pct.toFixed(1)}%`;
+                            // The figure itself, and its share of the world's beside it - a real share too small to show at one decimal says so.
+                            return `${fmtUsdT(v)} · ${pct < 0.1 ? "<0.1%" : `${pct.toFixed(1)}%`} of the world's`;
                           })}
                         </span>
                       </div>
-                      {/* On the scale of the world: the whole track is world GDP, and the bar is this economy's part of it. */}
-                      <div className="h-1 bg-muted rounded-full overflow-hidden">
+                      {/* On the scale of the largest of its kind: the whole track is the GDP of the largest country - or, for a region or a bloc, the largest of those - and the bar is this economy's own. */}
+                      <div
+                        className="h-1.5 bg-muted rounded-full overflow-hidden"
+                        title={`The full bar is ${(isGroup(economy) ? LARGEST_GDP.group : LARGEST_GDP.place).name}${/s$/.test((isGroup(economy) ? LARGEST_GDP.group : LARGEST_GDP.place).name) ? "'" : "'s"} ${fmtUsdT((isGroup(economy) ? LARGEST_GDP.group : LARGEST_GDP.place).gdpTrillions)}, the largest ${isGroup(economy) ? "region or bloc" : "single economy"} listed`}
+                      >
                         {has(economy.gdpTrillions) && (
                           <div
                             className="h-full rounded-full bg-sky-500"
                             style={{
-                              width: `${Math.min(100, (economy.gdpTrillions / WORLD_GDP_T) * 100)}%`,
+                              width: `${Math.min(100, (economy.gdpTrillions / (isGroup(economy) ? LARGEST_GDP.group : LARGEST_GDP.place).gdpTrillions) * 100)}%`,
                               minWidth: 2,
                             }}
                           />
@@ -2757,7 +2765,7 @@ export function EconomiesPage() {
                         ];
                         return (
                           <div className="mt-2 pt-2 border-t border-border/40">
-                            <p className="text-[9px] font-bold font-sans text-muted-foreground uppercase tracking-widest mb-1.5">
+                            <p className="text-[11px] font-bold font-sans text-muted-foreground uppercase tracking-widest mb-1.5">
                               Country Economic Stats
                             </p>
                             <div className="grid grid-cols-5 gap-1">
@@ -2770,7 +2778,7 @@ export function EconomiesPage() {
                                     {s.label}
                                   </p>
                                   <p
-                                    className={`text-[10px] font-bold font-mono leading-tight ${s.color}`}
+                                    className={`text-xs font-bold font-mono leading-tight ${s.color}`}
                                   >
                                     {s.value}
                                   </p>
@@ -2786,18 +2794,18 @@ export function EconomiesPage() {
                       {economy.topExports.slice(0, 3).map((exp) => (
                         <span
                           key={exp}
-                          className="text-[10px] bg-secondary/10 text-secondary border border-secondary/20 px-1.5 py-px rounded-full font-sans"
+                          className="text-xs bg-secondary/10 text-secondary border border-secondary/20 px-1.5 py-px rounded-full font-sans"
                         >
                           {exp}
                         </span>
                       ))}
                       {economy.topExports.length > 3 && (
-                        <span className="text-[10px] text-muted-foreground border border-border px-1.5 py-px rounded-full font-sans">
+                        <span className="text-xs text-muted-foreground border border-border px-1.5 py-px rounded-full font-sans">
                           +{economy.topExports.length - 3} more
                         </span>
                       )}
                       {economy.topExports.length === 0 && (
-                        <span className="text-[10px] text-muted-foreground font-sans py-px">
+                        <span className="text-xs text-muted-foreground font-sans py-px">
                           {economy.noFiguresReason ??
                             (economy.dataSources
                               ? `Figures from ${economy.dataSources[0].label.split(" — ")[0]}; no trade by product`
