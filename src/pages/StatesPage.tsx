@@ -38,6 +38,7 @@ import { HistoryPanel } from "@/components/HistoryPanel";
 import { usdFromBillions } from "@/lib/money";
 import { has } from "@/lib/na";
 import { SeeAlso } from "../components/SeeAlso";
+import { StateOutline } from "../components/PlaceOutlines";
 import { PlaceTopics } from "../components/PlaceTopics";
 
 // ─── Housing and commuting, from the American Community Survey ───────────
@@ -6179,6 +6180,9 @@ function StateModal({
           {
             activeTab === "overview" && (
               <>
+                {/* The state as the site's maps draw it, with the places listed inside it: the map every window of a place opens on. */}
+                <StateOutline name={state.name} />
+
                 {/* Key Stats — organized by category */}
 
                 {/* ── ECONOMIC ── */}

@@ -63,6 +63,7 @@ import { flagColor } from "../lib/flagColor";
 import { lockScroll } from "../lib/scrollLock";
 import { ArticlePanel } from "./HistoryPanel";
 import { ChartNote, FigureRow } from "./ModalCharts";
+import { CountryOutline } from "./PlaceOutlines";
 import { SeeAlso } from "./SeeAlso";
 
 /** The city's country's quality of life, as a profiled city's window gives it: loaded when a window opens. */
@@ -178,6 +179,8 @@ function CityWindow({ c, onBack, onClose }: { c: UnCity; /** Back to its country
   const [tab, setTab] = useState<Tab>("overview");
   const [wide, setWide] = useState(false);
   const profile = PROFILED.get(unCityId(c));
+  /* The city on its country's outline: where the UN centres it. */
+  const mark = useMemo(() => (lat !== null && lon !== null ? { id: unCityId(c), name, lon, lat, sub: `${land} · ${whole(p2)} people in ${Y2}, as the UN estimates${capital ? " · the capital" : ""}` } : undefined), [c, name, lat, lon, land, p2, capital]);
   const article = useArticle(c, tab === "history");
   useEffect(() => {
     // Escape goes back one window, as the back arrow does.
@@ -273,6 +276,7 @@ function CityWindow({ c, onBack, onClose }: { c: UnCity; /** Back to its country
 
           {tab === "overview" && (
             <div className="space-y-4">
+              {mark && <CountryOutline code={cc} name={land} mark={mark} className="" />}
               <Section title="👥 People & place" note="A city, to the UN, is contiguous 1 km² cells of at least 1,500 people each, holding 50,000 people or more - one rule for every city, whatever its boundary. That is why its figure and the city's own differ.">
                 <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
                   <Tile label="Population" value={whole(p2)} sub={`UN estimate, ${Y2}`} />
@@ -527,6 +531,15 @@ function CountryWindow({ row, top, asked, onOpen, onClose }: { row: Row; /** Whe
   const [query, setQuery] = useState(asked);
   const [sort, setSort] = useState<Sort>("population");
   const [shown, setShown] = useState(PAGE);
+  /* Its cities as the dots of the map at the head of its window: the largest three hundred, each where the UN centres it. */
+  const cityDots = useMemo(
+    () =>
+      row.cities
+        .filter((c) => c[3] !== null && c[4] !== null)
+        .slice(0, 300)
+        .map((c) => ({ id: unCityId(c), name: c[2], lon: c[4] as number, lat: c[3] as number, sub: `${whole(c[8])} people in ${Y2}, as the UN estimates${c[5] ? " · the capital" : ""}` })),
+    [row],
+  );
   useEffect(() => {
     if (!top) return;
     const onKey = (e: KeyboardEvent) => e.key === "Escape" && onClose();
@@ -577,6 +590,14 @@ function CountryWindow({ row, top, asked, onOpen, onClose }: { row: Row; /** Whe
               Its divisions <ArrowRight size={11} weight="bold" aria-hidden />
             </button>
           </div>
+          <CountryOutline
+            code={row.cc}
+            name={row.name}
+            dots={cityDots}
+            dotsAre={`${cityDots.length < row.cities.length ? `the ${cityDots.length} largest of the ${row.cities.length.toLocaleString("en-US")}` : `the ${cityDots.length}`} cities the United Nations counts there`}
+            dotsSource={UN_CITIES_SOURCE}
+            className=""
+          />
           <div className="flex flex-wrap items-center gap-2">
             <label className={`flex items-center gap-1.5 ${field} focus-within:border-foreground/40`}>
               <MagnifyingGlass size={13} className="text-muted-foreground shrink-0" aria-hidden />
@@ -588,6 +609,7 @@ function CountryWindow({ row, top, asked, onOpen, onClose }: { row: Row; /** Whe
                   setShown(PAGE);
                 }}
                 placeholder="Search its cities"
+
                 aria-label={`Search the cities of ${row.name}`}
                 className="bg-transparent w-44 sm:w-56 focus:outline-none placeholder:text-muted-foreground"
               />

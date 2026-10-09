@@ -472,7 +472,7 @@ function SubnationWindow({ s, onBack, onClose, onCounties }: { s: Subnation; /**
   const outline = useMemo(() => (drawn ? drawn.filter((f) => f.properties.n === s.name) : []), [drawn, s.name]);
   const listed = usePlaces(s.cc);
   const within = useMemo(() => (listed ? insideOf(listed, s) : null), [listed, s]);
-  const dots = useMemo(() => placeDots(within?.rows ?? []), [within]);
+  const dots = useMemo(() => placeDots(within?.rows ?? [], 300, listed), [within, listed]);
   /* Where a reader can check it: its own site first, then the reference records, Wikipedia last. */
   const read: Source[] = [
     ...(s.site ? [{ label: `${s.name} — official website`, url: s.site }] : []),
@@ -538,7 +538,7 @@ function CountyWindow({ county, data, onBack, onClose }: { county: UsCounty; dat
   const shapes = useMemo(() => (outline ? [outline] : []), [outline]);
   const listed = usePlaces("US");
   const rows = useMemo(() => (outline && listed ? placesWithin(outline, listed.places) : null), [outline, listed]);
-  const dots = useMemo(() => placeDots(rows ?? []), [rows]);
+  const dots = useMemo(() => placeDots(rows ?? [], 300, listed), [rows, listed]);
   const stateRecord = useMemo(() => SUBNATIONS.find((s) => s.code === `US-${abbr}`), [abbr]);
   /* Where it stands among its state's counties and the country's, by the same year's population: counted here from the Census Bureau's figures. */
   const end = (x: UsCounty) => x[7][x[7].length - 1];
@@ -706,7 +706,7 @@ function DistrictWindow({
     return shape && file ? placesWithin(shape, file.places) : null;
   }, [shape, file]);
   const shapes = useMemo(() => (shape ? [shape] : []), [shape]);
-  const dots = useMemo(() => placeDots(rows ?? []), [rows]);
+  const dots = useMemo(() => placeDots(rows ?? [], 300, file), [rows, file]);
   /* The division a place's window names for it: the one the district lies in, or, where none was found, the one GeoNames files the place under. */
   const division = (p: PlaceRow): Subnation => parent ?? { id: "", cc, name: file?.regions[p[4]] || name, lat: p[1], lon: p[2] };
   const color = flagColor(cc) ?? COLOR;
@@ -1102,7 +1102,8 @@ function CountryWindow({
   /* The map at the head of its window: its divisions as the site's maps draw them, framed without its far-off parts, with its largest listed places as dots. */
   const drawn = useAdmin1(row.cc);
   const frame = useMemo(() => (drawn ? framed(drawn) : undefined), [drawn]);
-  const dots = useMemo(() => placeDots(places?.places ?? [], 150), [places]);
+  const dots = useMemo(() => placeDots(places?.places ?? [], 150, places), [places]);
+
   const counties = useMemo(() => (countyData && countyState ? countyData.US_COUNTIES.filter((x) => x[2] === countyState) : []), [countyData, countyState]);
   const stateName = usStatesData.find((s) => s.abbreviation === countyState)?.name ?? countyState;
   return (

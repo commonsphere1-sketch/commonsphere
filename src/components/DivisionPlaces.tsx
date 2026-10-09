@@ -42,7 +42,7 @@
 import { lazy, Suspense, useEffect, useMemo, useState, type ReactNode } from "react";
 import { createPortal } from "react-dom";
 import { useNavigate } from "react-router-dom";
-import { ArrowLeft, ArrowRight, ClockCounterClockwise, ListBullets, MagnifyingGlass, MapPin, MapTrifold, X } from "@phosphor-icons/react";
+import { ArrowLeft, ArrowRight, ClockCounterClockwise, Info, ListBullets, MagnifyingGlass, MapPin, MapTrifold, X } from "@phosphor-icons/react";
 import { CHIP_TEXT } from "@/lib/chipTone";
 import { COUNTRY_PANELS, PANEL_SOURCES } from "../data/countryPanels";
 import { COUNTRY_OF } from "../data/placeIndex";
@@ -479,7 +479,21 @@ const Tile = ({ label, value, sub }: { label: string; value: string; sub?: strin
     {sub && <p className="text-[10px] text-muted-foreground font-sans mt-0.5 leading-snug">{sub}</p>}
   </div>
 );
-type Tab = "overview" | "history" | "map";
+type Tab = "overview" | "about" | "history" | "map";
+/** The opening of a Wikipedia article, as its summary gives it, by the article's title: null where it has none to give. */
+type Opening = { extract: string; description?: string };
+const OPENINGS = new Map<string, Promise<Opening | null>>();
+const opening = (title: string) => {
+  if (!OPENINGS.has(title))
+    OPENINGS.set(
+      title,
+      fetch(`https://en.wikipedia.org/api/rest_v1/page/summary/${encodeURIComponent(title.replace(/ /g, "_"))}`)
+        .then((r) => (r.ok ? r.json() : Promise.reject(new Error(String(r.status)))))
+        .then((j: { type?: string; extract?: string; description?: string }) => (j.type === "standard" && j.extract ? { extract: j.extract, description: j.description } : null))
+        .catch(() => null),
+    );
+  return OPENINGS.get(title)!;
+};
 /** The airports Natural Earth maps: [name, longitude, latitude, 1 where it classes the airport as major]. Fetched once, with the layer the maps draw them from. */
 type Airport = [name: string, lon: number, lat: number, major: number];
 let AIRPORTS: Promise<Airport[]> | null = null;
@@ -564,7 +578,7 @@ function PlaceWindow({
   /* Its article, for its history: the one its confirmed head's record names, or the nearest within ten kilometres whose title is the place's own name. */
   const [article, setArticle] = useState<string | null | undefined>(() => head?.[10] || ARTICLES.get(id));
   useEffect(() => {
-    if (tab !== "history" || article !== undefined) return;
+    if ((tab !== "history" && tab !== "about") || article !== undefined) return;
     let off = false;
     fetch(`https://en.wikipedia.org/w/api.php?action=query&list=geosearch&gscoord=${lat}%7C${lon}&gsradius=10000&gslimit=50&format=json&origin=*`)
       .then((r) => (r.ok ? r.json() : Promise.reject(new Error(String(r.status)))))
@@ -578,6 +592,16 @@ function PlaceWindow({
       off = true;
     };
   }, [tab, article, id, lat, lon, name]);
+  /* The opening of that article, for the About tab: undefined while it is fetched. */
+  const [lead, setLead] = useState<Opening | null | undefined>(undefined);
+  useEffect(() => {
+    if (tab !== "about" || !article) return;
+    let off = false;
+    opening(article).then((o) => !off && setLead(o));
+    return () => {
+      off = true;
+    };
+  }, [tab, article]);
 
   /* The people around it: its state's in the United States, its country's elsewhere - said to be so. */
   const stateRow = s.cc === "US" ? usStatesData.find((x) => `US-${x.abbreviation}` === s.code) : undefined;
@@ -680,6 +704,7 @@ function PlaceWindow({
             {(
               [
                 { key: "overview", label: "Overview", icon: <ListBullets size={14} /> },
+                { key: "about", label: "About", icon: <Info size={14} /> },
                 { key: "history", label: "History", icon: <ClockCounterClockwise size={14} /> },
                 { key: "map", label: "Map", icon: <MapTrifold size={14} /> },
               ] as const
@@ -721,8 +746,8 @@ function PlaceWindow({
                 <Part title="📍 Where it is" note={`${name}, marked on the outline of ${around.name} as the site's maps draw it, with the places nearest it as the smaller dots.`}>
                   <OutlineMap
                     shapes={[around.shape]}
-                    mark={{ id, name, lon, lat }}
-                    dots={neighbours.map(({ row }) => ({ id: row[6], name: row[0], lon: row[2], lat: row[1] }))}
+                    mark={{ id, name, lon, lat, sub: [...new Set([district, s.name, country].filter(Boolean))].join(" · ") }}
+                    dots={neighbours.map(({ row, km: far }) => ({ id: row[6], name: row[0], lon: row[2], lat: row[1], sub: `${far < 10 ? far.toFixed(1) : whole(far)} km from ${name}, in a straight line` }))}
                     color={flagColor(s.cc) ?? "#0ea5e9"}
                     label={`${name}, marked on the outline of ${around.name}`}
                   />
@@ -859,7 +884,61 @@ function PlaceWindow({
             </div>
           )}
 
+          {tab === "about" && (
+            <div className="space-y-4">
+              <Part title="ℹ About" note="What the site's records say of it, set out in a sentence. Nothing in it is worked out.">
+                <p className="text-sm font-sans text-foreground leading-relaxed">
+                  {name} is in {[...new Set([district, s.name, country].filter(Boolean))].join(", ")}. GeoNames classes it as “{PLACE_KINDS[kind].toLowerCase()}”
+                  {pop > 0 ? ` and records ${whole(pop)} people there, without a date` : ", and records no population for it"}. It lies at {coords(lat, lon)}
+                  {head ? `. Its head, as three records agree, is ${head[3]}` : ""}.
+                </p>
+              </Part>
+
+              <Part title="📖 As its article opens">
+                {article === undefined || (article && lead === undefined) ? (
+                  <p className="text-[11px] font-sans text-muted-foreground">Looking for the article on {name}…</p>
+                ) : article && lead ? (
+                  <>
+                    {lead.description && <p className="text-[11px] font-mono text-muted-foreground mb-1.5">{lead.description}</p>}
+                    <p className="text-[13px] font-sans text-foreground leading-relaxed modal-tile rounded-xl px-4 py-3">{lead.extract}</p>
+                    <ChartNote>
+                      The opening of Wikipedia's article “{article}”, as its own summary gives it (CC BY-SA 4.0); the History tab has more of it. The article is the one of the
+                      place's name found where GeoNames places it.
+                    </ChartNote>
+                  </>
+                ) : (
+                  <p className="text-[11px] font-sans text-muted-foreground leading-snug">
+                    Not held: no Wikipedia article by the name of {name} was found where GeoNames places it, so no description is shown rather than another place's.
+                  </p>
+                )}
+              </Part>
+
+              <Part title="🗂 At a glance">
+                <div className="modal-tile rounded-xl px-4 py-1.5">
+                  <FigureRow label="Name" value={name} />
+                  <FigureRow label="What it is" value={PLACE_KINDS[kind]} sub="as GeoNames classes it" />
+                  <FigureRow label="County or district" value={district || <span className="font-normal text-muted-foreground">Not held</span>} />
+                  <FigureRow label="Division" value={s.name} sub={s.kind} />
+                  <FigureRow label="Country" value={country} sub={`ISO 3166-1: ${s.cc}`} />
+                  <FigureRow label="People" value={pop > 0 ? whole(pop) : <span className="font-normal text-muted-foreground">Not held</span>} sub={pop > 0 ? "GeoNames, undated" : undefined} />
+                  <FigureRow label="Coordinates" value={coords(lat, lon)} sub="where GeoNames places it" />
+                </div>
+              </Part>
+
+              <Part title="🔎 Where to read more">
+                <SourceLink
+                  sources={[
+                    { label: `GeoNames — its record for ${name}`, url: `https://www.geonames.org/${id}` },
+                    { label: "OpenStreetMap — the place on the map", url: `https://www.openstreetmap.org/?mlat=${lat}&mlon=${lon}#map=12/${lat}/${lon}` },
+                    ...(article ? [{ label: `Wikipedia — ${article}`, url: `https://en.wikipedia.org/wiki/${encodeURIComponent(article.replace(/ /g, "_"))}` }] : []),
+                  ]}
+                />
+              </Part>
+            </div>
+          )}
+
           {tab === "history" &&
+
             (article === undefined ? (
               <p className="text-xs font-sans text-muted-foreground py-6 text-center">Looking for the article on {name}…</p>
             ) : article ? (

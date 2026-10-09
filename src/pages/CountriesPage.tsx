@@ -61,6 +61,7 @@ import { FollowedPlaces } from "@/components/FollowedPlaces";
 import { DataExplorer } from "@/components/DataExplorer";
 import { HistoryPanel } from "@/components/HistoryPanel";
 import { fmtArea, fmtGDP, fmtPop } from "@/lib/placeFormat";
+import { CountryOutline } from "@/components/PlaceOutlines";
 
 // ── Source citation constants ────────────────────────────────────────────
 // ── Extended per-country data ────────────────────────────────────────────────
@@ -906,6 +907,9 @@ function CountryModal({
                figures; its card goes straight to its geography below. */
             activeTab === "overview" && !country.uninhabited && (
               <>
+                {/* The country as the site's maps draw it, with its largest listed places: the map every window of a place opens on. */}
+                <CountryOutline code={country.code} name={country.name} />
+
                 {/* ── SOCIAL & HUMAN DEVELOPMENT CATEGORY ── */}
                 <div className="mb-4">
                   <div className="flex items-center gap-2 mb-2">

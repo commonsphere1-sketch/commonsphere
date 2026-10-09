@@ -10,7 +10,7 @@ import { useEffect, useState } from "react";
 import { geoArea, geoBounds, geoCentroid, geoContains, geoDistance } from "d3-geo";
 import { feature } from "topojson-client";
 import type { Topology } from "topojson-specification";
-import type { PlaceRow } from "../data/placesIndex";
+import type { PlaceRow, PlacesFile } from "../data/placesIndex";
 
 export type Outline = { type: string; id?: string | number; properties: Record<string, string | undefined>; geometry: { type: string; coordinates: unknown[] } };
 
@@ -77,7 +77,35 @@ export function useAdmin1(cc: string | null): Outline[] | null | undefined {
   return got && got.cc === cc ? got.list : undefined;
 }
 
+const PLACES = new Map<string, Promise<PlacesFile | null>>();
+const placesFile = (cc: string) => {
+  if (!PLACES.has(cc))
+    PLACES.set(
+      cc,
+      fetch(`/places/${cc}.json`)
+        .then((r) => (r.ok ? (r.json() as Promise<PlacesFile>) : null))
+        .catch(() => null),
+    );
+  return PLACES.get(cc)!;
+};
+
+/** A country's listed places, largest first, for a map's dots: undefined while they are fetched, null where there is no list. Nothing is fetched for a null country. */
+export function usePlacesFile(cc: string | null): PlacesFile | null | undefined {
+  const [got, setGot] = useState<{ cc: string; file: PlacesFile | null } | null>(null);
+  useEffect(() => {
+    if (!cc) return;
+    let off = false;
+    placesFile(cc).then((file) => !off && setGot({ cc, file }));
+    return () => {
+      off = true;
+    };
+  }, [cc]);
+  if (!cc) return null;
+  return got && got.cc === cc ? got.file : undefined;
+}
+
 let COUNTIES: Promise<Map<string, Outline>> | null = null;
+
 const counties = () =>
   (COUNTIES ??= import("us-atlas/counties-10m.json").then((m) => {
     const topo = (m.default ?? m) as unknown as Topology;
