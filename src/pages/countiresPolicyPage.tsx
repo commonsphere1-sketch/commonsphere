@@ -10393,8 +10393,11 @@ function PolicyCardItem({ card, open, onToggle, panelId }: { card: PolicyCard; o
   const head = fig.head;
 
   return (
+    // The whole card opens its details, as asked - a press anywhere on it. The button at its foot is still there for a
+    // keyboard and says whether the details are open; its press reaches the card, so it is answered once.
     <div
-      className={`bg-card rounded-2xl border p-4 flex flex-col gap-2.5 hover:shadow-sm transition-all duration-150 w-64 shrink-0 snap-start ${
+      onClick={onToggle}
+      className={`bg-card rounded-2xl border p-4 flex flex-col gap-2.5 hover:shadow-sm transition-all duration-150 w-64 shrink-0 snap-start cursor-pointer ${
         open ? "border-foreground shadow-sm" : "border-border/50 hover:border-border/80"
       }`}
     >
@@ -10433,9 +10436,9 @@ function PolicyCardItem({ card, open, onToggle, panelId }: { card: PolicyCard; o
 
       <button
         type="button"
-        onClick={onToggle}
         aria-expanded={open}
         aria-controls={panelId}
+
         className="mt-auto pt-1 flex items-center gap-1 text-[11px] font-semibold text-foreground cursor-pointer select-none self-start"
       >
         <CaretDown size={11} weight="bold" className={`transition-transform ${open ? "rotate-180" : ""}`} />
