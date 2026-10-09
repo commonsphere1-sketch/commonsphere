@@ -40,6 +40,7 @@ import { ECONOMY_ISO3, type EconomyRents } from "../data/resourceRents";
 import { useResourceRents } from "../hooks/useResourceRents";
 import { useLiveStatus } from "../lib/liveFigures";
 import { SourceLink } from "../components/SourceLink";
+import EconomyManufacturing from "../components/EconomyManufacturing";
 import { countriesData } from "../data/countriesData";
 import { CODE_OF_ECONOMY } from "../data/placeIndex";
 import { SeeAlso } from "../components/SeeAlso";
@@ -1386,7 +1387,11 @@ function EconomyModal({
                 </div>
               )}
 
+              {/* ── MANUFACTURING ── its figures, its record over the years and its place among manufacturers; left out where the World Bank publishes nothing. */}
+              <EconomyManufacturing economy={economy} />
+
               {/* ── TRADE & PARTNERS ── */}
+
               {(economy.topExports.length > 0 ||
                 economy.tradingPartners.length > 0) && (
               <div>

@@ -22,6 +22,14 @@ export interface DataLogEntry {
 
 export const DATA_LOG: DataLogEntry[] = [
   {
+    "what": "Each economy's manufacturing: value added, share of GDP, growth, manufactures in trade, high-technology exports, jobs in industry",
+    "from": "World Bank",
+    "page": "/dashboard/economies",
+    "where": "Economies",
+    "read": "2026-10-09",
+    "files": 1
+  },
+  {
     "what": "Which divisions' flags are saved with the site, and under what file name",
     "from": "Wikimedia Commons",
     "page": "/dashboard/subnations",
@@ -384,4 +392,4 @@ export const DATA_LOG: DataLogEntry[] = [
 ];
 
 /** How many data files the log covers. */
-export const DATA_LOG_FILES = 66;
+export const DATA_LOG_FILES = 67;
