@@ -63,6 +63,7 @@ import { flagColor } from "../lib/flagColor";
 import { lockScroll } from "../lib/scrollLock";
 import { ArticlePanel } from "./HistoryPanel";
 import { ChartNote, FigureRow } from "./ModalCharts";
+import CityAnalysis from "./CityAnalysis";
 import { CountryOutline } from "./PlaceOutlines";
 import { SeeAlso } from "./SeeAlso";
 
@@ -285,17 +286,16 @@ function CityWindow({ c, onBack, onClose }: { c: UnCity; /** Back to its country
                 </div>
               </Section>
 
-              {eco && (
-                <Section title="💰 Economy & institutions" note={`These are ${land}'s figures, not ${name}'s: no body publishes them city by city.`}>
-                  <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
-                    {eco.gdpPerCapita && <Tile label="GDP per person" value={`$${eco.gdpPerCapita.v.toLocaleString("en-US")}`} sub={`${land}, current US$, ${eco.gdpPerCapita.y}`} />}
-                    {eco.gdpGrowthRate && <Tile label="Real GDP growth" value={`${eco.gdpGrowthRate.v > 0 ? "+" : ""}${eco.gdpGrowthRate.v}%`} sub={`${land}, ${eco.gdpGrowthRate.y}`} />}
-                    {eco.unemploymentRate && <Tile label="Unemployment" value={`${eco.unemploymentRate.v}%`} sub={`${land}, of the labour force, ${eco.unemploymentRate.y}`} />}
-                    {eco.inflationRate && <Tile label="Inflation" value={`${eco.inflationRate.v}%`} sub={`${land}, consumer prices, ${eco.inflationRate.y}`} />}
-                  </div>
-                  <SourceLink sources={[ECONOMY_INDICATORS_SOURCE.worldBank, ECONOMY_INDICATORS_SOURCE.imf]} className="mt-2" />
-                </Section>
-              )}
+              {/* The city's own figures, set out and worked through: everything the UN gives for it, year by year. Until its file is in, or where it has none, the four figures the list carries are drawn. */}
+              <CityAnalysis
+                c={c}
+                color={flagColor(cc) ?? COLOR}
+                fallback={
+                  <Section title={`📈 Population, ${Y0} to ${Y3}`} note={`The UN's figures for ${Y0}, ${Y1} and ${Y2}, and its projection for ${Y3}, on an axis from zero.`}>
+                    {chart}
+                  </Section>
+                }
+              />
 
               {/* The plain record the window first held: one of the Overview's sections. */}
               <Section title="📋 Its record" note="What the United Nations publishes for every city alike. A change is worked out here from two of its figures.">
@@ -325,11 +325,26 @@ function CityWindow({ c, onBack, onClose }: { c: UnCity; /** Back to its country
                 <SourceLink sources={[UN_CITIES_SOURCE]} className="mt-2" />
               </Section>
 
-              <Section title={`📈 Population, ${Y0} to ${Y3}`} note={`The UN's figures for ${Y0}, ${Y1} and ${Y2}, and its projection for ${Y3}, on an axis from zero.`}>
-                {chart}
-              </Section>
+              {/* What follows is its country's, set apart at the foot and said to be so: nobody publishes these city by city. */}
+              <div className="flex items-center gap-2 pt-3">
+                <h3 className="text-xs font-bold font-sans text-foreground uppercase tracking-wide">{land}, the country it is in</h3>
+                <div className="flex-1 h-px bg-border" />
+              </div>
+
+              {eco && (
+                <Section title="💰 Economy & institutions" note={`These are ${land}'s figures, not ${name}'s: no body publishes them city by city.`}>
+                  <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+                    {eco.gdpPerCapita && <Tile label="GDP per person" value={`$${eco.gdpPerCapita.v.toLocaleString("en-US")}`} sub={`${land}, current US$, ${eco.gdpPerCapita.y}`} />}
+                    {eco.gdpGrowthRate && <Tile label="Real GDP growth" value={`${eco.gdpGrowthRate.v > 0 ? "+" : ""}${eco.gdpGrowthRate.v}%`} sub={`${land}, ${eco.gdpGrowthRate.y}`} />}
+                    {eco.unemploymentRate && <Tile label="Unemployment" value={`${eco.unemploymentRate.v}%`} sub={`${land}, of the labour force, ${eco.unemploymentRate.y}`} />}
+                    {eco.inflationRate && <Tile label="Inflation" value={`${eco.inflationRate.v}%`} sub={`${land}, consumer prices, ${eco.inflationRate.y}`} />}
+                  </div>
+                  <SourceLink sources={[ECONOMY_INDICATORS_SOURCE.worldBank, ECONOMY_INDICATORS_SOURCE.imf]} className="mt-2" />
+                </Section>
+              )}
 
               {/* Quality of life: its country's, said to be so - as a profiled city's window gives it. */}
+
               <Suspense fallback={<p className="text-xs font-sans text-muted-foreground">Loading {land}'s figures…</p>}>
                 <CountryQuality code={cc} country={land} place={name} />
               </Suspense>
