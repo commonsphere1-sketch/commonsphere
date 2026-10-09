@@ -87,7 +87,7 @@ import CountryQuality, { inSentence, qualityOf } from "../components/CountryQual
 import { DivisionPlaces, PlaceHost, PlacesAnalysis, PlacesInside, insideOf, usePlaces, type Inside } from "../components/DivisionPlaces";
 import { FilterBar } from "../components/FilterBar";
 import { ArticlePanel } from "../components/HistoryPanel";
-import { ChartTitle, FigureRow, MeasureBars } from "../components/ModalCharts";
+import { ChartNote, ChartTitle, FigureRow, MeasureBars, PartsBar, PartsDonut } from "../components/ModalCharts";
 import { OutlineMap, placeDots, type MapDot } from "../components/OutlineMap";
 import { SourceLink } from "../components/SourceLink";
 import { countriesData } from "../data/countriesData";
@@ -408,6 +408,106 @@ function partsOf(s: Subnation, d?: DivisionDetails): { parts: Part[]; sources: S
   /** Said beside a figure that is the division's own, from its record: its year, and that the record cites a source for it. */
   const own = (year: number) => `${year} · its own · a dated, sourced figure in ${wd}`;
   const ownMoney = Boolean(d?.gdp || d?.gdpPc || d?.income || d?.unemployment);
+
+  /* ── Its charts, each in the category it belongs to and drawn with the site's own: parts of a whole as one bar, one measure across things as bars on a shared scale. Each is there only where its figures are. ── */
+  const tone = flagColor(s.cc) ?? COLOR;
+  const chartTile = "modal-tile rounded-xl p-4 mt-2 flex flex-col gap-4";
+  const share = (a: number, b: number) => Number(((100 * a) / (a + b)).toFixed(1));
+  const sexes = d?.women && d?.men && d.women[0] === d.men[0] ? { year: d.women[0], women: d.women[1], men: d.men[1] } : null;
+  const settled = d?.urban && d?.rural && d.urban[0] === d.rural[0] && d.urban[1] + d.rural[1] > 0 ? { year: d.urban[0], urban: d.urban[1], rural: d.rural[1] } : null;
+  const countryPop = countryPeople(s.cc);
+  const ofCountry = !m && s.pop && countryPop && s.pop[1] < countryPop.v ? Number(((100 * s.pop[1]) / countryPop.v).toFixed(s.pop[1] / countryPop.v < 0.01 ? 2 : 1)) : null;
+  const peopleCharts =
+    m || sexes || settled || ofCountry !== null ? (
+      <div className={chartTile}>
+        {m && (
+          <div>
+            <ChartTitle>
+              Age · % of people · {m.ageGroups.y}
+            </ChartTitle>
+            <PartsBar label={`The people of ${s.name} by age, ${m.ageGroups.y}`} parts={m.ageGroups.groups.map((g) => ({ label: g.group, value: g.pct, text: `${g.pct}%` }))} columns={3} />
+          </div>
+        )}
+        {m && (
+          <div>
+            <ChartTitle>
+              Origins · % of people · {m.ethnicity.y}
+            </ChartTitle>
+            <PartsDonut label={`The people of ${s.name} by origin, ${m.ethnicity.y}`} parts={m.ethnicity.groups.map((g) => ({ label: g.group, value: g.pct, text: `${g.pct}%` }))} />
+          </div>
+        )}
+        {sexes && (
+          <div>
+            <ChartTitle>Women and men · {sexes.year}</ChartTitle>
+            <PartsBar
+              label={`The people of ${s.name} by sex, ${sexes.year}`}
+              parts={[
+                { label: "Women", value: sexes.women, text: `${share(sexes.women, sexes.men)}% · ${whole(sexes.women)}`, color: "#ec4899" },
+                { label: "Men", value: sexes.men, text: `${share(sexes.men, sexes.women)}% · ${whole(sexes.men)}`, color: "#3b82f6" },
+              ]}
+            />
+          </div>
+        )}
+        {settled && (
+          <div>
+            <ChartTitle>In towns and in the country · {settled.year}</ChartTitle>
+            <PartsBar
+              label={`The people of ${s.name} by where they live, ${settled.year}`}
+              parts={[
+                { label: "Urban", value: settled.urban, text: `${share(settled.urban, settled.rural)}% · ${whole(settled.urban)}` },
+                { label: "Rural", value: settled.rural, text: `${share(settled.rural, settled.urban)}% · ${whole(settled.rural)}` },
+              ]}
+            />
+          </div>
+        )}
+        {ofCountry !== null && (
+          <div>
+            <ChartTitle>Of {inSentence(country)}'s people</ChartTitle>
+            <PartsBar
+              label={`${s.name}'s share of the people of ${country}`}
+              parts={[
+                { label: s.name, value: ofCountry, text: `${ofCountry}%`, color: tone },
+                { label: `The rest of ${inSentence(country)}`, value: Number((100 - ofCountry).toFixed(2)), text: `${(100 - ofCountry).toFixed(ofCountry < 1 ? 2 : 1)}%`, color: "#94a3b8" },
+              ]}
+            />
+            <ChartNote>
+              Worked out here: its {people(s.pop![1])} people in {s.pop![0]}, over {inSentence(country)}'s {people(countryPop!.v)} in {countryPop!.y}. The two are not of one year or one source, so the share is near and not exact.
+            </ChartNote>
+          </div>
+        )}
+        {(sexes || settled) && <ChartNote>The shares are worked out here from the two figures its Wikidata record gives for the year.</ChartNote>}
+      </div>
+    ) : undefined;
+  /** One measure, the division's own beside its country's: two bars on one scale, each with its year. */
+  const beside = (title: string, mine: [number, number] | undefined, theirsOf: { v: number; y: string } | undefined, unit: string, max?: number) =>
+    !m && mine && theirsOf ? (
+      <div>
+        <ChartTitle>{title}</ChartTitle>
+        <MeasureBars
+          max={max}
+          label={`${title}: ${s.name} beside ${country}`}
+          rows={[
+            { key: "own", label: `${s.name} · its own`, value: mine[1], text: `${mine[1]}${unit}`, sub: String(mine[0]), color: tone },
+            { key: "theirs", label: country, value: theirsOf.v, text: `${theirsOf.v}${unit}`, sub: theirsOf.y, color: "#94a3b8" },
+          ]}
+        />
+      </div>
+    ) : null;
+  const workChart = beside("Unemployment · % of the labour force", d?.unemployment, ci?.unemploymentRate, "%", undefined);
+  const lifeChart = beside("Life expectancy · years", d?.lifeExp, ci?.lifeExpectancy, " years", undefined);
+  const readers = quality?.groups.find((g) => g.title === "Education")?.rows.find((x) => x.label === "Adults who can read");
+  const readChart = beside("Adults who can read · %", d?.literacy, readers && Number.isFinite(parseFloat(readers.value)) ? { v: parseFloat(readers.value), y: readers.sub } : undefined, "%", 100);
+  const voteChart = m ? (
+    <div className={chartTile}>
+      <div>
+        <ChartTitle>The 2024 presidential vote · % · {m.voterShare.y}</ChartTitle>
+        <PartsBar
+          label={`The 2024 presidential vote in ${s.name}`}
+          parts={m.voterShare.groups.map((g) => ({ label: g.party, value: g.pct, text: `${g.pct}%`, color: /democrat/i.test(g.party) ? "#3b82f6" : /republican/i.test(g.party) ? "#ef4444" : undefined }))}
+        />
+      </div>
+    </div>
+  ) : undefined;
   if (s.capitalBy === "gn") cite(SUBNATIONS_SOURCES.geonames);
   if (s.popBy || s.areaBy || s.flagBy || s.capitalBy === "wp") cite(SUBNATIONS_SOURCES.wikipedia);
   /** Said beside a value that is the infobox's and not the record's. */
@@ -522,6 +622,7 @@ function partsOf(s: Subnation, d?: DivisionDetails): { parts: Part[]; sources: S
         ...held("Rural population", d?.rural && whole(d.rural[1]), d?.rural && own(d.rural[0])),
         ...held("Fertility", d?.fertility && `${d.fertility[1]} children a woman`, d?.fertility && own(d.fertility[0])),
       ],
+      extra: peopleCharts,
     },
     {
       title: "Economy",
@@ -550,6 +651,7 @@ function partsOf(s: Subnation, d?: DivisionDetails): { parts: Part[]; sources: S
             { label: "Unemployment", value: ci?.unemploymentRate ? `${ci.unemploymentRate.v}%` : null, sub: ci?.unemploymentRate ? `${theirs} · ${ci.unemploymentRate.y}` : undefined },
             { label: "Trade", value: null },
           ],
+      extra: workChart ? <div className={chartTile}>{workChart}</div> : undefined,
     },
     {
       title: "Society",
@@ -573,6 +675,13 @@ function partsOf(s: Subnation, d?: DivisionDetails): { parts: Part[]; sources: S
             { ...row("Economy", "Below the national poverty line"), label: "Poverty: below the national poverty line" },
             { ...row("Business", "People using the internet"), label: "Development: people using the internet" },
           ],
+      extra:
+        lifeChart || readChart ? (
+          <div className={chartTile}>
+            {readChart}
+            {lifeChart}
+          </div>
+        ) : undefined,
     },
     {
       title: "Political data",
@@ -591,6 +700,7 @@ function partsOf(s: Subnation, d?: DivisionDetails): { parts: Part[]; sources: S
             { label: "Representatives", value: chair ? chair[3] : null, sub: chair ? `${chair[2]} of the ${chair[1]} · named by the list and by the assembly's own article` : undefined },
             { label: "Political institutions", value: s.legislature, sub: wd },
           ],
+      extra: voteChart,
     },
     {
       title: "Historical trends",
@@ -698,11 +808,35 @@ function SubnationWindow({ s, onBack, onClose, onCounties }: { s: Subnation; /**
               </div>
             </section>
           )}
+          {/* Its largest places, as bars: the head of the list the Municipalities part holds whole. */}
+          {within && within.rows.filter((p) => p[3] > 0).length > 1 && (
+            <section>
+              <div className="flex items-center gap-2 mb-2">
+                <h3 className="text-[10px] font-bold font-sans text-muted-foreground uppercase tracking-widest">🏙️ Its largest places</h3>
+                <div className="flex-1 h-px bg-border/60" />
+              </div>
+              <div className="modal-tile rounded-xl p-4">
+                <ChartTitle>People, as GeoNames has them · undated</ChartTitle>
+                <MeasureBars
+                  color={flagColor(s.cc) ?? COLOR}
+                  label={`The largest places of ${s.name} by their people`}
+                  rows={within.rows
+                    .filter((p) => p[3] > 0)
+                    .slice(0, 6)
+                    .map((p) => ({ key: String(p[6]), label: p[0], value: p[3], text: whole(p[3]) }))}
+                />
+              </div>
+              <p className="text-[10px] font-sans text-muted-foreground leading-snug mt-1">
+                The first of the {whole(within.rows.length)} places GeoNames lists in {s.name}; all of them, a card each, are under Municipalities.
+              </p>
+            </section>
+          )}
           {parts.map((p) => (
             <Section key={p.title} part={p} />
           ))}
           <div>
             <p className="text-[10px] font-bold font-sans text-muted-foreground uppercase tracking-widest mb-1">Where to read more</p>
+
             <SourceLink sources={read} />
           </div>
         </>
