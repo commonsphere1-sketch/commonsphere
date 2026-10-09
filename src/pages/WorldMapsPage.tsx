@@ -3328,19 +3328,15 @@ export function WorldMapsPage() {
             <CaretDown size={10} weight="bold" className={`transition-transform ${showAdditionalLayers ? "rotate-180" : ""}`} />
             More
           </button>
+          {/* The layers themselves, on the same line as asked: they follow "More" when it is open, and the row moves along to reach the rest. */}
+          {showAdditionalLayers && OVERLAYS.map((o) => layerButton(o, layers, set))}
           {markChip}
           {/* Which place that is: any country, or a US state. Pressing one on a map chooses it too. */}
           <CountrySearch chip options={markOptions} onPick={pickMark} placeholder="Highlight a country or state" label="Choose the country or US state to pick out on the maps" />
         </ChipRow>
-        {showAdditionalLayers && (
-          <div className="flex flex-wrap items-center gap-2 pl-6">
-            {OVERLAYS.map((o) => (
-              layerButton(o, layers, set)
-            ))}
-          </div>
-        )}
       </div>
     );
+
   };
 
   const chip = (active: boolean) =>
