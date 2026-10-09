@@ -38,7 +38,7 @@
  * neighbours can still be told apart.
  *
  * In the dark theme the map is drawn as the windows' own maps are
- * (components/OutlineMap): the land a wash of one colour on a pane of glass -
+ * (components/OutlineMap): the land a wash of one colour on black -
  * the slate blue of the map the look was asked for from, on the world and on
  * every country alike - with its borders in the colour itself; a place still
  * lights in its own flag's colour when it is pointed at. In the light theme
@@ -515,7 +515,8 @@ export default function PlaceAtlas() {
             ref={svgRef}
             viewBox={`${view.x - W / (2 * view.k)} ${view.y - H / (2 * view.k)} ${W / view.k} ${H / view.k}`}
             className="w-full h-auto rounded-xl outline-none focus-visible:ring-2 focus-visible:ring-secondary/60"
-            style={{ background: glass ? "rgba(255,255,255,0.06)" : t.tile, border: `1px solid ${glass ? "rgba(255,255,255,0.12)" : t.gridLine}`, ["--atlas-land" as string]: glass ? wash : land, ["--atlas-hot" as string]: COLOR, cursor: view.k > 1 ? "grab" : undefined, touchAction: view.k > 1 ? "none" : undefined }}
+            // The ground under the map is plain, as asked: black in the dark theme, white in the light.
+            style={{ background: glass ? "#000000" : "#ffffff", border: `1px solid ${glass ? "rgba(255,255,255,0.12)" : t.gridLine}`, ["--atlas-land" as string]: glass ? wash : land, ["--atlas-hot" as string]: COLOR, cursor: view.k > 1 ? "grab" : undefined, touchAction: view.k > 1 ? "none" : undefined }}
             role="group"
             tabIndex={0}
             aria-label={`A map to press. ${what} With the map in focus, plus and minus draw it closer and further, the arrow keys move it and 0 puts it back.`}
@@ -557,12 +558,9 @@ export default function PlaceAtlas() {
               <filter id="atlas-lift" x="-10%" y="-10%" width="120%" height="130%">
                 <feDropShadow dx="0" dy={3 / view.k} stdDeviation={2.2 / view.k} floodColor="#000000" floodOpacity={t.isLight ? 0.28 : 0.75} />
               </filter>
-              <linearGradient id="atlas-sea" x1="0" y1="0" x2="0" y2="1">
-                <stop offset="0%" stopColor={t.isLight ? "#f4f6fa" : "#1b1c22"} />
-                <stop offset="100%" stopColor={t.isLight ? "#dfe4ec" : "#0a0a0d"} />
-              </linearGradient>
+
             </defs>
-            {!glass && <rect x={0} y={0} width={W} height={H} fill="url(#atlas-sea)" pointerEvents="none" />}
+
             {!glass && slab && <path d={slab} transform={`translate(0 ${2.6 / view.k})`} fill={t.isLight ? "#9aa4b5" : "#1f2128"} filter="url(#atlas-lift)" pointerEvents="none" />}
             {shapes.map((s) => (
               <path
