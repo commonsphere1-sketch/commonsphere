@@ -37,7 +37,12 @@
  * of its own in a shade of the colour of the place it belongs to, so that
  * neighbours can still be told apart.
  *
- * The land is drawn raised off the card: a darker slab under it, set a little
+ * In the dark theme the map is drawn as the windows' own maps are
+ * (components/OutlineMap): the land a wash of one colour on a pane of glass -
+ * the slate blue of the map the look was asked for from, on the world and on
+ * every country alike - with its borders in the colour itself; a place still
+ * lights in its own flag's colour when it is pointed at. In the light theme
+ * the land is drawn raised off the card: a darker slab under it, set a little
  * down, and a shadow under that - a look, and no more; it says nothing about
  * height. On the map of the United States the county lines are drawn too,
  * fine, under the states' own. Where the counties or districts are the
@@ -80,6 +85,9 @@ const BOX: [[number, number], [number, number]] = [
   [W - 6, H - 6],
 ];
 const COLOR = "#3b82f6";
+/** The land's colour in the dark theme: the slate blue of the window map the look was asked for from, for every map alike. */
+const WASH = "#617895";
+
 
 type Geo = { type: string; id?: string | number; properties: Record<string, string>; geometry: { type: string; coordinates: unknown[] } };
 type Level = { kind: "world" } | { kind: "country"; code: string };
@@ -425,6 +433,10 @@ export default function PlaceAtlas() {
   // In the dark theme the land is a dark grey again, as asked - but a step lighter than it first was, so that it stands clear of the card behind it.
   const land = t.isLight ? "#dfe3ea" : "#4e5262";
   const edge = t.isLight ? "#ffffff" : "#0b0b0d";
+  /* The dark theme's look, as the windows' maps have it: a wash of one colour on glass, its borders in the colour itself. The raised look stays with the light theme. */
+  const glass = !t.isLight;
+  const wash = WASH;
+  const line = glass ? wash : edge;
   /** The casing round a place that is picked out, so that its edge reads on any ground. */
   const halo = t.isLight ? "#ffffff" : "#000000";
   const chip = (on: boolean) =>
@@ -503,7 +515,7 @@ export default function PlaceAtlas() {
             ref={svgRef}
             viewBox={`${view.x - W / (2 * view.k)} ${view.y - H / (2 * view.k)} ${W / view.k} ${H / view.k}`}
             className="w-full h-auto rounded-xl outline-none focus-visible:ring-2 focus-visible:ring-secondary/60"
-            style={{ background: t.tile, border: `1px solid ${t.gridLine}`, ["--atlas-land" as string]: land, ["--atlas-hot" as string]: COLOR, cursor: view.k > 1 ? "grab" : undefined, touchAction: view.k > 1 ? "none" : undefined }}
+            style={{ background: glass ? "rgba(255,255,255,0.06)" : t.tile, border: `1px solid ${glass ? "rgba(255,255,255,0.12)" : t.gridLine}`, ["--atlas-land" as string]: glass ? wash : land, ["--atlas-hot" as string]: COLOR, cursor: view.k > 1 ? "grab" : undefined, touchAction: view.k > 1 ? "none" : undefined }}
             role="group"
             tabIndex={0}
             aria-label={`A map to press. ${what} With the map in focus, plus and minus draw it closer and further, the arrow keys move it and 0 puts it back.`}
@@ -550,8 +562,8 @@ export default function PlaceAtlas() {
                 <stop offset="100%" stopColor={t.isLight ? "#dfe4ec" : "#0a0a0d"} />
               </linearGradient>
             </defs>
-            <rect x={0} y={0} width={W} height={H} fill="url(#atlas-sea)" pointerEvents="none" />
-            {slab && <path d={slab} transform={`translate(0 ${2.6 / view.k})`} fill={t.isLight ? "#9aa4b5" : "#1f2128"} filter="url(#atlas-lift)" pointerEvents="none" />}
+            {!glass && <rect x={0} y={0} width={W} height={H} fill="url(#atlas-sea)" pointerEvents="none" />}
+            {!glass && slab && <path d={slab} transform={`translate(0 ${2.6 / view.k})`} fill={t.isLight ? "#9aa4b5" : "#1f2128"} filter="url(#atlas-lift)" pointerEvents="none" />}
             {shapes.map((s) => (
               <path
                 key={s.key}
@@ -559,9 +571,10 @@ export default function PlaceAtlas() {
                 className="cursor-pointer fill-[var(--atlas-land)] outline-none"
                 // Where the cities are what is pressed, a country still opens the map on itself; a division under the dots does nothing.
                 style={{ ["--atlas-hot" as string]: s.hot, pointerEvents: onCities && level.kind !== "world" ? "none" : undefined }}
-                stroke={edge}
+                fillOpacity={glass ? 0.28 : 1}
+                stroke={line}
                 // Finer where the shapes are counties or districts: there are thousands of them.
-                strokeWidth={onSecond ? 0.3 : 0.6}
+                strokeWidth={glass ? (onSecond ? 0.45 : 0.9) : onSecond ? 0.3 : 0.6}
                 vectorEffect="non-scaling-stroke"
                 strokeLinejoin="round"
                 onClick={s.go}
@@ -572,7 +585,8 @@ export default function PlaceAtlas() {
               </path>
             ))}
             {/* The lines over the shapes, never pressed: the counties', fine, on the map of the states; the first-order divisions', heavier, on a map of counties or districts. */}
-            {lines && <path d={lines} fill="none" stroke={edge} strokeOpacity={bold ? 1 : 0.7} strokeWidth={bold ? 1.2 : 0.35} vectorEffect="non-scaling-stroke" strokeLinejoin="round" pointerEvents="none" />}
+            {lines && <path d={lines} fill="none" stroke={line} strokeOpacity={bold ? 1 : 0.7} strokeWidth={bold ? (glass ? 1.5 : 1.2) : glass ? 0.45 : 0.35}
+ vectorEffect="non-scaling-stroke" strokeLinejoin="round" pointerEvents="none" />}
             {/* The place pointed at, picked out as the World Maps page picks one out: filled in its colour over the land, a casing so that its edge reads on any ground, and an outline in the colour itself. */}
             {litShape && (
               <g pointerEvents="none">
