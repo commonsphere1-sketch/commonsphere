@@ -1316,6 +1316,8 @@ const peopleShort = (n: number) =>
   n >= 1e9 ? `${(n / 1e9).toFixed(2)}B` : n >= 1e6 ? `${(n / 1e6).toFixed(1)}M` : Math.round(n).toLocaleString("en-US");
 
 type ScopeId = "all" | "g20" | "g7" | "brics" | "north" | "south";
+/* The bar of scopes and measures over the world map was taken off the page as asked. It is kept in the file, not drawn, so that it can be put back. While it is off, the map shows every country by its first measure - a scope or a measure picked before the bar went could no longer be undone, and left the map with most of the world dark. */
+const SHOW_SCOPES = false as boolean;
 
 /**
  * The groups the world map can narrow to.
@@ -1531,7 +1533,8 @@ export function WorldMapsPage() {
     cy?: number;
     continent?: string;
   } | null>(null);
-  const [scope, setScope] = useState<ScopeId>("all");
+  const [pickedScope, setScope] = useState<ScopeId>("all");
+  const scope: ScopeId = SHOW_SCOPES ? pickedScope : "all";
   // The second map focuses on one country. The US is the default because it is
   // the only one with subdivision figures behind it.
   /* ?country=NU opens the country map on that country, so a link from its
@@ -1729,7 +1732,8 @@ export function WorldMapsPage() {
   }, [statePath]);
 
   /* ── Country shading ── */
-  const activeCountry = COUNTRY_INDICATORS.find((i) => i.id === countryMetric)!;
+  const activeCountry = SHOW_SCOPES ? COUNTRY_INDICATORS.find((i) => i.id === countryMetric)! : COUNTRY_INDICATORS[0];
+
   /* The world map's ramp: the indicator's own where it has one (forest cover
      is green), the greys otherwise. The other maps on the page keep the greys. */
   const worldRamp = activeCountry.ramp ? (isLight ? activeCountry.ramp.light : activeCountry.ramp.dark) : ramp;
@@ -3281,8 +3285,7 @@ export function WorldMapsPage() {
 
   /* The chip rows of a map's card are bars that stay at the head of the card while the card is on the screen, as asked - drawn as the pages' own sticky bars are, and gone with the card once it has scrolled past. */
   const mapBar = "search-sticky sticky z-20 border border-border/60 rounded-2xl px-3 py-2 mb-3 flex flex-col gap-2";
-  /* The bar of scopes and measures over the world map was taken off the page as asked. It is kept here, not drawn, so that it can be put back: the map shows the measure and the scope it opens on. */
-  const SHOW_SCOPES = false as boolean;
+
   const layerToggles = (layers: Record<OverlayId, boolean>, set: LayerSetter, showMore = true) => {
     if (!showMore) {
       const mainLayers = OVERLAYS.filter(o => !["capitals", "cities", "climate"].includes(o.id));
