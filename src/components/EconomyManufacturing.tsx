@@ -8,7 +8,10 @@
  * economy in dollars and as a share of GDP, how fast it grew, how much of
  * what the economy sells and buys abroad is manufactures, how much of what
  * it sells is high technology, and the share of its jobs that are in
- * industry - industry as a whole, which the tile says. The world's own share
+ * industry - industry as a whole, which the tile says. And what it
+ * manufactures: the five branches the World Bank divides manufacturing into,
+ * each with its share of the value added and what it covers, the largest
+ * first - UNIDO's figures, as the World Bank republishes them. The world's own share
  * of GDP is drawn beside the economy's, as the line to measure against.
  *
  * Worked out here, and said to be: the economy's place among the countries
@@ -19,8 +22,8 @@
  */
 import { Area, AreaChart, Bar, BarChart, CartesianGrid, Cell, Line, LineChart, ReferenceLine, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
 import { economiesData, type Economy } from "../data/economiesData";
-import { ECONOMY_MANUFACTURING, ECONOMY_MANUFACTURING_SOURCE, WORLD_MANUFACTURING_SHARE, type Latest } from "../data/economyManufacturing";
-import { ACCENT, ChartNote, ChartTitle, MeasureBars, PartsBar } from "./ModalCharts";
+import { ECONOMY_MANUFACTURING, ECONOMY_MANUFACTURING_SOURCE, MANUFACTURING_BRANCHES, WORLD_MANUFACTURING_SHARE, type Latest } from "../data/economyManufacturing";
+import { ACCENT, ChartNote, ChartTitle, MeasureBars, PART_COLORS, PartsBar } from "./ModalCharts";
 import { SourceLink } from "./SourceLink";
 
 const usd = (bn: number) => (bn >= 1000 ? `$${(bn / 1000).toFixed(2)}T` : bn >= 1 ? `$${bn.toFixed(1)}B` : `$${Math.round(bn * 1000)}M`);
@@ -58,6 +61,14 @@ export default function EconomyManufacturing({ economy }: { economy: Economy }) 
   const beside = [...RANKED.slice(0, 8), ...(place > 8 ? [RANKED[place - 1]] : [])];
   const shareRows = (m.share ?? []).map(([year, v]) => ({ year, own: v, world: world.get(year) ?? null }));
   const worldAt = share ? world.get(share[0]) : undefined;
+  /* What it manufactures: each branch with its share, the largest first - "Other", the residual, last whatever its size - and, where the World Bank gives the value added for the same year, what the share comes to in dollars. */
+  const madeIn = m.branches?.[0];
+  const madeValue = madeIn ? m.value?.find(([y]) => y === madeIn)?.[1] : undefined;
+  const made = m.branches
+    ? MANUFACTURING_BRANCHES.map((b, i) => ({ ...b, pct: m.branches![i + 1] as number, color: PART_COLORS[i % PART_COLORS.length], residual: i === MANUFACTURING_BRANCHES.length - 1 })).sort(
+        (a, b) => Number(a.residual) - Number(b.residual) || b.pct - a.pct,
+      )
+    : [];
   return (
     <div>
       <div className="flex items-center gap-2 mb-2">
@@ -72,12 +83,48 @@ export default function EconomyManufacturing({ economy }: { economy: Economy }) 
         {m.exportsShare && <Tile label="Manufactures in exports" value={`${m.exportsShare[1]}%`} sub={`of goods sold abroad · ${m.exportsShare[0]}`} />}
         {m.importsShare && <Tile label="Manufactures in imports" value={`${m.importsShare[1]}%`} sub={`of goods bought abroad · ${m.importsShare[0]}`} />}
         {m.highTech && <Tile label="High technology" value={`${m.highTech[1]}%`} sub={`of manufactured exports · ${m.highTech[0]}`} />}
+        {m.midHighTech && <Tile label="Medium and high technology" value={`${m.midHighTech[1]}%`} sub={`of manufacturing value added · ${m.midHighTech[0]}`} />}
         {m.industryJobs && <Tile label="Jobs in industry" value={`${m.industryJobs[1]}%`} sub={`of all jobs · industry as a whole · ${m.industryJobs[0]}`} />}
         {place > 0 && <Tile label="Among manufacturers" value={nth(place)} sub={`of ${RANKED.length} countries, by value added`} />}
       </div>
 
+      {made.length > 0 && (
+        <div className="modal-tile rounded-xl p-4 mt-2">
+          <ChartTitle>
+            What it manufactures · % of manufacturing value added · {madeIn}
+          </ChartTitle>
+          <PartsBar label={`What ${economy.name} manufactures, by branch, ${madeIn}`} parts={made.map((b) => ({ label: b.name, value: b.pct, text: `${b.pct}%`, color: b.color }))} />
+          {/* The list: each branch, what it covers, and its share - the largest first, the residual last. */}
+          <ol className="mt-3 flex flex-col">
+            {made.map((b, i) => (
+              <li key={b.name} className="flex items-start gap-3 py-2 border-t border-border/40 first:border-t-0">
+                <span className="w-2.5 h-2.5 rounded-[3px] shrink-0 mt-1" style={{ background: b.color }} aria-hidden />
+                <span className="min-w-0 flex-1">
+                  <span className="block text-[12px] font-semibold font-sans text-foreground">
+                    {b.residual ? "" : `${i + 1}. `}
+                    {b.name}
+                  </span>
+                  <span className="block text-[10px] font-sans text-muted-foreground leading-snug">Covers {b.covers}.</span>
+                </span>
+                <span className="shrink-0 text-right">
+                  <span className="block text-[13px] font-bold font-mono text-foreground">{b.pct}%</span>
+                  {madeValue != null && <span className="block text-[9px] font-mono text-muted-foreground">about {usd((madeValue * b.pct) / 100)}</span>}
+                </span>
+              </li>
+            ))}
+          </ol>
+          <ChartNote>
+            The five branches the World Bank divides manufacturing into, by the international classification of industries (ISIC, revision 3) - UNIDO's figures, as the World Bank republishes
+            them, for the latest year it has all five for {economy.name}.{" "}
+            {madeValue != null ? `The dollar amounts are worked out here: each share of the ${usd(madeValue)} manufacturing added that year.` : ""} A branch whose figures are not reported apart is counted in
+            "Other".
+          </ChartNote>
+        </div>
+      )}
+
       {shareRows.length > 2 && (
-        <div className="modal-tile rounded-xl p-4 mt-2" role="img" aria-label={`Manufacturing as a share of ${economy.name}'s GDP: ${shareRows.map((r) => `${r.year} ${r.own}%`).join(", ")}.`}>
+        <div className="modal-tile rounded-xl p-4 mt-2" role="img"
+ aria-label={`Manufacturing as a share of ${economy.name}'s GDP: ${shareRows.map((r) => `${r.year} ${r.own}%`).join(", ")}.`}>
           <ChartTitle>
             Manufacturing value added · % of GDP · {shareRows[0].year} to {shareRows[shareRows.length - 1].year}
           </ChartTitle>

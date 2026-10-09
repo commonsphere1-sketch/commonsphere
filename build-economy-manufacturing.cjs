@@ -15,11 +15,22 @@
  *   TX.VAL.TECH.MF.ZS    high-technology exports (% of manufactured exports) latest
  *   SL.IND.EMPL.ZS       employment in industry (% of employment; ILO modelled estimate) latest
  *
- * The last is industry as a whole - manufacturing with mining, construction
- * and utilities - since no employment series for manufacturing alone is in
- * the indicators; the window says so. The World Bank's breakdown of
- * manufacturing by branch (food, textiles, chemicals, machinery) is UNIDO's
- * and is left out: its terms for a commercial site were not confirmed.
+ *   NV.MNF.FBTO.ZS.UN    food, beverages and tobacco        } each a share of
+ *   NV.MNF.TXTL.ZS.UN    textiles and clothing              } manufacturing
+ *   NV.MNF.CHEM.ZS.UN    chemicals                          } value added, %:
+ *   NV.MNF.MTRN.ZS.UN    machinery and transport equipment  } what the economy
+ *   NV.MNF.OTHR.ZS.UN    other manufacturing, a residual    } manufactures
+ *   NV.MNF.TECH.ZS.UN    medium and high-tech manufacturing (% of manufacturing value added) latest
+ *
+ * Employment in industry is industry as a whole - manufacturing with mining,
+ * construction and utilities - since no employment series for manufacturing
+ * alone is in the indicators; the window says so. The branches of
+ * manufacturing are UNIDO's figures as the World Bank republishes them; the
+ * World Bank's own metadata gives each series' licence as CC BY-4.0, which
+ * was read from its API before they were taken up. The branches are given
+ * for the latest year in which the World Bank has all five for the economy,
+ * so that they are parts of one whole; a year before 2010 is left out as too
+ * old to say what is made now.
  *
  * The world's own share of GDP is kept beside the economies', as the line a
  * chart measures against. An economy is matched as build-economy-indicators
@@ -85,6 +96,26 @@ async function series(code) {
   const importsShare = await series("TM.VAL.MANF.ZS.UN");
   const highTech = await series("TX.VAL.TECH.MF.ZS");
   const jobs = await series("SL.IND.EMPL.ZS");
+  const midHigh = await series("NV.MNF.TECH.ZS.UN");
+  /** The branches, in the order the World Bank lists them: [what the generated file calls it, the series]. */
+  const BRANCHES = [
+    ["food", await series("NV.MNF.FBTO.ZS.UN")],
+    ["textiles", await series("NV.MNF.TXTL.ZS.UN")],
+    ["chemicals", await series("NV.MNF.CHEM.ZS.UN")],
+    ["machinery", await series("NV.MNF.MTRN.ZS.UN")],
+    ["other", await series("NV.MNF.OTHR.ZS.UN")],
+  ];
+  /** The latest year from 2010 in which all five branches are given for an economy, with each one's share: parts of one whole. */
+  const branchesOf = (code) => {
+    const byYear = BRANCHES.map(([, s]) => new Map(s[code] ?? []));
+    const years = [...byYear[0].keys()].filter((y) => y >= 2010 && byYear.every((m) => m.has(y))).sort((a, b) => b - a);
+    if (!years.length) return undefined;
+    const shares = byYear.map((m) => Number(m.get(years[0]).toFixed(1)));
+    const sum = shares.reduce((t, v) => t + v, 0);
+    // The five are shares of one total: a set that does not come to about 100 is not parts of a whole, and is left out.
+    if (sum < 98 || sum > 102) return undefined;
+    return [years[0], ...shares];
+  };
   if (!share.WLD || !value.USA || !value.CHN) throw new Error("the World Bank's series no longer carry the world, the United States or China");
 
   const round = (v, dp) => Number(v.toFixed(dp));
@@ -107,6 +138,8 @@ async function series(code) {
       importsShare: latest(importsShare[code], 1),
       highTech: latest(highTech[code], 1),
       industryJobs: latest(jobs[code], 1),
+      midHighTech: latest(midHigh[code], 1),
+      branches: branchesOf(code),
     };
     for (const k of Object.keys(d)) if (d[k] === undefined || (Array.isArray(d[k]) && d[k].length === 0)) delete d[k];
     if (Object.keys(d).length) rows.push([e.id, d]);
@@ -115,6 +148,7 @@ async function series(code) {
   console.log(`not matched to a World Bank code: ${uncovered.length ? uncovered.join(", ") : "none"}`);
   const us = rows.find(([id]) => id === "usa-eco")?.[1];
   console.log("United States, latest:", JSON.stringify({ value: us?.value?.at(-1), share: us?.share?.at(-1), exportsShare: us?.exportsShare, highTech: us?.highTech, industryJobs: us?.industryJobs }));
+  console.log(`with the branches of manufacturing: ${rows.filter(([, d]) => d.branches).length}; United States:`, JSON.stringify(us?.branches));
   if (rows.length < 150) throw new Error("fewer than 150 economies have a manufacturing figure");
 
   const today = new Date().toISOString().slice(0, 10);
@@ -134,7 +168,7 @@ async function series(code) {
  */
 export const ECONOMY_MANUFACTURING_RETRIEVED = "${today}";
 export const ECONOMY_MANUFACTURING_SOURCE = {
-  label: "World Bank — World Development Indicators: manufacturing value added, manufactures trade, high-technology exports, employment in industry (CC BY 4.0)",
+  label: "World Bank — World Development Indicators: manufacturing value added and its branches (UNIDO's, as the World Bank republishes them), manufactures trade, high-technology exports, employment in industry (CC BY 4.0)",
   url: "https://data.worldbank.org/indicator/NV.IND.MANF.ZS",
 };
 
@@ -155,7 +189,21 @@ export type EconomyManufacturing = {
   highTech?: Latest;
   /** Employment in industry as a share of all employment, %. */
   industryJobs?: Latest;
+  /** Medium and high-tech manufacturing as a share of manufacturing value added, %. */
+  midHighTech?: Latest;
+  /** What it manufactures: the year, then each branch's share of manufacturing value added, %, in the order of MANUFACTURING_BRANCHES. */
+  branches?: [year: number, food: number, textiles: number, chemicals: number, machinery: number, other: number];
 };
+
+/** The branches of manufacturing, in the order an economy's shares are given, with what each covers as the World Bank defines it (ISIC Rev. 3). */
+export const MANUFACTURING_BRANCHES: { name: string; covers: string }[] = [
+  { name: "Food, beverages and tobacco", covers: "food products, beverages and tobacco products (divisions 15 and 16)" },
+  { name: "Textiles and clothing", covers: "textiles, apparel, the dyeing of fur and the tanning of leather (divisions 17 to 19)" },
+  { name: "Chemicals", covers: "chemicals and chemical products (division 24)" },
+  { name: "Machinery and transport equipment", covers: "machinery and transport equipment (divisions 29 to 35)" },
+  { name: "Other manufacturing", covers: "wood, paper, petroleum products, basic metals and mineral products, fabricated metal products and professional goods, and other industries - a residual, which also takes in what is not allocated to a branch" },
+];
+
 
 /** The world's manufacturing value added as a share of its GDP, %, year by year: the line an economy's is measured against. */
 export const WORLD_MANUFACTURING_SHARE: Latest[] = ${JSON.stringify(points(share.WLD, 2))};
