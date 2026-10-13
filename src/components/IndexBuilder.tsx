@@ -22,7 +22,18 @@
 import { ArrowCounterClockwise, Faders } from "@phosphor-icons/react";
 import { useMemo, useState } from "react";
 
-export type IndexMeasure = { id: string; label: string; higherIsBetter: boolean; format: (v: number) => string };
+export type IndexMeasure = {
+  id: string;
+  label: string;
+  higherIsBetter: boolean;
+  format: (v: number) => string;
+  /** The heading it is weighed under, where the page names one; otherwise the Rankings page's own headings are used. */
+  group?: string;
+  /** The two ends of its own scale, where it has one - an index of 0 to 1, a share of 0 to 100: it is then set on that scale, not between the lowest and highest place. */
+  scale?: [number, number];
+  /** Whose figure it is and of what year, said under its name. */
+  by?: string;
+};
 export type IndexEntity = { id: string; name: string; type: "country" | "state"; flag: string; values: Record<string, number> };
 
 const ACCENT = "#6366f1";
@@ -43,8 +54,37 @@ const SHOWN = 10;
 
 type Scored = { e: IndexEntity; score: number; has: number; parts: { m: IndexMeasure; on: number; weight: number }[] };
 
-export default function IndexBuilder({ entities, measures, defaults }: { entities: IndexEntity[]; measures: IndexMeasure[]; /** The weights the page's own composite uses, by measure. */ defaults: Record<string, number> }) {
+export default function IndexBuilder({
+  entities,
+  measures,
+  defaults,
+  title = "Build your own index",
+  tag = "Social conditions",
+  lead = "Weigh the page's measures as you see fit, and every country and US state is scored again. A score is worked out here from published figures - it is not a published figure - and the rule is given in full below the weights.",
+  defaultsLabel = "The page's weights",
+  defaultsNote = "These are the weights of the page's own composite score, and the rule is the same.",
+  otherNote = "The page's own composite score uses the weights the first button restores.",
+  className = "",
+}: {
+  entities: IndexEntity[];
+  measures: IndexMeasure[];
+  /** The weights it opens on, by measure. */
+  defaults: Record<string, number>;
+  title?: string;
+  tag?: string;
+  lead?: string;
+  /** What the button that restores the opening weights says, and what is said of those weights and of others. */
+  defaultsLabel?: string;
+  defaultsNote?: string;
+  otherNote?: string;
+  className?: string;
+}) {
   const grouped = useMemo(() => {
+    // A page that names its measures' headings is grouped by them, in the order they first come.
+    if (measures.some((m) => m.group)) {
+      const titles = [...new Set(measures.map((m) => m.group ?? "Other"))];
+      return titles.map((t) => ({ title: t, list: measures.filter((m) => (m.group ?? "Other") === t) }));
+    }
     const named = new Set(GROUPS.flatMap(([, ids]) => ids));
     const byId = new Map(measures.map((m) => [m.id, m]));
     const out = GROUPS.map(([title, ids]) => ({ title, list: ids.flatMap((id) => (byId.has(id) ? [byId.get(id)!] : [])) }));
@@ -75,9 +115,10 @@ export default function IndexBuilder({ entities, measures, defaults }: { entitie
       const parts = weighted.flatMap((m) => {
         const v = e.values[m.id];
         if (!Number.isFinite(v)) return [];
-        const { min, max } = range[m.id];
+        // On its own scale where it has one; otherwise between the lowest and the highest place.
+        const [min, max] = m.scale ?? [range[m.id].min, range[m.id].max];
         // A measure every place has the same value of says nothing between them: it sits at the middle, as on the page.
-        const raw = max === min ? 50 : ((v - min) / (max - min)) * 100;
+        const raw = max === min ? 50 : Math.min(100, Math.max(0, ((v - min) / (max - min)) * 100));
         return [{ m, on: m.higherIsBetter ? raw : 100 - raw, weight: weights[m.id] }];
       });
       const needed = cover === "every" ? weighted.length : cover === "half" ? Math.ceil(weighted.length / 2) : 1;
@@ -88,6 +129,8 @@ export default function IndexBuilder({ entities, measures, defaults }: { entitie
     return out.sort((a, b) => b.score - a.score);
   }, [entities, weighted, weights, range, scope, cover]);
 
+  /** Whether there are both countries and states to choose between. */
+  const both = entities.some((e) => e.type === "country") && entities.some((e) => e.type === "state");
   const open = scored.find((s) => s.e.id === picked) ?? null;
   const rankOf = (s: Scored) => scored.indexOf(s) + 1;
   const same = measures.every((m) => (weights[m.id] ?? 0) === (defaults[m.id] ?? 0));
@@ -119,19 +162,19 @@ export default function IndexBuilder({ entities, measures, defaults }: { entitie
   );
 
   return (
-    <div className="bg-card border border-border rounded-2xl">
+    <div className={`bg-card border border-border rounded-2xl ${className}`}>
       <div className="px-5 py-3.5 border-b border-border">
         <div className="flex items-center gap-2.5 flex-wrap">
           <div className="w-7 h-7 rounded-lg flex items-center justify-center shrink-0" style={{ background: ACCENT + "12", border: `1px solid ${ACCENT}22` }}>
             <Faders size={13} weight="fill" style={{ color: ACCENT }} />
           </div>
-          <span className="text-sm font-bold font-sans text-foreground">Build your own index</span>
+          <span className="text-sm font-bold font-sans text-foreground">{title}</span>
           <span className="text-[10px] font-bold font-mono px-2.5 py-1 rounded-lg" style={{ background: ACCENT + "18", color: ACCENT }}>
-            Social conditions
+            {tag}
           </span>
         </div>
         <p className="text-[11px] text-muted-foreground font-sans mt-1.5 leading-snug">
-          Weigh the page's measures as you see fit, and every country and US state is scored again. A score is worked out here from published figures - it is not a published figure - and the rule is given in full below the weights.
+          {lead}
         </p>
       </div>
 
@@ -141,9 +184,9 @@ export default function IndexBuilder({ entities, measures, defaults }: { entitie
           <div className="flex items-center gap-2 flex-wrap mb-3">
             <span className="text-[10px] font-bold font-sans text-muted-foreground uppercase tracking-widest">Weights · 0 leaves a measure out</span>
             <span className="flex-1" />
-            <button type="button" className={chip(same)} onClick={() => setWeights(defaults)} title="The weights the page's own composite score uses">
+            <button type="button" className={chip(same)} onClick={() => setWeights(defaults)}>
               <ArrowCounterClockwise size={11} className="inline -mt-0.5 mr-1" aria-hidden />
-              The page's weights
+              {defaultsLabel}
             </button>
             <button type="button" className={chip(false)} onClick={() => setWeights(Object.fromEntries(measures.map((m) => [m.id, 1])))}>
               All equal
@@ -167,6 +210,7 @@ export default function IndexBuilder({ entities, measures, defaults }: { entitie
                             {m.label}
                           </span>
                           <span className="block text-[9px] font-mono text-muted-foreground truncate">
+                            {m.by ? `${m.by} · ` : ""}
                             {m.higherIsBetter ? "higher is better" : "lower is better"}
                             {r ? ` · ${r.n} places have it` : " · no place has it"}
                           </span>
@@ -196,8 +240,9 @@ export default function IndexBuilder({ entities, measures, defaults }: { entitie
             ))}
           </div>
           <p className="text-[10px] font-sans text-muted-foreground leading-snug mt-3">
-            The rule: each measure is set on a scale of 0 to 100 between the lowest and the highest value any place has, turned over where lower is better; a place's score is the mean of its measures, each counted by its weight, over the
-            measures it has. {same ? "These are the weights of the page's own composite score, and the rule is the same." : "The page's own composite score uses the weights the first button restores."} The figures are each measure's latest - the page holds no earlier years.
+            The rule: each measure is set on a scale of 0 to 100 between the lowest and the highest value any place has{measures.some((m) => m.scale) ? " - or, where it has a scale of its own, an index of 0 to 1 or a share of 0 to 100, on that scale" : ""},
+            turned over where lower is better; a place's score is the mean of its measures, each counted by its weight, over the measures it has. {same ? defaultsNote : otherNote} The figures are each measure's latest - no earlier years are held
+            to compare a place with itself.
           </p>
         </div>
 
@@ -213,7 +258,7 @@ export default function IndexBuilder({ entities, measures, defaults }: { entitie
                 {scored.length} places scored on {weighted.length} {weighted.length === 1 ? "measure" : "measures"}
               </span>
               <span className="flex-1" />
-              {(["all", "country", "state"] as const).map((k) => (
+              {(both ? (["all", "country", "state"] as const) : []).map((k) => (
                 <button key={k} type="button" className={chip(scope === k)} onClick={() => setScope(k)} aria-pressed={scope === k}>
                   {k === "all" ? "All" : k === "country" ? "Countries" : "US states"}
                 </button>
@@ -277,7 +322,7 @@ export default function IndexBuilder({ entities, measures, defaults }: { entitie
                   ] as const
                 ).map(([title, list]) => (
                   <div key={title} className="rounded-lg border border-border bg-background/40 px-3 py-2.5 min-w-0">
-                    <p className="text-[10px] font-sans text-muted-foreground mb-1">{title} · where it stands between the lowest and highest place</p>
+                    <p className="text-[10px] font-sans text-muted-foreground mb-1">{title} · where it stands, 0 to 100</p>
                     {list.map((p) => (
                       <p key={p.m.id} className="text-xs font-sans text-foreground truncate">
                         <span className="font-mono font-bold">{Math.round(p.on)}</span> · {p.m.label}
@@ -303,7 +348,7 @@ export default function IndexBuilder({ entities, measures, defaults }: { entitie
               ))}
             </div>
             <p className="text-[10px] font-sans text-muted-foreground leading-snug mt-2">
-              Each bar is where {open.e.name} stands on that measure between the lowest place (0) and the highest (100), turned over where lower is better; beside it the published figure, and the weight it is counted by.
+              Each bar is where {open.e.name} stands on that measure, from 0 to 100 by the rule above; beside it the published figure, and the weight it is counted by.
               {weighted.length > open.has ? ` It has no figure for ${weighted.length - open.has} of the weighted measures, which are left out of its score.` : ""}
             </p>
           </div>

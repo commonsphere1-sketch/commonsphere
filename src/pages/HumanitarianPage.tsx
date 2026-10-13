@@ -58,7 +58,7 @@
  * series is named in a legend, so nothing is told by colour alone. Better
  * and worse appear as an arrow and a word. Charts do not animate.
  */
-import { useId, useMemo, useState, type ReactNode } from "react";
+import { lazy, Suspense, useId, useMemo, useState, type ReactNode } from "react";
 import { Area, AreaChart, Bar, BarChart, CartesianGrid, Line, LineChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
 import { ArrowDownRight, ArrowUpRight, CaretDown, Drop, ForkKnife, HandHeart, Scales, Users, Warning } from "@phosphor-icons/react";
 import { useTheme } from "../contexts/ThemeContext";
@@ -73,6 +73,9 @@ import { COUNTRY_FIGURES, COUNTRY_FIGURE_SOURCES, DISPLACED_BY_KIND, WORLD, WORL
 import { COUNTRY_PANELS, PANEL_SOURCES } from "../data/countryPanels";
 import { CONFLICT_DEATHS_BY_PLACE, DEADLIEST_DISASTERS, DISASTER_DISPLACEMENT_BY_PLACE, NAMED_EVENTS_SOURCES, STATE_FIGHTING_BY_PLACE, type YearPlaces } from "../data/namedEvents";
 import { countriesData } from "../data/countriesData";
+
+/** The social conditions index: the page's tool for weighing how people live, country by country. Loaded after the page. */
+const SocialConditionsIndex = lazy(() => import("../components/SocialConditionsIndex"));
 
 // ── Recorded from the agencies' reports ────────────────────────────────────
 
@@ -962,6 +965,7 @@ const SECTIONS: NavSection[] = [
   { id: "liberties", label: "Liberties" },
   { id: "government", label: "Government" },
   { id: "bodies", label: "Rights bodies" },
+  { id: "conditions", label: "Social conditions" },
   { id: "humanitarian", label: "Humanitarian" },
 ];
 
@@ -1343,6 +1347,17 @@ export function HumanitarianPage() {
             </div>
           </Card>
           </div>
+        </section>
+
+        {/* ══ The social conditions index: twenty published measures of how people live, weighed by the reader into one score. ══ */}
+        <section id="conditions" className="scroll-mt-36 flex flex-col gap-6" aria-labelledby="conditions-title">
+          <SectionHead icon={<Scales size={18} weight="fill" />} color="#6366f1" title="Social conditions" kicker="How people live, country by country - on the measures you choose to weigh" />
+          <h2 id="conditions-title" className="sr-only">
+            Social conditions index
+          </h2>
+          <Suspense fallback={<p className="text-xs font-sans text-muted-foreground">Loading the index…</p>}>
+            <SocialConditionsIndex />
+          </Suspense>
         </section>
 
         {/* ══ Humanitarian: the short section. The crises under way and a card for each kind of figure; the long
