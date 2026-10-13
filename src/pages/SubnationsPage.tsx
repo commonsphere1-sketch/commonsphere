@@ -91,7 +91,7 @@ import { ChartNote, ChartTitle, FigureRow, MeasureBars, PartsBar, PartsDonut } f
 import PostalCodes from "../components/PostalCodes";
 import PlaceIndexes from "../components/PlaceIndexes";
 import { usePlacePostal } from "../lib/placePostal";
-import { useSecondOrder } from "../lib/secondOrder";
+import { alignedTo, useSecondOrder } from "../lib/secondOrder";
 import { flagFallback } from "../lib/cardFlag";
 import { OutlineMap, placeDots, type MapDot } from "../components/OutlineMap";
 import { SourceLink } from "../components/SourceLink";
@@ -787,7 +787,7 @@ function SubnationWindow({ s, onBack, onClose, onCounties }: { s: Subnation; /**
       <TabBar tab={tab} onTab={setTab} count={within?.rows.length} />
       {tab === "overview" && outline.length > 0 && (
         <div>
-          <OutlineMap shapes={outline} lines={second?.lines} dots={dots} color={flagColor(s.cc) ?? COLOR} label={`The outline of ${s.name}, with ${dots.length} of the places listed in it`} onDot={pick} />
+          <OutlineMap shapes={second?.outline ?? outline} inner={second?.inner} parts={second?.lines} onPart={second ? (i) => navigate(second.open(i)) : undefined} dots={dots} color={flagColor(s.cc) ?? COLOR} label={`The outline of ${s.name}, with ${dots.length} of the places listed in it`} onDot={pick} />
           <p className="text-[10px] font-sans text-muted-foreground leading-snug mt-1">
             {s.name} as the site's maps draw it{second ? `, with the borders of its ${second.lines.length} ${second.are}` : ""}{dots.length ? `, with ${within!.rows.length > dots.length ? `the ${dots.length} largest of the ${whole(within!.rows.length)}` : `the ${dots.length}`} places GeoNames lists in it as dots` : ""}.
           </p>
@@ -1583,6 +1583,9 @@ function CountryWindow({
   /* The map at the head of its window: its divisions as the site's maps draw them, framed without its far-off parts, with its largest listed places as dots. */
   const drawn = useAdmin1(row.cc);
   const second = useSecondOrder(row.cc);
+  /* Its divisions put together from its districts, where they can stand for the ones listed: every border on the map is then of one tracing. */
+  const aligned = useMemo(() => alignedTo(second, drawn), [second, drawn]);
+  const alignedFrame = useMemo(() => (aligned ? framed(aligned) : undefined), [aligned]);
   const frame = useMemo(() => (drawn ? framed(drawn) : undefined), [drawn]);
   const dots = useMemo(() => placeDots(places?.places ?? [], 150, places), [places]);
   /** The place whose dot on the map was pressed, or that a link named: its window opens over this one, which steps out of sight. */
@@ -1611,7 +1614,7 @@ function CountryWindow({
 
       {drawn && drawn.length > 0 && (
         <div>
-          <OutlineMap shapes={drawn} frame={frame} lines={second?.lines} dots={dots} color={flagColor(row.cc) ?? COLOR} label={`${row.name} and its ${drawn.length} divisions, with its ${dots.length} largest listed places`} onDot={(d) => setPicked(places?.places.find((p) => p[6] === d.id) ?? null)} onShape={(f) => { const hit = row.divisions.find((x) => x.name === f.properties.n); if (hit) onOpen(hit); }} />
+          <OutlineMap shapes={aligned ?? drawn} frame={alignedFrame ?? frame} inner={aligned ? second?.inner : second?.innerAll} parts={second?.lines} onPart={second ? (i) => navigate(second.open(i)) : undefined} dots={dots} color={flagColor(row.cc) ?? COLOR} label={`${row.name} and its ${drawn.length} divisions, with its ${dots.length} largest listed places`} onDot={(d) => setPicked(places?.places.find((p) => p[6] === d.id) ?? null)} onShape={(f) => { const hit = row.divisions.find((x) => x.name === f.properties.n); if (hit) onOpen(hit); }} />
 
           <p className="text-[10px] font-sans text-muted-foreground leading-snug mt-1">
             {row.name}'s divisions as the site's maps draw them{dots.length ? `, with the ${dots.length} largest places GeoNames lists for it as dots` : ""}

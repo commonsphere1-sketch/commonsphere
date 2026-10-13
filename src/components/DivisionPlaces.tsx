@@ -848,8 +848,11 @@ function PlaceWindow({
                 <Part title="📍 Where it is" note={`${name}, marked on the outline of ${around.name} as the site's maps draw it, with the places nearest it as the smaller dots: press one to go to it.`}>
 
                   <OutlineMap
-                    shapes={[around.shape]}
-                    lines={second?.lines}
+                    // Its division from the same tracing as the districts in it, where they are held, so that the two meet.
+                    shapes={second?.outline?.length === 1 ? second.outline : [around.shape]}
+                    inner={second?.inner}
+                    parts={second?.lines}
+                    onPart={second ? (i) => navigate(second.open(i)) : undefined}
                     mark={{ id, name, lon, lat, sub: [...new Set([district, s.name, country].filter(Boolean))].join(" · ") }}
                     dots={neighbours.map(({ row, km: far }) => ({ id: row[6], name: row[0], lon: row[2], lat: row[1], sub: `${far < 10 ? far.toFixed(1) : whole(far)} km from ${name}, in a straight line` }))}
                     color={flagColor(s.cc) ?? "#0ea5e9"}

@@ -15,8 +15,11 @@
  * place's own window, where the map's owner says how.
  *
  * Inside the outlines it draws the finer borders it is given - a state's
- * counties, a province's districts - as thin lines in the same colour: they
- * are there to be seen, and are not pointed at or pressed.
+ * counties, a province's districts - as thin lines in the same colour. Drawn
+ * closer, those smaller places are what is pointed at, as on the Dashboard's
+ * map: each is picked out and named, and a press opens it where the map's
+ * owner says how. From far out they are borders only, and the outlines
+ * themselves are what is pointed at.
  *
  * It can be drawn closer, as the site's other maps can: with the wheel or a
  * trackpad, two fingers pinched on a touch screen, the buttons at its corner
@@ -36,6 +39,8 @@ const W = 640;
 const H = 260;
 /** How close it can be drawn. */
 const MAX_K = 60;
+/** How close it must be drawn for the places inside the outlines to be what is pointed at. */
+const PARTS_FROM = 1.6;
 
 /** A point on the map: a place by its name, and what is said under its name when it is pointed at. */
 export type MapDot = { id: string | number; name: string; lon: number; lat: number; sub?: string };
@@ -55,7 +60,9 @@ export const placeDots = (rows: PlaceRow[], most = 300, file?: PlacesFile | null
 export function OutlineMap({
   shapes,
   frame,
-  lines,
+  inner,
+  parts,
+  onPart,
   dots = [],
   mark,
   color,
@@ -67,8 +74,12 @@ export function OutlineMap({
   shapes: Outline[];
   /** What the map is framed on, where that is not all of them: a country without its far-off parts. */
   frame?: Outline[];
-  /** The finer borders inside what is drawn: the outlines of its second-order divisions. Only their edges are drawn. */
-  lines?: Outline[];
+  /** The finer borders inside what is drawn, as lines: those between its second-order divisions. */
+  inner?: unknown;
+  /** The second-order divisions themselves: what is pointed at once the map is drawn closer. Each is named by properties.n, with the division it lies in in properties.p. */
+  parts?: Outline[];
+  /** What a press on one of them does, by its place in `parts`: it opens that place's own window. Left out, one pointed at is only picked out and named. */
+  onPart?: (i: number) => void;
   dots?: MapDot[];
   /** The one place the window is about, where it is a point and not an outline. */
   mark?: MapDot;
@@ -83,6 +94,8 @@ export function OutlineMap({
   /** Which of several outlines is pointed at. */
   const [lit, setLit] = useState<number | null>(null);
   const [over, setOver] = useState<string | number | null>(null);
+  /** Which of the places inside is pointed at, once the map is drawn closer. */
+  const [litPart, setLitPart] = useState<number | null>(null);
   /* How close the map is drawn, and where its middle is, in the map's own units: 1 is the whole of it. */
   const [view, setView] = useState({ k: 1, x: W / 2, y: H / 2 });
   /** Kept on the map: no closer than it goes, no further out than the whole, and never past an edge. */
@@ -149,14 +162,9 @@ export function OutlineMap({
       const xy = projection([d.lon, d.lat]);
       return xy && xy[0] >= 0 && xy[0] <= W && xy[1] >= 0 && xy[1] <= H ? [{ ...d, x: xy[0], y: xy[1] }] : [];
     };
-    // The finer borders as bare lines - every ring of every outline - so that none is filled, and none is taken for the whole globe but itself.
-    const rings: unknown[] = [];
-    for (const l of lines ?? []) {
-      if (l.geometry.type === "Polygon") rings.push(...l.geometry.coordinates);
-      else if (l.geometry.type === "MultiPolygon") for (const poly of l.geometry.coordinates as unknown[][]) rings.push(...poly);
-    }
     return {
-      inner: rings.length ? path({ type: "MultiLineString", coordinates: rings } as never) : null,
+      path,
+      inner: inner ? path(inner as never) : null,
       // Each outline with its name and its middle, where its name is said when it is pointed at.
       paths: shapes.flatMap((s, i) => {
         const d = path(s as never);
@@ -167,14 +175,39 @@ export function OutlineMap({
       dots: dots.flatMap(at),
       mark: mark ? at(mark)[0] : undefined,
     };
-  }, [shapes, frame, lines, dots, mark]);
+  }, [shapes, frame, inner, dots, mark]);
+  /* The places inside, each with its outline, its middle and where it lies: worked out when the map is first drawn close enough for them. */
+  const wantParts = view.k >= PARTS_FROM && Boolean(parts?.length);
+  const partPaths = useMemo(() => {
+    if (!wantParts || !drawn || !parts) return [];
+    return parts.flatMap((s, i) => {
+      const d = drawn.path(s as never);
+      if (!d) return [];
+      const [[x0, y0], [x1, y1]] = drawn.path.bounds(s as never);
+      const [cx, cy] = drawn.path.centroid(s as never);
+      return [{ i, d, cx, cy, x0, y0, x1, y1, name: [s.properties.n, s.properties.p].filter(Boolean).join(", ") }];
+    });
+  }, [wantParts, drawn, parts]);
   if (!drawn || !drawn.paths.length) return null;
+  // Only those in view are drawn: a country has thousands.
+  const vx0 = view.x - W / (2 * view.k);
+  const vx1 = view.x + W / (2 * view.k);
+  const vy0 = view.y - H / (2 * view.k);
+  const vy1 = view.y + H / (2 * view.k);
+  const partsInView = partPaths.filter((p) => p.x1 >= vx0 && p.x0 <= vx1 && p.y1 >= vy0 && p.y0 <= vy1);
+  const litPartPath = litPart !== null ? partsInView.find((p) => p.i === litPart) : undefined;
   const said = over === null ? undefined : drawn.mark && drawn.mark.id === over ? drawn.mark : drawn.dots.find((d) => d.id === over);
   /* Several outlines side by side can each be pointed at; one alone is the whole map, and has nothing to be told from. */
   const many = drawn.paths.length > 1;
   const litPath = many && lit !== null ? drawn.paths.find((p) => p.key === lit) : undefined;
   /** What is said in the pop-up: the dot pointed at, or, where none is, the outline. */
-  const tip = said ?? (litPath && litPath.name && Number.isFinite(litPath.cx) ? { x: litPath.cx, y: litPath.cy, name: litPath.name, sub: onShape ? "Press it to open its window" : undefined } : undefined);
+  const tip =
+    said ??
+    (litPartPath && litPartPath.name && Number.isFinite(litPartPath.cx)
+      ? { x: litPartPath.cx, y: litPartPath.cy, name: litPartPath.name, sub: onPart ? "Press it to open its window" : undefined }
+      : litPath && litPath.name && Number.isFinite(litPath.cx)
+        ? { x: litPath.cx, y: litPath.cy, name: litPath.name, sub: onShape ? "Press it to open its window" : undefined }
+        : undefined);
   /* Where the pop-up's place is across what is in view, 0 to 1 each way. */
   const fx = tip ? (tip.x - (view.x - W / (2 * view.k))) / (W / view.k) : 0;
   const fy = tip ? (tip.y - (view.y - H / (2 * view.k))) / (H / view.k) : 0;
@@ -268,7 +301,21 @@ export function OutlineMap({
         {/* The finer borders, over the fills and under the dots: thinner and fainter than the outlines they lie in. */}
         {drawn.inner && <path d={drawn.inner} fill="none" stroke={color} strokeOpacity={many ? 0.5 : 0.7} strokeWidth={many ? 0.35 : 0.55} vectorEffect="non-scaling-stroke" strokeLinejoin="round" pointerEvents="none" />}
         {/* The outline pointed at, edged over its neighbours so that the whole of its border shows. */}
-        {litPath && <path d={litPath.d} fill="none" stroke={color} strokeWidth={2} vectorEffect="non-scaling-stroke" strokeLinejoin="round" pointerEvents="none" />}
+        {litPath && !litPartPath && <path d={litPath.d} fill="none" stroke={color} strokeWidth={2} vectorEffect="non-scaling-stroke" strokeLinejoin="round" pointerEvents="none" />}
+        {/* Drawn closer, the places inside are what is pointed at: unseen until then, each over the outline it lies in. */}
+        {partsInView.map((p) => (
+          <path
+            key={p.i}
+            d={p.d}
+            fill={color}
+            fillOpacity={litPart === p.i ? 0.45 : 0}
+            className={onPart ? "cursor-pointer" : undefined}
+            onMouseEnter={() => setLitPart(p.i)}
+            onMouseLeave={() => setLitPart((x) => (x === p.i ? null : x))}
+            onClick={onPart ? () => onPart(p.i) : undefined}
+          />
+        ))}
+        {litPartPath && <path d={litPartPath.d} fill="none" stroke={color} strokeWidth={2} vectorEffect="non-scaling-stroke" strokeLinejoin="round" pointerEvents="none" />}
         {drawn.dots.map((p) => (
           // A clear edge round each dot, so that one so small can still be pointed at.
           <circle

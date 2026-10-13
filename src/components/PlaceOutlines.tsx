@@ -22,7 +22,7 @@ import { useNavigate } from "react-router-dom";
 import { PLACES_SOURCE } from "../data/placesIndex";
 import { flagColor } from "../lib/flagColor";
 import { framed, placesWithin, useAdmin1, usePlacesFile } from "../lib/outlines";
-import { useSecondOrder } from "../lib/secondOrder";
+import { alignedTo, useSecondOrder } from "../lib/secondOrder";
 import { OutlineMap, placeDots, type MapDot } from "./OutlineMap";
 import { SourceLink } from "./SourceLink";
 
@@ -55,8 +55,11 @@ export function CountryOutline({
 }) {
   const navigate = useNavigate();
   const drawn = useAdmin1(code);
-  const frame = useMemo(() => (drawn ? framed(drawn) : undefined), [drawn]);
   const second = useSecondOrder(code);
+  /* Its divisions put together from its districts, where they can stand for the ones listed: the borders inside them are then of one tracing with their edges, and meet. */
+  const aligned = useMemo(() => alignedTo(second, drawn), [second, drawn]);
+  const outlines = aligned ?? drawn;
+  const frame = useMemo(() => (outlines ? framed(outlines) : undefined), [outlines]);
   // Its own places are fetched only where the window gives no dots of its own.
   const file = usePlacesFile(dots || mark ? null : code);
   const own = useMemo(() => placeDots(file?.places ?? [], 150, file), [file]);
@@ -69,9 +72,12 @@ export function CountryOutline({
         // A division pointed at is picked out and named; pressed, it opens on the Municipalities page.
         onShape={(f) => f.properties.n && navigate(`/dashboard/subnations?country=${code}&name=${encodeURIComponent(f.properties.n)}`)}
 
-        shapes={drawn}
+        shapes={outlines ?? drawn}
         frame={frame}
-        lines={second?.lines}
+        inner={aligned ? second?.inner : second?.innerAll}
+        parts={second?.lines}
+        // A district or a county pointed at once the map is drawn closer opens its own window on the Municipalities page.
+        onPart={second ? (i) => navigate(second.open(i)) : undefined}
         dots={shown}
         mark={mark}
         color={flagColor(code) ?? COLOR}
@@ -79,7 +85,7 @@ export function CountryOutline({
       <p className="text-[10px] font-sans text-muted-foreground leading-snug mt-1">
         {name}'s divisions as the site's maps draw them
         {mark ? `, with ${mark.name} marked` : shown.length ? `, with ${dotsAre ?? `the ${shown.length} largest places GeoNames lists for it`} as dots - point at one for its name and what it belongs to, and press it for its own window` : ""}
-        {second ? `; the finer lines are its ${second.are}` : ""}
+        {second ? `; the finer lines are its ${second.are} - draw the map closer to point at one` : ""}
         {frame && frame.length < drawn.length ? "; framed without its far-off parts" : ""}.
       </p>
       <SourceLink sources={[NATURAL_EARTH, ...(second ? [second.source] : []), ...(mark ? [] : [dotsSource ?? GEONAMES])]} className="mt-1" />
@@ -90,15 +96,16 @@ export function CountryOutline({
 export function StateOutline({ name, className = "mb-4" }: { /** The state's name, as the maps have it. */ name: string; className?: string }) {
   const navigate = useNavigate();
   const drawn = useAdmin1("US");
-  const shapes = useMemo(() => (drawn ? drawn.filter((f) => f.properties.n === name) : []), [drawn, name]);
-  const file = usePlacesFile("US");
   const second = useSecondOrder("US", name);
+  /* The state from the same tracing as its counties, once they are in, so that the two meet. */
+  const shapes = useMemo(() => second?.outline ?? (drawn ? drawn.filter((f) => f.properties.n === name) : []), [second, drawn, name]);
+  const file = usePlacesFile("US");
   const rows = useMemo(() => (shapes[0] && file ? placesWithin(shapes[0], file.places) : null), [shapes, file]);
   const dots = useMemo(() => placeDots(rows ?? [], 300, file), [rows, file]);
   if (!shapes.length) return null;
   return (
     <div className={className}>
-      <OutlineMap onDot={(d) => navigate(`/dashboard/subnations?open=place:US:${d.id}`)} shapes={shapes} lines={second?.lines} dots={dots} color={flagColor("US") ?? COLOR} label={`The outline of ${name}, with ${dots.length} of the places listed inside it`} />
+      <OutlineMap onDot={(d) => navigate(`/dashboard/subnations?open=place:US:${d.id}`)} shapes={shapes} inner={second?.inner} parts={second?.lines} onPart={second ? (i) => navigate(second.open(i)) : undefined} dots={dots} color={flagColor("US") ?? COLOR} label={`The outline of ${name}, with ${dots.length} of the places listed inside it`} />
       <p className="text-[10px] font-sans text-muted-foreground leading-snug mt-1">
         {name} as the site's maps draw it{second ? `, with its ${second.lines.length} counties' borders` : ""}
         {rows ? `, with the ${rows.length > dots.length ? `${dots.length} largest of the ${rows.length.toLocaleString("en-US")}` : rows.length.toLocaleString("en-US")} places GeoNames lists inside it as dots - point at one for its name and its county, and press it for its own window` : ""}. Which
