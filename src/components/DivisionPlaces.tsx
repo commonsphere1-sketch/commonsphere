@@ -63,6 +63,7 @@ import { SeeAlso } from "./SeeAlso";
 const CountryQuality = lazy(() => import("./CountryQuality"));
 import { PLACE_KINDS, PLACES_SOURCE, type PlaceRow, type PlacesFile } from "../data/placesIndex";
 import type { Subnation } from "../data/subnations";
+import { SUBNATION_FLAG_FILE } from "../data/subnationFlagFiles";
 import { flagColor } from "../lib/flagColor";
 import { useAdmin1, type Outline } from "../lib/outlines";
 import { SourceLink } from "./SourceLink";
@@ -254,7 +255,7 @@ export function DivisionPlaces({
       {/* A card for each place: its name and what it is, its county, its people, and its head where one is confirmed. Each opens a window of its own. */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
         {rows.slice(0, shown).map((p) => (
-          <PlaceCard key={p[6]} p={p} district={file!.districts[p[7]]} onOpen={() => setOpen(p)} />
+          <PlaceCard key={p[6]} p={p} file={file!} flag={cardFlag(s)} district={file!.districts[p[7]]} onOpen={() => setOpen(p)} />
         ))}
       </div>
       {rows.length === 0 && <p className="text-[11px] font-sans text-muted-foreground py-2">None by that name.</p>}
@@ -264,7 +265,7 @@ export function DivisionPlaces({
         </button>
       )}
       <p className="text-[10px] font-sans text-muted-foreground leading-snug mt-2">
-        A population is GeoNames' own for the place, undated; the largest first. What kind of place each is - a seat of a county, a populated place - is as GeoNames classes it.
+        A population is GeoNames' own for the place, undated; the largest first. Each is called a city, a town or a village by that population - a city from 50,000 people, a town from 5,000, a village below, the size bands of the United Nations' Degree of Urbanisation, read here by size alone - and what it is the seat of is as GeoNames marks it. A place with no population held keeps GeoNames' own word for it.
       </p>
       <SourceLink sources={[{ label: PLACES_SOURCE.geonames.label, url: PLACES_SOURCE.geonames.url }]} className="mt-1" />
       {/* On the page itself, not inside the division's window: that window is out of sight while this one is open. */}
@@ -289,17 +290,50 @@ export function DivisionPlaces({
 }
 
 /** A card for a place: its name and what it is, its county, its people, and its head where one is confirmed. It opens the place's own window. */
-function PlaceCard({ p, district, onOpen }: { p: PlaceRow; /** The county or district GeoNames files it under. */ district?: string; onOpen: () => void }) {
+/** A place by its size: the three words a reader knows it by. */
+const placeSize = (p: PlaceRow) => (p[3] >= 50000 ? "City" : p[3] >= 5000 ? "Town" : p[3] > 0 ? "Village" : null);
+/**
+ * What a place is called: a city, a town or a village, by how many people GeoNames gives it - GeoNames itself classes
+ * nearly every one as a "populated place" and no more. The bands are the size thresholds of the United Nations' Degree
+ * of Urbanisation - a city from 50,000 people, a town from 5,000, a village below that - applied here to the population
+ * alone, without the density that method also asks for: a reading by size, and said to be wherever it is shown. A place
+ * with no population held keeps GeoNames' own word. Where GeoNames marks the place as a capital or a seat, that follows,
+ * with the name of what it is the seat of.
+ */
+export function placeType(p: PlaceRow, file: PlacesFile): string {
+  const kind = PLACE_KINDS[p[5]] ?? "Populated place";
+  const size = placeSize(p);
+  if (!size) return kind;
+  const role =
+    kind === "Capital of the country"
+      ? "capital of the country"
+      : kind === "Seat of government"
+        ? "seat of government"
+        : kind === "Seat of a first-order division"
+          ? `seat of ${file.regions[p[4]] || "its division"}`
+          : kind === "Seat of a second-order division"
+            ? `seat of ${file.districts[p[7]] || "its district"}`
+            : /^Seat of a |^Farm village$|^Religious community$|^Israeli settlement$/.test(kind)
+              ? kind.toLowerCase()
+              : "";
+  return role ? `${size} · ${role}` : size;
+}
+/** The flag a place's card carries behind it: its division's own where one is saved with the site, and its country's otherwise. */
+const cardFlag = (s: Subnation) => (SUBNATION_FLAG_FILE[s.id] ? `/flags/divisions/${SUBNATION_FLAG_FILE[s.id]}` : `https://flagcdn.com/w320/${s.cc.toLowerCase()}.png`);
+
+function PlaceCard({ p, file, flag, district, onOpen }: { p: PlaceRow; file: PlacesFile; /** The flag behind the card: its division's, or its country's. */ flag?: string; /** The county or district GeoNames files it under. */ district?: string; onOpen: () => void }) {
   const facts: [string, string | undefined][] = [
     ["People", p[3] > 0 ? whole(p[3]) : undefined],
     ["County or district", district || undefined],
   ];
   return (
-    <button type="button" onClick={onOpen} className="modal-tile rounded-xl p-4 text-left cursor-pointer transition-colors hover:border-secondary/40 flex flex-col gap-2 min-w-0">
+    <button type="button" onClick={onOpen} className="modal-tile relative isolate overflow-hidden rounded-xl p-4 text-left cursor-pointer transition-colors hover:border-secondary/40 flex flex-col gap-2 min-w-0">
+      {/* Its division's flag behind the whole card, dimmed, as the division's own card has it. */}
+      {flag && <img src={flag} alt="" aria-hidden="true" loading="lazy" className="absolute inset-0 -z-10 w-full h-full object-cover opacity-[0.14] scale-105 select-none pointer-events-none" onError={(e) => (e.currentTarget.style.display = "none")} />}
       <span className="min-w-0">
         <span className="block text-sm font-bold font-sans text-foreground truncate">{p[0]}</span>
         <span className="flex items-center gap-1 text-[10px] font-mono text-muted-foreground truncate">
-          <MapPin size={9} aria-hidden /> {PLACE_KINDS[p[5]]}
+          <MapPin size={9} aria-hidden /> {placeType(p, file)}
         </span>
       </span>
       <span className="flex flex-col border-t border-border/40 pt-1.5">
@@ -325,7 +359,7 @@ export function PlacesAnalysis({ rows, name }: { rows: PlaceRow[]; /** The place
   const sum = peopled.reduce((t, p) => t + p[3], 0);
   const kinds = useMemo(() => {
     const tally = new Map<string, number>();
-    for (const p of rows) tally.set(PLACE_KINDS[p[5]] ?? "Place", (tally.get(PLACE_KINDS[p[5]] ?? "Place") ?? 0) + 1);
+    for (const p of rows) tally.set(placeSize(p) ?? "No population held", (tally.get(placeSize(p) ?? "No population held") ?? 0) + 1);
     const sorted = [...tally].sort((a, b) => b[1] - a[1]);
     // Past the five commonest, the rest are one part: the bar has room for no more.
     const rest = sorted.slice(5).reduce((t, [, n]) => t + n, 0);
@@ -341,8 +375,8 @@ export function PlacesAnalysis({ rows, name }: { rows: PlaceRow[]; /** The place
         </div>
       )}
       <div>
-        <ChartTitle>What kind of place each is · {whole(rows.length)} places</ChartTitle>
-        <PartsBar label={`The places of ${name} by the kind GeoNames classes them as`} parts={kinds.map(([label, n]) => ({ label, value: n, text: whole(n) }))} />
+        <ChartTitle>Cities, towns and villages · {whole(rows.length)} places · by their people</ChartTitle>
+        <PartsBar label={`The places of ${name} as cities, towns and villages, by their people`} parts={kinds.map(([label, n]) => ({ label, value: n, text: whole(n) }))} />
       </div>
       <div>
         <FigureRow label="Places with a population figure" value={`${whole(peopled.length)} of ${whole(rows.length)}`} />
@@ -408,7 +442,7 @@ export function PlacesInside({
       )}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
         {found.slice(0, shown).map((p) => (
-          <PlaceCard key={p[6]} p={p} district={file.districts[p[7]]} onOpen={() => setOpen(p)} />
+          <PlaceCard key={p[6]} p={p} file={file} flag={cardFlag(division(p))} district={file.districts[p[7]]} onOpen={() => setOpen(p)} />
         ))}
       </div>
       {found.length === 0 && rows.length > 0 && <p className="text-[11px] font-sans text-muted-foreground py-2">None by that name.</p>}
@@ -734,7 +768,7 @@ function PlaceWindow({
                   <span className={`flex items-center gap-1 ${CHIP_TEXT}`}>
                     <MapPin size={12} weight="fill" /> {[district, s.name, country].filter(Boolean).join(" · ")}
                   </span>
-                  <span className="text-xs border border-border px-2 py-0.5 rounded-full font-sans text-muted-foreground">{PLACE_KINDS[kind]}</span>
+                  <span className="text-xs border border-border px-2 py-0.5 rounded-full font-sans text-muted-foreground">{placeType(p, file)}</span>
                 </div>
               </div>
             </div>
@@ -773,7 +807,7 @@ function PlaceWindow({
                 <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
                   {pop > 0 && <Tile label="People" value={whole(pop)} sub="GeoNames, undated" />}
                   {district && <Tile label="County or district" value={district} sub={s.name} />}
-                  <Tile label="What it is" value={PLACE_KINDS[kind]} sub="as GeoNames classes it" />
+                  <Tile label="What it is" value={placeType(p, file)} sub={`by its people · GeoNames classes it as ${PLACE_KINDS[kind].toLowerCase()}`} />
                 </div>
               </Part>
 
@@ -975,7 +1009,7 @@ function PlaceWindow({
               <Part title="🗂 At a glance">
                 <div className="modal-tile rounded-xl px-4 py-1.5">
                   <FigureRow label="Name" value={name} />
-                  <FigureRow label="What it is" value={PLACE_KINDS[kind]} sub="as GeoNames classes it" />
+                  <FigureRow label="What it is" value={placeType(p, file)} sub={`by its people · GeoNames classes it as ${PLACE_KINDS[kind].toLowerCase()}`} />
                   {district && <FigureRow label="County or district" value={district} />}
                   <FigureRow label="Division" value={s.name} sub={s.kind} />
                   <FigureRow label="Country" value={country} sub={`ISO 3166-1: ${s.cc}`} />
