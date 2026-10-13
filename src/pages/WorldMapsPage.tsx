@@ -32,6 +32,7 @@ import { Link } from "react-router-dom";
 import { countriesData, type Country } from "../data/countriesData";
 import { SUBNATION_FLAG_COLOR } from "../data/subnationFlagColors";
 import { flagColor, seen } from "../lib/flagColor";
+import { useAdmin2 } from "../lib/admin2";
 import { usStatesData } from "../data/statesData";
 import {
   countryForFeature,
@@ -1263,6 +1264,15 @@ function ZoomControls({
 const RAMP_LIGHT = ["#000000", "#303030", "#4f4f4f", "#6e6e6e", "#909090", "#b7b7b7"];
 const RAMP_DARK = ["#464646", "#5f5f5f", "#7a7a7a", "#989898", "#b9b9b9", "#e0e0e0"];
 
+/* The maps are drawn as the outline maps in the windows are: each place in its own flag's colour, faint inside a bright
+   edge. On the world map the colour is the country's and says nothing of its figure; how solid the colour is does - one
+   of these six steps, the first the faintest, in place of the six greys. They are far enough apart to be told from one
+   another on both cards, and the faintest still shows against each. */
+const NEON_STEPS = ["0.14", "0.25", "0.38", "0.52", "0.68", "0.86"];
+/** The colour of a place whose flag gives none, and of the legend's steps. */
+const NEON_ACCENT = "#22d3ee";
+const tint = (hex: string, share: string) => `color-mix(in srgb, ${hex} ${Math.round(Number(share) * 100)}%, transparent)`;
+
 /* Greens, for forest cover: one hue, lowest bucket first, and more forest is
    more green in both themes - deeper on the light card, brighter on the dark
    one. Built the same way as the greys: every adjacent pair 1.45:1 apart, and
@@ -1637,6 +1647,12 @@ export function WorldMapsPage() {
   const labelInk = isLight ? "#000000" : "#ffffff";
   const labelHalo = isLight ? "#ffffff" : "#000000";
   const stroke = isLight ? "#ffffff" : "#15151d";
+  /* The colour a country is drawn in: its flag's, or the accent where its flag has none of its own. */
+  const neonOf = (code: string | null | undefined) => (code && flagColor(code)) || NEON_ACCENT;
+  /* A US state's: its own flag's where it is held, and its country's otherwise. */
+  const stateHue = (name: string) => (SUBNATION_FLAG_COLOR.US?.[name] ? seen(SUBNATION_FLAG_COLOR.US[name]) : (flagColor("US") ?? NEON_ACCENT));
+  /* The finer borders inside a filled place - states on the world map, counties and districts on a country's: light on the dark card, dark on the light one. */
+  const innerInk = isLight ? "#0f172a" : "#ffffff";
   /* The choropleth is deliberately greyscale, which leaves hue free to mean
      "this is not the shaded figure": water blue, port amber, mineral rust.
 
@@ -1737,6 +1753,8 @@ export function WorldMapsPage() {
   /* The world map's ramp: the indicator's own where it has one (forest cover
      is green), the greys otherwise. The other maps on the page keep the greys. */
   const worldRamp = activeCountry.ramp ? (isLight ? activeCountry.ramp.light : activeCountry.ramp.dark) : ramp;
+  /* Drawn in the countries' own colours unless the indicator has a ramp of its own to keep (forest cover's greens). */
+  const neonWorld = !activeCountry.ramp;
   const activeScope = SCOPES.find((s) => s.id === scope)!;
   const inScope = activeScope.members;
   /* M49 classifies neither Kosovo nor Taiwan, so they belong to no scope and
@@ -2218,6 +2236,22 @@ export function WorldMapsPage() {
     [states, statePath],
   );
 
+  /* The counties' borders for the United States' map: the lines between counties as one mesh, from the Census Bureau's
+     file, fetched when that map is the one shown. */
+  const [usCounties, setUsCounties] = useState<Topology | null>(null);
+  useEffect(() => {
+    if (focusCode !== "US" || usCounties) return;
+    let off = false;
+    import("us-atlas/counties-10m.json").then((m) => !off && setUsCounties((m.default ?? m) as unknown as Topology));
+    return () => {
+      off = true;
+    };
+  }, [focusCode, usCounties]);
+  const usCountiesD = useMemo(
+    () => (usCounties ? (statePath(mesh(usCounties, usCounties.objects.counties as never, (a, b) => a !== b) as never) ?? undefined) : undefined),
+    [usCounties, statePath],
+  );
+
   // The same audit for the 1:50m file, which every map ends up drawing.
   useEffect(() => {
     if (!import.meta.env.DEV || !detailWorld) return;
@@ -2619,6 +2653,20 @@ export function WorldMapsPage() {
       geo: outlineGeo as unknown,
     };
   }, [focusCode, featureByCode, admin1, focusCapital]);
+
+  /* The finer borders inside the country's divisions - its districts, where the site holds them (lib/admin2) - drawn with
+     the map's own projection, as bare lines. The United States' are its counties, on its own map. */
+  const second = useAdmin2(focusCode !== "US" ? focusCode : null);
+  const secondD = useMemo(() => {
+    if (!focusMap || !second) return undefined;
+    const rings: unknown[] = [];
+    for (const s of second.shapes) {
+      if (s.geometry.type === "Polygon") rings.push(...s.geometry.coordinates);
+      else if (s.geometry.type === "MultiPolygon") for (const poly of s.geometry.coordinates as unknown[][]) rings.push(...poly);
+    }
+    return rings.length ? (focusMap.path({ type: "MultiLineString", coordinates: rings } as never) ?? undefined) : undefined;
+  }, [focusMap, second]);
+  const focusHue = neonOf(focusCode);
 
   /* ── The same overlays, on whichever country is in focus ──────────────
      The layers are lon/lat, so they can be drawn in any projection; what
@@ -3584,6 +3632,9 @@ export function WorldMapsPage() {
                 country !== null &&
                 !activeScope.belongs(country);
               const value = country && !outside ? activeCountry.get(country) : null;
+              // Its own flag's colour, and how solid it is drawn: the step its figure falls in, or none where it has no figure.
+              const hue = neonOf(country?.code);
+              const solid = neonWorld && !outside ? colourFor(value, countryShading.breaks, NEON_STEPS) : null;
               return (
                 <path
                   key={i}
@@ -3591,10 +3642,17 @@ export function WorldMapsPage() {
                   fill={
                     outside
                       ? outOfScope
-                      : (colourFor(value, countryShading.breaks, worldRamp) ?? "url(#nodata-world)")
+                      : neonWorld
+                        ? solid !== null
+                          ? hue
+                          : "url(#nodata-world)"
+                        : (colourFor(value, countryShading.breaks, worldRamp) ?? "url(#nodata-world)")
                   }
-                  stroke={stroke}
-                  strokeWidth={0.3 / worldZoom.zoom}
+                  fillOpacity={solid !== null ? Number(solid) : 1}
+                  stroke={neonWorld && !outside ? hue : stroke}
+                  strokeOpacity={neonWorld && !outside && solid === null ? 0.55 : 1}
+                  strokeWidth={(neonWorld ? 0.55 : 0.3) / worldZoom.zoom}
+                  strokeLinejoin="round"
                   // A press chooses the country as the place picked out.
                   data-pick={country ? `country:${country.code}` : undefined}
                   style={country && worldZoom.zoom === 1 ? { cursor: "pointer" } : undefined}
@@ -3623,8 +3681,8 @@ export function WorldMapsPage() {
               <path
                 d={admin1BordersD}
                 fill="none"
-                stroke={stroke}
-                strokeOpacity={0.6}
+                stroke={neonWorld ? innerInk : stroke}
+                strokeOpacity={neonWorld ? 0.26 : 0.6}
                 strokeWidth={0.3 / worldZoom.zoom}
                 strokeLinejoin="round"
                 pointerEvents="none"
@@ -3822,8 +3880,14 @@ export function WorldMapsPage() {
           </svg>
           </div>
 
+          {neonWorld && (
+            <p className="text-[10px] font-sans text-muted-foreground leading-snug mt-3">
+              Each country is drawn in its own flag's colour, which says nothing of its figure. How solid the colour is does: the six steps of the scale below, the
+              faintest the lowest. The lines inside a country are its states, provinces or regions.
+            </p>
+          )}
           <Legend
-            ramp={worldRamp}
+            ramp={neonWorld ? NEON_STEPS.map((o) => tint(NEON_ACCENT, o)) : worldRamp}
             noData={noData}
             noDataHatch={noDataHatch}
             lowLabel={activeCountry.ramp?.low ?? "Lower"}
@@ -4097,24 +4161,24 @@ export function WorldMapsPage() {
                 shaded by a statistic picked from a row of buttons, which no
                 other country's map had. */}
             {stateShapes.map(({ name, state, d }, i) => (
-              // A state lights in its own flag's colour when it is pointed at, as on the Dashboard's map: the fill is the map's one tone until then.
+              // Each state in its own flag's colour - its country's where it has none held - faint until it is pointed at, inside an edge of the same colour: as the outline maps in the windows are drawn.
               <path
                 key={i}
                 d={d}
-                className="fill-[var(--us-land)] hover:fill-[var(--us-hot)] transition-colors"
-                stroke={stroke}
-                strokeWidth={0.5 / zoom}
+                className="[fill-opacity:0.3] hover:[fill-opacity:0.68] transition-[fill-opacity]"
+                fill={stateHue(state?.name ?? name)}
+                stroke={stateHue(state?.name ?? name)}
+                strokeWidth={0.9 / zoom}
+                strokeLinejoin="round"
                 data-pick={state ? `state:${state.abbreviation}` : undefined}
-                style={{
-                  ["--us-land" as string]: ramp[3],
-                  ["--us-hot" as string]: SUBNATION_FLAG_COLOR.US?.[state?.name ?? name] ? seen(SUBNATION_FLAG_COLOR.US[state?.name ?? name]) : (flagColor("US") ?? markInk),
-                  cursor: state && zoom === 1 ? "pointer" : undefined,
-                }}
+                style={{ cursor: state && zoom === 1 ? "pointer" : undefined }}
               >
 
                 <title>{state?.name ?? name}</title>
               </path>
             ))}
+            {/* The counties' borders, as one mesh over the states and under the labels: thinner and fainter than a state's edge, and not pointed at. */}
+            {usCountiesD && <path d={usCountiesD} fill="none" stroke={innerInk} strokeOpacity={0.24} strokeWidth={0.3 / zoom} strokeLinejoin="round" pointerEvents="none" />}
             {/* The place picked out, where it is a part of this map: the one
                 state a link named, filled as on the world map, or a city's
                 mark. A country is not picked out here - this map is already
@@ -4447,42 +4511,48 @@ export function WorldMapsPage() {
                   >
                     {focusMap && (
                       <>
-                        {/* The fill and the coast, from the merged arcs. */}
+                        {/* The fill and the coast, from the merged arcs: the country in its own flag's colour, faint inside a bright edge, as the outline maps in the windows are drawn. */}
                         <path
                           d={focusMap.outline}
-                          fill={ramp[3]}
-                          stroke={stroke}
-                          strokeWidth={1 / zoom}
+                          fill={focusHue}
+                          fillOpacity={0.28}
+                          stroke={focusHue}
+                          strokeWidth={1.2 / zoom}
                           strokeLinejoin="round"
                         />
 
-                        {/* Hit targets: one invisible shape per division, so
-                            every name is discoverable on hover even when it is
-                            too small to carry a label. */}
+                        {/* Hit targets: one shape per division, so every name is
+                            discoverable on hover even when it is too small to
+                            carry a label. Unseen until it is pointed at, when
+                            it is filled in the country's colour. */}
                         {focusMap.parts.map((sd, i) => (
                           <path
                             key={`hit-${sd.n}-${i}`}
                             d={sd.d}
-                            fill="transparent"
+                            fill={focusHue}
+                            className="[fill-opacity:0] hover:[fill-opacity:0.42] transition-[fill-opacity]"
                             stroke="none"
                           >
                             <title>{sd.n || "Unnamed division"}</title>
                           </path>
                         ))}
 
+                        {/* The finer borders inside the divisions - its districts - under the divisions' own: thinner and fainter, and not pointed at. */}
+                        {secondD && <path d={secondD} fill="none" stroke={innerInk} strokeOpacity={second && second.shapes.length > 1500 ? 0.13 : 0.24} strokeWidth={0.3 / zoom} strokeLinejoin="round" pointerEvents="none" />}
+
                         {/* Internal borders as a single mesh, so a shared
                             border is one stroke rather than two stacked on
                             each other — that is what used to make internal
-                            lines read heavier than the coast. Unshaded: this
-                            project has no per-division figures outside the US,
-                            and a colour here would imply one. */}
+                            lines read heavier than the coast. The divisions
+                            are not shaded by any figure: this project has no
+                            per-division figures outside the US. */}
                         {focusMap.interior && (
                           <path
                             d={focusMap.interior}
                             fill="none"
-                            stroke={stroke}
-                            strokeWidth={0.6 / zoom}
-                            strokeOpacity={0.75}
+                            stroke={focusHue}
+                            strokeWidth={0.7 / zoom}
+                            strokeOpacity={0.9}
                             strokeLinejoin="round"
                             pointerEvents="none"
                           />
@@ -4493,8 +4563,8 @@ export function WorldMapsPage() {
                         <path
                           d={focusMap.outline}
                           fill="none"
-                          stroke={stroke}
-                          strokeWidth={1 / zoom}
+                          stroke={focusHue}
+                          strokeWidth={1.2 / zoom}
                           strokeLinejoin="round"
                           pointerEvents="none"
                         />
@@ -4683,8 +4753,9 @@ export function WorldMapsPage() {
                           >
                             <path
                               d={ins.d}
-                              fill={ramp[3]}
-                              stroke={stroke}
+                              fill={focusHue}
+                              fillOpacity={0.28}
+                              stroke={focusHue}
                               strokeWidth={0.8}
                               strokeLinejoin="round"
                             />
@@ -4692,13 +4763,13 @@ export function WorldMapsPage() {
                               <path
                                 d={ins.interior}
                                 fill="none"
-                                stroke={stroke}
+                                stroke={focusHue}
                                 strokeWidth={0.5}
                                 strokeOpacity={0.75}
                               />
                             )}
                             {ins.dots && (
-                              <path d={ins.dots} fill={ramp[3]} stroke={stroke} strokeWidth={0.6} />
+                              <path d={ins.dots} fill={focusHue} fillOpacity={0.5} stroke={focusHue} strokeWidth={0.6} />
                             )}
                           </svg>
                           <p className="mt-0.5 text-[9px] font-sans leading-tight text-muted-foreground text-center">
@@ -4842,7 +4913,9 @@ export function WorldMapsPage() {
               Object.values(ADMIN1_SOURCES).flatMap((x) => (x.level === "NE" && x.islands ? x.islands.split(", ") : [])),
             )}
             , which Natural Earth draws many times too large or leaves out. US states: the US Census
-            Bureau via us-atlas. Group scopes: G7 and G20 membership as those
+            Bureau via us-atlas, and its counties' borders the same. The finer borders inside another
+            country's divisions are its second-order boundaries from geoBoundaries (gbOpen), each under
+            its own publisher's open licence, for the countries the site holds them for. Group scopes: G7 and G20 membership as those
             groups publish it; Global North and South follow the UN M49 developed /
             developing classification, which UNSD states is for statistical
             convenience rather than a judgement about development. Indicators:
