@@ -292,10 +292,10 @@ function DemographicsCharts({ state }: { state: USState }) {
 
       <div className={`${tile} sm:col-span-2`}>
         <ChartTitle>What its electricity is generated from · % of generation · {y.energyMix}</ChartTitle>
-        <MeasureBars
-          max={100}
+        {/* A ring, as a country's energy is drawn: the sources are parts of one whole, largest first. */}
+        <PartsDonut
           label={`Electricity generation in ${state.name} by source`}
-          rows={state.energyMix
+          parts={state.energyMix
             .filter((e) => e.pct > 0)
             .sort((a, b) => b.pct - a.pct)
             .map((e) => ({ label: e.source, value: e.pct, text: pct(e.pct) }))}
