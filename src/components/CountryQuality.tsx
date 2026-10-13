@@ -21,12 +21,14 @@
  * as a figure and not drawn against a ceiling made up for it. What a country
  * produces its energy from is a whole, so it is a ring.
  *
- * Transportation also gives the journey to work where an official series
- * has it (commute.ts): Eurostat's mean one-way minutes for a European
- * country and for the people living in its cities, or the Census Bureau's
- * for the United States - and, for a city there, for the city itself, named
- * as the city's. How people get to work is a whole, so it is a ring. A
- * country neither series covers says so and is given no figure.
+ * Commute is a subject of its own: the journey to work where an official
+ * series has it (commute.ts). First the city's own, named as the city's -
+ * the Census Bureau's for a city of the United States, Eurostat's city
+ * statistics for a city of Europe - and beside it the country's: Eurostat's
+ * mean one-way minutes for a European country and for the people living in
+ * its cities, or the Census Bureau's for the United States. How people get
+ * to work is a whole, so it is a ring. A place neither series covers has a
+ * card that says "Not held" and is given no figure.
  *
  * The Dashboard gives a few of the same rows under each of its cities
  * (qualityHeadlines, drawn by CityQualityBars), so the two cannot disagree.
@@ -34,7 +36,7 @@
  * It is loaded when a window opens, not with the page: the figures it reads
  * are the Countries page's, and large.
  */
-import { BookOpen, CurrencyDollar, Drop, FirstAid, Lightning, ShieldCheck, Storefront, Train, Wind } from "@phosphor-icons/react";
+import { BookOpen, Bus, CurrencyDollar, Drop, FirstAid, Lightning, ShieldCheck, Storefront, Train, Wind } from "@phosphor-icons/react";
 import { useEffect, useState, type ReactNode } from "react";
 import { COUNTRY_OF, ECONOMY_OF } from "../data/placeIndex";
 import { COUNTRY_PANELS, panelSource, type PanelFigure } from "../data/countryPanels";
@@ -44,7 +46,7 @@ import { COUNTRY_CRIME, CRIME_SOURCE } from "../data/countryCrime";
 import { PUBLIC_SECURITY, PUBLIC_SECURITY_SOURCES } from "../data/publicSecurity";
 import { ECONOMY_INDICATORS, ECONOMY_INDICATORS_SOURCE } from "../data/economyIndicators";
 import { AIR_QUALITY, AIR_QUALITY_SOURCE } from "../data/airQuality";
-import { COMMUTE_EU, COMMUTE_EUROPE, COMMUTE_SOURCES, COMMUTE_US, COMMUTE_US_CITIES, type UsCommute } from "../data/commute";
+import { COMMUTE_EU, COMMUTE_EUROPE, COMMUTE_SOURCES, COMMUTE_UN_CITIES, COMMUTE_US, COMMUTE_US_CITIES, type CityCommute, type UsCommute } from "../data/commute";
 import { ChartTitle, PartsDonut, worldFor } from "./ModalCharts";
 import { semanticColor } from "../lib/semanticColors";
 import { SourceLink } from "./SourceLink";
@@ -170,9 +172,14 @@ export function qualityOf(code: string, country: string, city?: string, commute 
   // A window that gives the journey to work in a panel of its own asks for it to be left out of this one.
   const eur = commute ? COMMUTE_EUROPE[code] : undefined;
   const usa = commute && code === "US" ? COMMUTE_US : undefined;
-  const ownCity = commute && city ? COMMUTE_US_CITIES[city] : undefined;
+  // The city's own: the Census place a profile was given by hand, or the figures held by the UN's id for the city - the Census Bureau's or Eurostat's.
+  const held: CityCommute | undefined = commute && city ? (COMMUTE_US_CITIES[city] ? { from: "acs", ...COMMUTE_US_CITIES[city] } : COMMUTE_UN_CITIES[city]) : undefined;
+  const ownCity = held?.from === "acs" ? held : undefined;
+  const ownEurope = held?.from === "eurostat" ? held : undefined;
+  const cityStats = { label: COMMUTE_SOURCES.cities.label, url: COMMUTE_SOURCES.cities.url };
   if (eur) cite({ label: COMMUTE_SOURCES.eurostat.label, url: COMMUTE_SOURCES.eurostat.url });
   if (usa || ownCity) cite({ label: COMMUTE_SOURCES.acs.label, url: COMMUTE_SOURCES.acs.url });
+  if (ownEurope) cite(cityStats);
   const eurRow = (label: string, v: number | undefined, eu: number | undefined, who: string): Row[] =>
     v == null ? [] : [{ label, value: min(v), sub: `${who} · ${COMMUTE_SOURCES.eurostat.year}${eu != null ? ` · European Union ${min(eu)}` : ""}`, from: eurostat }];
   const usRows = (c: UsCommute, own: boolean): Row[] => {
@@ -184,6 +191,31 @@ export function qualityOf(code: string, country: string, city?: string, commute 
     ];
   };
   const commuteRows: Row[] = [
+    // The city's own first, where an official series has it.
+    ...(ownCity ? usRows(ownCity, true) : []),
+    ...(ownEurope?.minutes
+      ? [
+          {
+            label: `${ownEurope.place}: average journey to work`,
+            value: min(ownEurope.minutes.v),
+            sub: `the city itself, as Eurostat draws it · ${ownEurope.minutes.y}${ownEurope.minutes.est ? " · Eurostat's estimate" : ""}`,
+            from: cityStats,
+            own: true,
+          },
+        ]
+      : []),
+    ...(ownEurope?.modes
+      ? ownEurope.modes.parts
+          .filter(([way]) => way === "Public transport" || way === "Car")
+          .map(([way, share]) => ({
+            label: `${ownEurope.place}: journeys to work by ${way.toLowerCase()}`,
+            value: pct(share),
+            sub: `of journeys to work · ${ownEurope.modes!.y}${ownEurope.modes!.est ? " · Eurostat's estimate" : ""}`,
+            bar: barOf(share, null, "share"),
+            from: cityStats,
+            own: true,
+          }))
+      : []),
     ...(eur
       ? [
           ...eurRow("Average journey to work, one way", eur.all, COMMUTE_EU.all, "employed people who travel to work"),
@@ -193,8 +225,22 @@ export function qualityOf(code: string, country: string, city?: string, commute 
         ]
       : []),
     ...(usa ? usRows(usa, false) : []),
-    ...(ownCity ? usRows(ownCity, true) : []),
   ];
+  /** How journeys to work in a city of Europe are made: a ring, with what the shares leave of the whole said to be worked out here. */
+  const waysEurope = ownEurope?.modes ? (
+    <div className="mt-3" key="europe">
+      <ChartTitle>
+        How journeys to work in {ownEurope.place} are made · % of journeys · {ownEurope.modes.y}
+      </ChartTitle>
+      <PartsDonut
+        label={`How journeys to work in ${ownEurope.place} are made, ${ownEurope.modes.y}`}
+        parts={[
+          ...ownEurope.modes.parts.map(([way, share]) => ({ label: way, value: share, text: `${share}%` })),
+          ...(ownEurope.modes.rest ? [{ label: "Other ways, or not given · worked out here", value: ownEurope.modes.rest, text: `${ownEurope.modes.rest}%` }] : []),
+        ]}
+      />
+    </div>
+  ) : null;
   /** How people get to work is a whole: a ring, each way named with its share. */
   const ways = (c: UsCommute, own: boolean) => (
     <div className="mt-3" key={c.place}>
@@ -206,7 +252,7 @@ export function qualityOf(code: string, country: string, city?: string, commute 
   );
 
   // Each panel has a colour that goes with its subject - water blue, energy yellow, safety red - for its mark and its bars.
-  const groups: { title: string; icon: ReactNode; color: string; rows: Row[]; extra?: ReactNode }[] = [
+  const groups: { title: string; icon: ReactNode; color: string; rows: Row[]; extra?: ReactNode; /** What its card says where it has no figure. */ none?: string }[] = [
     {
       title: "Water",
       color: "#0ea5e9",
@@ -243,19 +289,30 @@ export function qualityOf(code: string, country: string, city?: string, commute 
         ...panel("Railway lines", p.railKm, (v) => `${n(v)} km`, "route length"),
         ...panel("Logistics Performance Index", p.logisticsIndex, (v) => `${v}`, "World Bank index, 1 to 5", undefined, { from: 1, to: 5 }),
         ...panel("Electric cars' share of new car sales", p.evSalesShare, pct, "of new cars sold", "evSalesShare", "share"),
-        ...commuteRows,
       ],
-      extra:
-        usa || ownCity ? (
+    },
+    // The journey to work, a subject of its own: the city's figures where an official series has them, its country's beside them.
+    {
+      title: "Commute",
+      color: "#0891b2",
+      icon: <Bus size={13} weight="fill" />,
+      // Where no figure is held, its card says so and its panel says why.
+      none: commute && commuteRows.length === 0 ? "Not held" : undefined,
+      rows: commuteRows,
+      extra: !commute ? undefined : usa || ownCity?.modes.length || waysEurope ? (
           <>
+            {ownCity && ownCity.modes.length > 0 && ways(ownCity, true)}
+            {waysEurope}
             {usa && ways(usa, false)}
-            {ownCity && ways(ownCity, true)}
+            {ownCity && <p className="text-[10px] font-sans text-muted-foreground leading-snug mt-2">The city's figures are the Census Bureau's for {ownCity.place}: the city within its own boundary, not the wider built-up area around it.</p>}
+            {ownEurope && <p className="text-[10px] font-sans text-muted-foreground leading-snug mt-2">The city's figures are Eurostat's, for the city it lists as {ownEurope.place}; they are gathered from national censuses and surveys, so their years differ from city to city, and from the country's own survey.</p>}
           </>
-        ) : commute && commuteRows.length === 0 ? (
+        ) : commuteRows.length === 0 ? (
           // No figure is better than one from a ranking that cannot be reused or checked.
           <p className="text-[10px] font-sans text-muted-foreground leading-snug mt-2">
-            The journey to work: no figure is held for {inSentence(country)}. No body publishes it for every country on one footing; the site has Eurostat's for {Object.keys(COMMUTE_EUROPE).length}{" "}
-            European countries and the Census Bureau's for the United States.
+            The journey to work: no figure is held for {inSentence(country)}, or for a city in it. No body publishes it for every country on one footing; the site has Eurostat's for{" "}
+            {Object.keys(COMMUTE_EUROPE).length} European countries and the Census Bureau's for the United States, with {Object.keys(COMMUTE_UN_CITIES).length} of their cities - and puts no ranking from a traffic app or an
+            opinion survey in their place.
           </p>
         ) : undefined,
     },
@@ -355,7 +412,7 @@ const HEADLINES = [
 /** A city's headline rows, each with its panel's colour: the city's own figures first, where any is held, then its country's. */
 export function qualityHeadlines(code: string, country: string, city?: string): (Row & { color: string })[] {
   const rows = qualityOf(code, country, city).groups.flatMap((g) => g.rows.map((r) => ({ ...r, color: g.color })));
-  return [...rows.filter((r) => r.own && / journey to work, one way$/.test(r.label)), ...HEADLINES.flatMap((label) => rows.filter((r) => r.label === label))];
+  return [...rows.filter((r) => r.own && / journey to work(, one way)?$/.test(r.label)), ...HEADLINES.flatMap((label) => rows.filter((r) => r.label === label))];
 }
 
 export default function CountryQuality({
@@ -370,9 +427,9 @@ export default function CountryQuality({
   country: string;
   /** The city whose window this is. */
   place: string;
-  /** The city's id on the Cities page, for the figures held for the city itself. */
+  /** The city's id - its profile's on the Cities page, or the UN's for it - for the figures held for the city itself. */
   city?: string;
-  /** False where the window gives the journey to work in a panel of its own. */
+  /** False where the journey to work is to be left out. */
   commute?: boolean;
 }) {
   const { groups, sources } = qualityOf(code, country, city, commute);
@@ -429,6 +486,11 @@ export default function CountryQuality({
                   <span className="block text-[10px] font-sans text-muted-foreground leading-snug truncate" title={lead.label}>
                     {lead.label}
                   </span>
+                </>
+              ) : g.none ? (
+                <>
+                  <span className="block text-base font-bold font-sans text-muted-foreground leading-tight mt-1.5 truncate">{g.none}</span>
+                  <span className="block text-[10px] font-sans text-muted-foreground leading-snug truncate">no figure for {inSentence(country)}</span>
                 </>
               ) : (
                 <span className="block text-[10px] font-sans text-muted-foreground leading-snug mt-1.5">how it is made up</span>

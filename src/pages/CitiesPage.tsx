@@ -58,8 +58,8 @@ import { TONE, CHIP_TEXT } from "@/lib/chipTone";
 
 /* Water, energy, transport, safety, business and the economy for the city's country. Loaded when a window opens:
    the figures it reads are the Countries page's, and large. */
-const CountryQuality = lazy(() => import("../components/CountryQuality"));
-const CommutePanel = lazy(() => import("../components/CommutePanel"));
+/** The quality-of-life cards of a profiled city, the journey to work among them as a subject of its own. */
+const ProfileQuality = lazy(() => import("../components/ProfileQuality"));
 const Universities = lazy(() => import("../components/Universities"));
 /** Every city the United Nations counts, under the profiled ones: loaded when the page reaches it, with its list of some twelve thousand. */
 const AllCities = lazy(() => import("../components/AllCities"));
@@ -602,9 +602,7 @@ function CityModal({ city, onClose }: { city: City; onClose: () => void }) {
               {/* The headings the windows once had - water, energy, transport, safety, business, the economy - with the
                   country's published figures under them, and said to be the country's. */}
               <Suspense fallback={null}>
-                {/* The journey to work: the city's own where an official series has it, and its country's under that. */}
-                <CommutePanel code={city.countryCode} country={city.country} place={city.name} city={city.id} className="mb-4" />
-                <CountryQuality code={city.countryCode} country={city.country} place={city.name} city={city.id} commute={false} />
+                <ProfileQuality code={city.countryCode} country={city.country} place={city.name} city={city.id} />
                 {/* The city's universities and colleges, each opening to what it is about and known for. */}
                 <Universities city={city.id} place={city.name} />
               </Suspense>
