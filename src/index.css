@@ -1404,6 +1404,14 @@ html.light .modal-tabs.modal-tabs.modal-tabs.modal-tabs {
     0 10px 26px rgba(120, 100, 60, 0.22) !important;
 }
 
+/* The comparison table's row of flags and names (Rankings) stays at the head
+   of the table's own frame as its metrics are scrolled. It needs a ground
+   that hides what passes under it: the page's, with the faint tint a table
+   head has. */
+.compare-head {
+  background: color-mix(in srgb, var(--color-foreground) 7%, var(--color-background));
+}
+
 /* ── A window's title bar ─────────────────────────────────
    The place's name, where it is and the window's buttons (WindowTitle): one
    bar across the top of the window, above the flag, that stays as the
