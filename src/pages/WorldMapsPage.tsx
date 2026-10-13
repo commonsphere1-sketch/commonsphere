@@ -68,6 +68,8 @@ import {
 import { StyledSelect } from "../components/StyledSelect";
 /** Who leads the world's regions and municipalities, with the places it maps: loaded after the page, which does not wait for it. */
 const RepresentativesExplorer = lazy(() => import("../components/RepresentativesExplorer"));
+/** The third map: one division of the country in focus, with its counties and its municipalities. Loaded when the page reaches it. */
+const DivisionAtlas = lazy(() => import("../components/DivisionAtlas"));
 import { citiesData } from "../data/citiesData";
 import { CITY_PLACES } from "../data/cityPlaces";
 import { CITY_FIGURES, CITY_FIGURES_SOURCE } from "../data/cityFigures";
@@ -5155,6 +5157,18 @@ export function WorldMapsPage() {
               </p>
             </>
           )}
+        </div>
+
+        {/* ── Counties and municipalities: one division of the country in focus above, drawn close enough for what is inside it ── */}
+        <div className="rounded-2xl p-4" style={{ background: cardBg, border: cardBorder, boxShadow: cardShadow }}>
+          <Suspense fallback={<p className="text-xs font-sans text-muted-foreground">Loading the map of counties and municipalities…</p>}>
+            <DivisionAtlas
+              code={focusCode}
+              country={focusCode === "US" ? "United States" : (focusCountry?.name ?? focusCode)}
+              color={focusHue}
+              colorOf={focusCode === "US" ? stateInk : undefined}
+            />
+          </Suspense>
         </div>
 
         {/* ── Sources ── */}
