@@ -4843,6 +4843,16 @@ export function WorldMapsPage() {
                   </div>
                 </div>
 
+                {/* What the country is coloured by, as under the world map: its own living conditions, part by part, and what its lines are. */}
+                <p className="text-[10px] font-sans text-muted-foreground leading-snug mt-3">
+                  {COUNTRY_LIVING[focusCode]
+                    ? `${focusCountry?.name ?? "This country"} is drawn in the colour of its living conditions: ${COUNTRY_LIVING[focusCode].score.toFixed(0)} of 100, worked out here from the figures the site holds and published by no body - its standing among all countries on ${COUNTRY_LIVING[focusCode].parts.map((p) => `${p.name.toLowerCase()} (${p.score.toFixed(0)})`).join(", ")}, averaged. The colour is the sixth of the scored countries it falls in, red the lowest and teal the highest.`
+                    : `${focusCountry?.name ?? "This country"} holds too few of the figures to be given a living-conditions score, so it is drawn in grey and not in a colour of the scale.`}{" "}
+                  No figures are held division by division, so its divisions are not coloured apart from it: the lines are their borders
+                  {secondD ? ", and the fainter ones its districts'" : ""}.
+                </p>
+                <Legend ramp={livingRamp} noData={noData} noDataHatch={noDataHatch} lowLabel="Lower" highLabel="Higher" hovered={null} />
+
                 {layerNotes(focusLayers)}
 
                 {/* Division names the map could not place, under it. */}

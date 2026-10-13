@@ -1123,8 +1123,12 @@ html.light .avatar-glass {
   color: var(--color-background);
   border-color: var(--color-foreground);
 }
+/* Its writing stays the colour it is: a control that turns its text to the
+   page's ink when pointed at - the Maps page's country picker - would
+   otherwise write in the chip's own fill, and its label would vanish. */
 .chip-selected:hover {
   opacity: 0.9;
+  color: var(--color-background);
 }
 
 /* Drifting flags in the dashboard welcome card.
