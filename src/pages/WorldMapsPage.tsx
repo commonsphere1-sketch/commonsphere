@@ -3250,39 +3250,6 @@ export function WorldMapsPage() {
     return [...inside, ...outside];
   }, [states, statePath]);
 
-  /* ── Continental aggregates ── */
-  const continents = useMemo(() => {
-    const groups = new Map<string, Country[]>();
-    // Places with no permanent population add nothing to a sum or a median;
-    // left in, Antarctica's four came to a row of zeros.
-    for (const c of countriesData) {
-      if (c.uninhabited) continue;
-      if (!groups.has(c.continent)) groups.set(c.continent, []);
-      groups.get(c.continent)!.push(c);
-    }
-    const median = (xs: number[]) => {
-      const s = [...xs].sort((a, b) => a - b);
-      return s.length ? s[Math.floor(s.length / 2)] : null;
-    };
-    return [...groups.entries()]
-      .map(([name, list]) => {
-        const hdi = list.map((c) => c.humanDevelopmentIndex).filter((v): v is number => Number.isFinite(v));
-        const life = list.map((c) => c.lifeExpectancy).filter((v): v is number => Number.isFinite(v));
-        return {
-          name,
-          countries: list.length,
-          // Summed, because a population is a count.
-          population: list.reduce((a, c) => a + (c.population || 0), 0),
-          gdp: list.reduce((a, c) => a + (c.gdp || 0), 0),
-          // Median, not mean: an average HDI across countries of wildly
-          // different size would say nothing about a typical country there.
-          medianHdi: median(hdi),
-          medianLife: median(life),
-        };
-      })
-      .sort((a, b) => b.population - a.population);
-  }, []);
-
   /* Where each switched-on layer came from, and what it does not say.
   
      Printed under the map rather than hidden in a tooltip, because a reader who
@@ -4283,67 +4250,7 @@ export function WorldMapsPage() {
           </div>
         )}
 
-        {/* ── Continental aggregates ── */}
-        <div
-          className="rounded-2xl p-5 mb-6"
-          style={{ background: cardBg, border: cardBorder, boxShadow: cardShadow }}
-        >
-          <p className="text-[10px] font-mono uppercase tracking-widest text-secondary mb-1">
-            Intercontinental comparison
-          </p>
-          <h2 className="text-sm font-bold font-sans text-foreground mb-4">
-            By continent
-          </h2>
-          <div className="overflow-x-auto -mx-1 px-1">
-            <table className="w-full border-collapse">
-              <thead>
-                <tr className="border-b border-border">
-                  {["Continent", "Countries", "Population", "Combined GDP", "Median HDI", "Median life exp."].map(
-                    (h, i) => (
-                      <th
-                        key={h}
-                        className={`pb-2 text-[9px] font-mono uppercase tracking-wider text-muted-foreground ${
-                          i === 0 ? "text-left" : "text-right"
-                        }`}
-                      >
-                        {h}
-                      </th>
-                    ),
-                  )}
-                </tr>
-              </thead>
-              <tbody>
-                {continents.map((c) => (
-                  <tr key={c.name} className="border-b border-border/40">
-                    <td className="py-2 text-[12px] font-semibold font-sans text-foreground">
-                      {c.name}
-                    </td>
-                    <td className="py-2 text-[12px] font-mono text-right text-muted-foreground">
-                      {c.countries}
-                    </td>
-                    <td className="py-2 text-[12px] font-mono text-right text-foreground">
-                      {(c.population / 1e6).toFixed(0)}M
-                    </td>
-                    <td className="py-2 text-[12px] font-mono text-right text-foreground">
-                      ${(c.gdp / 1000).toFixed(1)}T
-                    </td>
-                    <td className="py-2 text-[12px] font-mono text-right text-foreground">
-                      {c.medianHdi !== null ? c.medianHdi.toFixed(3) : "—"}
-                    </td>
-                    <td className="py-2 text-[12px] font-mono text-right text-foreground">
-                      {c.medianLife !== null ? `${c.medianLife.toFixed(1)} yrs` : "—"}
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-          <p className="text-[9px] font-sans mt-3 text-muted-foreground">
-            Population and GDP are summed. HDI and life expectancy are medians
-            rather than means, because averaging across countries of very
-            different size describes no country in particular.
-          </p>
-        </div>
+        {/* The table of continents - countries, people, GDP, median HDI and life expectancy - stood here and was taken off as asked. */}
 
         {/* ── US map ── */}
         <div
