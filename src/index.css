@@ -1369,14 +1369,31 @@ html:not(.light) .cs-chart-tip p[style*="color"] {
   position: sticky;
   top: 0.5rem;
   z-index: 20;
-  background-color: rgba(22, 22, 26, 0.86) !important;
-  backdrop-filter: blur(24px) saturate(170%);
-  -webkit-backdrop-filter: blur(24px) saturate(170%);
-  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.22);
 }
-html.light .modal-tabs {
-  background-color: rgba(250, 248, 243, 0.92) !important;
-  box-shadow: 0 6px 18px rgba(120, 100, 60, 0.12);
+/* Its ground is frosted glass: a fill solid enough that what scrolls under
+   it does not read through, over a blur of it, with an edge and a shadow so
+   the bar stands off the window in both themes. The class is named four
+   times over because a window's own rule for its inner panels
+   (.modal-glass :is(.bg-muted/...) above) is marked important and outranked
+   a single class: that rule had been painting the bar with a panel's faint
+   6% fill, so the text under it showed straight through. A window's panel
+   is itself blurred, and a blur inside it sees what is painted in the
+   window - which is exactly what passes under this bar. */
+.modal-tabs.modal-tabs.modal-tabs.modal-tabs {
+  background: rgba(30, 30, 37, 0.8) !important;
+  backdrop-filter: blur(28px) saturate(180%);
+  -webkit-backdrop-filter: blur(28px) saturate(180%);
+  border: 1px solid rgba(255, 255, 255, 0.18) !important;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.12),
+    0 10px 28px rgba(0, 0, 0, 0.5) !important;
+}
+html.light .modal-tabs.modal-tabs.modal-tabs.modal-tabs {
+  background: rgba(255, 253, 248, 0.84) !important;
+  border: 1px solid rgba(120, 100, 70, 0.26) !important;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.95),
+    0 10px 26px rgba(120, 100, 60, 0.22) !important;
 }
 
 /* The control that brings in the rest of a list - "Show more", "Show all" -
