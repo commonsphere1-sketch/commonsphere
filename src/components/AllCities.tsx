@@ -277,6 +277,9 @@ function CityWindow({ c, onBack, onClose }: { c: UnCity; /** Back to its country
                 }
               />
 
+              {/* The journey to work: the city's own where an official series has it, and its country's under that. Above the plain record: it is asked after more. */}
+              <CommutePanel code={cc} country={land} place={name} city={unCityId(c)} />
+
               {/* The plain record the window first held: one of the Overview's sections. */}
               <Section title="📋 Its record" note="What the United Nations publishes for every city alike. A change is worked out here from two of its figures.">
                 <div className="flex flex-col gap-3">
@@ -307,9 +310,6 @@ function CityWindow({ c, onBack, onClose }: { c: UnCity; /** Back to its country
 
               <PostalCodes entry={cityPostal(postal, code)} cc={cc} name={name} how="city" />
 
-              {/* The journey to work: the city's own where an official series has it, and its country's under that. */}
-              <CommutePanel code={cc} country={land} place={name} city={unCityId(c)} />
-
               {/* What follows is its country's, set apart at the foot and said to be so: nobody publishes these city by city. */}
               <div className="flex items-center gap-2 pt-3">
                 <h3 className="text-xs font-bold font-sans text-foreground uppercase tracking-wide">{land}, the country it is in</h3>
@@ -330,13 +330,14 @@ function CityWindow({ c, onBack, onClose }: { c: UnCity; /** Back to its country
 
               {/* Quality of life: its country's, said to be so - as a profiled city's window gives it. */}
 
-              <PlaceIndexes code={cc} country={land} place={name} />
-
               <TaxPanel code={cc} country={land} place={name} />
 
               <Suspense fallback={<p className="text-xs font-sans text-muted-foreground">Loading {land}'s figures…</p>}>
                 <CountryQuality code={cc} country={land} place={name} commute={false} />
               </Suspense>
+
+              {/* The indexes its country is scored on: the reference detail, last. */}
+              <PlaceIndexes code={cc} country={land} place={name} />
             </div>
           )}
 

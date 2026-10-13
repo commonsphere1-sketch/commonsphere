@@ -1060,8 +1060,6 @@ function PlaceWindow({
               {stateRow && <StateFigures stateId={stateRow.id} name={s.name} place={name} />}
               <CountryFigures code={s.cc} country={country} place={name} />
 
-              <PlaceIndexes code={s.cc} country={country} place={name} />
-
               {/* Tax: its state's own collections in the United States, and its country's everywhere - neither is the town's, and each panel says so. */}
               {stateRow && <StateTaxPanel stateId={stateRow.id} name={s.name} place={name} />}
               <TaxPanel code={s.cc} country={country} place={name} />
@@ -1069,6 +1067,9 @@ function PlaceWindow({
               <Suspense fallback={<p className="text-xs font-sans text-muted-foreground">Loading {country}'s figures…</p>}>
                 <CountryQuality code={s.cc} country={country} place={name} />
               </Suspense>
+
+              {/* The indexes its country is scored on: the reference detail, last. */}
+              <PlaceIndexes code={s.cc} country={country} place={name} />
             </div>
           )}
 

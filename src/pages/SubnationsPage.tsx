@@ -859,11 +859,11 @@ function SubnationWindow({ s, onBack, onClose, onCounties }: { s: Subnation; /**
           {parts.map((p) => (
             <Section key={p.title} part={p} />
           ))}
-          {/* The indexes its country is scored on: none is published for a division, and the panel says whose they are. */}
-          <PlaceIndexes code={s.cc} country={c?.name ?? s.cc} place={s.name} />
           {/* Tax: a US state's own collections, and for every division its country's - tax law is the country's, and the panel says so. */}
           {state && <StateTaxPanel stateId={state.id} name={state.name} />}
           <TaxPanel code={s.cc} country={c?.name ?? s.cc} place={s.name} />
+          {/* The indexes its country is scored on, last, as in every window: none is published for a division, and the panel says whose they are. */}
+          <PlaceIndexes code={s.cc} country={c?.name ?? s.cc} place={s.name} />
           <div>
             <p className="text-[10px] font-bold font-sans text-muted-foreground uppercase tracking-widest mb-1">Where to read more</p>
 
@@ -1052,9 +1052,9 @@ function CountyWindow({ county, data, onBack, onClose }: { county: UsCounty; dat
             <Section key={p.title} part={p} />
           ))}
           <PostalCodes entry={postal?.counties?.[fips]} cc="US" name={name} how="county" />
-          <PlaceIndexes code="US" country="United States" place={name} />
           {state && <StateTaxPanel stateId={state.id} name={state.name} place={name} />}
           <TaxPanel code="US" country="United States" place={name} />
+          <PlaceIndexes code="US" country="United States" place={name} />
         </>
       )}
       {/* History: the article of its name and its state's - "Pulaski County, Arkansas" - as Wikipedia titles a county's. */}
@@ -1355,10 +1355,10 @@ function DistrictWindow({
             <Section key={p.title} part={p} />
           ))}
           <PostalCodes entry={postal?.districts?.[index]} cc={cc} name={name} how="district" />
-          {/* The indexes the site holds are the country's: shown as the country's, as a town's window shows them. */}
-          <PlaceIndexes code={cc} country={country} place={name} />
           <TaxPanel code={cc} country={country} place={name} />
           <CountryQuality code={cc} country={country} place={name} />
+          {/* The indexes the site holds are the country's: shown as the country's, last, as a town's window shows them. */}
+          <PlaceIndexes code={cc} country={country} place={name} />
         </>
       )}
 

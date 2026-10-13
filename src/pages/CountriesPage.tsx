@@ -916,8 +916,60 @@ function CountryModal({
                figures; its card goes straight to its geography below. */
             activeTab === "overview" && !country.uninhabited && (
               <>
+                {/* The order of what follows: what a reader most often comes to a country for first - where it is, its capital and
+                    government, its people, its money, how safe it is, its schools and how it is got around - and the reference detail
+                    last. The site holds no count of what is searched for, so the order is a judgement and not a measurement. */}
+
                 {/* The country as the site's maps draw it, with its largest listed places: the map every window of a place opens on. */}
                 <CountryOutline code={country.code} name={country.name} />
+
+                {/* ── IDENTITY: its capital, its government and its languages. The geography tiles - area, currency, ISO code - were removed as asked. ── */}
+                <div className="mb-1">
+                  <div className="flex items-center gap-2 mb-2">
+                    <span className="text-[10px] font-bold font-sans text-muted-foreground uppercase tracking-widest">
+                      🌍 Identity
+                    </span>
+                    <div className="flex-1 h-px bg-border/60" />
+                  </div>
+                  <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+                    {[
+                      {
+                        label: "Capital City",
+                        value: country.capital,
+                        sub: "administrative capital",
+                        color: "text-foreground",
+                      },
+                      {
+                        label: "Government Type",
+                        value: country.governmentType,
+                        sub: "political system",
+                        color: "text-secondary",
+                      },
+                      {
+                        label: "Languages",
+                        value: country.officialLanguages.slice(0, 2).join(", "),
+                        sub: "official language(s)",
+                        color: "text-foreground",
+                      },
+                    ]
+                      .filter((s) => s.value && s.value !== "—")
+                      .map((s) => (
+                      <div key={s.label} className="modal-tile rounded-lg p-3">
+                        <p className="text-xs text-muted-foreground font-sans">
+                          {s.label}
+                        </p>
+                        <p
+                          className={`text-sm font-bold font-sans ${s.color} truncate`}
+                        >
+                          {s.value}
+                        </p>
+                        <p className="text-xs text-muted-foreground font-sans">
+                          {s.sub}
+                        </p>
+                      </div>
+                    ))}
+                  </div>
+                </div>
 
                 {/* ── SOCIAL & HUMAN DEVELOPMENT CATEGORY ── */}
                 <div className="mb-4">
@@ -1026,54 +1078,7 @@ function CountryModal({
                   </div>
                 </div>
 
-                {/* ── IDENTITY: its capital, its government and its languages. The geography tiles - area, currency, ISO code - were removed as asked. ── */}
-                <div className="mb-1">
-                  <div className="flex items-center gap-2 mb-2">
-                    <span className="text-[10px] font-bold font-sans text-muted-foreground uppercase tracking-widest">
-                      🌍 Identity
-                    </span>
-                    <div className="flex-1 h-px bg-border/60" />
-                  </div>
-                  <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
-                    {[
-                      {
-                        label: "Capital City",
-                        value: country.capital,
-                        sub: "administrative capital",
-                        color: "text-foreground",
-                      },
-                      {
-                        label: "Government Type",
-                        value: country.governmentType,
-                        sub: "political system",
-                        color: "text-secondary",
-                      },
-                      {
-                        label: "Languages",
-                        value: country.officialLanguages.slice(0, 2).join(", "),
-                        sub: "official language(s)",
-                        color: "text-foreground",
-                      },
-                    ]
-                      .filter((s) => s.value && s.value !== "—")
-                      .map((s) => (
-                      <div key={s.label} className="modal-tile rounded-lg p-3">
-                        <p className="text-xs text-muted-foreground font-sans">
-                          {s.label}
-                        </p>
-                        <p
-                          className={`text-sm font-bold font-sans ${s.color} truncate`}
-                        >
-                          {s.value}
-                        </p>
-                        <p className="text-xs text-muted-foreground font-sans">
-                          {s.sub}
-                        </p>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-
+                {/* Where the headline figures and the identity tiles above are from. */}
                 <SourceLink
                   sources={[
                     ...SRC_WORLDBANK,
@@ -1088,80 +1093,15 @@ function CountryModal({
                   className="mb-4 mt-2"
                 />
 
-                {/* Its place in the United Nations: when it was admitted, its regional group, and its seat on the Security Council - the record, from the UN's own pages. */}
-                <UnPanel code={country.code} country={country.name} className="mb-4" />
-
-                {/* The composite indexes the country is scored on - development, equality, governance, the economy and its statistics - each on its maker's own scale: the panel the windows of its towns and divisions carry as "the country's", here its own. */}
-                <PlaceIndexes code={country.code} country={country.name} className="mb-4" />
-
-                {/* What its government takes in tax and of what kinds, the rates it sets, and what its employees are paid. */}
-                <TaxPanel code={country.code} country={country.name} className="mb-4" />
-
-                {/* Economy by sector + land use */}
-                {((country.keyIndustries && country.keyIndustries.length > 0) || getBiosphere(country)) && (
-                  <div className="modal-tile rounded-lg p-4 mb-4">
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
-                      <div className="min-w-0">
-                        <h3 className="text-sm font-semibold font-sans text-foreground mb-1">
-                          Economy by Sector
-                        </h3>
-                        <p className="text-[10px] text-muted-foreground font-sans mb-3">
-                          {country.keyIndustries && country.keyIndustries.length > 0
-                            ? country.sources?.keyIndustries?.label.startsWith("UN Statistics")
-                              ? `Share of value added, ${country.sources.keyIndustries.label.match(/\d{4}$/)?.[0] ?? ""}, from the UN's national accounts, so the shares sum to 100. The UN fills gaps in national reporting with its own estimates.`
-                              : country.sources?.keyIndustries?.label.startsWith("Taiwan DGBAS")
-                              ? `Share of GDP, ${country.sources.keyIndustries.label.match(/\d{4}$/)?.[0] ?? ""}, from Taiwan's statistics office, which spreads product taxes across the sectors; the small remainder is a statistical discrepancy.`
-                              : `Share of GDP (value added), ${country.sources?.keyIndustries?.label.match(/\d{4}$/)?.[0] ?? ""}. Taxes less subsidies on products belong to no sector, so the shares sum to less than 100, or to more where subsidies exceed those taxes.`
-                            : "The World Bank publishes no complete sector split for this country."}
-                        </p>
-                        {/* Each bar on 0 to 100: a sector's length is its share. */}
-                        <MeasureBars
-                          max={100}
-                          label={`The economy of ${country.name} by sector`}
-                          rows={(country.keyIndustries ?? []).map((ind) => ({ label: ind.name, value: ind.gdpShare, text: `${ind.gdpShare}%` }))}
-                        />
-                        {country.sources?.keyIndustries && (
-                          <SourceLink sources={[country.sources.keyIndustries]} className="mt-2" />
-                        )}
-                      </div>
-                      {getBiosphere(country) ? (
-                      <div className="min-w-0">
-                        <h3 className="text-sm font-semibold font-sans text-foreground mb-1">
-                          Land Use
-                        </h3>
-                        <p className="text-[10px] text-muted-foreground font-sans mb-3">
-                          Share of the country's land, {LAND_USE[country.id].y}.
-                        </p>
-                        {/* A ring, as asked for: the land's uses as arcs of one whole, each named with its share beside it. */}
-                        <PartsDonut
-                          label={`The land of ${country.name} by use, ${LAND_USE[country.id].y}`}
-                          parts={getBiosphere(country)!.map((seg) => ({ label: seg.label, value: seg.value, text: `${seg.value}%` }))}
-                        />
-                        <SourceLink sources={[LAND_USE_SOURCE]} className="mt-2" />
-                      </div>
-                      ) : null}
-                    </div>
+                {/* ── DEMOGRAPHICS + GENDER STACKED ── */}
+                <div className="grid grid-cols-1 gap-4 mt-4">
+                  <div>
+                    <CountryDemographicsChart country={country} />
                   </div>
-                )}
-
-                {/* Energy */}
-                {country.energy && (
-                  <EnergySection
-                    energy={country.energy}
-                    countryId={country.id}
-                    source={country.sources?.energy}
-                  />
-                )}
-
-                {/* Military */}
-                {(MILITARY_MEASURED[country.id] || MILITARY_BRANCHES[country.id]) && (
-                  <MilitarySection
-                    measured={MILITARY_MEASURED[country.id] ?? null}
-                    branches={MILITARY_BRANCHES[country.id] ?? null}
-                    code={country.code}
-                    name={country.name}
-                  />
-                )}
+                  <div>
+                    <CountryGenderStatsPanel country={country} />
+                  </div>
+                </div>
 
                 {/* Languages & Government */}
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-4">
@@ -1269,6 +1209,56 @@ function CountryModal({
                   </div>
                 )}
 
+                {/* What its government takes in tax and of what kinds, the rates it sets, and what its employees are paid. */}
+                <TaxPanel code={country.code} country={country.name} className="mb-4" />
+
+                {/* Economy by sector + land use */}
+                {((country.keyIndustries && country.keyIndustries.length > 0) || getBiosphere(country)) && (
+                  <div className="modal-tile rounded-lg p-4 mb-4">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
+                      <div className="min-w-0">
+                        <h3 className="text-sm font-semibold font-sans text-foreground mb-1">
+                          Economy by Sector
+                        </h3>
+                        <p className="text-[10px] text-muted-foreground font-sans mb-3">
+                          {country.keyIndustries && country.keyIndustries.length > 0
+                            ? country.sources?.keyIndustries?.label.startsWith("UN Statistics")
+                              ? `Share of value added, ${country.sources.keyIndustries.label.match(/\d{4}$/)?.[0] ?? ""}, from the UN's national accounts, so the shares sum to 100. The UN fills gaps in national reporting with its own estimates.`
+                              : country.sources?.keyIndustries?.label.startsWith("Taiwan DGBAS")
+                              ? `Share of GDP, ${country.sources.keyIndustries.label.match(/\d{4}$/)?.[0] ?? ""}, from Taiwan's statistics office, which spreads product taxes across the sectors; the small remainder is a statistical discrepancy.`
+                              : `Share of GDP (value added), ${country.sources?.keyIndustries?.label.match(/\d{4}$/)?.[0] ?? ""}. Taxes less subsidies on products belong to no sector, so the shares sum to less than 100, or to more where subsidies exceed those taxes.`
+                            : "The World Bank publishes no complete sector split for this country."}
+                        </p>
+                        {/* Each bar on 0 to 100: a sector's length is its share. */}
+                        <MeasureBars
+                          max={100}
+                          label={`The economy of ${country.name} by sector`}
+                          rows={(country.keyIndustries ?? []).map((ind) => ({ label: ind.name, value: ind.gdpShare, text: `${ind.gdpShare}%` }))}
+                        />
+                        {country.sources?.keyIndustries && (
+                          <SourceLink sources={[country.sources.keyIndustries]} className="mt-2" />
+                        )}
+                      </div>
+                      {getBiosphere(country) ? (
+                      <div className="min-w-0">
+                        <h3 className="text-sm font-semibold font-sans text-foreground mb-1">
+                          Land Use
+                        </h3>
+                        <p className="text-[10px] text-muted-foreground font-sans mb-3">
+                          Share of the country's land, {LAND_USE[country.id].y}.
+                        </p>
+                        {/* A ring, as asked for: the land's uses as arcs of one whole, each named with its share beside it. */}
+                        <PartsDonut
+                          label={`The land of ${country.name} by use, ${LAND_USE[country.id].y}`}
+                          parts={getBiosphere(country)!.map((seg) => ({ label: seg.label, value: seg.value, text: `${seg.value}%` }))}
+                        />
+                        <SourceLink sources={[LAND_USE_SOURCE]} className="mt-2" />
+                      </div>
+                      ) : null}
+                    </div>
+                  </div>
+                )}
+
                 {/* ── CRIME STATISTICS ── (the Safety report and the Public Security panel that stood above were removed as asked) */}
                 <CountryCrimeStatsPanel country={country} />
 
@@ -1285,24 +1275,39 @@ function CountryModal({
                   );
                 })()}
 
-                {/* ── DEMOGRAPHICS + GENDER STACKED ── */}
-                <div className="grid grid-cols-1 gap-4 mt-4">
-                  <div>
-                    <CountryDemographicsChart country={country} />
-                  </div>
-                  <div>
-                    <CountryGenderStatsPanel country={country} />
-                  </div>
-                </div>
+                {/* ── EDUCATION RANKING & UNIVERSITIES ── */}
+                <CountryEducationPanel country={country} />
 
                 {/* ── TRANSPORT ── */}
                 <CountryTransportPanel country={country} />
 
-                {/* ── EDUCATION RANKING & UNIVERSITIES ── */}
-                <CountryEducationPanel country={country} />
+                {/* Energy */}
+                {country.energy && (
+                  <EnergySection
+                    energy={country.energy}
+                    countryId={country.id}
+                    source={country.sources?.energy}
+                  />
+                )}
+
+                {/* Military */}
+                {(MILITARY_MEASURED[country.id] || MILITARY_BRANCHES[country.id]) && (
+                  <MilitarySection
+                    measured={MILITARY_MEASURED[country.id] ?? null}
+                    branches={MILITARY_BRANCHES[country.id] ?? null}
+                    code={country.code}
+                    name={country.name}
+                  />
+                )}
 
                 {/* ── SOCIOLOGICAL BREAKDOWN ── */}
                 <CountrySociologicalBreakdown country={country} />
+
+                {/* The composite indexes the country is scored on - development, equality, governance, the economy and its statistics - each on its maker's own scale: the panel the windows of its towns and divisions carry as "the country's", here its own. */}
+                <PlaceIndexes code={country.code} country={country.name} className="mb-4" />
+
+                {/* Its place in the United Nations: when it was admitted, its regional group, and its seat on the Security Council - the record, from the UN's own pages. */}
+                <UnPanel code={country.code} country={country.name} className="mb-4" />
               </>
             ) /* end overview tab */
           }
