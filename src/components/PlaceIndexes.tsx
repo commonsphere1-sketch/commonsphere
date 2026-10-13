@@ -76,9 +76,10 @@ export default function PlaceIndexes({
           ? `The indexes ${inSentence(country)} is scored on. No body publishes them for a town, a district or a city, so they are the country's and not ${place}'s own.`
           : `The indexes ${inSentence(country)} is scored on, each on its maker's own scale.`}
       </p>
-      <div className="chart-fill">
+      {/* One container, the kinds of index one under another in it: they stood side by side as a tile each, and were put in one as asked. */}
+      <div className="modal-tile rounded-xl px-4 py-2 divide-y divide-border/60">
         {groups.map((g) => (
-          <div key={g} className="modal-tile rounded-xl px-4 py-2">
+          <div key={g} className="py-2 first:pt-0 last:pb-0">
             <p className="text-[10px] font-mono uppercase tracking-widest leading-snug pt-1" style={{ color: GROUP_COLOR[g] }}>
               {g}
             </p>
