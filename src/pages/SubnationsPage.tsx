@@ -789,7 +789,7 @@ function SubnationWindow({ s, onBack, onClose, onCounties }: { s: Subnation; /**
         <div>
           <OutlineMap shapes={second?.outline ?? outline} inner={second?.inner} parts={second?.lines} onPart={second ? (i) => navigate(second.open(i)) : undefined} dots={dots} color={flagColor(s.cc) ?? COLOR} label={`The outline of ${s.name}, with ${dots.length} of the places listed in it`} onDot={pick} />
           <p className="text-[10px] font-sans text-muted-foreground leading-snug mt-1">
-            {s.name} as the site's maps draw it{second ? `, with the borders of its ${second.lines.length} ${second.are}` : ""}{dots.length ? `, with ${within!.rows.length > dots.length ? `the ${dots.length} largest of the ${whole(within!.rows.length)}` : `the ${dots.length}`} places GeoNames lists in it as dots` : ""}.
+            {s.name} as the site's maps draw it{second && second.lines.length > 1 ? `, with the borders of its ${second.lines.length} ${second.are} - draw the map closer to point at one` : ""}{dots.length ? `, with ${within!.rows.length > dots.length ? `the ${dots.length} largest of the ${whole(within!.rows.length)}` : `the ${dots.length}`} places GeoNames lists in it as dots` : ""}.
           </p>
         </div>
       )}

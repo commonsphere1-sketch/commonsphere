@@ -45,6 +45,12 @@ const CACHE = path.join(os.tmpdir(), "commonsphere-admin2");
 const UA = { "User-Agent": "commonsphere-build (admin2)" };
 /** How fine an outline is kept: the smallest triangle a point may close, as a share of the country's longer side, squared. */
 const DETAIL = Number(process.env.ADMIN2_DETAIL || 1500);
+/**
+ * And never coarser than this, in degrees, however large the country. The share above is of the country's own size, so
+ * in a large country it let a small district go to a handful of points - Chandigarh, in India, to eight - which showed
+ * as soon as its own window drew it large. Five thousandths of a degree is about half a kilometre.
+ */
+const FINEST = Number(process.env.ADMIN2_FINEST || 0.005);
 /** The smallest piece of a division that is kept beside its largest: its area, as a share of the country's longer side, squared. */
 const ISLET = Number(process.env.ADMIN2_ISLET || 800);
 
@@ -263,7 +269,7 @@ const kindOf = (raw, country) => {
       f.geometry = keep.length === 1 ? { type: "Polygon", coordinates: keep[0] } : { type: "MultiPolygon", coordinates: keep };
     }
     // Simplifying leaves the points as plain longitudes and latitudes: they are put back on a grid, a hundred thousand steps to the side, which is what keeps the file small.
-    const topo = quantize(simplify(presimplify(topology({ a: { type: "FeatureCollection", features } }, 1e5)), (side / DETAIL) ** 2), 1e5);
+    const topo = quantize(simplify(presimplify(topology({ a: { type: "FeatureCollection", features } }, 1e5)), Math.min(side / DETAIL, FINEST) ** 2), 1e5);
 
     // Every division must still have an outline once the small points are gone.
     const kept = topo.objects.a.geometries.filter((g) => g.type && g.arcs && g.arcs.length).length;
