@@ -22,6 +22,14 @@ export interface DataLogEntry {
 
 export const DATA_LOG: DataLogEntry[] = [
   {
+    "what": "Each US state's life expectancy at birth and its deaths by homicide to 100,000 residents",
+    "from": "CDC (National Center for Health Statistics; National Center for Injury Prevention and Control)",
+    "page": "/dashboard/maps",
+    "where": "World maps",
+    "read": "2026-10-13",
+    "files": 1
+  },
+  {
     "what": "The composite indexes each country is scored on: human development and its adjusted forms, gender, inequality and poverty, the six governance scores, human capital, logistics and statistics",
     "from": "UNDP (Human Development Report), World Bank",
     "page": "/dashboard/subnations",
@@ -400,4 +408,4 @@ export const DATA_LOG: DataLogEntry[] = [
 ];
 
 /** How many data files the log covers. */
-export const DATA_LOG_FILES = 68;
+export const DATA_LOG_FILES = 69;

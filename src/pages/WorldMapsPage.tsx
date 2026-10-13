@@ -30,8 +30,9 @@ import {
 } from "@phosphor-icons/react";
 import { Link } from "react-router-dom";
 import { countriesData, type Country } from "../data/countriesData";
-import { SUBNATION_FLAG_COLOR } from "../data/subnationFlagColors";
-import { flagColor, seen } from "../lib/flagColor";
+import { flagColor } from "../lib/flagColor";
+import { COUNTRY_LIVING, COUNTRY_LIVING_LEAST, COUNTRY_LIVING_PARTS, STATE_LIVING, STATE_LIVING_PARTS, partsSaid } from "../lib/livingScore";
+import { STATE_HEALTH_SAFETY_SOURCES } from "../data/stateHealthSafety";
 import { useAdmin2 } from "../lib/admin2";
 import { usStatesData } from "../data/statesData";
 import {
@@ -95,6 +96,8 @@ const ADMIN1_BASE = "/geo/admin1";
 /* Every country's internal borders as one simplified line layer, built by
    build-admin1-borders.cjs from the same per-country files. */
 const ADMIN1_BORDERS_URL = "/geo/admin1-borders.json";
+/* The same for the second-order borders - counties and districts - by build-admin2-borders.cjs. */
+const ADMIN2_BORDERS_URL = "/geo/admin2-borders.json";
 
 /* The physical and infrastructure layers, all built by build-map-layers.cjs.
    None is bundled: each is fetched the first time its toggle is switched on,
@@ -1269,6 +1272,14 @@ const RAMP_DARK = ["#464646", "#5f5f5f", "#7a7a7a", "#989898", "#b9b9b9", "#e0e0
    of these six steps, the first the faintest, in place of the six greys. They are far enough apart to be told from one
    another on both cards, and the faintest still shows against each. */
 const NEON_STEPS = ["0.14", "0.25", "0.38", "0.52", "0.68", "0.86"];
+/* Living conditions: six steps from the lowest sixth of the places scored to the highest, red through amber to green
+   and teal - the hues a reader already takes for worse and better. Each step is told from the next on both cards; the
+   figure itself is given when a place is pointed at, so nothing rests on the colour alone. */
+const LIVING_LIGHT = ["#e11d48", "#ea580c", "#d97706", "#65a30d", "#16a34a", "#0d9488"];
+const LIVING_DARK = ["#fb5a78", "#fb923c", "#fbbf24", "#a3e635", "#4ade80", "#2dd4bf"];
+/** A place with no score: neither better nor worse, so neither end's colour. */
+const UNSCORED = "#94a3b8";
+
 /** The colour of a place whose flag gives none, and of the legend's steps. */
 const NEON_ACCENT = "#22d3ee";
 const tint = (hex: string, share: string) => `color-mix(in srgb, ${hex} ${Math.round(Number(share) * 100)}%, transparent)`;
@@ -1441,6 +1452,17 @@ type CountryIndicator = {
 };
 
 const COUNTRY_INDICATORS: CountryIndicator[] = [
+  {
+    // Worked out here from the figures the site holds (lib/livingScore): what the maps are coloured by.
+    id: "living",
+    label: "Living conditions",
+    group: "Development",
+    unit: "of 100",
+    higherIsBetter: true,
+    get: (c) => COUNTRY_LIVING[c.code]?.score ?? null,
+    format: (v) => `${v.toFixed(0)} of 100 · worked out here`,
+    ramp: { light: LIVING_LIGHT, dark: LIVING_DARK, low: "Lower", high: "Higher" },
+  },
   {
     id: "hdi",
     label: "Human Development",
@@ -1649,8 +1671,8 @@ export function WorldMapsPage() {
   const stroke = isLight ? "#ffffff" : "#15151d";
   /* The colour a country is drawn in: its flag's, or the accent where its flag has none of its own. */
   const neonOf = (code: string | null | undefined) => (code && flagColor(code)) || NEON_ACCENT;
-  /* A US state's: its own flag's where it is held, and its country's otherwise. */
-  const stateHue = (name: string) => (SUBNATION_FLAG_COLOR.US?.[name] ? seen(SUBNATION_FLAG_COLOR.US[name]) : (flagColor("US") ?? NEON_ACCENT));
+  /* The six colours of living conditions, for the card's theme. */
+  const livingRamp = isLight ? LIVING_LIGHT : LIVING_DARK;
   /* The finer borders inside a filled place - states on the world map, counties and districts on a country's: light on the dark card, dark on the light one. */
   const innerInk = isLight ? "#0f172a" : "#ffffff";
   /* The choropleth is deliberately greyscale, which leaves hue free to mean
@@ -1755,6 +1777,10 @@ export function WorldMapsPage() {
   const worldRamp = activeCountry.ramp ? (isLight ? activeCountry.ramp.light : activeCountry.ramp.dark) : ramp;
   /* Drawn in the countries' own colours unless the indicator has a ramp of its own to keep (forest cover's greens). */
   const neonWorld = !activeCountry.ramp;
+  /* Where the six steps of living conditions fall: among the countries scored, and among the states - each list cut into
+     sixths, so a place's colour is its sixth of its own list. */
+  const livingBreaks = useMemo(() => quantileBreaks(countriesData.flatMap((c) => (COUNTRY_LIVING[c.code] ? [COUNTRY_LIVING[c.code].score] : [])), LIVING_DARK.length), []);
+  const stateLivingBreaks = useMemo(() => quantileBreaks(Object.values(STATE_LIVING).map((s) => s.score), LIVING_DARK.length), []);
   const activeScope = SCOPES.find((s) => s.id === scope)!;
   const inScope = activeScope.members;
   /* M49 classifies neither Kosovo nor Taiwan, so they belong to no scope and
@@ -2226,6 +2252,24 @@ export function WorldMapsPage() {
       : admin1Borders.features;
     return worldPath.path({ type: "FeatureCollection", features } as never) ?? undefined;
   }, [admin1Borders, worldPath, activeScope]);
+  /* The world map's finer borders - counties and districts - as one layer of lines for every country the site holds
+     them for: fetched after first paint, and the map draws without them until they come, or if they do not. */
+  const [admin2Borders, setAdmin2Borders] = useState<{ features: unknown[] } | null>(null);
+  useEffect(() => {
+    let cancelled = false;
+    fetch(ADMIN2_BORDERS_URL)
+      .then((r) => (r.ok ? r.json() : Promise.reject(new Error(String(r.status)))))
+      .then((topo: Topology) => {
+        if (!cancelled) setAdmin2Borders(feature(topo, topo.objects.b as never) as unknown as { features: unknown[] });
+      })
+      .catch(() => {
+        // The states' borders and the countries' own still draw.
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+  const admin2BordersD = useMemo(() => (admin2Borders ? (worldPath.path({ type: "FeatureCollection", features: admin2Borders.features } as never) ?? undefined) : undefined), [admin2Borders, worldPath]);
   const stateShapes = useMemo(
     () =>
       states.features.map((f) => ({
@@ -2666,7 +2710,10 @@ export function WorldMapsPage() {
     }
     return rings.length ? (focusMap.path({ type: "MultiLineString", coordinates: rings } as never) ?? undefined) : undefined;
   }, [focusMap, second]);
-  const focusHue = neonOf(focusCode);
+  /* A country's own map is drawn in the colour of its living conditions, as it is on the world map; grey where it has no score. */
+  const focusHue = (COUNTRY_LIVING[focusCode] && colourFor(COUNTRY_LIVING[focusCode].score, livingBreaks, livingRamp)) || UNSCORED;
+  /* A state's, on the United States' map. */
+  const stateInk = (name: string) => (STATE_LIVING[name] && colourFor(STATE_LIVING[name].score, stateLivingBreaks, livingRamp)) || UNSCORED;
 
   /* ── The same overlays, on whichever country is in focus ──────────────
      The layers are lon/lat, so they can be drawn in any projection; what
@@ -3635,27 +3682,22 @@ export function WorldMapsPage() {
               // Its own flag's colour, and how solid it is drawn: the step its figure falls in, or none where it has no figure.
               const hue = neonOf(country?.code);
               const solid = neonWorld && !outside ? colourFor(value, countryShading.breaks, NEON_STEPS) : null;
+              // What it is drawn in: the colour of its step on the indicator's own scale - living conditions' six - or, for an indicator without one, its flag's. None where it has no figure.
+              const ink = outside ? null : neonWorld ? (solid !== null ? hue : null) : colourFor(value, countryShading.breaks, worldRamp);
               return (
                 <path
                   key={i}
                   d={d}
-                  fill={
-                    outside
-                      ? outOfScope
-                      : neonWorld
-                        ? solid !== null
-                          ? hue
-                          : "url(#nodata-world)"
-                        : (colourFor(value, countryShading.breaks, worldRamp) ?? "url(#nodata-world)")
-                  }
-                  fillOpacity={solid !== null ? Number(solid) : 1}
-                  stroke={neonWorld && !outside ? hue : stroke}
-                  strokeOpacity={neonWorld && !outside && solid === null ? 0.55 : 1}
-                  strokeWidth={(neonWorld ? 0.55 : 0.3) / worldZoom.zoom}
+                  // Translucent inside a bright edge of the same colour, and lit when it is pointed at, as the Dashboard's map is: the whole map in one style.
+                  fill={outside ? outOfScope : (ink ?? "url(#nodata-world)")}
+                  className={ink ? "[fill-opacity:var(--o)] hover:[fill-opacity:0.78] transition-[fill-opacity]" : undefined}
+                  stroke={outside ? stroke : (ink ?? UNSCORED)}
+                  strokeOpacity={ink || outside ? 1 : 0.5}
+                  strokeWidth={0.55 / worldZoom.zoom}
                   strokeLinejoin="round"
                   // A press chooses the country as the place picked out.
                   data-pick={country ? `country:${country.code}` : undefined}
-                  style={country && worldZoom.zoom === 1 ? { cursor: "pointer" } : undefined}
+                  style={{ ["--o" as string]: solid !== null ? solid : 0.36, cursor: country && worldZoom.zoom === 1 ? "pointer" : undefined }}
                   onMouseEnter={() =>
                     setHovered({
                       name: country?.name ?? name,
@@ -3677,12 +3719,14 @@ export function WorldMapsPage() {
                 unshaded layer over the fills. Lighter than the country borders so
                 countries still read first, and it takes no pointer events, so a
                 hover still reports the country underneath. */}
+            {/* Under them, the second-order borders - counties and districts - finer and fainter still: there to be seen when the map is drawn in. */}
+            {admin2BordersD && <path d={admin2BordersD} fill="none" stroke={innerInk} strokeOpacity={Math.min(0.3, 0.05 + 0.05 * worldZoom.zoom)} strokeWidth={0.16 / worldZoom.zoom} strokeLinejoin="round" pointerEvents="none" />}
             {admin1BordersD && (
               <path
                 d={admin1BordersD}
                 fill="none"
-                stroke={neonWorld ? innerInk : stroke}
-                strokeOpacity={neonWorld ? 0.26 : 0.6}
+                stroke={innerInk}
+                strokeOpacity={0.3}
                 strokeWidth={0.3 / worldZoom.zoom}
                 strokeLinejoin="round"
                 pointerEvents="none"
@@ -3880,6 +3924,15 @@ export function WorldMapsPage() {
           </svg>
           </div>
 
+          {activeCountry.id === "living" && (
+            <p className="text-[10px] font-sans text-muted-foreground leading-snug mt-3">
+              Living conditions is worked out here from the figures the site holds; no body publishes it, and it is not an index of anyone's. Each country is stood
+              among all the others on each measure - the share of them it does better than - and the standings are averaged within seven parts, then across them, to a
+              score from 0 to 100: {partsSaid(COUNTRY_LIVING_PARTS)}. A country holding fewer than {COUNTRY_LIVING_LEAST} of the seven parts is hatched, not guessed
+              at. The colour is the sixth of the scored countries it falls in, red the lowest and teal the highest; point at a country for its score. The figures are
+              each the latest held and not all of one year. The lines inside a country are its states or provinces, and the fainter ones its counties or districts.
+            </p>
+          )}
           {neonWorld && (
             <p className="text-[10px] font-sans text-muted-foreground leading-snug mt-3">
               Each country is drawn in its own flag's colour, which says nothing of its figure. How solid the colour is does: the six steps of the scale below, the
@@ -4161,20 +4214,20 @@ export function WorldMapsPage() {
                 shaded by a statistic picked from a row of buttons, which no
                 other country's map had. */}
             {stateShapes.map(({ name, state, d }, i) => (
-              // Each state in its own flag's colour - its country's where it has none held - faint until it is pointed at, inside an edge of the same colour: as the outline maps in the windows are drawn.
+              // Each state in the colour of its living conditions among the fifty - worked out here, as a country's is - translucent inside an edge of the same colour, and lit when it is pointed at.
               <path
                 key={i}
                 d={d}
-                className="[fill-opacity:0.3] hover:[fill-opacity:0.68] transition-[fill-opacity]"
-                fill={stateHue(state?.name ?? name)}
-                stroke={stateHue(state?.name ?? name)}
+                className="[fill-opacity:0.36] hover:[fill-opacity:0.78] transition-[fill-opacity]"
+                fill={stateInk(state?.name ?? name)}
+                stroke={stateInk(state?.name ?? name)}
                 strokeWidth={0.9 / zoom}
                 strokeLinejoin="round"
                 data-pick={state ? `state:${state.abbreviation}` : undefined}
                 style={{ cursor: state && zoom === 1 ? "pointer" : undefined }}
               >
 
-                <title>{state?.name ?? name}</title>
+                <title>{`${state?.name ?? name}${STATE_LIVING[state?.name ?? name] ? ` · living conditions ${STATE_LIVING[state?.name ?? name].score.toFixed(0)} of 100, worked out here` : ""}`}</title>
               </path>
             ))}
             {/* The counties' borders, as one mesh over the states and under the labels: thinner and fainter than a state's edge, and not pointed at. */}
@@ -4361,6 +4414,14 @@ export function WorldMapsPage() {
 
             </g>
           </svg>
+          <p className="text-[10px] font-sans text-muted-foreground leading-snug mt-3">
+            Each state is coloured by its living conditions among the fifty, worked out here as a country's is and published by no body: its standing among the
+            states on each measure, averaged within five parts and then across them, 0 to 100 - {partsSaid(STATE_LIVING_PARTS)}. The colour is the sixth of the states
+            it falls in, red the lowest and teal the highest; point at a state for its score. Life expectancy is the CDC's for {STATE_HEALTH_SAFETY_SOURCES.life.year} and
+            homicide its figure for {STATE_HEALTH_SAFETY_SOURCES.homicide.year}; the rest are the Census Bureau's and the Bureau of Labor Statistics's latest. No figures
+            are held county by county, so a county is not coloured apart from its state: the fine lines are the counties' borders.
+          </p>
+          <Legend ramp={livingRamp} noData={noData} noDataHatch={noDataHatch} lowLabel="Lower" highLabel="Higher" hovered={null} />
 
           {layerNotes(focusLayers)}
           </>
