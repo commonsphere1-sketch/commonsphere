@@ -17,14 +17,25 @@
  * Inside the outlines it draws the finer borders it is given - a state's
  * counties, a province's districts - as thin lines in the same colour: they
  * are there to be seen, and are not pointed at or pressed.
+ *
+ * It can be drawn closer, as the site's other maps can: with the wheel or a
+ * trackpad, two fingers pinched on a touch screen, the buttons at its corner
+ * and the + and - keys; closer in, it is moved by dragging or with the arrow
+ * keys, and 0 or Reset puts it back. A turn of the wheel that would change
+ * nothing is left to scroll the window, and one finger still scrolls the
+ * window over a map that is whole. Lines and dots keep their size on the
+ * screen however close it is drawn, so that places part as it closes in.
  */
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { MagnifyingGlassMinus, MagnifyingGlassPlus } from "@phosphor-icons/react";
 import { geoAzimuthalEqualArea, geoCentroid, geoMercator, geoPath } from "d3-geo";
 import type { PlaceRow, PlacesFile } from "../data/placesIndex";
 import type { Outline } from "../lib/outlines";
 
 const W = 640;
 const H = 260;
+/** How close it can be drawn. */
+const MAX_K = 60;
 
 /** A point on the map: a place by its name, and what is said under its name when it is pointed at. */
 export type MapDot = { id: string | number; name: string; lon: number; lat: number; sub?: string };
@@ -72,6 +83,55 @@ export function OutlineMap({
   /** Which of several outlines is pointed at. */
   const [lit, setLit] = useState<number | null>(null);
   const [over, setOver] = useState<string | number | null>(null);
+  /* How close the map is drawn, and where its middle is, in the map's own units: 1 is the whole of it. */
+  const [view, setView] = useState({ k: 1, x: W / 2, y: H / 2 });
+  /** Kept on the map: no closer than it goes, no further out than the whole, and never past an edge. */
+  const held = (k: number, x: number, y: number) => {
+    const z = Math.max(1, Math.min(MAX_K, k));
+    const hw = W / (2 * z);
+    const hh = H / (2 * z);
+    return { k: z, x: Math.max(hw, Math.min(W - hw, x)), y: Math.max(hh, Math.min(H - hh, y)) };
+  };
+  /** Closer or further by a factor, about the middle of what is in view. */
+  const zoomBy = (factor: number) => setView((v) => held(v.k * factor, v.x, v.y));
+  const panBy = (dx: number, dy: number) => setView((v) => held(v.k, v.x + dx, v.y + dy));
+  const resetView = () => setView({ k: 1, x: W / 2, y: H / 2 });
+  /** Closer or further about a point of the screen, which stays where it is. */
+  const zoomAt = (factor: number, clientX: number, clientY: number, r: DOMRect) =>
+    setView((v) => {
+      const k = Math.max(1, Math.min(MAX_K, v.k * factor));
+      const px = v.x - W / (2 * v.k) + ((clientX - r.left) / r.width) * (W / v.k);
+      const py = v.y - H / (2 * v.k) + ((clientY - r.top) / r.height) * (H / v.k);
+      return held(k, px - (px - v.x) * (v.k / k), py - (py - v.y) * (v.k / k));
+    });
+  /* The wheel, and a trackpad's pinch, about the pointer. A turn that would change nothing - further out when the map is
+     whole - is left alone, so that it scrolls the window. The listener is put on by hand: one that can stop the scroll
+     cannot be passive. */
+  const [svgEl, setSvgEl] = useState<SVGSVGElement | null>(null);
+  const kRef = useRef(1);
+  kRef.current = view.k;
+  useEffect(() => {
+    if (!svgEl) return;
+    const onWheel = (e: WheelEvent) => {
+      const closer = e.deltaY < 0;
+      if (e.deltaY === 0 || (closer ? kRef.current >= MAX_K : kRef.current <= 1)) return;
+      e.preventDefault();
+      const notches = Math.min(4, Math.abs(e.deltaY) * (e.deltaMode === 1 ? 1 / 3 : e.deltaMode === 2 ? 1 : 1 / 100));
+      zoomAt(Math.pow(1.25, closer ? notches : -notches), e.clientX, e.clientY, svgEl.getBoundingClientRect());
+    };
+    svgEl.addEventListener("wheel", onWheel, { passive: false });
+    return () => svgEl.removeEventListener("wheel", onWheel);
+    // zoomAt only sets state from what it is given.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [svgEl]);
+  /* The fingers, or the mouse, down on the map: one moves it once it is drawn closer, two pinch it about the point between them. A drag is not a press: the press that ends one is dropped. */
+  const pointers = useRef(new Map<number, { x: number; y: number }>());
+  const pinch = useRef<{ dist: number; cx: number; cy: number } | null>(null);
+  const drag = useRef<{ x: number; y: number; moved: boolean } | null>(null);
+  const spread = () => {
+    const [a, b] = [...pointers.current.values()];
+    return { dist: Math.hypot(a.x - b.x, a.y - b.y), cx: (a.x + b.x) / 2, cy: (a.y + b.y) / 2 };
+  };
   const drawn = useMemo(() => {
     const on = { type: "FeatureCollection", features: frame?.length ? frame : shapes };
     if (!on.features.length) return null;
@@ -115,9 +175,80 @@ export function OutlineMap({
   const litPath = many && lit !== null ? drawn.paths.find((p) => p.key === lit) : undefined;
   /** What is said in the pop-up: the dot pointed at, or, where none is, the outline. */
   const tip = said ?? (litPath && litPath.name && Number.isFinite(litPath.cx) ? { x: litPath.cx, y: litPath.cy, name: litPath.name, sub: onShape ? "Press it to open its window" : undefined } : undefined);
+  /* Where the pop-up's place is across what is in view, 0 to 1 each way. */
+  const fx = tip ? (tip.x - (view.x - W / (2 * view.k))) / (W / view.k) : 0;
+  const fy = tip ? (tip.y - (view.y - H / (2 * view.k))) / (H / view.k) : 0;
+  const tool =
+    "w-7 h-7 rounded-full border border-border bg-background/70 text-muted-foreground hover:text-foreground flex items-center justify-center cursor-pointer transition-colors disabled:opacity-40 disabled:cursor-default";
   return (
     <div className="relative">
-      <svg viewBox={`0 0 ${W} ${H}`} className="w-full h-auto modal-tile rounded-xl" role="img" aria-label={label}>
+      <svg
+        ref={setSvgEl}
+        viewBox={`${view.x - W / (2 * view.k)} ${view.y - H / (2 * view.k)} ${W / view.k} ${H / view.k}`}
+        className="w-full h-auto modal-tile rounded-xl outline-none focus-visible:ring-2 focus-visible:ring-secondary/60"
+        // One finger scrolls the window over a map that is whole and moves one that is drawn closer; two are always the map's, to pinch.
+        style={{ touchAction: view.k > 1 ? "none" : "pan-y", cursor: view.k > 1 ? "grab" : undefined }}
+        role="img"
+        tabIndex={0}
+        aria-label={`${label}. The wheel or a pinch draws it closer and further, and a drag moves it; with the map in focus, plus and minus do the same, the arrow keys move it and 0 puts it back.`}
+        onKeyDown={(e) => {
+          const step = 40 / view.k;
+          if (e.key === "+" || e.key === "=") zoomBy(1.5);
+          else if (e.key === "-" || e.key === "_") zoomBy(1 / 1.5);
+          else if (e.key === "0") resetView();
+          else if (e.key === "ArrowLeft") panBy(-step, 0);
+          else if (e.key === "ArrowRight") panBy(step, 0);
+          else if (e.key === "ArrowUp") panBy(0, -step);
+          else if (e.key === "ArrowDown") panBy(0, step);
+          else return;
+          e.preventDefault();
+        }}
+        onPointerDown={(e) => {
+          pointers.current.set(e.pointerId, { x: e.clientX, y: e.clientY });
+          if (pointers.current.size === 2) {
+            pinch.current = spread();
+            drag.current = { x: e.clientX, y: e.clientY, moved: true };
+          } else drag.current = { x: e.clientX, y: e.clientY, moved: false };
+        }}
+        onPointerMove={(e) => {
+          if (pointers.current.has(e.pointerId)) pointers.current.set(e.pointerId, { x: e.clientX, y: e.clientY });
+          if (pinch.current && pointers.current.size === 2) {
+            const was = pinch.current;
+            const now = spread();
+            if (was.dist > 0 && now.dist > 0) zoomAt(now.dist / was.dist, now.cx, now.cy, e.currentTarget.getBoundingClientRect());
+            pinch.current = now;
+            return;
+          }
+          const d = drag.current;
+          if (!d || view.k <= 1 || e.buttons === 0) return;
+          const dx = e.clientX - d.x;
+          const dy = e.clientY - d.y;
+          if (!d.moved && Math.hypot(dx, dy) < 4) return;
+          const r = e.currentTarget.getBoundingClientRect();
+          panBy((-dx * (W / view.k)) / r.width, (-dy * (H / view.k)) / r.height);
+          drag.current = { x: e.clientX, y: e.clientY, moved: true };
+        }}
+        onPointerUp={(e) => {
+          pointers.current.delete(e.pointerId);
+          pinch.current = null;
+          const rest = [...pointers.current.values()][0];
+          if (rest) drag.current = { x: rest.x, y: rest.y, moved: true };
+        }}
+        onPointerCancel={(e) => {
+          pointers.current.delete(e.pointerId);
+          pinch.current = null;
+          drag.current = null;
+        }}
+        onPointerLeave={(e) => {
+          pointers.current.delete(e.pointerId);
+          pinch.current = null;
+          drag.current = null;
+        }}
+        onClickCapture={(e) => {
+          if (drag.current?.moved) e.stopPropagation();
+          drag.current = null;
+        }}
+      >
         {drawn.paths.map((p) => (
           <path
             key={p.key}
@@ -126,6 +257,7 @@ export function OutlineMap({
             fillOpacity={litPath?.key === p.key ? 0.62 : 0.28}
             stroke={color}
             strokeWidth={many ? 0.8 : 1.4}
+            vectorEffect="non-scaling-stroke"
             strokeLinejoin="round"
             className={many && onShape ? "cursor-pointer" : undefined}
             onMouseEnter={many ? () => setLit(p.key) : undefined}
@@ -134,20 +266,21 @@ export function OutlineMap({
           />
         ))}
         {/* The finer borders, over the fills and under the dots: thinner and fainter than the outlines they lie in. */}
-        {drawn.inner && <path d={drawn.inner} fill="none" stroke={color} strokeOpacity={many ? 0.5 : 0.7} strokeWidth={many ? 0.35 : 0.55} strokeLinejoin="round" pointerEvents="none" />}
+        {drawn.inner && <path d={drawn.inner} fill="none" stroke={color} strokeOpacity={many ? 0.5 : 0.7} strokeWidth={many ? 0.35 : 0.55} vectorEffect="non-scaling-stroke" strokeLinejoin="round" pointerEvents="none" />}
         {/* The outline pointed at, edged over its neighbours so that the whole of its border shows. */}
-        {litPath && <path d={litPath.d} fill="none" stroke={color} strokeWidth={2} strokeLinejoin="round" pointerEvents="none" />}
+        {litPath && <path d={litPath.d} fill="none" stroke={color} strokeWidth={2} vectorEffect="non-scaling-stroke" strokeLinejoin="round" pointerEvents="none" />}
         {drawn.dots.map((p) => (
           // A clear edge round each dot, so that one so small can still be pointed at.
           <circle
             key={p.id}
             cx={p.x}
             cy={p.y}
-            r={drawn.mark ? 1.8 : 2.4}
+            r={(drawn.mark ? 1.8 : 2.4) / view.k}
             className={`fill-foreground ${onDot ? "cursor-pointer" : ""}`}
             fillOpacity={drawn.mark ? 0.45 : 0.85}
             stroke="transparent"
             strokeWidth={7}
+            vectorEffect="non-scaling-stroke"
             onClick={onDot ? () => onDot(p) : undefined}
 
             onMouseEnter={() => setOver(p.id)}
@@ -158,26 +291,41 @@ export function OutlineMap({
           <circle
             cx={drawn.mark.x}
             cy={drawn.mark.y}
-            r={5.5}
+            r={5.5 / view.k}
             fill={color}
             className="stroke-foreground cursor-pointer"
             strokeWidth={1.6}
+            vectorEffect="non-scaling-stroke"
             onMouseEnter={() => setOver(drawn.mark!.id)}
             onMouseLeave={() => setOver(null)}
           />
         )}
         {/* The dot pointed at: a ring in the place's colour. */}
-        {said && <circle cx={said.x} cy={said.y} r={7.5} fill="none" stroke={color} strokeWidth={1.8} pointerEvents="none" />}
+        {said && <circle cx={said.x} cy={said.y} r={7.5 / view.k} fill="none" stroke={color} strokeWidth={1.8} vectorEffect="non-scaling-stroke" pointerEvents="none" />}
       </svg>
+      {/* Closer and further, at the map's corner: the same as the wheel, a pinch and the + and - keys. */}
+      <div className="absolute top-2 right-2 flex items-center gap-1">
+        <button type="button" onClick={() => zoomBy(1 / 1.5)} disabled={view.k <= 1} aria-label="Draw the map further out" title="Further out ( - )" className={tool}>
+          <MagnifyingGlassMinus size={13} aria-hidden />
+        </button>
+        <button type="button" onClick={() => zoomBy(1.5)} disabled={view.k >= MAX_K} aria-label="Draw the map closer" title="Closer ( + )" className={tool}>
+          <MagnifyingGlassPlus size={13} aria-hidden />
+        </button>
+        {view.k > 1 && (
+          <button type="button" onClick={resetView} className="px-2.5 h-7 rounded-full border border-border bg-background/70 text-[10px] font-mono uppercase tracking-wider text-muted-foreground hover:text-foreground cursor-pointer transition-colors" title="Back to the whole map ( 0 )">
+            Reset · {view.k.toFixed(1)}×
+          </button>
+        )}
+      </div>
       {/* Its name, and what it belongs to: above the dot, turned to the side that keeps it on the map. */}
-      {tip && (
+      {tip && fx >= 0 && fx <= 1 && fy >= 0 && fy <= 1 && (
         <div
           role="status"
           className="absolute z-10 pointer-events-none modal-glass border rounded-lg px-2.5 py-1.5 shadow-lg max-w-[16rem]"
           style={{
-            left: `${(100 * tip.x) / W}%`,
-            top: `${(100 * tip.y) / H}%`,
-            transform: `translate(${tip.x < W * 0.25 ? "0%" : tip.x > W * 0.75 ? "-100%" : "-50%"}, ${tip.y < H * 0.3 ? "14px" : "calc(-100% - 12px)"})`,
+            left: `${100 * fx}%`,
+            top: `${100 * fy}%`,
+            transform: `translate(${fx < 0.25 ? "0%" : fx > 0.75 ? "-100%" : "-50%"}, ${fy < 0.3 ? "14px" : "calc(-100% - 12px)"})`,
           }}
         >
           <p className="text-[12px] font-bold font-sans text-foreground leading-tight">{tip.name}</p>
