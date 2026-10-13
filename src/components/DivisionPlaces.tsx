@@ -43,7 +43,6 @@ import { lazy, Suspense, useEffect, useMemo, useState, type ReactNode } from "re
 import { createPortal } from "react-dom";
 import { useNavigate } from "react-router-dom";
 import { ArrowLeft, ArrowRight, ArrowsIn, ArrowsOut, ClockCounterClockwise, Info, ListBullets, MagnifyingGlass, MapPin, MapTrifold, X } from "@phosphor-icons/react";
-import { CHIP_TEXT } from "@/lib/chipTone";
 import { COUNTRY_PANELS, PANEL_SOURCES } from "../data/countryPanels";
 import { COUNTRY_OF } from "../data/placeIndex";
 import { REPRESENTATIVES, REPRESENTATIVES_SOURCES } from "../data/representatives";
@@ -79,6 +78,7 @@ import { FollowStar, placeFollowId } from "./FollowStar";
 import PeoplePanel from "./PeoplePanel";
 import StatePeoplePanel from "./StatePeoplePanel";
 import { WindowGroup } from "./WindowGroup";
+import { WindowTitle } from "./WindowTitle";
 
 const FILES = new Map<string, Promise<PlacesFile | null>>();
 const load = (cc: string) => {
@@ -799,39 +799,37 @@ function PlaceWindow({
     <div className="fixed inset-0 z-[60] flex items-center justify-center p-4 sm:p-6 bg-black/60 backdrop-blur-sm animate-fade-in" onClick={(e) => e.target === e.currentTarget && onClose()}>
       <div role="dialog" aria-modal="true" aria-label={name} className={`relative z-10 rounded-2xl w-full shadow-2xl modal-glass border overflow-y-auto transition-all duration-300 ${expanded ? "max-w-full max-h-full m-0" : "max-w-2xl max-h-[90vh]"}`}>
         <div className="p-6">
+          {/* Its name, where it is and the window's buttons: one bar above the flag, in sight as the window is scrolled - the same in every place's window. */}
+          <WindowTitle title={name} where={[district, s.name, country].filter(Boolean).join(" · ")}>
+            {/* Follow, as in a country's and a state's window. */}
+            <FollowStar where="window" id={placeFollowId(id)} name={name} />
+            {/* The buttons a country's window has at its head: the place on the map, and the window opened to the whole screen. */}
+            <button onClick={() => navigate(`/dashboard/maps?country=${s.cc}`)} className="p-2 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted/60 transition-colors cursor-pointer" aria-label={`Show ${country} on the map`} title="Show on map">
+              <MapTrifold size={18} />
+            </button>
+            {/* The place's buttons before this rule, the window's after it: the same order in every window. */}
+            <span aria-hidden className="w-px h-5 bg-border mx-0.5 shrink-0" />
+            <button onClick={() => setExpanded((v) => !v)} className="p-2 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted/60 transition-colors cursor-pointer" aria-label={expanded ? "Collapse the window" : "Expand the window to full screen"} title={expanded ? "Collapse" : "Expand to full screen"}>
+              {expanded ? <ArrowsIn size={18} /> : <ArrowsOut size={18} />}
+            </button>
+            <button onClick={onBack} className="p-2 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted/60 transition-colors cursor-pointer" aria-label={`Back to ${s.name}`} title={`Back to ${s.name}`}>
+              <ArrowLeft size={18} />
+            </button>
+            <button onClick={onClose} className="p-2 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted/60 transition-colors cursor-pointer" aria-label="Close" title="Close">
+              <X size={18} />
+            </button>
+          </WindowTitle>
+
           <div className="flex items-start justify-between mb-4">
             <div className="flex items-center gap-4 min-w-0">
               <div className="w-16 h-11 rounded-xl overflow-hidden shrink-0 border border-border shadow-md bg-muted">
                 <img src={`https://flagcdn.com/w160/${s.cc.toLowerCase()}.png`} alt={`${country} flag`} className="w-full h-full object-cover" onError={(e) => (e.currentTarget.style.visibility = "hidden")} />
               </div>
               <div className="min-w-0">
-                <h2 className="text-2xl font-bold font-sans text-foreground">{name}</h2>
                 <div className="flex items-center gap-2 mt-1.5 flex-wrap">
-                  <span className={`flex items-center gap-1 ${CHIP_TEXT}`}>
-                    <MapPin size={12} weight="fill" /> {[district, s.name, country].filter(Boolean).join(" · ")}
-                  </span>
                   <span className="text-xs border border-border px-2 py-0.5 rounded-full font-sans text-muted-foreground">{placeType(p, file)}</span>
                 </div>
               </div>
-            </div>
-            <div className="flex items-center gap-1.5 shrink-0">
-              {/* Follow, as in a country's and a state's window. */}
-              <FollowStar where="window" id={placeFollowId(id)} name={name} />
-              {/* The buttons a country's window has at its head: the place on the map, and the window opened to the whole screen. */}
-              <button onClick={() => navigate(`/dashboard/maps?country=${s.cc}`)} className="p-2 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted/60 transition-colors cursor-pointer" aria-label={`Show ${country} on the map`} title="Show on map">
-                <MapTrifold size={18} />
-              </button>
-              {/* The place's buttons before this rule, the window's after it: the same order in every window. */}
-              <span aria-hidden className="w-px h-5 bg-border mx-0.5 shrink-0" />
-              <button onClick={() => setExpanded((v) => !v)} className="p-2 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted/60 transition-colors cursor-pointer" aria-label={expanded ? "Collapse the window" : "Expand the window to full screen"} title={expanded ? "Collapse" : "Expand to full screen"}>
-                {expanded ? <ArrowsIn size={18} /> : <ArrowsOut size={18} />}
-              </button>
-              <button onClick={onBack} className="p-2 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted/60 transition-colors cursor-pointer" aria-label={`Back to ${s.name}`} title={`Back to ${s.name}`}>
-                <ArrowLeft size={18} />
-              </button>
-              <button onClick={onClose} className="p-2 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted/60 transition-colors cursor-pointer" aria-label="Close" title="Close">
-                <X size={18} />
-              </button>
             </div>
 
           </div>

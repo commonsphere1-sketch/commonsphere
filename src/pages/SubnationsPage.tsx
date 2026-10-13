@@ -87,6 +87,7 @@ import CountryQuality, { inSentence, qualityOf } from "../components/CountryQual
 import { DivisionPlaces, PlaceHost, PlacesAnalysis, PlacesInside, insideOf, usePlaces, type Inside } from "../components/DivisionPlaces";
 import { FilterBar } from "../components/FilterBar";
 import { ArticlePanel } from "../components/HistoryPanel";
+import { WindowTitle } from "../components/WindowTitle";
 import { ChartNote, ChartTitle, FigureRow, MeasureBars, PartsBar, PartsDonut } from "../components/ModalCharts";
 import PostalCodes from "../components/PostalCodes";
 import PlaceIndexes from "../components/PlaceIndexes";
@@ -352,14 +353,35 @@ function Window({
     <div className={`fixed inset-0 z-50 items-center justify-center p-4 sm:p-6 bg-black/60 backdrop-blur-sm animate-fade-in ${hidden ? "hidden" : "flex"}`} onClick={(e) => e.target === e.currentTarget && onClose()}>
       <div role="dialog" aria-modal="true" aria-label={title} className={`relative z-10 rounded-2xl w-full shadow-2xl modal-glass border overflow-y-auto transition-all duration-300 ${expanded ? "max-w-full max-h-full m-0" : "max-w-2xl max-h-[90vh]"}`}>
         <div className="p-6 flex flex-col gap-5">
+          {/* Its name, where it is and the window's buttons: one bar above the flag, in sight as the window is scrolled - the same in every place's window. */}
+          <WindowTitle title={title} where={kicker}>
+            {follow}
+            {mapTo && (
+              <button onClick={() => navigate(mapTo)} className="p-2 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted/60 transition-colors cursor-pointer" aria-label={`Show ${title} on the map`} title="Show on map">
+                <MapTrifold size={18} />
+              </button>
+            )}
+            {/* The place's buttons before this rule, the window's after it: the same order in every window. */}
+            <span aria-hidden className="w-px h-5 bg-border mx-0.5 shrink-0" />
+            <button onClick={() => setExpanded((v) => !v)} className="p-2 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted/60 transition-colors cursor-pointer" aria-label={expanded ? "Collapse the window" : "Expand the window to full screen"} title={expanded ? "Collapse" : "Expand to full screen"}>
+              {expanded ? <ArrowsIn size={18} /> : <ArrowsOut size={18} />}
+            </button>
+            {onBack && (
+              <button onClick={onBack} className="p-2 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted/60 transition-colors cursor-pointer" aria-label="Back to the window before" title="Back">
+                <ArrowLeft size={18} />
+              </button>
+            )}
+            <button onClick={onClose} className="p-2 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted/60 transition-colors cursor-pointer" aria-label="Close" title="Close">
+              <X size={18} />
+            </button>
+          </WindowTitle>
+
           <div className="flex items-start justify-between gap-3">
             <div className="flex items-center gap-4 min-w-0">
               <div className="w-16 h-11 rounded-xl overflow-hidden shrink-0 border border-border shadow-md bg-muted">
                 <img src={flagSrc} alt="" className="w-full h-full object-cover" onError={(e) => (e.currentTarget.style.visibility = "hidden")} />
               </div>
               <div className="min-w-0">
-                <p className="text-[10px] font-mono uppercase tracking-widest text-muted-foreground">{kicker}</p>
-                <h2 className="text-2xl font-bold font-sans text-foreground leading-tight">{title}</h2>
                 <div className="flex items-center gap-1.5 mt-1.5 flex-wrap">
                   {chips.map((c) => (
                     <span key={c} className="text-[11px] font-sans border border-border px-2 py-0.5 rounded-full text-muted-foreground">
@@ -368,27 +390,6 @@ function Window({
                   ))}
                 </div>
               </div>
-            </div>
-            <div className="flex items-center gap-1.5 shrink-0">
-              {follow}
-              {mapTo && (
-                <button onClick={() => navigate(mapTo)} className="p-2 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted/60 transition-colors cursor-pointer" aria-label={`Show ${title} on the map`} title="Show on map">
-                  <MapTrifold size={18} />
-                </button>
-              )}
-              {/* The place's buttons before this rule, the window's after it: the same order in every window. */}
-              <span aria-hidden className="w-px h-5 bg-border mx-0.5 shrink-0" />
-              <button onClick={() => setExpanded((v) => !v)} className="p-2 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted/60 transition-colors cursor-pointer" aria-label={expanded ? "Collapse the window" : "Expand the window to full screen"} title={expanded ? "Collapse" : "Expand to full screen"}>
-                {expanded ? <ArrowsIn size={18} /> : <ArrowsOut size={18} />}
-              </button>
-              {onBack && (
-                <button onClick={onBack} className="p-2 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted/60 transition-colors cursor-pointer" aria-label="Back to the window before" title="Back">
-                  <ArrowLeft size={18} />
-                </button>
-              )}
-              <button onClick={onClose} className="p-2 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted/60 transition-colors cursor-pointer" aria-label="Close" title="Close">
-                <X size={18} />
-              </button>
             </div>
           </div>
           {children}

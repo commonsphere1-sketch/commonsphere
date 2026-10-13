@@ -62,9 +62,10 @@ import { COUNTRY_PANELS, panelSource, type PanelField, type PanelFigure } from "
 import { useLiveData } from "../hooks/useLiveData";
 import { SourceLink } from "../components/SourceLink";
 import { WindowGroup } from "../components/WindowGroup";
+import { WindowTitle } from "../components/WindowTitle";
 import { HeadlinesBanner, ALL_TOPICS, followedFirst, namesAbroad, useFollowedTags } from "../components/HeadlinesBanner";
 import { FilterBar } from "../components/FilterBar";
-import { TONE, CHIP_TEXT } from "@/lib/chipTone";
+import { TONE } from "@/lib/chipTone";
 import { useWatchlist } from "@/contexts/WatchlistContext";
 import { FollowedPlaces } from "@/components/FollowedPlaces";
 import { DataExplorer } from "@/components/DataExplorer";
@@ -628,6 +629,50 @@ function CountryModal({
         className={`relative z-10 rounded-2xl w-full shadow-2xl animate-fade-in modal-glass border overflow-y-auto transition-all duration-300 ${isExpanded ? "max-w-full max-h-full m-0" : "max-w-2xl max-h-[90vh]"}`}
       >
         <div className="p-6">
+          {/* Its name, where it is and the window's buttons: one bar above the flag, in sight as the window is scrolled - the same in every place's window. */}
+          <WindowTitle title={country.name} where={capitalLabel(country)}>
+            <button
+              onClick={() => void watch.toggle("country", country.id)}
+              className="p-2 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted/60 transition-colors cursor-pointer"
+              aria-pressed={watch.isWatched("country", country.id)}
+              aria-label={watch.isWatched("country", country.id) ? `Unfollow ${country.name}` : `Follow ${country.name}`}
+              title={watch.isWatched("country", country.id) ? "Stop following" : "Keep this country at the top of the page"}
+            >
+              <Star
+                size={18}
+                weight={watch.isWatched("country", country.id) ? "fill" : "regular"}
+                className={watch.isWatched("country", country.id) ? "text-amber-500" : undefined}
+              />
+            </button>
+            <button
+              onClick={() => navigate(`/dashboard/maps?country=${country.code}`)}
+              className="p-2 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted/60 transition-colors cursor-pointer"
+              aria-label={`Show ${country.name} on the world map`}
+              title="Show on map"
+            >
+              <MapTrifold size={18} />
+            </button>
+            {/* The place's buttons before this rule, the window's after it: the same order in every window. */}
+            <span aria-hidden className="w-px h-5 bg-border mx-0.5 shrink-0" />
+            <button
+              onClick={() => setIsExpanded((v) => !v)}
+              className="p-2 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted/60 transition-colors cursor-pointer"
+              aria-label={
+                isExpanded ? "Collapse modal" : "Expand modal to full screen"
+              }
+              title={isExpanded ? "Collapse" : "Expand to full screen"}
+            >
+              {isExpanded ? <ArrowsIn size={18} /> : <ArrowsOut size={18} />}
+            </button>
+            <button
+              onClick={onClose}
+              className="p-2 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted/60 transition-colors cursor-pointer"
+              aria-label="Close"
+            >
+              <X size={18} />
+            </button>
+          </WindowTitle>
+
           <div className="flex items-start justify-between mb-6">
             <div className="flex items-center gap-4">
               <div className="w-16 h-16 rounded-xl overflow-hidden shrink-0 border border-border shadow-md bg-muted">
@@ -650,13 +695,7 @@ function CountryModal({
                 </div>
               </div>
               <div>
-                <h2 className="text-xl font-bold font-sans text-foreground">
-                  {country.name}
-                </h2>
                 <div className="flex items-center gap-2 mt-1 flex-wrap">
-                  <span className={`flex items-center gap-1 ${CHIP_TEXT}`}>
-                    <MapPin size={12} weight="fill" /> {capitalLabel(country)}
-                  </span>
                   <span
                     className={`text-xs border px-2 py-0.5 rounded-full font-sans ${continentColors[country.continent] ?? "text-muted-foreground border-border bg-muted"}`}
                   >
@@ -699,48 +738,6 @@ function CountryModal({
                   </div>
                 )}
               </div>
-            </div>
-            <div className="flex items-center gap-1.5 shrink-0">
-              <button
-                onClick={() => void watch.toggle("country", country.id)}
-                className="p-2 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted/60 transition-colors cursor-pointer"
-                aria-pressed={watch.isWatched("country", country.id)}
-                aria-label={watch.isWatched("country", country.id) ? `Unfollow ${country.name}` : `Follow ${country.name}`}
-                title={watch.isWatched("country", country.id) ? "Stop following" : "Keep this country at the top of the page"}
-              >
-                <Star
-                  size={18}
-                  weight={watch.isWatched("country", country.id) ? "fill" : "regular"}
-                  className={watch.isWatched("country", country.id) ? "text-amber-500" : undefined}
-                />
-              </button>
-              <button
-                onClick={() => navigate(`/dashboard/maps?country=${country.code}`)}
-                className="p-2 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted/60 transition-colors cursor-pointer"
-                aria-label={`Show ${country.name} on the world map`}
-                title="Show on map"
-              >
-                <MapTrifold size={18} />
-              </button>
-              {/* The place's buttons before this rule, the window's after it: the same order in every window. */}
-              <span aria-hidden className="w-px h-5 bg-border mx-0.5 shrink-0" />
-              <button
-                onClick={() => setIsExpanded((v) => !v)}
-                className="p-2 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted/60 transition-colors cursor-pointer"
-                aria-label={
-                  isExpanded ? "Collapse modal" : "Expand modal to full screen"
-                }
-                title={isExpanded ? "Collapse" : "Expand to full screen"}
-              >
-                {isExpanded ? <ArrowsIn size={18} /> : <ArrowsOut size={18} />}
-              </button>
-              <button
-                onClick={onClose}
-                className="p-2 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted/60 transition-colors cursor-pointer"
-                aria-label="Close"
-              >
-                <X size={18} />
-              </button>
             </div>
           </div>
 

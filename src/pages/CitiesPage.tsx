@@ -21,7 +21,6 @@ import { CITY_PLACES } from "../data/cityPlaces";
 import { ECONOMY_OF } from "../data/placeIndex";
 import { ECONOMY_INDICATORS, ECONOMY_INDICATORS_SOURCE } from "../data/economyIndicators";
 import {
-  MapPin,
   ListBullets,
   MapTrifold,
   DownloadSimple,
@@ -46,6 +45,7 @@ import { citiesData, type City } from "../data/citiesData";
 import { CITY_FIGURES, CITY_FIGURES_SOURCE, type CityFigures } from "../data/cityFigures";
 import { CITY_YEARS, cityYear, cityFirstYear, cityGrowth, type CityYear } from "../lib/cityFigures";
 import { ArticlePanel } from "../components/HistoryPanel";
+import { WindowTitle } from "../components/WindowTitle";
 import { ACCENT, ChartNote } from "../components/ModalCharts";
 import { useTheme } from "../contexts/ThemeContext";
 import { HeadlinesBanner, namesTag, type Headline, type Shown } from "../components/HeadlinesBanner";
@@ -449,17 +449,53 @@ function CityModal({ city, onClose }: { city: City; onClose: () => void }) {
       >
         <div className="p-6">
           {/* Header */}
+          {/* Its name, where it is and the window's buttons: one bar above the flag, in sight as the window is scrolled - the same in every place's window. */}
+          <WindowTitle title={city.name} where={city.country}>
+            {/* Follow, as in a country's and a state's window: the city is kept at the top of the page. */}
+            <button
+              onClick={() => follow.toggle(city.id)}
+              className="p-2 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted/60 transition-colors cursor-pointer"
+              aria-pressed={followed}
+              aria-label={followed ? `Unfollow ${city.name}` : `Follow ${city.name}`}
+              title={followed ? "Stop following" : "Keep this city at the top of the page · saved in this browser"}
+            >
+              <Star size={18} weight={followed ? "fill" : "regular"} className={followed ? "text-amber-500" : undefined} />
+            </button>
+            {/* As in a country's and a state's window: to the maps page, with this city marked on both maps. */}
+            {place && (
+              <button
+                onClick={() => navigate(`/dashboard/maps?city=${city.id}`)}
+                className="p-2 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted/60 transition-colors cursor-pointer"
+                aria-label={`Show ${city.name} on the map`}
+                title="Show on map"
+              >
+                <MapTrifold size={18} />
+              </button>
+            )}
+            <button
+              onClick={() => setIsExpanded((v) => !v)}
+              className="p-2 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted/60 transition-colors cursor-pointer"
+              aria-label={isExpanded ? "Collapse modal" : "Expand modal to full screen"}
+              title={isExpanded ? "Collapse" : "Expand to full screen"}
+            >
+              {isExpanded ? <ArrowsIn size={18} /> : <ArrowsOut size={18} />}
+            </button>
+            <button
+              onClick={onClose}
+              className="p-2 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted/60 transition-colors cursor-pointer"
+              aria-label="Close"
+            >
+              <X size={18} />
+            </button>
+          </WindowTitle>
+
           <div className="flex items-start justify-between mb-4">
             <div className="flex items-center gap-4 min-w-0">
               <div className="w-16 h-11 rounded-xl overflow-hidden shrink-0 border border-border shadow-md bg-muted">
                 <img src={`https://flagcdn.com/w160/${city.countryCode.toLowerCase()}.png`} alt={`${city.country} flag`} className="w-full h-full object-cover" />
               </div>
               <div className="min-w-0">
-                <h2 className="text-2xl font-bold font-sans text-foreground">{city.name}</h2>
                 <div className="flex items-center gap-2 mt-1.5 flex-wrap">
-                  <span className={`flex items-center gap-1 ${CHIP_TEXT}`}>
-                    <MapPin size={12} weight="fill" /> {city.country}
-                  </span>
                   <span className={`text-xs border px-2 py-0.5 rounded-full font-sans ${regionColor}`}>{city.region}</span>
                   {row?.f.capital && <span className={CHIP_TEXT}>Capital</span>}
                   {row && (
@@ -469,44 +505,6 @@ function CityModal({ city, onClose }: { city: City; onClose: () => void }) {
                   )}
                 </div>
               </div>
-            </div>
-            <div className="flex items-center gap-1.5 shrink-0">
-              {/* Follow, as in a country's and a state's window: the city is kept at the top of the page. */}
-              <button
-                onClick={() => follow.toggle(city.id)}
-                className="p-2 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted/60 transition-colors cursor-pointer"
-                aria-pressed={followed}
-                aria-label={followed ? `Unfollow ${city.name}` : `Follow ${city.name}`}
-                title={followed ? "Stop following" : "Keep this city at the top of the page · saved in this browser"}
-              >
-                <Star size={18} weight={followed ? "fill" : "regular"} className={followed ? "text-amber-500" : undefined} />
-              </button>
-              {/* As in a country's and a state's window: to the maps page, with this city marked on both maps. */}
-              {place && (
-                <button
-                  onClick={() => navigate(`/dashboard/maps?city=${city.id}`)}
-                  className="p-2 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted/60 transition-colors cursor-pointer"
-                  aria-label={`Show ${city.name} on the map`}
-                  title="Show on map"
-                >
-                  <MapTrifold size={18} />
-                </button>
-              )}
-              <button
-                onClick={() => setIsExpanded((v) => !v)}
-                className="p-2 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted/60 transition-colors cursor-pointer"
-                aria-label={isExpanded ? "Collapse modal" : "Expand modal to full screen"}
-                title={isExpanded ? "Collapse" : "Expand to full screen"}
-              >
-                {isExpanded ? <ArrowsIn size={18} /> : <ArrowsOut size={18} />}
-              </button>
-              <button
-                onClick={onClose}
-                className="p-2 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted/60 transition-colors cursor-pointer"
-                aria-label="Close"
-              >
-                <X size={18} />
-              </button>
             </div>
           </div>
 
