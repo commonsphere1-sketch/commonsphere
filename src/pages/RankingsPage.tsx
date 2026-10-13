@@ -1639,9 +1639,10 @@ function ComparisonPanel({
             <p className="text-[12px] font-sans text-muted-foreground">Nothing pinned. Search above, or open any row in the table below and add it from there.</p>
           </div>
         ) : (
-          <div className="rounded-xl overflow-x-auto border border-border">
+          // The table scrolls inside its own frame, and the row of flags and names stays at the frame's head: which column is whose is in sight at every metric.
+          <div className="rounded-xl overflow-auto max-h-[70vh] border border-border">
             <div style={{ minWidth: `${132 + selected.length * 104}px` }}>
-              <div className="grid bg-muted/40 border-b border-border" style={{ gridTemplateColumns: cols }}>
+              <div className="compare-head grid sticky top-0 z-10 border-b border-border" style={{ gridTemplateColumns: cols }}>
                 <div className="px-3 py-2.5 flex items-center">
                   <span className="text-[9px] font-mono uppercase tracking-widest text-muted-foreground">Metric</span>
                 </div>
