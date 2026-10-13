@@ -428,10 +428,13 @@ const POP_SOURCES = peopleSources(ROWS.map((r) => r.cc));
 function CityCard({ c, onOpen }: { c: UnCity; onOpen: () => void }) {
   const since = change(c[7], c[8]);
   return (
-    <button type="button" onClick={onOpen} className="modal-tile rounded-xl p-4 text-left cursor-pointer transition-colors hover:border-secondary/40 flex flex-col gap-2 min-w-0">
+    <button type="button" onClick={onOpen} className="modal-tile relative isolate overflow-hidden rounded-xl p-4 text-left cursor-pointer transition-colors hover:border-secondary/40 flex flex-col gap-2 min-w-0">
+      {/* Its country's flag behind the whole card, dimmed, as the country's own card has it: for every country's cities alike. */}
+      <img src={flag(c[0], 320)} alt="" aria-hidden="true" loading="lazy" className="absolute inset-0 -z-10 w-full h-full object-cover opacity-[0.14] scale-105 select-none pointer-events-none" onError={(e) => (e.currentTarget.style.display = "none")} />
       <span className="flex items-center gap-2.5 min-w-0">
         <span className="min-w-0 flex-1">
           <span className="block text-sm font-bold font-sans text-foreground truncate">{c[2]}</span>
+
           <span className="flex items-center gap-1 text-[10px] font-mono text-muted-foreground truncate">
             <MapPin size={9} aria-hidden /> {c[5] ? "The capital" : "City"}
           </span>
