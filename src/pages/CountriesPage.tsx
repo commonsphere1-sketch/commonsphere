@@ -17,6 +17,8 @@ import { PlaceTopics } from "../components/PlaceTopics";
 const PoliticalParties = lazy(() => import("../components/PoliticalParties"));
 /** What public bodies are warning of in the country now: travel advisories, outbreaks, disasters, and the last counts of conflict. */
 const StatusReport = lazy(() => import("../components/StatusReport"));
+/** How the country is governed as the World Bank scores it, and the year there day by day, each line with its report. */
+const PoliticalClimate = lazy(() => import("../components/PoliticalClimate"));
 const Universities = lazy(() => import("../components/Universities"));
 /** The Sovereignty report: a panel with its own data, loaded when the Politics tab opens. */
 const SovereigntyReport = lazy(() => import("../components/CountryReports").then((m) => ({ default: m.SovereigntyReport })));
@@ -898,6 +900,7 @@ function CountryModal({
           {activeTab === "politics" && (
             <Suspense fallback={null}>
               <StatusReport code={country.code} country={country.name} className="mb-5" />
+              <PoliticalClimate code={country.code} country={country.name} className="mb-5" />
               <PoliticalParties code={country.code} name={country.name} className="" />
               <SovereigntyReport country={country} />
               <PlaceTopics tag={`c:${country.code}`} name={country.name} className="mt-4" />

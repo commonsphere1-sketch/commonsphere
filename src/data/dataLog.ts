@@ -62,6 +62,14 @@ export const DATA_LOG: DataLogEntry[] = [
     "files": 1
   },
   {
+    "what": "The year so far in each country: the dated events of Wikipedia's article for the year, each with the report it cites",
+    "from": "Wikipedia",
+    "page": "/dashboard/countries",
+    "where": "Countries",
+    "read": "2026-10-13",
+    "files": 1
+  },
+  {
     "what": "What is being warned of in each country now: travel advisories, outbreaks of disease and disaster alerts",
     "from": "US Department of State, UK Foreign Office, US CDC, GDACS",
     "page": "/dashboard/countries",
@@ -432,4 +440,4 @@ export const DATA_LOG: DataLogEntry[] = [
 ];
 
 /** How many data files the log covers. */
-export const DATA_LOG_FILES = 72;
+export const DATA_LOG_FILES = 73;
