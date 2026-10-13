@@ -262,7 +262,8 @@ export function FigureRow({ label, value, sub }: { label: ReactNode; value: Reac
       <span className="text-[11px] font-sans text-foreground flex-1 min-w-[40%]">{label}</span>
       <span className="text-[11px] font-mono font-semibold text-foreground text-right min-w-0 leading-snug">
         {value}
-        {sub && <span className="font-normal text-muted-foreground"> · {sub}</span>}
+        {/* What the figure is of, in the page's reading face, as asked: the figure itself keeps the figures' own. */}
+        {sub && <span className="font-sans font-normal text-muted-foreground"> · {sub}</span>}
       </span>
     </div>
   );

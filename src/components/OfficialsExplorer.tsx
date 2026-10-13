@@ -409,7 +409,7 @@ export function OfficialsExplorer({ onOpenState }: { /** Opens a state's window.
 
       {/* Footer */}
       <div className="px-4 py-2.5 border-t" style={{ borderColor: t.gridLine }}>
-        <span className="text-[10px] font-mono" style={{ color: t.mutedText }}>
+        <span className="text-[11px] font-sans" style={{ color: t.mutedText }}>
           {list.length} of {OFFICIALS.length} officials · members of Congress, governors and mayors as read on {STATE_OFFICES_SOURCES.retrieved}
         </span>
       </div>

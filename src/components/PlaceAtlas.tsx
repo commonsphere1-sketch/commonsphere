@@ -65,10 +65,21 @@
  * filled in its colour over the land, with a casing so that its edge reads
  * on any ground, and an outline in the colour itself; a city, with a ring.
  *
- * The map can be drawn closer: with the + and - keys (the number pad's too),
- * the buttons above it, or a pinch; closer in, it is moved by dragging or
- * with the arrow keys, and 0 puts it back. A turn of the wheel alone still
- * scrolls the page, so the map does not trap a reader passing over it.
+ * The map can be drawn closer by every means a reader may have: the wheel
+ * or a trackpad, two fingers pinched on a touch screen, the buttons above
+ * it, and the + and - keys (the number pad's too). Closer in, it is moved by
+ * dragging - a finger or the mouse - or with the arrow keys, and 0 puts it
+ * back. So that the map does not trap a reader passing over it, a turn of
+ * the wheel that would change nothing - further out when it is already
+ * whole - is left to scroll the page, and one finger still scrolls the page
+ * over a map that is whole.
+ *
+ * Drawn closer, the world fills in of itself: its countries from a finer
+ * tracing, then the borders of their states and provinces, then those of
+ * their counties and districts, then the cities - the largest first, and
+ * more of them the closer it is drawn. Each is fetched when the map first
+ * comes near enough to draw it. On a country's own map the cities come in
+ * the same way.
  *
  * Loaded when the Dashboard reaches it: the boundary files are large.
  */
@@ -102,6 +113,15 @@ const BOX: [[number, number], [number, number]] = [
 const COLOR = "#3b82f6";
 /** The land's colour in the dark theme: the slate blue of the window map the look was asked for from, for every map alike. */
 const WASH = "#617895";
+/** How close the map can be drawn: enough, on the world, to tell one county from the next. */
+const MAX_K = 40;
+/* How close the world must be drawn for each finer thing to come in. */
+const FINER_FROM = 2.5; // its countries from the 1:50m tracing
+const STATES_FROM = 2; // the borders of states and provinces
+const COUNTIES_FROM = 5; // those of counties and districts
+const CITIES_FROM = 8; // the cities of a million people or more; more of them further in
+/** The projection of the world's map: the whole globe in the card. */
+const WORLD_PROJECTION = geoEqualEarth().fitExtent(BOX, { type: "Sphere" } as never);
 
 
 type Geo = { type: string; id?: string | number; properties: Record<string, string>; geometry: { type: string; coordinates: unknown[] } };
@@ -204,7 +224,7 @@ export default function PlaceAtlas() {
   const svgRef = useRef<SVGSVGElement | null>(null);
   /** Kept on the map: no closer than twelve times, no further out than the whole, and never past an edge. */
   const held = (k: number, x: number, y: number) => {
-    const z = Math.max(1, Math.min(12, k));
+    const z = Math.max(1, Math.min(MAX_K, k));
     const hw = W / (2 * z);
     const hh = H / (2 * z);
     return { k: z, x: Math.max(hw, Math.min(W - hw, x)), y: Math.max(hh, Math.min(H - hh, y)) };
@@ -212,7 +232,7 @@ export default function PlaceAtlas() {
   /** Closer or further by a factor, about a point of the map - its middle unless one is given - which stays where it is. */
   const zoomBy = useCallback((factor: number, at?: { x: number; y: number }) => {
     setView((v) => {
-      const k = Math.max(1, Math.min(12, v.k * factor));
+      const k = Math.max(1, Math.min(MAX_K, v.k * factor));
       const p = at ?? { x: v.x, y: v.y };
       return held(k, p.x - (p.x - v.x) * (v.k / k), p.y - (p.y - v.y) * (v.k / k));
     });
@@ -221,16 +241,24 @@ export default function PlaceAtlas() {
   const resetView = useCallback(() => setView({ k: 1, x: W / 2, y: H / 2 }), []);
   /* A new map starts whole. */
   useEffect(() => resetView(), [level, resetView]);
-  /* A pinch arrives as a wheel with Ctrl held: it draws the map closer about the pointer. A plain wheel is left to scroll the page. */
+  /* The wheel, and a trackpad's pinch (which arrives as a wheel with Ctrl held), draw the map closer or further about the
+     pointer. A turn that would change nothing - further out when the map is whole, closer when it is as close as it goes -
+     is left alone, so that it scrolls the page and the map does not hold a reader who is only passing over it. */
+  const kRef = useRef(1);
+  kRef.current = view.k;
   useEffect(() => {
     const svg = svgRef.current;
     if (!svg) return;
     const onWheel = (e: WheelEvent) => {
-      if (!e.ctrlKey && !e.metaKey) return;
+      const closer = e.deltaY < 0;
+      if (e.deltaY === 0 || (closer ? kRef.current >= MAX_K : kRef.current <= 1)) return;
       e.preventDefault();
       const r = svg.getBoundingClientRect();
+      // A notch of a wheel, a line or a page of one, and the many small steps of a trackpad, each to its own measure.
+      const notches = Math.min(4, Math.abs(e.deltaY) * (e.deltaMode === 1 ? 1 / 3 : e.deltaMode === 2 ? 1 : 1 / 100));
+      const factor = Math.pow(1.25, closer ? notches : -notches);
       setView((v) => {
-        const k = Math.max(1, Math.min(12, v.k * (e.deltaY < 0 ? 1.2 : 1 / 1.2)));
+        const k = Math.max(1, Math.min(MAX_K, v.k * factor));
         const px = v.x - W / (2 * v.k) + ((e.clientX - r.left) / r.width) * (W / v.k);
         const py = v.y - H / (2 * v.k) + ((e.clientY - r.top) / r.height) * (H / v.k);
         return held(k, px - (px - v.x) * (v.k / k), py - (py - v.y) * (v.k / k));
@@ -239,6 +267,13 @@ export default function PlaceAtlas() {
     svg.addEventListener("wheel", onWheel, { passive: false });
     return () => svg.removeEventListener("wheel", onWheel);
   }, []);
+  /* The fingers, or the mouse, that are down on the map: one moves it, two pinch it closer or further about the point between them. */
+  const pointers = useRef(new Map<number, { x: number; y: number }>());
+  const pinch = useRef<{ dist: number; cx: number; cy: number } | null>(null);
+  const between = () => {
+    const [a, b] = [...pointers.current.values()];
+    return { dist: Math.hypot(a.x - b.x, a.y - b.y), cx: (a.x + b.x) / 2, cy: (a.y + b.y) / 2 };
+  };
   /* Dragging moves a map that is drawn closer. A drag is not a press: the press that ends one is dropped. */
   const drag = useRef<{ x: number; y: number; moved: boolean } | null>(null);
   const [find, setFind] = useState("");
@@ -249,15 +284,57 @@ export default function PlaceAtlas() {
     // The whole country is chosen from the world.
     if (p === "country") setLevel({ kind: "world" });
   };
-  /* The cities are loaded when a city is first what a press selects: there are some twelve thousand. */
+  /* What the map fills in with as it is drawn closer. On the world: its countries from a finer tracing, the states' and
+     provinces' borders, the counties' and districts', and the cities - those of a million people first, then of 300,000,
+     then every one the United Nations counts. On a country's own map: its cities. */
+  const onWorld = level.kind === "world";
+  const worldFloor = view.k >= 24 ? 0 : view.k >= 14 ? 3e5 : 1e6;
+  const showCities = pick === "city" || (onWorld ? view.k >= CITIES_FROM : view.k >= 3);
+  /* The cities are loaded when they are first to be drawn: there are some twelve thousand. */
   useEffect(() => {
-    if (pick !== "city" || cityData) return;
+    if (!showCities || cityData) return;
     let off = false;
     import("../data/unCities").then((m) => !off && setCityData(m));
     return () => {
       off = true;
     };
-  }, [pick, cityData]);
+  }, [showCities, cityData]);
+  /* Each of the world's finer layers is fetched a little before the map is close enough to draw it, and kept. */
+  const [fineWorld, setFineWorld] = useState<Geo[] | null>(null);
+  const [stateLines, setStateLines] = useState<unknown | null>(null);
+  const [countyLines, setCountyLines] = useState<unknown | null>(null);
+  const near = (from: number) => onWorld && view.k >= from * 0.8;
+  const wantFiner = near(FINER_FROM) && !fineWorld;
+  const wantStates = near(STATES_FROM) && !stateLines;
+  const wantCountyLines = near(COUNTIES_FROM) && !countyLines;
+  useEffect(() => {
+    if (!wantFiner) return;
+    let off = false;
+    import("world-atlas/countries-50m.json").then((m) => !off && setFineWorld(featuresOf((m.default ?? m) as unknown as Topology, "countries")));
+    return () => {
+      off = true;
+    };
+  }, [wantFiner]);
+  useEffect(() => {
+    if (!wantStates && !wantCountyLines) return;
+    let off = false;
+    const lines = (url: string, set: (g: unknown) => void) =>
+      fetch(url)
+        .then((r) => (r.ok ? r.json() : Promise.reject(new Error(String(r.status)))))
+        .then((topo: Topology) => !off && set(feature(topo, topo.objects.b)))
+        // Without them the map still draws what it has.
+        .catch(() => undefined);
+    if (wantStates) lines("/geo/admin1-borders.json", setStateLines);
+    if (wantCountyLines) lines("/geo/admin2-borders.json", setCountyLines);
+    return () => {
+      off = true;
+    };
+  }, [wantStates, wantCountyLines]);
+  const worldPath = useMemo(() => geoPath(WORLD_PROJECTION), []);
+  const stateLinesD = useMemo(() => (stateLines ? (worldPath(stateLines as never) ?? "") : ""), [stateLines, worldPath]);
+  const countyLinesD = useMemo(() => (countyLines ? (worldPath(countyLines as never) ?? "") : ""), [countyLines, worldPath]);
+  /** The world's countries as they are drawn: from the finer tracing once the map is close enough for the coarser to show its corners. */
+  const worldDrawn = onWorld && view.k >= FINER_FROM && fineWorld ? fineWorld : WORLD;
 
   useEffect(() => {
     let off = false;
@@ -339,8 +416,8 @@ export default function PlaceAtlas() {
     };
     if (level.kind === "world")
       return draw(
-        WORLD,
-        geoEqualEarth().fitExtent(BOX, { type: "Sphere" } as never),
+        worldDrawn,
+        WORLD_PROJECTION,
         (f) => countryForFeature(f.properties.name)?.name ?? f.properties.name,
         (f) => () => {
           const c = countryForFeature(f.properties.name);
@@ -415,15 +492,15 @@ export default function PlaceAtlas() {
       (f, i) => ownColor(level.code, f.properties.n) ?? tint(base, i),
       (f) => ({ kind: "division", name: f.properties.n }),
     );
-  }, [level, divisions, counties, countyTopo, second, navigate, pick, fine]);
+  }, [level, divisions, counties, countyTopo, second, navigate, pick, fine, worldDrawn]);
   /** Every shape as one outline: the slab the land stands on. */
   const slab = useMemo(() => shapes.map((s) => s.d).join(""), [shapes]);
 
   /** The cities, where a city is what a press selects: those of a million or more on the world, and every one of the country the map is on. */
   const dots = useMemo<Dot[]>(() => {
-    if (pick !== "city" || !cityData || !project) return [];
+    if (!showCities || !cityData || !project) return [];
     const world = level.kind === "world";
-    const list = world ? cityData.UN_CITIES.filter((c) => c[8] >= 1e6) : cityData.UN_CITIES.filter((c) => c[0] === level.code);
+    const list = world ? cityData.UN_CITIES.filter((c) => c[8] >= worldFloor) : cityData.UN_CITIES.filter((c) => c[0] === level.code);
     return list.flatMap((c): Dot[] => {
       const xy = c[3] !== null && c[4] !== null ? project(c[4], c[3]) : null;
       if (!xy || !Number.isFinite(xy[0]) || !Number.isFinite(xy[1]) || xy[0] < 0 || xy[0] > W || xy[1] < 0 || xy[1] > H) return [];
@@ -431,7 +508,14 @@ export default function PlaceAtlas() {
       const r = Math.max(world ? 1.8 : 2.2, Math.min(world ? 7 : 10, Math.sqrt(c[8] / (world ? 1e6 : 2e5)) * 1.5));
       return [{ key: `${c[0]}-${c[1]}`, name: c[2], x: xy[0], y: xy[1], r, hot: flagColor(c[0]) ?? COLOR, go: () => navigate(`/dashboard/cities?open=un-${c[0]}-${c[1]}`), ref: { kind: "city", c } }];
     });
-  }, [pick, cityData, project, level, navigate]);
+  }, [showCities, worldFloor, cityData, project, level, navigate]);
+  /** The cities that are drawn: those in the part of the map that is in view, once it is drawn closer - there may be thousands off it. */
+  const dotsInView = useMemo(() => {
+    if (view.k <= 1) return dots;
+    const hw = W / (2 * view.k) + 10;
+    const hh = H / (2 * view.k) + 10;
+    return dots.filter((d) => Math.abs(d.x - view.x) <= hw && Math.abs(d.y - view.y) <= hh);
+  }, [dots, view]);
   const onCities = pick === "city";
 
   /** The same places by name, for the list: at the world, every country the site holds. */
@@ -575,14 +659,14 @@ export default function PlaceAtlas() {
       ? cityData
         ? "Select or hover over any city."
         : "Loading the cities…"
-      : `${abroad && fine && second === null ? `No counties or districts are held for ${named}, so its divisions are shown. ` : ""}Select or hover over any area.`;
+      : `${abroad && fine && second === null ? `No counties or districts are held for ${named}, so its divisions are shown. ` : ""}Select or hover over any area.${onWorld ? " Zoom in for states, then counties, then cities." : ""}`;
   const none = abroad && !second && (divisions === "failed" || (manifest !== null && !manifest[level.code] && shapes.length === 0 && !loading));
 
   const what = onCities
     ? !cityData
       ? "Loading the cities…"
       : level.kind === "world"
-        ? `Press a city to go to its window. The ${dots.length.toLocaleString("en-US")} of a million people or more are shown here; press a country for every one of its cities.`
+        ? `Press a city to go to its window. The ${dots.length.toLocaleString("en-US")} ${worldFloor >= 1e6 ? "of a million people or more" : worldFloor > 0 ? "of 300,000 people or more" : "the United Nations counts"} are shown here; draw the map closer for more, or press a country for every one of its cities.`
         : `Press a city of ${named} to go to its window: the ${dots.length.toLocaleString("en-US")} the United Nations counts there.`
     : level.kind === "world"
       ? pick === "country"
@@ -683,7 +767,7 @@ export default function PlaceAtlas() {
           <button type="button" onClick={() => zoomBy(1 / 1.5)} disabled={view.k <= 1} aria-label="Draw the map further out" title="Further out ( - )" className={tool}>
             <MagnifyingGlassMinus size={13} aria-hidden />
           </button>
-          <button type="button" onClick={() => zoomBy(1.5)} disabled={view.k >= 12} aria-label="Draw the map closer" title="Closer ( + )" className={tool}>
+          <button type="button" onClick={() => zoomBy(1.5)} disabled={view.k >= MAX_K} aria-label="Draw the map closer" title="Closer ( + )" className={tool}>
             <MagnifyingGlassPlus size={13} aria-hidden />
           </button>
           <button type="button" onClick={resetView} disabled={view.k === 1} className="px-2.5 h-7 rounded-full text-[10px] font-mono uppercase tracking-wider border border-border text-muted-foreground hover:text-foreground hover:bg-muted/60 transition-colors cursor-pointer disabled:opacity-40 disabled:cursor-default" title="The whole map ( 0 )">
@@ -702,10 +786,10 @@ export default function PlaceAtlas() {
             viewBox={`${view.x - W / (2 * view.k)} ${view.y - H / (2 * view.k)} ${W / view.k} ${H / view.k}`}
             className="w-full h-auto rounded-xl outline-none focus-visible:ring-2 focus-visible:ring-secondary/60"
             // The ground under the map is plain, as asked: black in the dark theme, white in the light.
-            style={{ background: glass ? "#000000" : "#ffffff", border: `1px solid ${glass ? "rgba(255,255,255,0.12)" : t.gridLine}`, ["--atlas-land" as string]: glass ? wash : land, ["--atlas-hot" as string]: COLOR, cursor: view.k > 1 ? "grab" : undefined, touchAction: view.k > 1 ? "none" : undefined }}
+            style={{ background: glass ? "#000000" : "#ffffff", border: `1px solid ${glass ? "rgba(255,255,255,0.12)" : t.gridLine}`, ["--atlas-land" as string]: glass ? wash : land, ["--atlas-hot" as string]: COLOR, cursor: view.k > 1 ? "grab" : undefined, touchAction: view.k > 1 ? "none" : "pan-y" }}
             role="group"
             tabIndex={0}
-            aria-label={`A map to press. ${what} With the map in focus, plus and minus draw it closer and further, the arrow keys move it and 0 puts it back.`}
+            aria-label={`A map to press. ${what} The wheel or a pinch draws it closer and further, and a drag moves it; with the map in focus, plus and minus do the same, the arrow keys move it and 0 puts it back.`}
             onKeyDown={(e) => {
               // The number pad's keys carry the same characters, so they are answered too.
               const step = 60 / view.k;
@@ -721,9 +805,43 @@ export default function PlaceAtlas() {
             }}
             onPointerDown={(e) => {
               e.currentTarget.focus({ preventScroll: true });
-              drag.current = { x: e.clientX, y: e.clientY, moved: false };
+              pointers.current.set(e.pointerId, { x: e.clientX, y: e.clientY });
+              // A second finger down begins a pinch; whatever follows it is not a press.
+              if (pointers.current.size === 2) {
+                pinch.current = between();
+                drag.current = { x: e.clientX, y: e.clientY, moved: true };
+              } else drag.current = { x: e.clientX, y: e.clientY, moved: false };
+            }}
+            onPointerUp={(e) => {
+              pointers.current.delete(e.pointerId);
+              pinch.current = null;
+              // The finger left down goes on from where it is, so the map does not jump to it.
+              const rest = [...pointers.current.values()][0];
+              if (rest) drag.current = { x: rest.x, y: rest.y, moved: true };
+            }}
+            onPointerCancel={(e) => {
+              pointers.current.delete(e.pointerId);
+              pinch.current = null;
+              drag.current = null;
             }}
             onPointerMove={(e) => {
+              if (pointers.current.has(e.pointerId)) pointers.current.set(e.pointerId, { x: e.clientX, y: e.clientY });
+              // Two fingers: closer or further by how far apart they have moved, with the point between them kept under them.
+              if (pinch.current && pointers.current.size === 2) {
+                const was = pinch.current;
+                const now = between();
+                if (was.dist > 0 && now.dist > 0) {
+                  const r = e.currentTarget.getBoundingClientRect();
+                  setView((v) => {
+                    const k = Math.max(1, Math.min(MAX_K, v.k * (now.dist / was.dist)));
+                    const px = v.x - W / (2 * v.k) + ((was.cx - r.left) / r.width) * (W / v.k);
+                    const py = v.y - H / (2 * v.k) + ((was.cy - r.top) / r.height) * (H / v.k);
+                    return held(k, px - ((now.cx - r.left) / r.width - 0.5) * (W / k), py - ((now.cy - r.top) / r.height - 0.5) * (H / k));
+                  });
+                }
+                pinch.current = now;
+                return;
+              }
               const d = drag.current;
               if (!d || view.k <= 1 || e.buttons === 0) return;
               const dx = e.clientX - d.x;
@@ -733,7 +851,11 @@ export default function PlaceAtlas() {
               panBy((-dx * (W / view.k)) / r.width, (-dy * (H / view.k)) / r.height);
               drag.current = { x: e.clientX, y: e.clientY, moved: true };
             }}
-            onPointerLeave={() => (drag.current = null)}
+            onPointerLeave={(e) => {
+              pointers.current.delete(e.pointerId);
+              pinch.current = null;
+              drag.current = null;
+            }}
             onClickCapture={(e) => {
               if (drag.current?.moved) e.stopPropagation();
               drag.current = null;
@@ -771,6 +893,13 @@ export default function PlaceAtlas() {
             {/* The lines over the shapes, never pressed: the counties', fine, on the map of the states; the first-order divisions', heavier, on a map of counties or districts. */}
             {lines && <path d={lines} fill="none" stroke={bold ? boldLine : fineLine} strokeOpacity={bold ? 1 : glass ? 0.7 : 0.9} strokeWidth={bold ? (glass ? 1.5 : 1.3) : 0.45}
  vectorEffect="non-scaling-stroke" strokeLinejoin="round" pointerEvents="none" />}
+            {/* The world, drawn closer: the borders of its states and provinces, and closer still those of its counties and districts - fainter than the countries' own, clearer the closer the map is, and never pressed. */}
+            {onWorld && stateLinesD && view.k >= STATES_FROM && (
+              <path d={stateLinesD} fill="none" stroke={boldLine} strokeOpacity={Math.min(0.9, 0.3 + 0.08 * view.k)} strokeWidth={0.6} vectorEffect="non-scaling-stroke" strokeLinejoin="round" pointerEvents="none" />
+            )}
+            {onWorld && countyLinesD && view.k >= COUNTIES_FROM && (
+              <path d={countyLinesD} fill="none" stroke={fineLine} strokeOpacity={Math.min(0.7, 0.15 + 0.03 * view.k)} strokeWidth={0.35} vectorEffect="non-scaling-stroke" strokeLinejoin="round" pointerEvents="none" />
+            )}
             {/* The place pointed at, picked out as the World Maps page picks one out: filled in its colour over the land, a casing so that its edge reads on any ground, and an outline in the colour itself. */}
             {litShape && (
               <g pointerEvents="none">
@@ -778,7 +907,7 @@ export default function PlaceAtlas() {
                 <path d={litShape.d} fill="none" stroke={litShape.hot} strokeWidth={1.3} vectorEffect="non-scaling-stroke" strokeLinejoin="round" />
               </g>
             )}
-            {dots.map((d) => (
+            {dotsInView.map((d) => (
 
               <circle
                 key={d.key}
