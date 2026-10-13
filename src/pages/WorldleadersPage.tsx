@@ -1,6 +1,8 @@
 import { ChipRow } from "../components/ChipRow";
 import { decodeEntities } from "../lib/security";
 import React, { useState, useMemo } from "react";
+import WealthyFamilies, { wealthText, wealthyFamily } from "../components/WealthyFamilies";
+import type { WealthyFamily } from "../data/wealthyFamilies";
 import { createPortal } from "react-dom";
 import { useLocation, useNavigate } from "react-router-dom";
 import { SeeAlso } from "../components/SeeAlso";
@@ -16338,6 +16340,27 @@ const SECTOR_COLOR: Record<RichFamily["sector"], string> = {
   Manufacturing: TONE.zinc,
 };
 
+/**
+ * The published estimate of each family's wealth, by the card's id: the row of the cited list (data/wealthyFamilies.ts)
+ * that is the same family. The figures once typed on the cards (netWorth, netWorthNum) cited nothing and are no longer
+ * shown; a family the list has no row for - the royal houses, which it leaves out, and those whose row gives a range or
+ * cites no publication of record - has no figure, and its card says so.
+ */
+const FAMILY_ESTIMATE: Record<string, WealthyFamily | undefined> = {
+  walton: wealthyFamily("Walton"),
+  mars: wealthyFamily("Mars"),
+  koch: wealthyFamily("Koch"),
+  wertheimer: wealthyFamily("Wertheimer", /Chanel/),
+  "cargill-macmillan": wealthyFamily("Cargill-MacMillan"),
+  thomson: wealthyFamily("Thomson"),
+  arnault: wealthyFamily("Arnault"),
+  pritzker: wealthyFamily("Pritzker"),
+  mulliez: wealthyFamily("Mulliez"),
+  kwok: wealthyFamily("Kwok"),
+};
+/** What a card says under its figure: whose estimate it is and of what year. */
+const estimateNote = (e: WealthyFamily | undefined) => (e ? `estimate${e.year ? ` · ${e.year}` : ""}${e.cite ? ` · ${e.cite.by}` : ""}` : "no published estimate is cited");
+
 const RICHEST_FAMILIES: RichFamily[] = [
   {
     id: "walton",
@@ -16848,12 +16871,14 @@ function RichestFamiliesView() {
       sectorFilter === "All"
         ? RICHEST_FAMILIES
         : RICHEST_FAMILIES.filter((f) => f.sector === sectorFilter);
+    // By the cited estimate, largest first; a family with none comes after those with one.
     if (sortBy === "wealth")
-      return [...list].sort((a, b) => b.netWorthNum - a.netWorthNum);
+      return [...list].sort((a, b) => (FAMILY_ESTIMATE[b.id]?.wealth ?? -1) - (FAMILY_ESTIMATE[a.id]?.wealth ?? -1));
     return [...list].sort((a, b) => a.founded - b.founded);
   }, [sectorFilter, sortBy]);
 
-  const totalWealth = RICHEST_FAMILIES.reduce((a, f) => a + f.netWorthNum, 0);
+  /** The cards whose family has a published estimate, and the rows of the list they are: not given again under the cards. */
+  const estimated = RICHEST_FAMILIES.flatMap((f) => (FAMILY_ESTIMATE[f.id] ? [FAMILY_ESTIMATE[f.id]!] : []));
 
   return (
     <div className="space-y-5">
@@ -16864,9 +16889,10 @@ function RichestFamiliesView() {
             label: "Families Tracked",
             value: String(RICHEST_FAMILIES.length),
           },
+          // Estimates of different years by different publications are not added up: how many of the cards have one is said instead.
           {
-            label: "Combined Est. Wealth",
-            value: `$${totalWealth}B+`,
+            label: "With a cited estimate",
+            value: `${estimated.length} of ${RICHEST_FAMILIES.length}`,
           },
           { label: "Oldest Dynasty", value: "1744" },
           {
@@ -16923,7 +16949,7 @@ function RichestFamiliesView() {
               <div className="flex items-start justify-between gap-2 mb-2">
                 <div className="flex items-center gap-2">
                   <span className="text-lg font-bold font-mono text-amber-700 dark:text-amber-400">
-                    #{sortBy === "wealth" ? idx + 1 : ""}
+                    {sortBy === "wealth" && FAMILY_ESTIMATE[f.id] ? `#${idx + 1}` : ""}
                   </span>
                   <img
                     src={`https://flagcdn.com/w40/${f.countryCode.toLowerCase()}.png`}
@@ -16945,12 +16971,12 @@ function RichestFamiliesView() {
               </p>
               <div className="flex items-end justify-between">
                 <div>
-                  <p className="text-2xl font-bold font-mono text-amber-700 dark:text-amber-400">
-                    {f.netWorth}
-                  </p>
-                  <p className="text-[10px] text-muted-foreground">
-                    estimated net worth
-                  </p>
+                  {FAMILY_ESTIMATE[f.id] ? (
+                    <p className="text-2xl font-bold font-mono text-amber-700 dark:text-amber-400">{wealthText(FAMILY_ESTIMATE[f.id]!)}</p>
+                  ) : (
+                    <p className="text-base font-bold font-sans text-muted-foreground">Not held</p>
+                  )}
+                  <p className="text-[10px] text-muted-foreground">{estimateNote(FAMILY_ESTIMATE[f.id])}</p>
                 </div>
                 <div className="text-right">
                   <p className="text-xs text-muted-foreground font-mono">
@@ -16968,6 +16994,9 @@ function RichestFamiliesView() {
           </button>
         ))}
       </div>
+
+      {/* The other families with a published estimate - the Ellisons, the Rockefellers - and the dynasties of the past, the Rothschilds among them. */}
+      <WealthyFamilies held={estimated} />
 
       {/* Detail modal */}
       {selectedFamily && (
@@ -17040,8 +17069,8 @@ function RichestFamiliesView() {
               <div className="grid grid-cols-3 gap-3">
                 {[
                   {
-                    label: "Net Worth",
-                    value: selectedFamily.netWorth,
+                    label: `Wealth · ${estimateNote(FAMILY_ESTIMATE[selectedFamily.id])}`,
+                    value: FAMILY_ESTIMATE[selectedFamily.id] ? wealthText(FAMILY_ESTIMATE[selectedFamily.id]!) : "Not held",
                     color: "text-amber-700 dark:text-amber-400",
                   },
                   {

@@ -118,6 +118,14 @@ export const DATA_LOG: DataLogEntry[] = [
     "files": 1
   },
   {
+    "what": "The wealthiest families: each with a published estimate of its wealth, its year and the publication cited",
+    "from": "Wikipedia (citing Forbes, Bloomberg and others)",
+    "page": "/dashboard/world-leaders",
+    "where": "World leaders",
+    "read": "2026-10-13",
+    "files": 1
+  },
+  {
     "what": "The year so far in each country: the dated events of Wikipedia's article for the year, each with the report it cites",
     "from": "Wikipedia",
     "page": "/dashboard/countries",
@@ -488,4 +496,4 @@ export const DATA_LOG: DataLogEntry[] = [
 ];
 
 /** How many data files the log covers. */
-export const DATA_LOG_FILES = 79;
+export const DATA_LOG_FILES = 80;
