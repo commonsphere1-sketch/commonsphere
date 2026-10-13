@@ -22,6 +22,14 @@ export interface DataLogEntry {
 
 export const DATA_LOG: DataLogEntry[] = [
   {
+    "what": "Each country's place in the United Nations: its date of admission, its regional group, and its seat and past terms on the Security Council",
+    "from": "United Nations",
+    "page": "/dashboard/countries",
+    "where": "Countries",
+    "read": "2026-10-13",
+    "files": 1
+  },
+  {
     "what": "Each country's tax revenue and what its government's revenue is made of, its statutory corporate and top personal income tax rates, and what its employees are paid",
     "from": "World Bank (IMF Government Finance Statistics), OECD, ILO",
     "page": "/dashboard/countries",
@@ -416,4 +424,4 @@ export const DATA_LOG: DataLogEntry[] = [
 ];
 
 /** How many data files the log covers. */
-export const DATA_LOG_FILES = 70;
+export const DATA_LOG_FILES = 71;

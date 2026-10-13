@@ -64,6 +64,7 @@ import { fmtArea, fmtGDP, fmtPop } from "@/lib/placeFormat";
 import { CountryOutline } from "@/components/PlaceOutlines";
 import PlaceIndexes from "@/components/PlaceIndexes";
 import TaxPanel from "@/components/TaxPanel";
+import UnPanel from "@/components/UnPanel";
 
 // ── Source citation constants ────────────────────────────────────────────
 // ── Extended per-country data ────────────────────────────────────────────────
@@ -1080,6 +1081,9 @@ function CountryModal({
                   ]}
                   className="mb-4 mt-2"
                 />
+
+                {/* Its place in the United Nations: when it was admitted, its regional group, and its seat on the Security Council - the record, from the UN's own pages. */}
+                <UnPanel code={country.code} country={country.name} className="mb-4" />
 
                 {/* The composite indexes the country is scored on - development, equality, governance, the economy and its statistics - each on its maker's own scale: the panel the windows of its towns and divisions carry as "the country's", here its own. */}
                 <PlaceIndexes code={country.code} country={country.name} className="mb-4" />
