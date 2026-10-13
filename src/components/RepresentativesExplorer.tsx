@@ -132,6 +132,21 @@ const KIND_FILTERS: { id: string; label: string; has: (p: PlaceRow, verified: bo
 
 const whole = (n: number) => n.toLocaleString("en-US");
 const flag = (code: string) => `https://flagcdn.com/w40/${code.toLowerCase()}.png`;
+/**
+ * The flag of a place the list has no ISO code for, so the flag service has none: the file Wikidata records as its flag
+ * (P41), served by Wikimedia Commons. Each is in the public domain, as Commons states - looked up on 13 October 2026.
+ */
+const FLAG_FILE: Record<string, string> = {
+  Abkhazia: "Flag of the Republic of Abkhazia.svg",
+  "Northern Cyprus": "Flag of the Turkish Republic of Northern Cyprus.svg",
+  "Sahrawi Arab Democratic Republic": "Flag of the Sahrawi Arab Democratic Republic.svg",
+  Somaliland: "Flag of Somaliland.svg",
+  "South Ossetia": "Flag of South Ossetia.svg",
+  Transnistria: "Flag of Transnistria (state).svg",
+};
+/** A place's flag: the flag service's by its code, or Commons' by its name; null where neither has one. */
+const flagOf = (code: string, name: string) => (code ? flag(code) : FLAG_FILE[name] ? `https://commons.wikimedia.org/wiki/Special:FilePath/${encodeURIComponent(FLAG_FILE[name].replace(/ /g, "_"))}?width=40` : null);
+const COMMONS_FLAGS = { label: "Wikimedia Commons — the flags of the six places with no ISO code, each in the public domain", url: "https://commons.wikimedia.org/wiki/Category:Flags_of_unrecognized_states" };
 const wiki = (title: string) => `https://en.wikipedia.org/wiki/${encodeURIComponent(title.replace(/ /g, "_"))}`;
 const since = (p: Head) => (p.since ? `since ${p.since}` : "");
 /** A name as compared: without accents, case or punctuation. */
@@ -384,7 +399,7 @@ export default function RepresentativesExplorer() {
 
   const nationRow = (n: Nation) => (
     <Row key={n.key} t={t} selected={false} color={COUNTRY} onClick={() => open(n)}>
-      {n.code ? <img src={flag(n.code)} alt="" width={20} height={14} className="rounded-[2px] shrink-0" loading="lazy" /> : <span className="w-5 h-3.5 rounded-[2px] shrink-0" style={{ background: t.tile, border: `1px solid ${t.gridLine}` }} aria-hidden />}
+      {flagOf(n.code, n.name) ? <img src={flagOf(n.code, n.name)!} alt="" width={20} height={14} className="rounded-[2px] shrink-0 object-cover" style={{ height: 14 }} loading="lazy" /> : <span className="w-5 h-3.5 rounded-[2px] shrink-0" style={{ background: t.tile, border: `1px solid ${t.gridLine}` }} aria-hidden />}
       <span className="flex-1 min-w-0">
         <span className="block text-xs font-semibold font-sans truncate" style={{ color: t.headText }}>
           {n.name}
@@ -895,7 +910,7 @@ export default function RepresentativesExplorer() {
               ` Where the site holds its own list to check against, the rule named the same person for ${SRC.check.governors.agree} of ${SRC.check.governors.checked} US governors and ${SRC.check.mayors.agree} of ${SRC.check.mayors.checked} mayors of the largest US cities.`}{" "}
             Records can still be out of date together after an election: open the place's article before relying on a name. Read on {SRC.retrieved}.
           </p>
-          <SourceLink sources={[PLACES_SOURCE.geonames, SRC.list, SRC.chambers, SRC.wikidata, SRC.wikipedia]} />
+          <SourceLink sources={[PLACES_SOURCE.geonames, SRC.list, SRC.chambers, SRC.wikidata, COMMONS_FLAGS, SRC.wikipedia]} />
           <GoButton color={ACCENT} onClick={() => navigate("/dashboard/world-leaders")}>
             Each national leader's profile is on the World Leaders page
           </GoButton>
