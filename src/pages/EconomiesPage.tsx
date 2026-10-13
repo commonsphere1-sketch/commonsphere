@@ -1020,6 +1020,8 @@ function BudgetPie({ budget }: { budget: CountryBudget }) {
 const EconomyDetails = React.lazy(() => import("../components/EconomyDetails"));
 // The Tax tab: the rates an economy sets, what it takes in tax, and each over the years. Loaded when the tab is opened.
 const EconomyTax = React.lazy(() => import("../components/EconomyTax"));
+// The inequality calculator under the explorer: how income is shared, and a change to try. Loaded after the page.
+const InequalityCalculator = React.lazy(() => import("../components/InequalityCalculator"));
 // The charts of markets, prices and stability, with their series: loaded when a window opens.
 const EconomyMarkets = React.lazy(() => import("../components/EconomyMarkets"));
 
@@ -2406,6 +2408,13 @@ export function EconomiesPage() {
         {/* ── Data explorer: the Dashboard's economies panel, on its own; in the
             Resources view, the same panel for commodities ── */}
         <div className="mb-6">{viewMode === "resources" ? <ResourceExplorer resources={RESOURCES_DATA} onOpen={setSelectedResource} /> : <DataExplorer only="economies" />}</div>
+
+        {/* ── The inequality calculator: published shares of income, and what a change the reader sets would make of them ── */}
+        {viewMode !== "resources" && (
+          <React.Suspense fallback={null}>
+            <InequalityCalculator className="mb-6" />
+          </React.Suspense>
+        )}
 
         {modalEconomy && (
           <EconomyModal
