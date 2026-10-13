@@ -13,6 +13,10 @@
  * named, and a press on it opens it where the map's owner says how. A dot
  * pressed goes straight to the
  * place's own window, where the map's owner says how.
+ *
+ * Inside the outlines it draws the finer borders it is given - a state's
+ * counties, a province's districts - as thin lines in the same colour: they
+ * are there to be seen, and are not pointed at or pressed.
  */
 import { useMemo, useState } from "react";
 import { geoAzimuthalEqualArea, geoCentroid, geoMercator, geoPath } from "d3-geo";
@@ -40,6 +44,7 @@ export const placeDots = (rows: PlaceRow[], most = 300, file?: PlacesFile | null
 export function OutlineMap({
   shapes,
   frame,
+  lines,
   dots = [],
   mark,
   color,
@@ -51,6 +56,8 @@ export function OutlineMap({
   shapes: Outline[];
   /** What the map is framed on, where that is not all of them: a country without its far-off parts. */
   frame?: Outline[];
+  /** The finer borders inside what is drawn: the outlines of its second-order divisions. Only their edges are drawn. */
+  lines?: Outline[];
   dots?: MapDot[];
   /** The one place the window is about, where it is a point and not an outline. */
   mark?: MapDot;
@@ -82,7 +89,14 @@ export function OutlineMap({
       const xy = projection([d.lon, d.lat]);
       return xy && xy[0] >= 0 && xy[0] <= W && xy[1] >= 0 && xy[1] <= H ? [{ ...d, x: xy[0], y: xy[1] }] : [];
     };
+    // The finer borders as bare lines - every ring of every outline - so that none is filled, and none is taken for the whole globe but itself.
+    const rings: unknown[] = [];
+    for (const l of lines ?? []) {
+      if (l.geometry.type === "Polygon") rings.push(...l.geometry.coordinates);
+      else if (l.geometry.type === "MultiPolygon") for (const poly of l.geometry.coordinates as unknown[][]) rings.push(...poly);
+    }
     return {
+      inner: rings.length ? path({ type: "MultiLineString", coordinates: rings } as never) : null,
       // Each outline with its name and its middle, where its name is said when it is pointed at.
       paths: shapes.flatMap((s, i) => {
         const d = path(s as never);
@@ -93,7 +107,7 @@ export function OutlineMap({
       dots: dots.flatMap(at),
       mark: mark ? at(mark)[0] : undefined,
     };
-  }, [shapes, frame, dots, mark]);
+  }, [shapes, frame, lines, dots, mark]);
   if (!drawn || !drawn.paths.length) return null;
   const said = over === null ? undefined : drawn.mark && drawn.mark.id === over ? drawn.mark : drawn.dots.find((d) => d.id === over);
   /* Several outlines side by side can each be pointed at; one alone is the whole map, and has nothing to be told from. */
@@ -119,6 +133,8 @@ export function OutlineMap({
             onClick={many && onShape ? () => onShape(p.shape) : undefined}
           />
         ))}
+        {/* The finer borders, over the fills and under the dots: thinner and fainter than the outlines they lie in. */}
+        {drawn.inner && <path d={drawn.inner} fill="none" stroke={color} strokeOpacity={many ? 0.5 : 0.7} strokeWidth={many ? 0.35 : 0.55} strokeLinejoin="round" pointerEvents="none" />}
         {/* The outline pointed at, edged over its neighbours so that the whole of its border shows. */}
         {litPath && <path d={litPath.d} fill="none" stroke={color} strokeWidth={2} strokeLinejoin="round" pointerEvents="none" />}
         {drawn.dots.map((p) => (

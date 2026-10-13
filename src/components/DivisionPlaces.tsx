@@ -42,7 +42,7 @@
 import { lazy, Suspense, useEffect, useMemo, useState, type ReactNode } from "react";
 import { createPortal } from "react-dom";
 import { useNavigate } from "react-router-dom";
-import { ArrowLeft, ArrowRight, ClockCounterClockwise, Info, ListBullets, MagnifyingGlass, MapPin, MapTrifold, X } from "@phosphor-icons/react";
+import { ArrowLeft, ArrowRight, ArrowsIn, ArrowsOut, ClockCounterClockwise, Info, ListBullets, MagnifyingGlass, MapPin, MapTrifold, X } from "@phosphor-icons/react";
 import { CHIP_TEXT } from "@/lib/chipTone";
 import { COUNTRY_PANELS, PANEL_SOURCES } from "../data/countryPanels";
 import { COUNTRY_OF } from "../data/placeIndex";
@@ -61,6 +61,7 @@ import PlaceIndexes from "./PlaceIndexes";
 import { CountryFigures, StateFigures } from "./ParentFigures";
 import { UniversityList } from "./UniversityList";
 import { usePlacePostal } from "../lib/placePostal";
+import { useSecondOrder } from "../lib/secondOrder";
 import { OutlineMap } from "./OutlineMap";
 import { SeeAlso } from "./SeeAlso";
 
@@ -258,7 +259,7 @@ export function DivisionPlaces({
         />
       </label>
       {/* A card for each place: its name and what it is, its county, its people, and its head where one is confirmed. Each opens a window of its own. */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+      <div className="grid gap-3 [grid-template-columns:repeat(auto-fill,minmax(min(100%,15rem),1fr))]">
         {rows.slice(0, shown).map((p) => (
           <PlaceCard key={p[6]} p={p} file={file!} flag={cardFlag(s)} district={file!.districts[p[7]]} onOpen={() => setOpen(p)} />
         ))}
@@ -461,7 +462,7 @@ export function PlacesInside({
           />
         </label>
       )}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+      <div className="grid gap-3 [grid-template-columns:repeat(auto-fill,minmax(min(100%,15rem),1fr))]">
         {found.slice(0, shown).map((p) => (
           <PlaceCard key={p[6]} p={p} file={file} flag={cardFlag(division(p))} district={file.districts[p[7]]} onOpen={() => setOpen(p)} />
         ))}
@@ -640,6 +641,8 @@ function PlaceWindow({
   const head = HEAD_BY_GEONAMES.get(id);
   const [tab, setTab] = useState<Tab>("overview");
   const postal = usePlacePostal(s.cc);
+  /** Whether the window is opened to the whole screen. */
+  const [expanded, setExpanded] = useState(false);
   /* The people GeoNames records in all the places it lists in the same division: the whole its own are a part of. */
   const listedPeople = useMemo(() => file.places.reduce((t, r) => (r[4] === p[4] ? t + r[3] : t), 0), [file, p]);
   const listedPlaces = useMemo(() => file.places.filter((r) => r[4] === p[4] && r[3] > 0).length, [file, p]);
@@ -774,13 +777,14 @@ function PlaceWindow({
 
   /* The outline it is marked on: the one its window was opened from, or its division's among the ones the site's maps draw. */
   const divisions = useAdmin1(outline ? null : s.cc);
+  const second = useSecondOrder(outline ? null : s.cc, s.name);
   const around = outline ?? (divisions?.find((f) => f.properties.n === s.name) ? { shape: divisions.find((f) => f.properties.n === s.name)!, name: s.name } : null);
 
   const cPop = county?.row[7];
   const cChange = cPop && cPop[0] > 0 ? (100 * (cPop[cPop.length - 1] - cPop[0])) / cPop[0] : null;
   return (
     <div className="fixed inset-0 z-[60] flex items-center justify-center p-4 sm:p-6 bg-black/60 backdrop-blur-sm animate-fade-in" onClick={(e) => e.target === e.currentTarget && onClose()}>
-      <div role="dialog" aria-modal="true" aria-label={name} className="relative z-10 rounded-2xl w-full max-w-2xl max-h-[90vh] shadow-2xl modal-glass border overflow-y-auto">
+      <div role="dialog" aria-modal="true" aria-label={name} className={`relative z-10 rounded-2xl w-full shadow-2xl modal-glass border overflow-y-auto transition-all duration-300 ${expanded ? "max-w-full max-h-full m-0" : "max-w-2xl max-h-[90vh]"}`}>
         <div className="p-6">
           <div className="flex items-start justify-between mb-4">
             <div className="flex items-center gap-4 min-w-0">
@@ -800,6 +804,13 @@ function PlaceWindow({
             <div className="flex items-center gap-1.5 shrink-0">
               <button onClick={onBack} className="p-2 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted/60 transition-colors cursor-pointer" aria-label={`Back to ${s.name}`} title={`Back to ${s.name}`}>
                 <ArrowLeft size={18} />
+              </button>
+              {/* The buttons a country's window has at its head: the place on the map, and the window opened to the whole screen. */}
+              <button onClick={() => navigate(`/dashboard/maps?country=${s.cc}`)} className="p-2 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted/60 transition-colors cursor-pointer" aria-label={`Show ${country} on the map`} title="Show on map">
+                <MapTrifold size={18} />
+              </button>
+              <button onClick={() => setExpanded((v) => !v)} className="p-2 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted/60 transition-colors cursor-pointer" aria-label={expanded ? "Collapse the window" : "Expand the window to full screen"} title={expanded ? "Collapse" : "Expand to full screen"}>
+                {expanded ? <ArrowsIn size={18} /> : <ArrowsOut size={18} />}
               </button>
               <button onClick={onClose} className="p-2 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted/60 transition-colors cursor-pointer" aria-label="Close" title="Close">
                 <X size={18} />
@@ -860,6 +871,7 @@ function PlaceWindow({
 
                   <OutlineMap
                     shapes={[around.shape]}
+                    lines={second?.lines}
                     mark={{ id, name, lon, lat, sub: [...new Set([district, s.name, country].filter(Boolean))].join(" · ") }}
                     dots={neighbours.map(({ row, km: far }) => ({ id: row[6], name: row[0], lon: row[2], lat: row[1], sub: `${far < 10 ? far.toFixed(1) : whole(far)} km from ${name}, in a straight line` }))}
                     color={flagColor(s.cc) ?? "#0ea5e9"}

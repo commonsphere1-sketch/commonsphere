@@ -74,7 +74,7 @@ import { useCallback, useEffect, useMemo, useState, type ReactNode } from "react
 import { useLocation, useNavigate } from "react-router-dom";
 
 import { Area, AreaChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
-import { ArrowLeft, ArrowRight, Buildings, ClockCounterClockwise, ListBullets, MagnifyingGlass, MapPin, MapTrifold, TreeStructure, X } from "@phosphor-icons/react";
+import { ArrowLeft, ArrowRight, ArrowsIn, ArrowsOut, Buildings, ClockCounterClockwise, ListBullets, MagnifyingGlass, MapPin, MapTrifold, TreeStructure, X } from "@phosphor-icons/react";
 import { TONE } from "@/lib/chipTone";
 import { ADMIN2_SOURCE, useAdmin2, useAdmin2Manifest } from "../lib/admin2";
 import { DIVISION_DETAILS_SOURCES, useDivisionDetails, type DivisionDetails, type Money } from "../lib/divisionDetails";
@@ -91,6 +91,7 @@ import { ChartNote, ChartTitle, FigureRow, MeasureBars, PartsBar, PartsDonut } f
 import PostalCodes from "../components/PostalCodes";
 import PlaceIndexes from "../components/PlaceIndexes";
 import { usePlacePostal } from "../lib/placePostal";
+import { useSecondOrder } from "../lib/secondOrder";
 import { OutlineMap, placeDots, type MapDot } from "../components/OutlineMap";
 import { SourceLink } from "../components/SourceLink";
 import { countriesData } from "../data/countriesData";
@@ -262,6 +263,9 @@ function SeriesChart({ points, label }: { points: [number, number][]; label: str
 /**
  * The shell of a window, as a city's and a country's is drawn. A division's window opens over its country's, so only
  * the one on top answers Escape, and each puts the page's scrolling back as it found it.
+ *
+ * It is the size every other window on the site is, and opens to the whole screen and back at its own button; beside
+ * that are the way back, the place on the map, and the way out - the buttons a country's window has at its head.
  */
 function Window({
   title,
@@ -271,7 +275,7 @@ function Window({
   onClose,
   onBack,
   children,
-  wide = false,
+  mapTo,
   top = true,
   hidden = false,
 }: {
@@ -285,7 +289,8 @@ function Window({
   /** Back to the window this one was opened from, where there is one. */
   onBack?: () => void;
   children: ReactNode;
-  wide?: boolean;
+  /** Where its "show on the map" button goes: the Maps page, opened on its country. Left out, there is no such button. */
+  mapTo?: string;
   top?: boolean;
   /** Out of sight while a window opened from it is the one being read: one window at a time, as asked. It keeps its place for the way back. */
   hidden?: boolean;
@@ -298,9 +303,12 @@ function Window({
     return () => document.removeEventListener("keydown", onKey);
   }, [onClose, onBack, top]);
   useEffect(() => lockScroll(), []);
+  const navigate = useNavigate();
+  /** Whether it is opened to the whole screen. */
+  const [expanded, setExpanded] = useState(false);
   return (
     <div className={`fixed inset-0 z-50 items-center justify-center p-4 sm:p-6 bg-black/60 backdrop-blur-sm animate-fade-in ${hidden ? "hidden" : "flex"}`} onClick={(e) => e.target === e.currentTarget && onClose()}>
-      <div role="dialog" aria-modal="true" aria-label={title} className={`relative z-10 rounded-2xl w-full max-h-[90vh] shadow-2xl modal-glass border overflow-y-auto ${wide ? "max-w-5xl" : "max-w-2xl"}`}>
+      <div role="dialog" aria-modal="true" aria-label={title} className={`relative z-10 rounded-2xl w-full shadow-2xl modal-glass border overflow-y-auto transition-all duration-300 ${expanded ? "max-w-full max-h-full m-0" : "max-w-2xl max-h-[90vh]"}`}>
         <div className="p-6 flex flex-col gap-5">
           <div className="flex items-start justify-between gap-3">
             <div className="flex items-center gap-4 min-w-0">
@@ -325,6 +333,14 @@ function Window({
                   <ArrowLeft size={18} />
                 </button>
               )}
+              {mapTo && (
+                <button onClick={() => navigate(mapTo)} className="p-2 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted/60 transition-colors cursor-pointer" aria-label={`Show ${title} on the map`} title="Show on map">
+                  <MapTrifold size={18} />
+                </button>
+              )}
+              <button onClick={() => setExpanded((v) => !v)} className="p-2 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted/60 transition-colors cursor-pointer" aria-label={expanded ? "Collapse the window" : "Expand the window to full screen"} title={expanded ? "Collapse" : "Expand to full screen"}>
+                {expanded ? <ArrowsIn size={18} /> : <ArrowsOut size={18} />}
+              </button>
               <button onClick={onClose} className="p-2 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted/60 transition-colors cursor-pointer" aria-label="Close" title="Close">
                 <X size={18} />
               </button>
@@ -731,6 +747,7 @@ function SubnationWindow({ s, onBack, onClose, onCounties }: { s: Subnation; /**
   /* Its outline, among the ones the site's maps draw for its country, and the places GeoNames lists in it: the map at the head of its window. */
   const drawn = useAdmin1(s.cc);
   const outline = useMemo(() => (drawn ? drawn.filter((f) => f.properties.n === s.name) : []), [drawn, s.name]);
+  const second = useSecondOrder(s.cc, s.name);
   const listed = usePlaces(s.cc);
   const within = useMemo(() => (listed ? insideOf(listed, s) : null), [listed, s]);
   const dots = useMemo(() => placeDots(within?.rows ?? [], 300, listed), [within, listed]);
@@ -756,7 +773,7 @@ function SubnationWindow({ s, onBack, onClose, onCounties }: { s: Subnation; /**
     ...(s.article ? [{ label: `Wikipedia — ${s.article}`, url: `https://en.wikipedia.org/wiki/${encodeURIComponent(s.article.replace(/ /g, "_"))}` }] : []),
   ];
   return (
-    <Window wide top={!placeOpen} hidden={placeOpen} onBack={onBack} title={s.name} kicker={`${s.kind || "Division"} · ${c?.name ?? s.cc}`} flagSrc=
+    <Window mapTo={`/dashboard/maps?country=${s.cc}`} top={!placeOpen} hidden={placeOpen} onBack={onBack} title={s.name} kicker={`${s.kind || "Division"} · ${c?.name ?? s.cc}`} flagSrc=
 {ownFlag(s, 250) ?? flag(s.cc, 160)} chips={[...(s.code ? [s.code] : []), ...(s.capital ? [`Capital: ${s.capital}`] : []), ...(s.region ? [s.region] : [])]} onClose={onClose}>
       <div className="flex flex-wrap gap-2">
         {c && <LinkButton onClick={() => navigate(`/dashboard/countries?open=${c.id}`)}>Open {c.name}</LinkButton>}
@@ -769,9 +786,9 @@ function SubnationWindow({ s, onBack, onClose, onCounties }: { s: Subnation; /**
       <TabBar tab={tab} onTab={setTab} count={within?.rows.length} />
       {tab === "overview" && outline.length > 0 && (
         <div>
-          <OutlineMap shapes={outline} dots={dots} color={flagColor(s.cc) ?? COLOR} label={`The outline of ${s.name}, with ${dots.length} of the places listed in it`} onDot={pick} />
+          <OutlineMap shapes={outline} lines={second?.lines} dots={dots} color={flagColor(s.cc) ?? COLOR} label={`The outline of ${s.name}, with ${dots.length} of the places listed in it`} onDot={pick} />
           <p className="text-[10px] font-sans text-muted-foreground leading-snug mt-1">
-            {s.name} as the site's maps draw it{dots.length ? `, with ${within!.rows.length > dots.length ? `the ${dots.length} largest of the ${whole(within!.rows.length)}` : `the ${dots.length}`} places GeoNames lists in it as dots` : ""}.
+            {s.name} as the site's maps draw it{second ? `, with the borders of its ${second.lines.length} ${second.are}` : ""}{dots.length ? `, with ${within!.rows.length > dots.length ? `the ${dots.length} largest of the ${whole(within!.rows.length)}` : `the ${dots.length}`} places GeoNames lists in it as dots` : ""}.
           </p>
         </div>
       )}
@@ -1010,7 +1027,7 @@ function CountyWindow({ county, data, onBack, onClose }: { county: UsCounty; dat
     },
   ];
   return (
-    <Window wide top={!placeOpen} hidden={placeOpen} onBack={onBack} title={name} kicker={`County · ${state?.name ?? abbr}`} flagSrc={flag("US", 160)} chips={[`FIPS ${fips}`, state?.name ?? abbr, ...(rows ? [`${whole(rows.length)} places listed`] : [])]} onClose={onClose}>
+    <Window mapTo="/dashboard/maps?country=US" top={!placeOpen} hidden={placeOpen} onBack={onBack} title={name} kicker={`County · ${state?.name ?? abbr}`} flagSrc={flag("US", 160)} chips={[`FIPS ${fips}`, state?.name ?? abbr, ...(rows ? [`${whole(rows.length)} places listed`] : [])]} onClose={onClose}>
       <div className="flex flex-wrap gap-2">
         {state && <LinkButton onClick={() => navigate(`/dashboard/subnations?open=US-${state.abbreviation}`)}>{state.name}'s record</LinkButton>}
         {state && <LinkButton onClick={() => navigate(`/dashboard/states?open=${state.id}`)}>Open {state.name} on the US States page</LinkButton>}
@@ -1244,7 +1261,7 @@ function DistrictWindow({
   ];
   return (
     <Window
-      wide
+      mapTo={`/dashboard/maps?country=${cc}`}
       top={!placeOpen}
       hidden={placeOpen}
       onBack={onBack}
@@ -1563,6 +1580,7 @@ function CountryWindow({
   const insides = useMemo(() => (places ? new Map(row.divisions.map((d) => [d.id, insideOf(places, d)])) : null), [places, row]);
   /* The map at the head of its window: its divisions as the site's maps draw them, framed without its far-off parts, with its largest listed places as dots. */
   const drawn = useAdmin1(row.cc);
+  const second = useSecondOrder(row.cc);
   const frame = useMemo(() => (drawn ? framed(drawn) : undefined), [drawn]);
   const dots = useMemo(() => placeDots(places?.places ?? [], 150, places), [places]);
   /** The place whose dot on the map was pressed, or that a link named: its window opens over this one, which steps out of sight. */
@@ -1580,7 +1598,7 @@ function CountryWindow({
   const counties = useMemo(() => (countyData && countyState ? countyData.US_COUNTIES.filter((x) => x[2] === countyState) : []), [countyData, countyState]);
   const stateName = usStatesData.find((s) => s.abbreviation === countyState)?.name ?? countyState;
   return (
-    <Window wide top={top && !placeOpen} hidden={!top || placeOpen} title={row.name} kicker="Country · its divisions" flagSrc={flag(row.cc, 160)} chips={[`${row.divisions.length} divisions`, ...row.kinds.slice(0, 3), ...(row.continent ? [row.continent] : [])]} onClose={onClose}>
+    <Window mapTo={`/dashboard/maps?country=${row.cc}`} top={top && !placeOpen} hidden={!top || placeOpen} title={row.name} kicker="Country · its divisions" flagSrc={flag(row.cc, 160)} chips={[`${row.divisions.length} divisions`, ...row.kinds.slice(0, 3), ...(row.continent ? [row.continent] : [])]} onClose={onClose}>
       <div className="flex flex-wrap items-center gap-2">
         {c && <LinkButton onClick={() => navigate(`/dashboard/countries?open=${c.id}`)}>Open {c.name} on the Countries page</LinkButton>}
         <LinkButton onClick={() => navigate(`/dashboard/maps?country=${row.cc}`)}>
@@ -1591,10 +1609,11 @@ function CountryWindow({
 
       {drawn && drawn.length > 0 && (
         <div>
-          <OutlineMap shapes={drawn} frame={frame} dots={dots} color={flagColor(row.cc) ?? COLOR} label={`${row.name} and its ${drawn.length} divisions, with its ${dots.length} largest listed places`} onDot={(d) => setPicked(places?.places.find((p) => p[6] === d.id) ?? null)} onShape={(f) => { const hit = row.divisions.find((x) => x.name === f.properties.n); if (hit) onOpen(hit); }} />
+          <OutlineMap shapes={drawn} frame={frame} lines={second?.lines} dots={dots} color={flagColor(row.cc) ?? COLOR} label={`${row.name} and its ${drawn.length} divisions, with its ${dots.length} largest listed places`} onDot={(d) => setPicked(places?.places.find((p) => p[6] === d.id) ?? null)} onShape={(f) => { const hit = row.divisions.find((x) => x.name === f.properties.n); if (hit) onOpen(hit); }} />
 
           <p className="text-[10px] font-sans text-muted-foreground leading-snug mt-1">
             {row.name}'s divisions as the site's maps draw them{dots.length ? `, with the ${dots.length} largest places GeoNames lists for it as dots` : ""}
+            {second ? "; the finer lines are its " + second.are : ""}
             {frame && frame.length < drawn.length ? " - framed without its far-off parts, which are in the list below" : ""}.
           </p>
         </div>
@@ -1637,7 +1656,7 @@ function CountryWindow({
       {countyState ? (
         <section aria-label="Counties">
           <h3 className="text-sm font-bold font-sans text-foreground mb-3">{countyData ? `The ${counties.length} counties of ${stateName}` : "Loading the counties…"}</h3>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+          <div className="grid gap-3 [grid-template-columns:repeat(auto-fill,minmax(min(100%,15rem),1fr))]">
             {counties.map((x) => (
               <button key={x[0]} type="button" onClick={() => onOpenCounty(x[0])} className="modal-tile rounded-xl p-4 text-left cursor-pointer transition-colors hover:border-secondary/40 flex flex-col gap-2">
                 <span className="flex items-baseline justify-between gap-2">
@@ -1662,7 +1681,7 @@ function CountryWindow({
           <h3 className="text-sm font-bold font-sans text-foreground mb-3">
             {query.trim() ? `${shown.length} of its ${row.divisions.length} divisions ${shown.length === 1 ? "matches" : "match"} "${query.trim()}"` : `The ${row.divisions.length} divisions of ${inSentence(row.name)}`}
           </h3>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+          <div className="grid gap-3 [grid-template-columns:repeat(auto-fill,minmax(min(100%,15rem),1fr))]">
             {shown.map((s) => (
               <DivisionCard key={s.id} s={s} inside={places === undefined ? undefined : (insides?.get(s.id) ?? null)} onOpen={() => onOpen(s)} />
 
