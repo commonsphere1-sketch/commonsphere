@@ -63,6 +63,7 @@ import { ArticlePanel } from "./HistoryPanel";
 import { ChartNote, FigureRow } from "./ModalCharts";
 import { FollowStar } from "./FollowStar";
 import PeoplePanel from "./PeoplePanel";
+import { WindowGroup } from "./WindowGroup";
 import { PROFILED, PROFILES, namesOf, plain, unCityId } from "../lib/profiledCities";
 import CityAnalysis from "./CityAnalysis";
 import PostalCodes from "./PostalCodes";
@@ -267,6 +268,7 @@ function CityWindow({ c, onBack, onClose }: { c: UnCity; /** Back to its country
           {tab === "overview" && (
             <div className="space-y-4">
               {mark && <CountryOutline code={cc} name={land} mark={mark} className="" />}
+
               <Section title="👥 People & place" note="A city, to the UN, is contiguous 1 km² cells of at least 1,500 people each, holding 50,000 people or more - one rule for every city, whatever its boundary. That is why its figure and the city's own differ.">
                 <div className="tile-fill gap-3">
                   <Tile label="Population" value={whole(p2)} sub={`UN estimate, ${Y2}`} />
@@ -275,78 +277,85 @@ function CityWindow({ c, onBack, onClose }: { c: UnCity; /** Back to its country
                 </div>
               </Section>
 
-              {/* The city's own figures, set out and worked through: everything the UN gives for it, year by year. Until its file is in, or where it has none, the four figures the list carries are drawn. */}
-              <CityAnalysis
-                c={c}
-                color={flagColor(cc) ?? COLOR}
-                fallback={
-                  <Section title={`📈 Population, ${Y0} to ${Y3}`} note={`The UN's figures for ${Y0}, ${Y1} and ${Y2}, and its projection for ${Y3}, on an axis from zero.`}>
-                    {chart}
-                  </Section>
-                }
-              />
+              <WindowGroup title="The city in figures" bodyClass="space-y-4">
+                {/* The city's own figures, set out and worked through: everything the UN gives for it, year by year. Until its file is in, or where it has none, the four figures the list carries are drawn. */}
+                <CityAnalysis
+                  c={c}
+                  color={flagColor(cc) ?? COLOR}
+                  fallback={
+                    <Section title={`📈 Population, ${Y0} to ${Y3}`} note={`The UN's figures for ${Y0}, ${Y1} and ${Y2}, and its projection for ${Y3}, on an axis from zero.`}>
+                      {chart}
+                    </Section>
+                  }
+                />
 
-              {/* The plain record the window first held: one of the Overview's sections. */}
-              <Section title="📋 Its record" note="What the United Nations publishes for every city alike. A change is worked out here from two of its figures.">
-                <div className="flex flex-col gap-3">
-                  <div className="modal-tile rounded-xl px-4 py-1.5">
-                    <p className="text-[9px] font-mono uppercase tracking-widest text-muted-foreground pt-1.5">Identity</p>
-                    <FigureRow label="Name" value={name} sub="as the United Nations writes it" />
-                    <FigureRow label="Country" value={land} sub={`ISO 3166-1: ${cc}`} />
-                    <FigureRow label="Its country's capital" value={capital ? "Yes" : "No"} />
-                    <FigureRow label="The UN's code for it" value={String(code)} />
+                {/* The plain record the window first held: one of the Overview's sections. */}
+                <Section title="📋 Its record" note="What the United Nations publishes for every city alike. A change is worked out here from two of its figures.">
+                  <div className="flex flex-col gap-3">
+                    <div className="modal-tile rounded-xl px-4 py-1.5">
+                      <p className="text-[9px] font-mono uppercase tracking-widest text-muted-foreground pt-1.5">Identity</p>
+                      <FigureRow label="Name" value={name} sub="as the United Nations writes it" />
+                      <FigureRow label="Country" value={land} sub={`ISO 3166-1: ${cc}`} />
+                      <FigureRow label="Its country's capital" value={capital ? "Yes" : "No"} />
+                      <FigureRow label="The UN's code for it" value={String(code)} />
+                    </div>
+                    <div className="modal-tile rounded-xl px-4 py-1.5">
+                      <p className="text-[9px] font-mono uppercase tracking-widest text-muted-foreground pt-1.5">Geography</p>
+                      <FigureRow label="Coordinates" value={lat !== null && lon !== null ? coords(lat, lon) : none} sub={lat !== null ? "where its people are centred" : undefined} />
+                      <FigureRow label="Land area" value={area !== null ? `${whole(area)} km²` : none} sub={area !== null ? String(Y2) : undefined} />
+                      <FigureRow label="People to a km²" value={density !== null ? whole(density) : none} sub={density !== null ? String(Y2) : undefined} />
+                    </div>
+                    <div className="modal-tile rounded-xl px-4 py-1.5">
+                      <p className="text-[9px] font-mono uppercase tracking-widest text-muted-foreground pt-1.5">Demographics</p>
+                      <FigureRow label={`Population, ${Y2}`} value={whole(p2)} sub="the UN's last estimate" />
+                      <FigureRow label={`Population, ${Y1}`} value={p1 !== null ? whole(p1) : none} />
+                      <FigureRow label={`Population, ${Y0}`} value={p0 !== null ? whole(p0) : none} />
+                      <FigureRow label={`Change, ${Y1} to ${Y2}`} value={since !== null ? signed(since) : none} sub={since !== null ? "worked out here from the two figures" : undefined} />
+                      <FigureRow label={`Projected for ${Y3}`} value={p3 !== null ? whole(p3) : none} sub={ahead !== null ? `the UN's projection · ${signed(ahead)} on ${Y2}, worked out here` : undefined} />
+                    </div>
                   </div>
-                  <div className="modal-tile rounded-xl px-4 py-1.5">
-                    <p className="text-[9px] font-mono uppercase tracking-widest text-muted-foreground pt-1.5">Geography</p>
-                    <FigureRow label="Coordinates" value={lat !== null && lon !== null ? coords(lat, lon) : none} sub={lat !== null ? "where its people are centred" : undefined} />
-                    <FigureRow label="Land area" value={area !== null ? `${whole(area)} km²` : none} sub={area !== null ? String(Y2) : undefined} />
-                    <FigureRow label="People to a km²" value={density !== null ? whole(density) : none} sub={density !== null ? String(Y2) : undefined} />
-                  </div>
-                  <div className="modal-tile rounded-xl px-4 py-1.5">
-                    <p className="text-[9px] font-mono uppercase tracking-widest text-muted-foreground pt-1.5">Demographics</p>
-                    <FigureRow label={`Population, ${Y2}`} value={whole(p2)} sub="the UN's last estimate" />
-                    <FigureRow label={`Population, ${Y1}`} value={p1 !== null ? whole(p1) : none} />
-                    <FigureRow label={`Population, ${Y0}`} value={p0 !== null ? whole(p0) : none} />
-                    <FigureRow label={`Change, ${Y1} to ${Y2}`} value={since !== null ? signed(since) : none} sub={since !== null ? "worked out here from the two figures" : undefined} />
-                    <FigureRow label={`Projected for ${Y3}`} value={p3 !== null ? whole(p3) : none} sub={ahead !== null ? `the UN's projection · ${signed(ahead)} on ${Y2}, worked out here` : undefined} />
-                  </div>
-                </div>
-                <SourceLink sources={[UN_CITIES_SOURCE]} className="mt-2" />
-              </Section>
-
-              <PostalCodes entry={cityPostal(postal, code)} cc={cc} name={name} how="city" />
-
-              {/* What follows is its country's, set apart at the foot and said to be so: nobody publishes these city by city. */}
-              <div className="flex items-center gap-2 pt-3">
-                <h3 className="text-xs font-bold font-sans text-foreground uppercase tracking-wide">{land}, the country it is in</h3>
-                <div className="flex-1 h-px bg-border" />
-              </div>
-
-              {eco && (
-                <Section title="💰 Economy & institutions" note={`These are ${land}'s figures, not ${name}'s: no body publishes them city by city.`}>
-                  <div className="tile-fill gap-3">
-                    {eco.gdpPerCapita && <Tile label="GDP per person" value={`$${eco.gdpPerCapita.v.toLocaleString("en-US")}`} sub={`${land}, current US$, ${eco.gdpPerCapita.y}`} />}
-                    {eco.gdpGrowthRate && <Tile label="Real GDP growth" value={`${eco.gdpGrowthRate.v > 0 ? "+" : ""}${eco.gdpGrowthRate.v}%`} sub={`${land}, ${eco.gdpGrowthRate.y}`} />}
-                    {eco.unemploymentRate && <Tile label="Unemployment" value={`${eco.unemploymentRate.v}%`} sub={`${land}, of the labour force, ${eco.unemploymentRate.y}`} />}
-                    {eco.inflationRate && <Tile label="Inflation" value={`${eco.inflationRate.v}%`} sub={`${land}, consumer prices, ${eco.inflationRate.y}`} />}
-                  </div>
-                  <SourceLink sources={[ECONOMY_INDICATORS_SOURCE.worldBank, ECONOMY_INDICATORS_SOURCE.imf]} className="mt-2" />
+                  <SourceLink sources={[UN_CITIES_SOURCE]} className="mt-2" />
                 </Section>
-              )}
 
-              {/* Quality of life: its country's, said to be so - as a profiled city's window gives it. */}
+                <PostalCodes entry={cityPostal(postal, code)} cc={cc} name={name} how="city" />
+              </WindowGroup>
 
-              <TaxPanel code={cc} country={land} place={name} />
+              <WindowGroup title="Its country · people & society" bodyClass="space-y-4">
+                {/* Its country's people: their ages, the peoples they are, their languages and their beliefs - the country's, as nobody publishes them city by city. */}
+                <PeoplePanel code={cc} country={land} place={name} parts={["people", "belief"]} />
+              </WindowGroup>
 
-              {/* The people of its country - their languages, beliefs and ages, how the country's income is shared and how many are poor - given as the country's, as nobody publishes them place by place. */}
-              <PeoplePanel code={cc} country={land} place={name} />
+              <WindowGroup title="Its country · money & work" bodyClass="space-y-4">
+                {eco && (
+                  <Section title="💰 Economy & institutions" note={`These are ${land}'s figures, not ${name}'s: no body publishes them city by city.`}>
+                    <div className="tile-fill gap-3">
+                      {eco.gdpPerCapita && <Tile label="GDP per person" value={`$${eco.gdpPerCapita.v.toLocaleString("en-US")}`} sub={`${land}, current US$, ${eco.gdpPerCapita.y}`} />}
+                      {eco.gdpGrowthRate && <Tile label="Real GDP growth" value={`${eco.gdpGrowthRate.v > 0 ? "+" : ""}${eco.gdpGrowthRate.v}%`} sub={`${land}, ${eco.gdpGrowthRate.y}`} />}
+                      {eco.unemploymentRate && <Tile label="Unemployment" value={`${eco.unemploymentRate.v}%`} sub={`${land}, of the labour force, ${eco.unemploymentRate.y}`} />}
+                      {eco.inflationRate && <Tile label="Inflation" value={`${eco.inflationRate.v}%`} sub={`${land}, consumer prices, ${eco.inflationRate.y}`} />}
+                    </div>
+                    <SourceLink sources={[ECONOMY_INDICATORS_SOURCE.worldBank, ECONOMY_INDICATORS_SOURCE.imf]} className="mt-2" />
+                  </Section>
+                )}
 
-              <Suspense fallback={<p className="text-xs font-sans text-muted-foreground">Loading {land}'s figures…</p>}>
-                <CountryQuality code={cc} country={land} place={name} city={unCityId(c)} />
-              </Suspense>
+                <TaxPanel code={cc} country={land} place={name} />
 
-              {/* The indexes its country is scored on: the reference detail, last. */}
-              <PlaceIndexes code={cc} country={land} place={name} />
+                {/* How its country's income is shared among its people, and how many are poor. */}
+                <PeoplePanel code={cc} country={land} place={name} parts={["income", "poverty"]} />
+              </WindowGroup>
+
+              <WindowGroup title="Its country · quality of life" bodyClass="space-y-4">
+                {/* Quality of life: its country's, said to be so - as a profiled city's window gives it. */}
+
+                <Suspense fallback={<p className="text-xs font-sans text-muted-foreground">Loading {land}'s figures…</p>}>
+                  <CountryQuality code={cc} country={land} place={name} city={unCityId(c)} />
+                </Suspense>
+              </WindowGroup>
+
+              <WindowGroup title="Its country · how it scores" bodyClass="space-y-4">
+                {/* The indexes its country is scored on: the reference detail, last. */}
+                <PlaceIndexes code={cc} country={land} place={name} />
+              </WindowGroup>
             </div>
           )}
 
