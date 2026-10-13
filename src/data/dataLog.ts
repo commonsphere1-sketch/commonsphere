@@ -22,6 +22,14 @@ export interface DataLogEntry {
 
 export const DATA_LOG: DataLogEntry[] = [
   {
+    "what": "The composite indexes each country is scored on: human development and its adjusted forms, gender, inequality and poverty, the six governance scores, human capital, logistics and statistics",
+    "from": "UNDP (Human Development Report), World Bank",
+    "page": "/dashboard/subnations",
+    "where": "Municipalities",
+    "read": "2026-10-13",
+    "files": 1
+  },
+  {
     "what": "Each economy's manufacturing: value added, share of GDP, growth, manufactures in trade, high-technology exports, jobs in industry",
     "from": "World Bank",
     "page": "/dashboard/economies",
@@ -392,4 +400,4 @@ export const DATA_LOG: DataLogEntry[] = [
 ];
 
 /** How many data files the log covers. */
-export const DATA_LOG_FILES = 67;
+export const DATA_LOG_FILES = 68;

@@ -1415,3 +1415,47 @@ html.light .modal-tabs {
   outline: 2px solid var(--color-ring, currentColor);
   outline-offset: 2px;
 }
+
+/* A row of tiles that leaves no gap: each tile grows to fill its line, so a
+   line of one or two is as wide as a line of four and no cell stands empty
+   beside a lone tile. A tile with a long value asks for more of the line
+   (.tile-wide) or for the whole of it (.tile-full). The gap between tiles is
+   the row's own gap-* class. */
+.tile-fill {
+  display: flex;
+  flex-wrap: wrap;
+}
+.tile-fill > * {
+  flex: 1 1 9rem;
+  min-width: 0;
+}
+.tile-fill > .tile-wide {
+  flex: 2 1 16rem;
+}
+.tile-fill > .tile-full {
+  flex-basis: 100%;
+}
+@media (min-width: 640px) {
+  .tile-fill > * {
+    flex-basis: 11rem;
+  }
+  .tile-fill > .tile-wide {
+    flex-basis: 20rem;
+  }
+  .tile-fill > .tile-full {
+    flex-basis: 100%;
+  }
+}
+
+/* The same for charts set side by side - two rings, a ring and a bar: each
+   takes half the line where there is room for two, and a lone one, or the
+   odd one out, takes the whole of it. */
+.chart-fill {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+}
+.chart-fill > * {
+  flex: 1 1 17rem;
+  min-width: 0;
+}

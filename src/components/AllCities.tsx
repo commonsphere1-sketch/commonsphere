@@ -64,6 +64,9 @@ import { lockScroll } from "../lib/scrollLock";
 import { ArticlePanel } from "./HistoryPanel";
 import { ChartNote, FigureRow } from "./ModalCharts";
 import CityAnalysis from "./CityAnalysis";
+import PostalCodes from "./PostalCodes";
+import PlaceIndexes from "./PlaceIndexes";
+import { cityPostal, usePlacePostal } from "../lib/placePostal";
 import { CountryOutline } from "./PlaceOutlines";
 import { SeeAlso } from "./SeeAlso";
 
@@ -180,6 +183,7 @@ function CityWindow({ c, onBack, onClose }: { c: UnCity; /** Back to its country
   const [tab, setTab] = useState<Tab>("overview");
   const [wide, setWide] = useState(false);
   const profile = PROFILED.get(unCityId(c));
+  const postal = usePlacePostal(cc);
   /* The city on its country's outline: where the UN centres it. */
   const mark = useMemo(() => (lat !== null && lon !== null ? { id: unCityId(c), name, lon, lat, sub: `${land} · ${whole(p2)} people in ${Y2}, as the UN estimates${capital ? " · the capital" : ""}` } : undefined), [c, name, lat, lon, land, p2, capital]);
   const article = useArticle(c, tab === "history");
@@ -279,7 +283,7 @@ function CityWindow({ c, onBack, onClose }: { c: UnCity; /** Back to its country
             <div className="space-y-4">
               {mark && <CountryOutline code={cc} name={land} mark={mark} className="" />}
               <Section title="👥 People & place" note="A city, to the UN, is contiguous 1 km² cells of at least 1,500 people each, holding 50,000 people or more - one rule for every city, whatever its boundary. That is why its figure and the city's own differ.">
-                <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+                <div className="tile-fill gap-3">
                   <Tile label="Population" value={whole(p2)} sub={`UN estimate, ${Y2}`} />
                   <Tile label="Country" value={land} sub={country?.continent} />
                   <Tile label="Among the UN's cities" value={`#${rank.toLocaleString("en-US")}`} sub={`of ${UN_CITIES.length.toLocaleString("en-US")}, by ${Y2} population`} />
@@ -325,6 +329,8 @@ function CityWindow({ c, onBack, onClose }: { c: UnCity; /** Back to its country
                 <SourceLink sources={[UN_CITIES_SOURCE]} className="mt-2" />
               </Section>
 
+              <PostalCodes entry={cityPostal(postal, code)} cc={cc} name={name} how="city" />
+
               {/* What follows is its country's, set apart at the foot and said to be so: nobody publishes these city by city. */}
               <div className="flex items-center gap-2 pt-3">
                 <h3 className="text-xs font-bold font-sans text-foreground uppercase tracking-wide">{land}, the country it is in</h3>
@@ -333,7 +339,7 @@ function CityWindow({ c, onBack, onClose }: { c: UnCity; /** Back to its country
 
               {eco && (
                 <Section title="💰 Economy & institutions" note={`These are ${land}'s figures, not ${name}'s: no body publishes them city by city.`}>
-                  <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+                  <div className="tile-fill gap-3">
                     {eco.gdpPerCapita && <Tile label="GDP per person" value={`$${eco.gdpPerCapita.v.toLocaleString("en-US")}`} sub={`${land}, current US$, ${eco.gdpPerCapita.y}`} />}
                     {eco.gdpGrowthRate && <Tile label="Real GDP growth" value={`${eco.gdpGrowthRate.v > 0 ? "+" : ""}${eco.gdpGrowthRate.v}%`} sub={`${land}, ${eco.gdpGrowthRate.y}`} />}
                     {eco.unemploymentRate && <Tile label="Unemployment" value={`${eco.unemploymentRate.v}%`} sub={`${land}, of the labour force, ${eco.unemploymentRate.y}`} />}
@@ -344,6 +350,8 @@ function CityWindow({ c, onBack, onClose }: { c: UnCity; /** Back to its country
               )}
 
               {/* Quality of life: its country's, said to be so - as a profiled city's window gives it. */}
+
+              <PlaceIndexes code={cc} country={land} place={name} />
 
               <Suspense fallback={<p className="text-xs font-sans text-muted-foreground">Loading {land}'s figures…</p>}>
                 <CountryQuality code={cc} country={land} place={name} />

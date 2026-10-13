@@ -64,6 +64,7 @@ const SETS = [
   { files: ["subnations.ts"], what: "The first-order divisions of every country - states, provinces, regions, departments - with each one's names, code, capital, area, borders and dated population", from: "Natural Earth, Wikidata", page: "/dashboard/subnations", where: "Municipalities" },
   { files: ["subnationFlagColors.ts"], what: "One colour for each division that has a flag, read off the flag", from: "Wikimedia Commons", page: "/dashboard", where: "Dashboard" },
   { files: ["subnationFlagFiles.ts"], what: "Which divisions' flags are saved with the site, and under what file name", from: "Wikimedia Commons", page: "/dashboard/subnations", where: "Municipalities" },
+  { files: ["countryIndexes.ts"], what: "The composite indexes each country is scored on: human development and its adjusted forms, gender, inequality and poverty, the six governance scores, human capital, logistics and statistics", from: "UNDP (Human Development Report), World Bank", page: "/dashboard/subnations", where: "Municipalities" },
   { files: ["economyManufacturing.ts"], what: "Each economy's manufacturing: value added, share of GDP, growth, manufactures in trade, high-technology exports, jobs in industry", from: "World Bank", page: "/dashboard/economies", where: "Economies" },
 
 

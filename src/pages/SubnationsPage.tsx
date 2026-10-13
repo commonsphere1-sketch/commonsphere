@@ -88,6 +88,9 @@ import { DivisionPlaces, PlaceHost, PlacesAnalysis, PlacesInside, insideOf, useP
 import { FilterBar } from "../components/FilterBar";
 import { ArticlePanel } from "../components/HistoryPanel";
 import { ChartNote, ChartTitle, FigureRow, MeasureBars, PartsBar, PartsDonut } from "../components/ModalCharts";
+import PostalCodes from "../components/PostalCodes";
+import PlaceIndexes from "../components/PlaceIndexes";
+import { usePlacePostal } from "../lib/placePostal";
 import { OutlineMap, placeDots, type MapDot } from "../components/OutlineMap";
 import { SourceLink } from "../components/SourceLink";
 import { countriesData } from "../data/countriesData";
@@ -215,11 +218,11 @@ function Section({ part }: { part: Part }) {
       </div>
       {part.note && <p className="text-[11px] font-sans text-muted-foreground leading-snug mb-2">{part.note}</p>}
       {fields.length > 0 && (
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+        <div className="tile-fill gap-2">
           {fields.map((f) => {
             const long = f.value!.length;
             return (
-              <div key={f.label} className={`modal-tile rounded-lg p-4 flex flex-col gap-1 min-w-0 ${long > 80 ? "col-span-2 sm:col-span-4" : long > 8 ? "col-span-2" : ""}`}>
+              <div key={f.label} className={`modal-tile rounded-lg p-4 flex flex-col gap-1 min-w-0 ${long > 80 ? "tile-full" : long > 8 ? "tile-wide" : ""}`}>
                 <p className="text-xs text-muted-foreground font-sans">{f.label}</p>
                 <p className={`font-bold text-foreground break-words ${long > 34 ? "text-sm font-sans leading-snug" : long > 8 ? "text-base font-sans leading-snug" : "text-xl font-mono"}`}>{f.value}</p>
                 {f.sub && <p className="text-xs text-muted-foreground font-sans leading-snug">{f.sub}</p>}
@@ -428,6 +431,8 @@ function partsOf(s: Subnation, d?: DivisionDetails): { parts: Part[]; sources: S
             <PartsBar label={`The people of ${s.name} by age, ${m.ageGroups.y}`} parts={m.ageGroups.groups.map((g) => ({ label: g.group, value: g.pct, text: `${g.pct}%` }))} columns={3} />
           </div>
         )}
+        {/* Each a whole and its parts: rings, two to a line where there is room, and the odd one the width of the line. */}
+        <div className="chart-fill" style={{ gap: "1.25rem 1.5rem" }}>
         {m && (
           <div>
             <ChartTitle>
@@ -439,7 +444,7 @@ function partsOf(s: Subnation, d?: DivisionDetails): { parts: Part[]; sources: S
         {sexes && (
           <div>
             <ChartTitle>Women and men · {sexes.year}</ChartTitle>
-            <PartsBar
+            <PartsDonut
               label={`The people of ${s.name} by sex, ${sexes.year}`}
               parts={[
                 { label: "Women", value: sexes.women, text: `${share(sexes.women, sexes.men)}% · ${whole(sexes.women)}`, color: "#ec4899" },
@@ -451,7 +456,7 @@ function partsOf(s: Subnation, d?: DivisionDetails): { parts: Part[]; sources: S
         {settled && (
           <div>
             <ChartTitle>In towns and in the country · {settled.year}</ChartTitle>
-            <PartsBar
+            <PartsDonut
               label={`The people of ${s.name} by where they live, ${settled.year}`}
               parts={[
                 { label: "Urban", value: settled.urban, text: `${share(settled.urban, settled.rural)}% · ${whole(settled.urban)}` },
@@ -463,7 +468,7 @@ function partsOf(s: Subnation, d?: DivisionDetails): { parts: Part[]; sources: S
         {ofCountry !== null && (
           <div>
             <ChartTitle>Of {inSentence(country)}'s people</ChartTitle>
-            <PartsBar
+            <PartsDonut
               label={`${s.name}'s share of the people of ${country}`}
               parts={[
                 { label: s.name, value: ofCountry, text: `${ofCountry}%`, color: tone },
@@ -475,6 +480,7 @@ function partsOf(s: Subnation, d?: DivisionDetails): { parts: Part[]; sources: S
             </ChartNote>
           </div>
         )}
+        </div>
         {(sexes || settled) && <ChartNote>The shares are worked out here from the two figures its Wikidata record gives for the year.</ChartNote>}
       </div>
     ) : undefined;
@@ -501,7 +507,7 @@ function partsOf(s: Subnation, d?: DivisionDetails): { parts: Part[]; sources: S
     <div className={chartTile}>
       <div>
         <ChartTitle>The 2024 presidential vote · % · {m.voterShare.y}</ChartTitle>
-        <PartsBar
+        <PartsDonut
           label={`The 2024 presidential vote in ${s.name}`}
           parts={m.voterShare.groups.map((g) => ({ label: g.party, value: g.pct, text: `${g.pct}%`, color: /democrat/i.test(g.party) ? "#3b82f6" : /republican/i.test(g.party) ? "#ef4444" : undefined }))}
         />
@@ -786,7 +792,7 @@ function SubnationWindow({ s, onBack, onClose, onCounties }: { s: Subnation; /**
                 {peopleAt > 0 && <FigureRow label="By population" value={`${peopleAt} of ${byPeople.length}`} sub="among those with a population held, the largest first" />}
                 {areaAt > 0 && <FigureRow label="By area" value={`${areaAt} of ${byArea.length}`} sub="among those with an area held, the widest first" />}
               </div>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mt-2">
+              <div className="chart-fill mt-2">
                 {peopleAt > 0 && (
                   <div className="modal-tile rounded-xl p-4">
                     <ChartTitle>Beside the most populous · people</ChartTitle>
@@ -834,6 +840,8 @@ function SubnationWindow({ s, onBack, onClose, onCounties }: { s: Subnation; /**
           {parts.map((p) => (
             <Section key={p.title} part={p} />
           ))}
+          {/* The indexes its country is scored on: none is published for a division, and the panel says whose they are. */}
+          <PlaceIndexes code={s.cc} country={c?.name ?? s.cc} place={s.name} />
           <div>
             <p className="text-[10px] font-bold font-sans text-muted-foreground uppercase tracking-widest mb-1">Where to read more</p>
 
@@ -883,6 +891,7 @@ function CountyWindow({ county, data, onBack, onClose }: { county: UsCounty; dat
   const outline = useCountyOutline(fips);
   const shapes = useMemo(() => (outline ? [outline] : []), [outline]);
   const listed = usePlaces("US");
+  const postal = usePlacePostal("US");
   const rows = useMemo(() => (outline && listed ? placesWithin(outline, listed.places) : null), [outline, listed]);
   const dots = useMemo(() => placeDots(rows ?? [], 300, listed), [rows, listed]);
   const stateRecord = useMemo(() => SUBNATIONS.find((s) => s.code === `US-${abbr}`), [abbr]);
@@ -907,14 +916,49 @@ function CountyWindow({ county, data, onBack, onClose }: { county: UsCounty; dat
       { label: "Rank in the United States", value: `${whole(inCountry)} of ${whole(data.US_COUNTIES.length)}`, sub: "among counties and their equivalents" },
     ],
     extra: (
-      <div className="modal-tile rounded-xl p-4 mt-2">
-        <ChartTitle>
-          Beside {state?.name ?? abbr}'s largest counties · people, 1 July {last}
-        </ChartTitle>
-        <MeasureBars
-          label={`${name} beside the largest counties of ${state?.name ?? abbr} by population`}
-          rows={beside.map((x) => ({ key: x[0], label: x[0] === fips ? `${x[1]} · this county` : x[1], value: end(x), text: whole(end(x)), color: x[0] === fips ? COLOR : undefined }))}
-        />
+      <div className="chart-fill mt-2">
+        <div className="modal-tile rounded-xl p-4">
+          <ChartTitle>
+            Beside {state?.name ?? abbr}'s largest counties · people, 1 July {last}
+          </ChartTitle>
+          <MeasureBars
+            label={`${name} beside the largest counties of ${state?.name ?? abbr} by population`}
+            rows={beside.map((x) => ({ key: x[0], label: x[0] === fips ? `${x[1]} · this county` : x[1], value: end(x), text: whole(end(x)), color: x[0] === fips ? COLOR : undefined }))}
+          />
+        </div>
+        {/* Its share of its state's people is a whole and its part: a ring. Both are the Census Bureau's for the same day. */}
+        {statePeople > now && (
+          <div className="modal-tile rounded-xl p-4">
+            <ChartTitle>
+              Of {state?.name ?? abbr}'s people · 1 July {last}
+            </ChartTitle>
+            <PartsDonut
+              label={`${name}'s share of the people of ${state?.name ?? abbr}, 1 July ${last}`}
+              parts={[
+                { label: name, value: now, text: `${((100 * now) / statePeople).toFixed(now / statePeople < 0.01 ? 2 : 1)}%`, color: COLOR },
+                { label: `The rest of ${state?.name ?? abbr}`, value: statePeople - now, text: `${((100 * (statePeople - now)) / statePeople).toFixed(now / statePeople < 0.01 ? 2 : 1)}%`, color: "#94a3b8" },
+              ]}
+            />
+            <ChartNote className="mt-2">
+              {whole(now)} of the {whole(statePeople)} people in its {peers.length} counties, both the Census Bureau's for the day; the share is worked out here.
+            </ChartNote>
+          </div>
+        )}
+        {land != null && water != null && land > 0 && water > 0 && (
+          <div className="modal-tile rounded-xl p-4">
+            <ChartTitle>Land and water · km² · {last} Gazetteer</ChartTitle>
+            <PartsDonut
+              label={`The area of ${name} as land and water`}
+              parts={[
+                { label: "Land", value: land, text: `${((100 * land) / (land + water)).toFixed(1)}%`, color: "#84cc16" },
+                { label: "Water", value: water, text: `${((100 * water) / (land + water)).toFixed(1)}%`, color: "#0ea5e9" },
+              ]}
+            />
+            <ChartNote className="mt-2">
+              {whole(land)} km² of land and {whole(water)} km² of water; the shares are worked out here from the two.
+            </ChartNote>
+          </div>
+        )}
       </div>
     ),
   };
@@ -980,7 +1024,15 @@ function CountyWindow({ county, data, onBack, onClose }: { county: UsCounty; dat
           </p>
         </div>
       )}
-      {tab === "overview" && parts.map((p) => <Section key={p.title} part={p} />)}
+      {tab === "overview" && (
+        <>
+          {parts.map((p) => (
+            <Section key={p.title} part={p} />
+          ))}
+          <PostalCodes entry={postal?.counties?.[fips]} cc="US" name={name} how="county" />
+          <PlaceIndexes code="US" country="United States" place={name} />
+        </>
+      )}
       {/* History: the article of its name and its state's - "Pulaski County, Arkansas" - as Wikipedia titles a county's. */}
       {tab === "history" && (state ? <ArticlePanel title={`${name}, ${state.name}`} name={name} mode="history" /> : noHistory(name))}
       <section className={tab === "municipalities" ? "" : "hidden"}>
@@ -1056,6 +1108,7 @@ function DistrictWindow({
   const info = useAdmin2Manifest()?.[cc];
   const second = useAdmin2(cc);
   const file = usePlaces(cc);
+  const postal = usePlacePostal(cc);
   const shape = second ? second.shapes[index] : undefined;
   const name = shape?.properties.n ?? "";
   const parentName = shape?.properties.p;
@@ -1245,7 +1298,7 @@ function DistrictWindow({
               The places of GeoNames' list - every town, city and village of more than 500 people, and every seat of a county or district - whose point lies inside the outline
               of {name}. That is worked out here, from the outline as the map draws it, so a place at its very edge can fall on the other side.
             </p>
-            <div className="grid grid-cols-2 gap-3 mb-3">
+            <div className="tile-fill gap-3 mb-3">
               <div className="modal-tile rounded-lg p-3 min-w-0">
                 <p className="text-xs text-muted-foreground font-sans">Towns, cities and villages</p>
                 <p className="text-base font-bold font-mono text-foreground">{whole(rows.length)}</p>
@@ -1277,7 +1330,9 @@ function DistrictWindow({
           {parts.map((p) => (
             <Section key={p.title} part={p} />
           ))}
+          <PostalCodes entry={postal?.districts?.[index]} cc={cc} name={name} how="district" />
           {/* The indexes the site holds are the country's: shown as the country's, as a town's window shows them. */}
+          <PlaceIndexes code={cc} country={country} place={name} />
           <CountryQuality code={cc} country={country} place={name} />
         </>
       )}

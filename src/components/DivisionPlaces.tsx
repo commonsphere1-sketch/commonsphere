@@ -56,6 +56,9 @@ import type { UsCounty } from "../data/usCounties";
 import { inSentence } from "./CountryQuality";
 import { ArticlePanel } from "./HistoryPanel";
 import { ChartNote, ChartTitle, FigureRow, MeasureBars, PartsBar, PartsDonut } from "./ModalCharts";
+import PostalCodes from "./PostalCodes";
+import PlaceIndexes from "./PlaceIndexes";
+import { usePlacePostal } from "../lib/placePostal";
 import { OutlineMap } from "./OutlineMap";
 import { SeeAlso } from "./SeeAlso";
 
@@ -187,7 +190,7 @@ export function DivisionPlaces({
         The places GeoNames lists in {s.name}: every town, city and village of more than 500 people, and every seat of a county or district. A hamlet smaller than that is not in its
         list.
       </p>
-      <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 mb-3">
+      <div className="tile-fill gap-3 mb-3">
         {inside.order === 1 && (
           <div className="modal-tile rounded-lg p-3 min-w-0">
             <p className="text-xs text-muted-foreground font-sans">Counties or districts</p>
@@ -374,9 +377,25 @@ export function PlacesAnalysis({ rows, name }: { rows: PlaceRow[]; /** The place
           <MeasureBars label={`The largest places of ${name} by their people`} rows={peopled.slice(0, 8).map((p) => ({ key: String(p[6]), label: p[0], value: p[3], text: whole(p[3]) }))} />
         </div>
       )}
-      <div>
-        <ChartTitle>Cities, towns and villages · {whole(rows.length)} places · by their people</ChartTitle>
-        <PartsBar label={`The places of ${name} as cities, towns and villages, by their people`} parts={kinds.map(([label, n]) => ({ label, value: n, text: whole(n) }))} />
+      <div className="chart-fill" style={{ gap: "1.25rem 1.5rem" }}>
+        <div>
+          <ChartTitle>Cities, towns and villages · {whole(rows.length)} places · by their people</ChartTitle>
+          <PartsDonut label={`The places of ${name} as cities, towns and villages, by their people`} parts={kinds.map(([label, n]) => ({ label, value: n, text: `${whole(n)} · ${((100 * n) / rows.length).toFixed(0)}%` }))} />
+        </div>
+        {peopled.length > 1 && (
+          <div>
+            <ChartTitle>Where the people of the listed places live</ChartTitle>
+            <PartsDonut
+              label={`The people of the places listed in ${name}, by the place they live in`}
+              parts={[
+                ...peopled.slice(0, 4).map((p) => ({ label: p[0], value: p[3], text: `${((100 * p[3]) / sum).toFixed((100 * p[3]) / sum < 1 ? 1 : 0)}% · ${whole(p[3])}` })),
+                ...(peopled.length > 4
+                  ? [{ label: `The other ${whole(peopled.length - 4)} ${peopled.length - 4 === 1 ? "place" : "places"}`, value: peopled.slice(4).reduce((t, p) => t + p[3], 0), text: `${((100 * peopled.slice(4).reduce((t, p) => t + p[3], 0)) / sum).toFixed(0)}%`, color: "#94a3b8" }]
+                  : []),
+              ]}
+            />
+          </div>
+        )}
       </div>
       <div>
         <FigureRow label="Places with a population figure" value={`${whole(peopled.length)} of ${whole(rows.length)}`} />
@@ -618,6 +637,10 @@ function PlaceWindow({
   const district = file.districts[di] || "";
   const head = HEAD_BY_GEONAMES.get(id);
   const [tab, setTab] = useState<Tab>("overview");
+  const postal = usePlacePostal(s.cc);
+  /* The people GeoNames records in all the places it lists in the same division: the whole its own are a part of. */
+  const listedPeople = useMemo(() => file.places.reduce((t, r) => (r[4] === p[4] ? t + r[3] : t), 0), [file, p]);
+  const listedPlaces = useMemo(() => file.places.filter((r) => r[4] === p[4] && r[3] > 0).length, [file, p]);
 
   /* It is the window on top: Escape closes it and goes no further, so the division's and the country's windows under it stay. */
   useEffect(() => {
@@ -804,11 +827,30 @@ function PlaceWindow({
           {tab === "overview" && (
             <div className="space-y-4">
               <Part title="👥 People & place" note="What GeoNames records of the place. Its population is GeoNames' own figure and carries no date.">
-                <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+                <div className="tile-fill gap-3">
                   {pop > 0 && <Tile label="People" value={whole(pop)} sub="GeoNames, undated" />}
                   {district && <Tile label="County or district" value={district} sub={s.name} />}
                   <Tile label="What it is" value={placeType(p, file)} sub={`by its people · GeoNames classes it as ${PLACE_KINDS[kind].toLowerCase()}`} />
                 </div>
+                {/* Its people among those of every place listed in its division: a whole and its part, from one list. */}
+                {pop > 0 && listedPlaces > 1 && listedPeople > pop && (
+                  <div className="modal-tile rounded-lg p-4 mt-3">
+                    <ChartTitle>
+                      Of the people in the {whole(listedPlaces)} places listed in {file.regions[p[4]] || s.name} · GeoNames, undated
+                    </ChartTitle>
+                    <PartsDonut
+                      label={`${name}'s share of the people of the places GeoNames lists in ${file.regions[p[4]] || s.name}`}
+                      parts={[
+                        { label: name, value: pop, text: `${((100 * pop) / listedPeople).toFixed((100 * pop) / listedPeople < 1 ? 2 : 1)}% · ${whole(pop)}`, color: flagColor(s.cc) ?? "#0ea5e9" },
+                        { label: `The other ${whole(listedPlaces - 1)} ${listedPlaces - 1 === 1 ? "place" : "places"}`, value: listedPeople - pop, text: `${((100 * (listedPeople - pop)) / listedPeople).toFixed((100 * pop) / listedPeople < 1 ? 2 : 1)}% · ${whole(listedPeople - pop)}`, color: "#94a3b8" },
+                      ]}
+                    />
+                    <ChartNote className="mt-2">
+                      Worked out here from GeoNames' own figures. It is a share of the people of the places GeoNames lists - those of more than 500 people - and not of everyone in{" "}
+                      {file.regions[p[4]] || s.name}.
+                    </ChartNote>
+                  </div>
+                )}
               </Part>
 
               {around && (
@@ -847,6 +889,8 @@ function PlaceWindow({
                 />
               </Part>
 
+              <PostalCodes entry={postal?.places?.[id]} cc={s.cc} name={name} how="place" />
+
               {(ages || women) && (
 
                 <Part
@@ -868,7 +912,7 @@ function PlaceWindow({
                         <ChartTitle>
                           Women and men · % of people · {country}, {women.y}
                         </ChartTitle>
-                        <PartsBar
+                        <PartsDonut
                           label={`The people of ${country} by sex, ${women.y}`}
                           parts={[
                             { label: "Women", value: women.v, text: `${women.v}%`, color: "#ec4899" },
@@ -945,7 +989,7 @@ function PlaceWindow({
               {un && (
                 <Part title="🏙 As a city the United Nations counts"
  note="The UN draws a city by where people live close together, not by its boundary, so its figure differs from the place's own.">
-                  <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+                  <div className="tile-fill gap-3">
                     <Tile label={`Population, ${un.years[2]}`} value={whole(un.city[8])} sub="the UN's last estimate" />
                     {un.city[9] !== null && <Tile label={`Projected, ${un.years[3]}`} value={whole(un.city[9])} sub="the UN's projection" />}
                     <Tile label="Among the UN's cities" value={`#${un.rank.toLocaleString("en-US")}`} sub={`of ${un.of.toLocaleString("en-US")}`} />
@@ -960,7 +1004,7 @@ function PlaceWindow({
 
               {county && cPop && (
                 <Part title={`🗺 Its county · ${county.row[1]}`} note="The Census Bureau's figures for the county the place is in, not for the place.">
-                  <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+                  <div className="tile-fill gap-3">
                     <Tile label="People in the county" value={whole(cPop[cPop.length - 1])} sub={`1 July ${county.years[county.years.length - 1]}`} />
                     {cChange !== null && <Tile label={`Since ${county.years[0]}`} value={signed(cChange)} sub="worked out here from the two figures" />}
                     {county.row[5] !== null && <Tile label="Land area" value={`${whole(county.row[5])} km²`} sub="the county's" />}
@@ -970,6 +1014,8 @@ function PlaceWindow({
                   </button>
                 </Part>
               )}
+
+              <PlaceIndexes code={s.cc} country={country} place={name} />
 
               <Suspense fallback={<p className="text-xs font-sans text-muted-foreground">Loading {country}'s figures…</p>}>
                 <CountryQuality code={s.cc} country={country} place={name} />
@@ -1045,7 +1091,7 @@ function PlaceWindow({
               <div className="rounded-xl overflow-hidden border border-border" style={{ height: 320 }}>
                 <iframe title={`Map of ${name}`} width="100%" height="100%" style={{ border: 0 }} loading="lazy" referrerPolicy="no-referrer-when-downgrade" src={`https://maps.google.com/maps?q=${lat},${lon}&z=12&output=embed`} />
               </div>
-              <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+              <div className="tile-fill gap-3">
                 <Tile label="Coordinates" value={coords(lat, lon)} />
                 {district && <Tile label="County or district" value={district} />}
                 <Tile label="Division" value={s.name} />

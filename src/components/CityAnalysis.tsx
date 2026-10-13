@@ -26,7 +26,7 @@ import { useEffect, useMemo, useState, type ReactNode } from "react";
 import { Area, Bar, BarChart, CartesianGrid, Cell, ComposedChart, Line, LineChart, ReferenceLine, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
 import { countriesData } from "../data/countriesData";
 import { UN_CITIES, UN_CITIES_SOURCE, type UnCity } from "../data/unCities";
-import { ChartNote, ChartTitle, FigureRow, MeasureBars } from "./ModalCharts";
+import { ChartNote, ChartTitle, FigureRow, MeasureBars, PartsDonut } from "./ModalCharts";
 import { SourceLink } from "./SourceLink";
 
 type Series = { p: (number | null)[]; a: (number | null)[]; b: (number | null)[]; q: (0 | 1 | 2 | null)[] };
@@ -131,7 +131,7 @@ export default function CityAnalysis({ c, color, fallback }: { c: UnCity; color:
   return (
     <>
       <Section title={`🏙 ${name} in figures · ${base}`} note={`The United Nations' own figures for the city in ${base}, and what follows from them.`}>
-        <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+        <div className="tile-fill gap-3">
           <Tile label="People" value={whole(now)} sub={`UN estimate, ${base}${s.q[i0] !== null ? ` · rated ${RATING[s.q[i0]!].toLowerCase()} for plausibility by the UN` : ""}`} />
           {area !== null && <Tile label="Land area" value={`${area < 100 ? area.toFixed(1) : whole(area)} km²`} sub={`the ground the UN counts as the city, ${base}`} />}
           {area !== null && area > 0 && <Tile label="People to a km²" value={whole(now / area)} sub="its people over its land · worked out here" />}
@@ -193,7 +193,24 @@ export default function CityAnalysis({ c, color, fallback }: { c: UnCity; color:
 
       {rows.some((r) => r.a !== null) && (
         <Section title="🏗 Its land, and what is built on it" note={`The ground the UN counts as the city and the part of it that is built on, every fifth year; to the right of the line are projections. People to a km² is its people over that ground, worked out here.`}>
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <div className="chart-fill">
+            {/* What is built on and what is not: the two parts of its land, as a ring, for the year of its last estimate. */}
+            {area !== null && built !== null && built > 0 && built < area && (
+              <div className="modal-tile rounded-lg p-4">
+                <ChartTitle>Its land, built on and open · km² · {base}</ChartTitle>
+                <PartsDonut
+                  label={`The land of ${name} in ${base}, built on and open`}
+                  parts={[
+                    { label: "Built-up land", value: built, text: `${((100 * built) / area).toFixed(0)}%`, color },
+                    { label: "Not built on", value: area - built, text: `${((100 * (area - built)) / area).toFixed(0)}%`, color: "#84cc16" },
+                  ]}
+                />
+                <ChartNote className="mt-2">
+                  {built < 100 ? built.toFixed(1) : whole(built)} km² built on, of {area < 100 ? area.toFixed(1) : whole(area)} km². The land not built on is the one less the other, worked out here
+                  from the UN's two figures.
+                </ChartNote>
+              </div>
+            )}
             <div className="modal-tile rounded-lg p-4">
               <ChartTitle>Land area and built-up land · km²</ChartTitle>
               <ResponsiveContainer width="100%" height={160}>
@@ -237,7 +254,26 @@ export default function CityAnalysis({ c, color, fallback }: { c: UnCity; color:
           {standing.denseAt > 0 && <FigureRow label={`By people to a km², in ${land}`} value={`${nth(standing.denseAt)} of ${standing.dense.length.toLocaleString("en-US")}`} sub="the most crowded first" />}
           {standing.wideAt > 0 && <FigureRow label={`By land area, in ${land}`} value={`${nth(standing.wideAt)} of ${standing.wide.length.toLocaleString("en-US")}`} sub="the widest first" />}
         </div>
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mt-2">
+        <div className="chart-fill mt-2">
+          {/* Its people among those of all its country's cities: a whole and its part, both the UN's for the same year. */}
+          {standing.own.length > 1 && standing.sum > now && (
+            <div className="modal-tile rounded-xl p-4">
+              <ChartTitle>
+                Of the people in {land}
+                {land.endsWith("s") ? "'" : "'s"} {standing.own.length.toLocaleString("en-US")} cities · {base}
+              </ChartTitle>
+              <PartsDonut
+                label={`${name}'s share of the people in ${land}${land.endsWith("s") ? "'" : "'s"} cities, as the UN counts them, ${base}`}
+                parts={[
+                  { label: name, value: now, text: `${((100 * now) / standing.sum).toFixed((100 * now) / standing.sum < 1 ? 2 : 1)}%`, color },
+                  { label: `The other ${(standing.own.length - 1).toLocaleString("en-US")}`, value: standing.sum - now, text: `${((100 * (standing.sum - now)) / standing.sum).toFixed((100 * now) / standing.sum < 1 ? 2 : 1)}%`, color: "#94a3b8" },
+                ]}
+              />
+              <ChartNote className="mt-2">
+                {people(now)} of the {people(standing.sum)} people in them, both the UN's for {base}; the share is worked out here.
+              </ChartNote>
+            </div>
+          )}
           <div className="modal-tile rounded-xl p-4">
             <ChartTitle>
               Beside {land}'s largest cities · people, {base}
