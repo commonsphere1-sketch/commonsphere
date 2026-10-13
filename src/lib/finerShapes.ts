@@ -17,7 +17,7 @@
  */
 import { useEffect, useState } from "react";
 import { geoArea } from "d3-geo";
-import { feature } from "topojson-client";
+import { feature, mesh } from "topojson-client";
 import type { Topology } from "topojson-specification";
 import type { PlacesFile } from "../data/placesIndex";
 import { loadAdmin2 } from "./admin2";
@@ -47,6 +47,12 @@ function rewind(f: FinerGeo): FinerGeo {
   return f;
 }
 
+/* A country's first-order borders, cut from its second order: the lines between two districts of different divisions.
+   Kept when the districts are fetched, for a map that draws them to draw the states' borders from the same tracing. */
+const FIRSTS = new Map<string, unknown>();
+/** A country's first-order borders from its districts' own tracing, once its districts are in: undefined until then, or where it has none. */
+export const firstBorders = (code: string): unknown | undefined => FIRSTS.get(code);
+
 const FILES = new Map<string, Promise<Finer[]>>();
 /** A country's divisions of one order: an empty list where none are held. */
 export function loadFiner(code: string, order: 1 | 2): Promise<Finer[]> {
@@ -65,12 +71,19 @@ export function loadFiner(code: string, order: 1 | 2): Promise<Finer[]> {
           ? import("us-atlas/counties-10m.json").then((m) => {
               const topo = (m.default ?? m) as unknown as Topology;
               const states = new Map((feature(topo, topo.objects.states) as unknown as { features: FinerGeo[] }).features.map((s) => [String(s.id), s.properties.name]));
+              const stateOf = (g: unknown) => String((g as { id?: string | number }).id).padStart(5, "0").slice(0, 2);
+              FIRSTS.set(code, mesh(topo, topo.objects.counties as never, (a, b) => a !== b && stateOf(a) !== stateOf(b)));
               return (feature(topo, topo.objects.counties) as unknown as { features: FinerGeo[] }).features.map((f, index): Finer => {
                 const fips = String(f.id).padStart(5, "0");
                 return { code, order, name: f.properties.name ?? "", parent: states.get(fips.slice(0, 2)), index, fips, geo: rewind(f) };
               });
             })
-          : loadAdmin2(code).then((file) => (file ? file.shapes.map((s, index): Finer => ({ code, order, name: s.properties.n, parent: s.properties.p, index, geo: s as unknown as FinerGeo })) : []));
+          : loadAdmin2(code).then((file) => {
+              if (!file) return [];
+              const parent = (g: unknown) => (g as { properties?: { p?: string } }).properties?.p ?? g;
+              FIRSTS.set(code, mesh(file.topo, file.topo.objects.a as never, (a, b) => a !== b && parent(a) !== parent(b)));
+              return file.shapes.map((s, index): Finer => ({ code, order, name: s.properties.n, parent: s.properties.p, index, geo: s as unknown as FinerGeo }));
+            });
     FILES.set(
       key,
       got.catch(() => []),

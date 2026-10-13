@@ -15,6 +15,13 @@
  * (static/geo/admin2/manifest.json), and the US Census Bureau's cartographic
  * boundary files through us-atlas for the United States.
  *
+ * Each country has two sets of lines, told apart by `o`: 2, the borders
+ * between two second-order divisions of the same first-order one; 1, those
+ * between two of different first-order ones - which are the first-order
+ * borders themselves, from this tracing. A map that draws the counties can
+ * so draw the states' borders from the same lines, and the two meet; drawn
+ * from Natural Earth's, they ran beside the counties' and did not.
+ *
  * Simplification is Douglas-Peucker at TOLERANCE degrees, from
  * geo-simplify.cjs. A line that simplifies to nothing is left out.
  *
@@ -33,27 +40,36 @@ const TOLERANCE = 0.03;
 const features = [];
 let before = 0;
 let after = 0;
-const add = (code, topo, obj) => {
-  const lines = mesh(topo, obj, (a, b) => a !== b).coordinates;
-  if (!lines.length) return;
-  before += lines.reduce((n, l) => n + l.length, 0);
-  const simplified = lines.map((l) => simplify(l, TOLERANCE)).filter((l) => l.length > 1);
-  after += simplified.reduce((n, l) => n + l.length, 0);
-  if (simplified.length) features.push({ type: "Feature", properties: { c: code }, geometry: { type: "MultiLineString", coordinates: simplified } });
+const add = (code, topo, obj, parent) => {
+  let any = false;
+  for (const o of [1, 2]) {
+    const lines = mesh(topo, obj, (a, b) => a !== b && (parent(a) === parent(b)) === (o === 2)).coordinates;
+    if (!lines.length) continue;
+    before += lines.reduce((n, l) => n + l.length, 0);
+    const simplified = lines.map((l) => simplify(l, TOLERANCE)).filter((l) => l.length > 1);
+    after += simplified.reduce((n, l) => n + l.length, 0);
+    if (!simplified.length) continue;
+    features.push({ type: "Feature", properties: { c: code, o }, geometry: { type: "MultiLineString", coordinates: simplified } });
+    any = true;
+  }
+  if (any) countries++;
 };
+let countries = 0;
 
 for (const file of fs.readdirSync(SRC).sort()) {
   if (!/^[A-Z]{2}\.json$/.test(file)) continue; // the manifest is not geometry
   const topo = JSON.parse(fs.readFileSync(path.join(SRC, file), "utf8"));
-  add(file.replace(/\.json$/, ""), topo, topo.objects[Object.keys(topo.objects)[0]]);
+  // The first-order division a district lies in is with it in the file; one that names none is its own.
+  add(file.replace(/\.json$/, ""), topo, topo.objects[Object.keys(topo.objects)[0]], (g) => g.properties?.p ?? g);
 }
 // The United States' counties, which are not among those files: the site draws them from us-atlas.
 {
   const topo = require("us-atlas/counties-10m.json");
-  add("US", topo, topo.objects.counties);
+  // A county's state is the first two digits of its code.
+  add("US", topo, topo.objects.counties, (g) => String(g.id).padStart(5, "0").slice(0, 2));
 }
-if (features.length < 150) throw new Error(`only ${features.length} countries have finer borders`);
+if (countries < 150) throw new Error(`only ${countries} countries have finer borders`);
 
 const topo = topology({ b: { type: "FeatureCollection", features } }, 1e5);
 fs.writeFileSync(OUT, JSON.stringify(topo));
-console.log(`${features.length} countries with finer borders; ${before} -> ${after} points; ${(fs.statSync(OUT).size / 1024).toFixed(0)} KB written to ${path.relative(__dirname, OUT)}`);
+console.log(`${countries} countries with finer borders; ${before} -> ${after} points; ${(fs.statSync(OUT).size / 1024).toFixed(0)} KB written to ${path.relative(__dirname, OUT)}`);

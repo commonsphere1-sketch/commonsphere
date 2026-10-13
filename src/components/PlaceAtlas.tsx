@@ -100,7 +100,7 @@ import { countryForFeature, stateForFeature } from "../data/mapJoin";
 import { SUBNATION_FLAG_COLOR } from "../data/subnationFlagColors";
 import { ADMIN2_SOURCE, useAdmin2, useAdmin2Manifest } from "../lib/admin2";
 import { flagColor, seen, shade } from "../lib/flagColor";
-import { inView, useFiner, usePlacesOf, type Bounds, type Finer } from "../lib/finerShapes";
+import { firstBorders, inView, useFiner, usePlacesOf, type Bounds, type Finer } from "../lib/finerShapes";
 import { COUNTRY_LIVING, LIVING_DARK, LIVING_LIGHT, STATE_LIVING, UNSCORED, sixths, stepOf } from "../lib/livingScore";
 import type { PlaceRow } from "../data/placesIndex";
 import { Card, Go, Head } from "./DashboardCitiesSectors";
@@ -393,7 +393,20 @@ export default function PlaceAtlas() {
   }, [wantStates, wantCountyLines]);
   const worldPath = useMemo(() => geoPath(WORLD_PROJECTION), []);
   const stateLinesD = useMemo(() => (stateLines ? (worldPath(stateLines as never) ?? "") : ""), [stateLines, worldPath]);
-  const countyLinesD = useMemo(() => (countyLines ? (worldPath(countyLines as never) ?? "") : ""), [countyLines, worldPath]);
+  /* The file of the districts' lines holds two sets a country: the borders between districts of one division, and those
+     between its divisions - the states' borders from the districts' own tracing. Once the map is close enough for the
+     districts, a country's states' borders are drawn from that set, so that they meet the districts', and Natural
+     Earth's are kept only for the countries that have no districts held. */
+  const countySets = useMemo(() => {
+    const features = (countyLines as { features?: { properties: { c: string; o: 1 | 2 } }[] } | null)?.features ?? [];
+    const of = (o: 1 | 2) => worldPath({ type: "FeatureCollection", features: features.filter((f) => f.properties.o === o) } as never) ?? "";
+    return { inner: features.length ? of(2) : "", first: features.length ? of(1) : "", held: new Set(features.map((f) => f.properties.c)) };
+  }, [countyLines, worldPath]);
+  const countyLinesD = countySets.inner;
+  const stateLinesRestD = useMemo(() => {
+    const features = (stateLines as { features?: { properties: { c: string } }[] } | null)?.features ?? [];
+    return features.length && countySets.held.size ? (worldPath({ type: "FeatureCollection", features: features.filter((f) => !countySets.held.has(f.properties.c)) } as never) ?? "") : "";
+  }, [stateLines, countySets, worldPath]);
   /** The world's countries as they are drawn: from the finer tracing once the map is close enough for the coarser to show its corners. */
   const worldDrawn = onWorld && view.k >= FINER_FROM && fineWorld ? fineWorld : WORLD;
 
@@ -705,6 +718,24 @@ export default function PlaceAtlas() {
     return dots.filter((d) => Math.abs(d.x - view.x) <= hw && Math.abs(d.y - view.y) <= hh);
   }, [dots, view]);
   const onCities = pick === "city";
+
+  /* Where the counties themselves are the shapes, the states' borders over them are cut from the very file the shapes
+     are from - not the lighter file of lines above - so that at any closeness they lie on the counties' own edges. */
+  const firstsBuilt = useRef(new Map<string, string>());
+  const exactFirstsD = useMemo(() => {
+    if (order !== 2) return "";
+    let d = "";
+    for (const c of viewCodes) {
+      if (!finer.get(c)?.length) continue;
+      if (!firstsBuilt.current.has(c)) {
+        const g = firstBorders(c);
+        if (!g) continue;
+        firstsBuilt.current.set(c, worldPath(g as never) ?? "");
+      }
+      d += firstsBuilt.current.get(c);
+    }
+    return d;
+  }, [order, viewCodes, finer, worldPath]);
 
   /** The same places by name, for the list: at the world, every country the site holds. */
   const listed: { key: string; name: string; go: () => void; ref: Ref }[] = onCities || onTowns
@@ -1129,8 +1160,13 @@ export default function PlaceAtlas() {
               <path d={lines} fill="none" stroke={bold ? countryInk(code) : inner} strokeOpacity={bold ? 1 : 0.3} strokeWidth={bold ? 1.4 : 0.45} vectorEffect="non-scaling-stroke" strokeLinejoin="round" pointerEvents="none" />
             )}
             {/* The world, drawn closer: the borders of its states and provinces, and closer still those of its counties and districts - fainter than the countries' own, clearer the closer the map is, and never pressed. */}
+            {/* Natural Earth's states' borders: for every country until the map is close enough for the districts, and after that only for the countries with no districts held. */}
             {onWorld && stateLinesD && view.k >= STATES_FROM && order !== 1 && (
-              <path d={stateLinesD} fill="none" stroke={inner} strokeOpacity={Math.min(0.5, 0.16 + 0.04 * view.k)} strokeWidth={0.6} vectorEffect="non-scaling-stroke" strokeLinejoin="round" pointerEvents="none" />
+              <path d={view.k >= COUNTIES_FROM && stateLinesRestD ? stateLinesRestD : stateLinesD} fill="none" stroke={inner} strokeOpacity={Math.min(0.5, 0.16 + 0.04 * view.k)} strokeWidth={0.6} vectorEffect="non-scaling-stroke" strokeLinejoin="round" pointerEvents="none" />
+            )}
+            {/* The states' borders from the districts' own tracing, once the districts are drawn: from the very shapes where the counties are the shapes, and from the file of lines otherwise. */}
+            {onWorld && view.k >= COUNTIES_FROM && order !== 1 && (order === 2 ? exactFirstsD : countySets.first) && (
+              <path d={order === 2 ? exactFirstsD : countySets.first} fill="none" stroke={inner} strokeOpacity={Math.min(0.7, 0.3 + 0.03 * view.k)} strokeWidth={0.9} vectorEffect="non-scaling-stroke" strokeLinejoin="round" pointerEvents="none" />
             )}
             {onWorld && countyLinesD && view.k >= COUNTIES_FROM && order !== 2 && (
               <path d={countyLinesD} fill="none" stroke={inner} strokeOpacity={Math.min(0.4, 0.1 + 0.02 * view.k)} strokeWidth={0.35} vectorEffect="non-scaling-stroke" strokeLinejoin="round" pointerEvents="none" />

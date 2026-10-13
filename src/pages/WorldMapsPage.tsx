@@ -2387,7 +2387,7 @@ export function WorldMapsPage() {
   /* The world map's finer borders - counties and districts - a country at a time, for every country the site holds them
      for. They come in as the map is drawn closer, as on the Dashboard's map, and are fetched a little before that: at the
      whole world's scale they are finer than a pixel and only cloud it. */
-  const [admin2Borders, setAdmin2Borders] = useState<{ features: { properties: { c: string } }[] } | null>(null);
+  const [admin2Borders, setAdmin2Borders] = useState<{ features: { properties: { c: string; o: 1 | 2 } }[] } | null>(null);
   const wantCountyBorders = worldZoom.zoom >= COUNTIES_FROM * 0.8 && !admin2Borders;
   useEffect(() => {
     if (!wantCountyBorders) return;
@@ -2395,7 +2395,7 @@ export function WorldMapsPage() {
     fetch(ADMIN2_BORDERS_URL)
       .then((r) => (r.ok ? r.json() : Promise.reject(new Error(String(r.status)))))
       .then((topo: Topology) => {
-        if (!cancelled) setAdmin2Borders(feature(topo, topo.objects.b as never) as unknown as { features: { properties: { c: string } }[] });
+        if (!cancelled) setAdmin2Borders(feature(topo, topo.objects.b as never) as unknown as { features: { properties: { c: string; o: 1 | 2 } }[] });
       })
       .catch(() => {
         // The states' borders and the countries' own still draw.
@@ -2408,10 +2408,13 @@ export function WorldMapsPage() {
     () =>
       (admin2Borders?.features ?? []).flatMap((f) => {
         const d = worldPath.path(f as never);
-        return d ? [{ c: f.properties.c, d }] : [];
+        return d ? [{ c: f.properties.c, o: f.properties.o, d }] : [];
       }),
     [admin2Borders, worldPath],
   );
+  /* The countries whose districts are held: once the map is close enough for them, those countries' states' borders are
+     drawn from the districts' own tracing, so that the two meet, and Natural Earth's are left out for them. */
+  const withDistricts = useMemo(() => new Set(admin2Lines.map((l) => l.c)), [admin2Lines]);
 
   /* Drawn closer, the world is pointed at by smaller places, as the Dashboard's map is: the states and provinces of the
      countries in view, then their counties and districts (their states, where none are held). They are fetched a
@@ -3910,10 +3913,17 @@ export function WorldMapsPage() {
             </defs>
             <g clipPath="url(#clip-world-land)" fill="none" strokeLinejoin="round" pointerEvents="none">
               {worldZoom.zoom >= COUNTIES_FROM &&
-                admin2Lines.map((l) => <path key={l.c} d={l.d} stroke={worldInk(l.c)} strokeOpacity={Math.min(0.8, 0.35 + 0.04 * worldZoom.zoom)} strokeWidth={0.28 / worldZoom.zoom} />)}
-              {admin1Lines.map((l) => (
-                <path key={l.c} d={l.d} stroke={worldInk(l.c)} strokeOpacity={0.75} strokeWidth={0.42 / worldZoom.zoom} />
-              ))}
+                admin2Lines.map((l) =>
+                  l.o === 2 ? (
+                    <path key={`${l.c}-2`} d={l.d} stroke={worldInk(l.c)} strokeOpacity={Math.min(0.8, 0.35 + 0.04 * worldZoom.zoom)} strokeWidth={0.28 / worldZoom.zoom} />
+                  ) : (
+                    // The states' borders from the counties' own tracing: the same weight as Natural Earth's, which they stand in for.
+                    <path key={`${l.c}-1`} d={l.d} stroke={worldInk(l.c)} strokeOpacity={0.8} strokeWidth={0.46 / worldZoom.zoom} />
+                  ),
+                )}
+              {admin1Lines.map((l) =>
+                worldZoom.zoom >= COUNTIES_FROM && withDistricts.has(l.c) ? null : <path key={l.c} d={l.d} stroke={worldInk(l.c)} strokeOpacity={0.75} strokeWidth={0.42 / worldZoom.zoom} />,
+              )}
             </g>
 
             {/* The place picked out: filled in its own colour over the shading
