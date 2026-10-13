@@ -78,6 +78,14 @@ export const DATA_LOG: DataLogEntry[] = [
     "files": 1
   },
   {
+    "what": "The state of the world's fresh water, forests, wildfires and coral reefs",
+    "from": "World Bank, Global Forest Watch, GWIS, NOAA",
+    "page": "/dashboard/planetary-boundaries",
+    "where": "Climate",
+    "read": "2026-10-13",
+    "files": 1
+  },
+  {
     "what": "The year so far in each country: the dated events of Wikipedia's article for the year, each with the report it cites",
     "from": "Wikipedia",
     "page": "/dashboard/countries",
@@ -448,4 +456,4 @@ export const DATA_LOG: DataLogEntry[] = [
 ];
 
 /** How many data files the log covers. */
-export const DATA_LOG_FILES = 74;
+export const DATA_LOG_FILES = 75;

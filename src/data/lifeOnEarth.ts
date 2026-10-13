@@ -186,6 +186,6 @@ const ALL_LIFE_CARDS: FigureCard[] = [
   },
 ];
 
-/** Taken off the page as asked: Species named by science, and Species lost. They are kept above, with their sources, and not shown. */
-const OFF_THE_PAGE = new Set(["species-found", "species-lost"]);
+/** Taken off the page as asked: Species named by science, Species lost, and Ecosystems recovering and dying. They are kept above, with their sources, and not shown. */
+const OFF_THE_PAGE = new Set(["species-found", "species-lost", "ecosystems"]);
 export const LIFE_CARDS: FigureCard[] = ALL_LIFE_CARDS.filter((c) => !OFF_THE_PAGE.has(c.id));

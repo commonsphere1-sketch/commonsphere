@@ -1,11 +1,7 @@
 import React, { useState } from "react";
 import { useTheme } from "../contexts/ThemeContext";
 import { HeadlinesBanner, SUBJECT } from "../components/HeadlinesBanner";
-import {
-  CLIMATE_INDICATORS,
-  CLIMATE_RETRIEVED,
-  type ClimateIndicator,
-} from "../data/climateIndicators";
+import { CLIMATE_INDICATORS } from "../data/climateIndicators";
 import {
   BOUNDARIES,
   PHC_2026,
@@ -15,16 +11,15 @@ import {
   type PlanetaryBoundary,
   type Zone,
 } from "../data/planetaryBoundaries";
-import { FLASHPOINTS, TIPPING_POINTS, TREATIES, TREATIES_CHECKED, type ContextItem } from "../data/climateContext";
-import { FIGURE_CARDS, type FigureCard } from "../data/climateFigures";
+import type { FigureCard } from "../data/climateFigures";
 import { LIFE_CARDS, LIFE_CHECKED } from "../data/lifeOnEarth";
 import { EndangeredSpeciesList, NewSpeciesList } from "../components/SpeciesLists";
 import ClimateNowExplorer from "../components/ClimateNowExplorer";
 import ClimateWatch from "../components/ClimateWatch";
+import EarthStatus from "../components/EarthStatus";
 import {
   Leaf,
   Info,
-  Globe,
   Drop,
   Wind,
   Atom,
@@ -32,7 +27,6 @@ import {
   Tree,
   CloudSlash,
   Flask,
-  CaretDown,
 } from "@phosphor-icons/react";
 
 /* ─── Zones, as the Planetary Health Check names them ───────────────────── */
@@ -510,15 +504,6 @@ export function PlanetaryBoundariesPage() {
   const { theme } = useTheme();
   const isLight = theme === "light";
   const [selectedId, setSelectedId] = useState<string>("climate");
-  const [expandedNotes, setExpandedNotes] = useState<Set<string>>(new Set());
-
-  const toggleNote = (key: string) =>
-    setExpandedNotes((prev) => {
-      const next = new Set(prev);
-      if (next.has(key)) next.delete(key);
-      else next.add(key);
-      return next;
-    });
 
   const mutedText = isLight ? "rgba(30,41,59,0.64)" : "rgba(255,255,255,0.66)";
   const headText = isLight ? "#0f172a" : "#f1f0ff";
@@ -739,85 +724,10 @@ export function PlanetaryBoundariesPage() {
           </div>
         </div>
 
-        {/* ── CONTEXT: tipping points, treaties, flashpoints ──────────────
-            Each item says what its source says; open it for the detail and
-            the links. See data/climateContext.ts for what was removed. */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
-          {(
-            [
-              { title: "Tipping Points & Cascades", items: TIPPING_POINTS, note: null },
-              { title: "International Treaties & Gaps", items: TREATIES, note: `Party counts: UN Treaty Collection, ${TREATIES_CHECKED}` },
-              { title: "Ecological Security Flashpoints", items: FLASHPOINTS, note: null },
-            ] as { title: string; items: ContextItem[]; note: string | null }[]
-          ).map((section) => (
-            <div key={section.title} className="bg-card border border-border rounded-2xl p-5">
-              <p className="text-[10px] font-mono uppercase tracking-widest mb-3" style={{ color: mutedText }}>
-                {section.title}
-              </p>
-              <div className="flex flex-col gap-0">
-                {section.items.map((item, i) => {
-                  const open = expandedNotes.has(item.id);
-                  return (
-                    <div
-                      key={item.id}
-                      className="py-2.5"
-                      style={{ borderBottom: i < section.items.length - 1 ? `1px solid ${gridLine}` : "none" }}
-                    >
-                      <button
-                        onClick={() => toggleNote(item.id)}
-                        aria-expanded={open}
-                        className="flex items-start gap-2.5 w-full text-left hover:opacity-80 transition-opacity"
-                      >
-                        <div className="w-1.5 h-1.5 rounded-full shrink-0 mt-1.5" style={{ background: item.color }} />
-                        <div className="flex-1 min-w-0">
-                          <p className="text-[11px] font-semibold font-sans" style={{ color: headText }}>
-                            {item.label}
-                          </p>
-                          <p className="text-[10px] font-sans" style={{ color: mutedText }}>
-                            {item.val}
-                          </p>
-                        </div>
-                        <CaretDown
-                          size={14}
-                          weight="fill"
-                          className="shrink-0 mt-0.5"
-                          style={{ color: item.color, transition: "transform 200ms ease", transform: open ? "rotate(180deg)" : "rotate(0deg)" }}
-                        />
-                      </button>
-                      {open && (
-                        <div
-                          className="mt-2.5 text-[10px] font-sans leading-relaxed rounded-lg px-3 py-2.5 animate-fade-in"
-                          style={{
-                            background: isLight ? "rgba(0,0,0,0.02)" : "rgba(255,255,255,0.03)",
-                            borderLeft: `3px solid ${item.color}`,
-                            color: mutedText,
-                          }}
-                        >
-                          <p>{item.summary}</p>
-                          <p className="mt-1.5">
-                            {item.sources.map((src, k) => (
-                              <span key={src.url}>
-                                {k > 0 && " · "}
-                                <a href={src.url} target="_blank" rel="noopener noreferrer" className="underline decoration-dotted hover:opacity-80">
-                                  {src.label}
-                                </a>
-                              </span>
-                            ))}
-                          </p>
-                        </div>
-                      )}
-                    </div>
-                  );
-                })}
-              </div>
-              {section.note && (
-                <p className="text-[9px] font-sans mt-3" style={{ color: mutedText }}>
-                  {section.note}
-                </p>
-              )}
-            </div>
-          ))}
-        </div>
+        {/* ── THE LIVING WORLD: its fresh water, its forests, its wildfires and its wildlife, each from the newest figures an open
+            source publishes. They stand where the cards of tipping points, treaties and flashpoints (data/climateContext.ts)
+            stood, which were taken off as asked. ── */}
+        <EarthStatus />
 
         {/* ── LIFE ON EARTH ────────────────────────────────────────────────
             Species found and lost, ecosystems recovering and dying, and what
@@ -840,130 +750,9 @@ export function PlanetaryBoundariesPage() {
           <EndangeredSpeciesList />
         </div>
 
-        {/* ── PUBLIC ENVIRONMENTAL DATA ────────────────────────────────────
-            Twelve cards of the figures people look up most, each from the
-            source it links to; see data/climateFigures.ts. */}
-        <div className="flex items-center gap-3 mb-4">
-          <Globe size={16} weight="fill" className="text-sky-500" />
-          <span className="text-[11px] font-mono uppercase tracking-widest text-sky-500">
-            Most Publicly Inquired Environmental Data
-          </span>
-          <div className="flex-1 h-px bg-border" />
-        </div>
-        {/* As many to a row as there is room for, each growing to fill it: a card taken off leaves no gap in the last row. */}
-        <div className="flex flex-wrap gap-6 mb-6">
-          {FIGURE_CARDS.map((card) => (
-            <div key={card.id} className="flex-[1_1_20rem] min-w-0 grid">
-              <FigureCardView card={card} isLight={isLight} headText={headText} mutedText={mutedText} gridLine={gridLine} />
-            </div>
-          ))}
-        </div>
+        {/* The cards of the most-asked environmental figures (data/climateFigures.ts) stood here and were taken off as asked. */}
 
-        {/* ── MEASURED NOW ──────────────────────────────────────────────
-            The readings the monitoring agencies publish, each with the month
-            it belongs to and the same measure ten years earlier. A figure like
-            "429 ppm" says nothing on its own about which way it is going.
-
-            It sits at the foot of the page, after the boundaries themselves:
-            it is the evidence underneath them, not the headline. As twelve
-            cards it ran to most of a screen, so it is a table now — one row
-            per reading, the numbers in columns that line up down the page
-            rather than restating "ppm" and "a decade earlier" twelve times. */}
-        <div className="bg-card border border-border rounded-2xl p-4 mb-6">
-          <div className="flex items-baseline justify-between gap-3 mb-3 flex-wrap">
-            <p className="text-[10px] font-mono uppercase tracking-widest text-muted-foreground">
-              Measured now — greenhouse gases, warming and ice
-            </p>
-            <p className="text-[10px] font-mono text-muted-foreground">
-              retrieved {CLIMATE_RETRIEVED}
-            </p>
-          </div>
-
-          <div className="overflow-x-auto">
-            <table className="w-full border-collapse">
-              <thead>
-                <tr className="border-b border-border/60">
-                  {["Reading", "Latest", "Period", "vs a decade earlier", "Source"].map(
-                    (h, i) => (
-                      <th
-                        key={h}
-                        className={`text-[9px] font-sans uppercase tracking-widest text-muted-foreground font-medium pb-1.5 ${
-                          i === 0 ? "text-left" : "text-right"
-                        }`}
-                      >
-                        {h}
-                      </th>
-                    ),
-                  )}
-                </tr>
-              </thead>
-              <tbody>
-                {CLIMATE_INDICATORS.map((ind: ClimateIndicator) => {
-                  const change =
-                    ind.decadeAgo === null ? null : ind.value - ind.decadeAgo;
-                  /* Less ice is the bad direction; for every other reading here
-                     it is more. The colour follows the measure, not the sign. */
-                  const worseWhenUp = ind.id !== "sea-ice";
-                  const worse =
-                    change === null ? null : worseWhenUp ? change > 0 : change < 0;
-                  return (
-                    <tr
-                      key={ind.id}
-                      className="border-b border-border/40 last:border-0 align-top"
-                    >
-                      <td className="py-2 pr-3">
-                        <p className="text-[11px] font-sans text-foreground leading-snug">
-                          {ind.label}
-                        </p>
-                        {ind.note && (
-                          <p className="text-[9px] font-sans text-muted-foreground leading-snug mt-0.5 max-w-prose">
-                            {ind.note}
-                          </p>
-                        )}
-                      </td>
-                      <td className="py-2 px-2 text-right whitespace-nowrap">
-                        <span className="text-sm font-bold font-mono text-foreground">
-                          {ind.value}
-                        </span>
-                        <span className="text-[10px] font-mono text-muted-foreground ml-1">
-                          {ind.unit}
-                        </span>
-                      </td>
-                      <td className="py-2 px-2 text-right whitespace-nowrap text-[10px] font-mono text-muted-foreground">
-                        {ind.period}
-                      </td>
-                      <td className="py-2 px-2 text-right whitespace-nowrap text-[10px] font-mono">
-                        {change === null ? (
-                          <span className="text-muted-foreground">—</span>
-                        ) : (
-                          <>
-                            <span className={worse ? "text-red-500" : "text-emerald-500"}>
-                              {change > 0 ? "+" : ""}
-                              {Math.abs(change) < 1
-                                ? change.toFixed(2)
-                                : change.toFixed(1)}
-                            </span>
-                            <span className="text-muted-foreground"> from {ind.decadeAgo}</span>
-                          </>
-                        )}
-                      </td>
-                      <td className="py-2 pl-2 text-right">
-                        <a
-                          href={ind.url}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="text-[9px] font-sans text-muted-foreground underline decoration-dotted hover:text-foreground"
-                        >
-                          {ind.source}
-                        </a>
-                      </td>
-                    </tr>
-                  );
-                })}
-              </tbody>
-            </table>
-          </div>
-        </div>
+        {/* The table of the agencies' latest readings stood here and was taken off as asked: the readings are in the explorer at the head of the page. */}
         {/* ── FOOTER ────────────────────────────────────────────────────── */}
         <div className="text-center py-3 border-t border-border mt-2">
           <p className="text-[11px] font-sans text-muted-foreground">

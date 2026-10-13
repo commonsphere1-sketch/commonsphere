@@ -86,6 +86,7 @@ const SETS = [
   { files: ["newSpecies.ts"], what: "Species described in the last three years, with what is known of each and where it was found", from: "Wikipedia, Wikidata", page: "/dashboard/planetary-boundaries", where: "Climate" },
   { files: ["namedEvents.ts"], what: "The deadliest natural disaster of each year by name, and where most died in armed conflict", from: "Wikipedia, NOAA, UCDP", page: "/dashboard/humanitarian", where: "Humanitarian" },
   { files: ["commute.ts"], what: "The journey to work: how long it takes, and how people make it", from: "Eurostat, US Census Bureau", page: "/dashboard/cities", where: "Cities" },
+  { files: ["earthStatus.ts"], what: "The state of the world's fresh water, forests, wildfires and coral reefs", from: "World Bank, Global Forest Watch, GWIS, NOAA", page: "/dashboard/planetary-boundaries", where: "Climate" },
   { files: ["climateWatch.ts"], what: "El Niño and La Niña, the records in the measured series, disasters by country, erosion, and projected warming by country", from: "NOAA, NASA GISS, NSIDC, IDMC, GDACS, World Bank", page: "/dashboard/planetary-boundaries", where: "Climate" },
   { files: ["climateIndicators.ts"], what: "The measured state of the climate", from: "NOAA, NASA GISS, NSIDC", page: "/dashboard/planetary-boundaries", where: "Climate" },
 ];
