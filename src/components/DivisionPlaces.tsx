@@ -58,6 +58,8 @@ import { ArticlePanel } from "./HistoryPanel";
 import { ChartNote, ChartTitle, FigureRow, MeasureBars, PartsBar, PartsDonut } from "./ModalCharts";
 import PostalCodes from "./PostalCodes";
 import PlaceIndexes from "./PlaceIndexes";
+import { CountryFigures, StateFigures } from "./ParentFigures";
+import { UniversityList } from "./UniversityList";
 import { usePlacePostal } from "../lib/placePostal";
 import { OutlineMap } from "./OutlineMap";
 import { SeeAlso } from "./SeeAlso";
@@ -956,24 +958,6 @@ function PlaceWindow({
                 <SourceLink sources={[{ label: "Natural Earth — 1:10m airports (public domain)", url: "https://www.naturalearthdata.com/downloads/10m-cultural-vectors/" }]} className="mt-2" />
               </Part>
 
-              <Part title="🎓 Colleges and universities" note={`Those among the ${schools.held} the site holds for ${stateRow ? s.name : country} whose description names ${name}. One that the description places elsewhere, or does not place, is not listed.`}>
-                {schools.here.length ? (
-                  <div className="modal-tile rounded-xl px-4 py-1.5">
-                    {schools.here.map((u) => (
-                      <div key={u.name} className="py-1.5 border-b border-border last:border-b-0">
-                        <a href={`https://en.wikipedia.org/wiki/${encodeURIComponent(u.wiki.replace(/ /g, "_"))}`} target="_blank" rel="noopener noreferrer" className="text-[11px] font-sans font-semibold text-foreground hover:underline">
-                          {u.name}
-                        </a>
-                        <p className="text-[10px] font-mono text-muted-foreground leading-snug">{[u.about, u.founded ? `founded ${u.founded}` : null].filter(Boolean).join(" · ")}</p>
-                      </div>
-                    ))}
-                  </div>
-                ) : (
-                  <p className="text-[11px] font-sans text-muted-foreground">None of them is described as being in {name}.</p>
-                )}
-                <SourceLink sources={[stateRow ? { label: STATE_UNIVERSITIES_SOURCE.label, url: STATE_UNIVERSITIES_SOURCE.url } : { label: UNIVERSITIES_SOURCE.label, url: UNIVERSITIES_SOURCE.url }]} className="mt-2" />
-              </Part>
-
               {neighbours.length > 0 && (
                 <Part title="🏘 Places nearby" note="The nearest other places in GeoNames' list, with the straight-line distance worked out here. Each opens its own window.">
                   <div className="flex flex-wrap gap-1.5">
@@ -1014,6 +998,46 @@ function PlaceWindow({
                   </button>
                 </Part>
               )}
+
+              {/* Its colleges and universities, drawn as a state's window draws its own - a card with its mark, each school a row that opens - and set at the foot of what is the place's own, as asked. */}
+              <div className="modal-tile rounded-lg p-4">
+                <div className="flex items-center gap-2 mb-4">
+                  <div className="p-1.5 bg-indigo-500/10 rounded-md border border-indigo-500/20 shrink-0">
+                    <span className="text-indigo-400 flex items-center">
+                      <svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor" aria-hidden>
+                        <path d="M12 3L1 9l11 6 9-4.91V17h2V9L12 3zM5 13.18v4L12 21l7-3.82v-4L12 17l-7-3.82z" />
+                      </svg>
+                    </span>
+                  </div>
+                  <div>
+                    <h3 className="text-xs font-bold font-sans text-foreground uppercase tracking-widest">Colleges and universities</h3>
+                    <p className="text-[10px] text-muted-foreground font-sans mt-0.5">
+                      Those among the {schools.held} the site holds for {stateRow ? s.name : inSentence(country)} whose description names {name}
+                    </p>
+                  </div>
+                </div>
+                {schools.here.length ? (
+                  <div className="mb-3">
+                    <ChartTitle>
+                      {schools.here.length} in {name} · open one for what it is about and known for
+                    </ChartTitle>
+                    <UniversityList list={schools.here} />
+                    <ChartNote className="mt-3">
+                      What each is and the year it was founded are Wikidata's; what it is known for is the opening of its Wikipedia article, fetched when its row is opened. One that
+                      the description places elsewhere, or does not place, is not listed.
+                    </ChartNote>
+                  </div>
+                ) : (
+                  <p className="text-[11px] font-sans text-muted-foreground leading-snug">
+                    None of them is described as being in {name}. One that the description places elsewhere, or does not place, is not listed.
+                  </p>
+                )}
+                <SourceLink sources={[stateRow ? { label: STATE_UNIVERSITIES_SOURCE.label, url: STATE_UNIVERSITIES_SOURCE.url } : { label: UNIVERSITIES_SOURCE.label, url: UNIVERSITIES_SOURCE.url }]} className="mt-2" />
+              </div>
+
+              {/* The headline figures its state's and its country's own windows open on: theirs, and said to be. */}
+              {stateRow && <StateFigures stateId={stateRow.id} name={s.name} place={name} />}
+              <CountryFigures code={s.cc} country={country} place={name} />
 
               <PlaceIndexes code={s.cc} country={country} place={name} />
 
