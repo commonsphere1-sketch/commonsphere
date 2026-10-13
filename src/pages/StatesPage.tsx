@@ -23,7 +23,7 @@ import { usStatesData, type USState } from "../data/statesData";
 import { STATE_INDICATORS, STATE_SOURCES } from "../data/stateIndicators";
 import { STATE_UNIVERSITIES, STATE_UNIVERSITIES_SOURCE } from "../data/stateUniversities";
 import { UniversityList } from "../components/UniversityList";
-import { OfficialsExplorer } from "../components/OfficialsExplorer";
+import { OfficialsExplorer, officialOf } from "../components/OfficialsExplorer";
 import { UpcomingStates } from "@/components/UpcomingStates";
 import { useLiveData } from "../hooks/useLiveData";
 import { SourceLink } from "../components/SourceLink";
@@ -6004,13 +6004,35 @@ function StateMapTab({ state }: { state: USState }) {
 // ─── Modal ───────────────────────────────────────────────────────────────────
 type ModalTab = "overview" | "map" | "laws" | "politics" | "history";
 
+/** One of a state's office-holders, as a tile of its window names them. */
+type Holder = { kind: "governor" | "senator" | "representative"; name: string; district?: string };
+
 function StateModal({
   state,
   onClose,
+  onOfficial,
 }: {
   state: USState;
   onClose: () => void;
+  /** Opens one of its office-holders in the page's list of elected officials. */
+  onOfficial?: (who: Holder) => void;
 }) {
+  /* What makes a tile of an office-holder a way through to that person in the list: a press, or Enter or Space on it. */
+  const opens = (who: Holder) =>
+    onOfficial
+      ? {
+          role: "button" as const,
+          tabIndex: 0,
+          title: `Open ${who.name} in the list of elected officials`,
+          onClick: () => onOfficial(who),
+          onKeyDown: (e: React.KeyboardEvent) => {
+            if (e.key !== "Enter" && e.key !== " ") return;
+            e.preventDefault();
+            onOfficial(who);
+          },
+        }
+      : {};
+  const pressable = onOfficial ? " cursor-pointer transition-colors hover:border-secondary/40" : "";
   const [activeTab, setActiveTab] = useState<ModalTab>("overview");
   const [isExpanded, setIsExpanded] = useState(false);
   const watch = useWatchlist();
@@ -6320,7 +6342,7 @@ function StateModal({
                 <WindowGroup title="Government & representatives">
                   {/* Governor / Statehood */}
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mt-4">
-                    <div className="modal-tile rounded-lg p-4">
+                    <div className={`modal-tile rounded-lg p-4${pressable}`} {...opens({ kind: "governor", name: state.governor })}>
                       <p className="text-xs text-muted-foreground font-sans mb-1">
                         Governor
                       </p>
@@ -6364,7 +6386,8 @@ function StateModal({
                         {state.senators.map((sen, i) => (
                           <div
                             key={i}
-                            className="modal-tile rounded-lg p-3 flex items-start justify-between gap-2"
+                            className={`modal-tile rounded-lg p-3 flex items-start justify-between gap-2${pressable}`}
+                            {...opens({ kind: "senator", name: sen.name })}
                           >
                             <div>
                               <p className="text-sm font-semibold font-sans text-foreground">
@@ -6402,7 +6425,8 @@ function StateModal({
                         {state.representatives.map((rep, i) => (
                           <div
                             key={i}
-                            className="modal-tile rounded-lg px-3 py-2 flex items-center justify-between gap-2"
+                            className={`modal-tile rounded-lg px-3 py-2 flex items-center justify-between gap-2${pressable}`}
+                            {...opens({ kind: "representative", name: rep.name, district: rep.district })}
                           >
                             <div className="min-w-0">
                               <p className="text-xs font-semibold font-sans text-foreground truncate">
@@ -6426,6 +6450,7 @@ function StateModal({
                       </div>
                     </div>
                   )}
+                  {onOfficial && <p className="text-[10px] font-sans text-muted-foreground leading-snug mt-2">Press a governor, a senator or a representative to open them in the list of elected officials on this page, with their education, career and own site.</p>}
                   <SourceLink sources={SRC_CONGRESS} className="mt-3" />
                 </WindowGroup>
               </>
@@ -7013,6 +7038,8 @@ export function StatesPage() {
     "population" | "gdp" | "medianIncome" | "unemploymentRate"
   >("gdp");
   const [modalState, setModalState] = useState<USState | null>(null);
+  /** The official a tile of a state's window asked for: opened in the page's list of elected officials. */
+  const [officialOpen, setOfficialOpen] = useState<{ id: string; at: number } | null>(null);
 
   const {
     states: liveStates,
@@ -7119,6 +7146,7 @@ export function StatesPage() {
 
         {/* The page's own explorer: the senators, representatives, governors and big-city mayors, a list beside a detail pane. */}
         <OfficialsExplorer
+          open={officialOpen}
           onOpenState={(id) => {
             const found = liveStates.find((s) => s.id === id);
             if (found) setModalState(found);
@@ -7180,7 +7208,17 @@ export function StatesPage() {
         <UpcomingStates />
 
         {modalState && (
-          <StateModal state={modalState} onClose={() => setModalState(null)} />
+          <StateModal
+            state={modalState}
+            onClose={() => setModalState(null)}
+            // A governor, a senator or a representative pressed in the window: the window closes and the list opens on them. One the list does not hold leaves the window as it is.
+            onOfficial={(who) => {
+              const id = officialOf({ ...who, state: modalState.id });
+              if (!id) return;
+              setModalState(null);
+              setOfficialOpen({ id, at: Date.now() });
+            }}
+          />
         )}
 
         {/* State Cards */}

@@ -23,7 +23,7 @@
  * place them, the money the campaign has reported and the committees that
  * gave it.
  */
-import { lazy, Suspense, useMemo, useState, type ReactNode } from "react";
+import { lazy, Suspense, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import { ArrowSquareOut, MagnifyingGlass, UsersThree, X } from "@phosphor-icons/react";
 import { BIG_CITY_MAYORS, STATE_OFFICES, STATE_OFFICES_SOURCES } from "../data/stateOffices";
 import { usStatesData } from "../data/statesData";
@@ -162,6 +162,22 @@ const OFFICIALS: Official[] = (() => {
   return out;
 })();
 
+/**
+ * The official a state's window means by one of its tiles: its governor; the senator of that name; the representative
+ * of that name, or failing that of that district ("NC-1" is district 1, "NC-AL" the seat at large). Null where the list
+ * has no such person - a seat that has changed hands since the window's figures were read.
+ */
+export function officialOf(who: { kind: "governor" | "senator" | "representative"; state: string; name: string; district?: string }): string | null {
+  const of = OFFICIALS.filter((x) => x.kind === who.kind && x.state === who.state);
+  if (who.kind === "governor") return of[0]?.id ?? null;
+  const named = of.find((x) => x.name === who.name);
+  if (named) return named.id;
+  if (who.kind !== "representative" || !who.district) return null;
+  const number = who.district.match(/(\d+)$/)?.[1];
+  const seat = number ? `district ${Number(number)}` : "at large";
+  return of.find((x) => x.place.endsWith(`· ${seat}`))?.id ?? null;
+}
+
 function Fact({ t, label, value }: { t: Tokens; label: string; value: ReactNode }) {
   return (
     <div className="flex items-baseline justify-between gap-3 py-1.5" style={{ borderBottom: `1px solid ${t.gridLine}` }}>
@@ -175,12 +191,34 @@ function Fact({ t, label, value }: { t: Tokens; label: string; value: ReactNode 
   );
 }
 
-export function OfficialsExplorer({ onOpenState }: { /** Opens a state's window. */ onOpenState: (stateId: string) => void }) {
+export function OfficialsExplorer({
+  onOpenState,
+  open,
+}: {
+  /** Opens a state's window. */
+  onOpenState: (stateId: string) => void;
+  /** An official to open, asked for from elsewhere on the page - a tile of a state's window: the id, and when it was asked, so that the same one can be asked for twice. */
+  open?: { id: string; at: number } | null;
+}) {
   const t = useTokens();
+  const root = useRef<HTMLDivElement>(null);
   const [search, setSearch] = useState("");
   const [kind, setKind] = useState<Kind | null>(null);
   const [party, setParty] = useState<string | null>(null);
   const [pickedId, setPickedId] = useState<string | null>(null);
+  /* An official asked for from a state's window: the list is narrowed to that office in that state, so that the person
+     is in it beside the others who hold it there, and the list is brought into view. */
+  useEffect(() => {
+    const o = open ? OFFICIALS.find((x) => x.id === open.id) : null;
+    if (!o) return;
+    setKind(o.kind);
+    setParty(null);
+    setSearch(o.stateName);
+    setPickedId(o.id);
+    // Once the window that asked has closed and the page can move again.
+    const later = window.setTimeout(() => root.current?.scrollIntoView({ behavior: document.hidden ? "auto" : "smooth", block: "start" }), 80);
+    return () => window.clearTimeout(later);
+  }, [open]);
   const q = search.trim().toLowerCase();
   const list = useMemo(
     () => OFFICIALS.filter((x) => (!kind || x.kind === kind) && (!party || x.party === party) && (!q || [x.name, x.place, x.office, x.party].some((s) => s.toLowerCase().includes(q)))),
@@ -196,7 +234,7 @@ export function OfficialsExplorer({ onOpenState }: { /** Opens a state's window.
   }).filter((g) => g.rows.length > 0);
 
   return (
-    <div className="explorer flex flex-col rounded-2xl overflow-hidden w-full max-w-6xl mx-auto mb-6" style={{ background: t.cardBg, border: t.cardBorder, boxShadow: t.cardShadow }}>
+    <div ref={root} className="explorer flex flex-col rounded-2xl overflow-hidden w-full max-w-6xl mx-auto mb-6 scroll-mt-24" style={{ background: t.cardBg, border: t.cardBorder, boxShadow: t.cardShadow }}>
       <div className="flex items-center gap-1.5 px-4 py-3 border-b" style={{ borderColor: t.gridLine, color: ACCENT }}>
         <UsersThree size={12} weight="fill" aria-hidden />
         <h2 className="text-[11px] font-bold font-sans">Elected officials</h2>
