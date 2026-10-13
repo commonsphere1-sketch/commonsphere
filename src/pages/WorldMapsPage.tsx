@@ -539,7 +539,10 @@ const FOCUS_FIT: MapFit = { chromePx: 240, minWidthPx: 640 };
 /* Zoom bounds. 1 fits the country to the canvas; 8 is where the 1:10m arcs
    start to show their own quantisation, so there is nothing further to see. */
 const ZOOM_MIN = 1;
-const ZOOM_MAX = 8;
+/* Close enough, on the world, to tell a county from the next. */
+const ZOOM_MAX = 24;
+/** How close the world must be drawn for its counties' and districts' borders to come in. */
+const COUNTIES_FROM = 2.5;
 const ZOOM_STEP = 1.6;
 
 /* Below this zoom the whole world is in view, where a country's name is often
@@ -885,6 +888,14 @@ function useMapZoom(
     null,
   );
 
+  /* The fingers down on the map: two of them pinch it closer or further, about the point between them. */
+  const fingers = useRef(new Map<number, { x: number; y: number }>());
+  const pinch = useRef<{ dist: number; cx: number; cy: number } | null>(null);
+  const spread = () => {
+    const [a, b] = [...fingers.current.values()];
+    return { dist: Math.hypot(a.x - b.x, a.y - b.y), cx: (a.x + b.x) / 2, cy: (a.y + b.y) / 2 };
+  };
+
   const reset = useCallback(() => {
     setView({ zoom: 1, x: width / 2, y: height / 2 });
   }, [width, height]);
@@ -1098,18 +1109,39 @@ function useMapZoom(
     onPointerEnter: (e: React.PointerEvent<SVGSVGElement>) => {
       pointer.current = { x: e.clientX, y: e.clientY };
     },
-    onPointerLeave: () => {
+    onPointerLeave: (e: React.PointerEvent<SVGSVGElement>) => {
       pointer.current = null;
+      fingers.current.delete(e.pointerId);
+      pinch.current = null;
     },
     onPointerDown: (e: React.PointerEvent<SVGSVGElement>) => {
       // A click puts the keys on this map, arrows included, in every browser.
       e.currentTarget.focus({ preventScroll: true });
+      fingers.current.set(e.pointerId, { x: e.clientX, y: e.clientY });
+      // A second finger down begins a pinch, and ends any drag.
+      if (fingers.current.size === 2) {
+        pinch.current = spread();
+        drag.current = null;
+        return;
+      }
       if (zoom === 1) return;
       e.currentTarget.setPointerCapture(e.pointerId);
       drag.current = { px: e.clientX, py: e.clientY, cx: center.x, cy: center.y };
     },
     onPointerMove: (e: React.PointerEvent<SVGSVGElement>) => {
       pointer.current = { x: e.clientX, y: e.clientY };
+      if (fingers.current.has(e.pointerId)) fingers.current.set(e.pointerId, { x: e.clientX, y: e.clientY });
+      // Two fingers: closer or further by how much further apart or nearer they are, about the point between them.
+      if (pinch.current && fingers.current.size === 2) {
+        const was = pinch.current;
+        const now = spread();
+        const f = frame(e.currentTarget.getBoundingClientRect(), 1);
+        if (f && was.dist > 0 && now.dist > 0) {
+          zoomBy(now.dist / was.dist, Math.min(1, Math.max(0, (now.cx - f.left) / f.drawnW)), Math.min(1, Math.max(0, (now.cy - f.top) / f.drawnH)));
+        }
+        pinch.current = now;
+        return;
+      }
       const d = drag.current;
       if (!d) return;
       /* Canvas units travelled per device pixel, from the same frame helper
@@ -1126,14 +1158,23 @@ function useMapZoom(
         return { zoom: v.zoom, ...clamp(d.cx - dx * perPx, d.cy - dy * perPx, v.zoom) };
       });
     },
-    onPointerUp: endPan,
-    onPointerCancel: endPan,
+    onPointerUp: (e: React.PointerEvent<SVGSVGElement>) => {
+      fingers.current.delete(e.pointerId);
+      pinch.current = null;
+      endPan();
+    },
+    onPointerCancel: (e: React.PointerEvent<SVGSVGElement>) => {
+      fingers.current.delete(e.pointerId);
+      pinch.current = null;
+      endPan();
+    },
   };
 
   const style: React.CSSProperties = {
     cursor: zoom > 1 ? "grab" : "default",
     outlineOffset: "2px",
-    touchAction: zoom > 1 ? "none" : "auto",
+    // One finger scrolls the page over a map that is whole and moves one that is drawn closer; two are always the map's, to pinch.
+    touchAction: zoom > 1 ? "none" : "pan-y",
     /* Keep the whole card - map, legend and note - on one screen, so a map is
        never taller than the space it has. Width is what is capped, not height:
        with h-auto the height follows the width, so the box stays equal to the
@@ -1673,8 +1714,6 @@ export function WorldMapsPage() {
   const neonOf = (code: string | null | undefined) => (code && flagColor(code)) || NEON_ACCENT;
   /* The six colours of living conditions, for the card's theme. */
   const livingRamp = isLight ? LIVING_LIGHT : LIVING_DARK;
-  /* The finer borders inside a filled place - states on the world map, counties and districts on a country's: light on the dark card, dark on the light one. */
-  const innerInk = isLight ? "#0f172a" : "#ffffff";
   /* The choropleth is deliberately greyscale, which leaves hue free to mean
      "this is not the shaded figure": water blue, port amber, mineral rust.
 
@@ -2244,32 +2283,18 @@ export function WorldMapsPage() {
     );
   }, [worldShapes]);
 
-  const admin1BordersD = useMemo(() => {
-    if (!admin1Borders) return undefined;
+  const admin1Lines = useMemo(() => {
+    if (!admin1Borders) return [];
     const codes = activeScope.codes ? new Set<string>(activeScope.codes) : null;
     const features = codes
       ? admin1Borders.features.filter((f) => codes.has(f.properties.c))
       : admin1Borders.features;
-    return worldPath.path({ type: "FeatureCollection", features } as never) ?? undefined;
+    // A country at a time, so that each country's borders can be drawn in its own colour.
+    return features.flatMap((f) => {
+      const d = worldPath.path(f as never);
+      return d ? [{ c: f.properties.c, d }] : [];
+    });
   }, [admin1Borders, worldPath, activeScope]);
-  /* The world map's finer borders - counties and districts - as one layer of lines for every country the site holds
-     them for: fetched after first paint, and the map draws without them until they come, or if they do not. */
-  const [admin2Borders, setAdmin2Borders] = useState<{ features: unknown[] } | null>(null);
-  useEffect(() => {
-    let cancelled = false;
-    fetch(ADMIN2_BORDERS_URL)
-      .then((r) => (r.ok ? r.json() : Promise.reject(new Error(String(r.status)))))
-      .then((topo: Topology) => {
-        if (!cancelled) setAdmin2Borders(feature(topo, topo.objects.b as never) as unknown as { features: unknown[] });
-      })
-      .catch(() => {
-        // The states' borders and the countries' own still draw.
-      });
-    return () => {
-      cancelled = true;
-    };
-  }, []);
-  const admin2BordersD = useMemo(() => (admin2Borders ? (worldPath.path({ type: "FeatureCollection", features: admin2Borders.features } as never) ?? undefined) : undefined), [admin2Borders, worldPath]);
   const stateShapes = useMemo(
     () =>
       states.features.map((f) => ({
@@ -2291,10 +2316,16 @@ export function WorldMapsPage() {
       off = true;
     };
   }, [focusCode, usCounties]);
-  const usCountiesD = useMemo(
-    () => (usCounties ? (statePath(mesh(usCounties, usCounties.objects.counties as never, (a, b) => a !== b) as never) ?? undefined) : undefined),
-    [usCounties, statePath],
-  );
+  /* A state at a time - the lines between the counties of one state - so that each state's are drawn in its own colour. */
+  const usCountyLines = useMemo(() => {
+    if (!usCounties) return [];
+    const stateOf = (g: unknown) => String((g as { id?: string | number }).id ?? "").padStart(5, "0").slice(0, 2);
+    return states.features.flatMap((f) => {
+      const fips = String((f as { id?: string | number }).id ?? "").padStart(2, "0");
+      const d = statePath(mesh(usCounties, usCounties.objects.counties as never, (a, b) => a !== b && stateOf(a) === fips && stateOf(b) === fips) as never);
+      return d ? [{ name: stateForFeature(f.properties.name)?.name ?? f.properties.name, d }] : [];
+    });
+  }, [usCounties, statePath, states]);
 
   // The same audit for the 1:50m file, which every map ends up drawing.
   useEffect(() => {
@@ -2354,6 +2385,35 @@ export function WorldMapsPage() {
      changes. `zoom` is that shared level, which the label pass depends on. */
   const worldZoom = useMapZoom(WORLD_W, WORLD_H);
   const focusZoom = useMapZoom(US_W, US_H, focusCode, FOCUS_FIT);
+
+  /* The world map's finer borders - counties and districts - a country at a time, for every country the site holds them
+     for. They come in as the map is drawn closer, as on the Dashboard's map, and are fetched a little before that: at the
+     whole world's scale they are finer than a pixel and only cloud it. */
+  const [admin2Borders, setAdmin2Borders] = useState<{ features: { properties: { c: string } }[] } | null>(null);
+  const wantCountyBorders = worldZoom.zoom >= COUNTIES_FROM * 0.8 && !admin2Borders;
+  useEffect(() => {
+    if (!wantCountyBorders) return;
+    let cancelled = false;
+    fetch(ADMIN2_BORDERS_URL)
+      .then((r) => (r.ok ? r.json() : Promise.reject(new Error(String(r.status)))))
+      .then((topo: Topology) => {
+        if (!cancelled) setAdmin2Borders(feature(topo, topo.objects.b as never) as unknown as { features: { properties: { c: string } }[] });
+      })
+      .catch(() => {
+        // The states' borders and the countries' own still draw.
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [wantCountyBorders]);
+  const admin2Lines = useMemo(
+    () =>
+      (admin2Borders?.features ?? []).flatMap((f) => {
+        const d = worldPath.path(f as never);
+        return d ? [{ c: f.properties.c, d }] : [];
+      }),
+    [admin2Borders, worldPath],
+  );
 
   /* These two depend on the zoom, so they are declared after it: the dots keep
      a constant size on screen, which means their radius is in canvas units
@@ -2701,15 +2761,26 @@ export function WorldMapsPage() {
   /* The finer borders inside the country's divisions - its districts, where the site holds them (lib/admin2) - drawn with
      the map's own projection, as bare lines. The United States' are its counties, on its own map. */
   const second = useAdmin2(focusCode !== "US" ? focusCode : null);
-  const secondD = useMemo(() => {
-    if (!focusMap || !second) return undefined;
-    const rings: unknown[] = [];
-    for (const s of second.shapes) {
-      if (s.geometry.type === "Polygon") rings.push(...s.geometry.coordinates);
-      else if (s.geometry.type === "MultiPolygon") for (const poly of s.geometry.coordinates as unknown[][]) rings.push(...poly);
-    }
-    return rings.length ? (focusMap.path({ type: "MultiLineString", coordinates: rings } as never) ?? undefined) : undefined;
+  const secondLines = useMemo(() => {
+    if (!focusMap || !second) return null;
+    /* Both orders are cut from the one tracing the districts come in: the lines between two districts of different
+       divisions are the divisions' borders, and those between two of the same division are the districts' own. Cut
+       so, the two meet exactly. The divisions' borders used to come from another tracing - the one the outline is
+       from - and the districts' ran beside them, a little off, and out past the coast in pieces. */
+    const parent = (g: unknown) => (g as { properties?: { p?: string } }).properties?.p;
+    const obj = second.topo.objects.a as never;
+    return {
+      first: focusMap.path(mesh(second.topo, obj, (a, b) => a !== b && parent(a) !== parent(b)) as never) ?? "",
+      finer: focusMap.path(mesh(second.topo, obj, (a, b) => a !== b && parent(a) === parent(b)) as never) ?? "",
+    };
   }, [focusMap, second]);
+  /* The colour a country is drawn in on the world map, by its code: what the borders inside it are drawn in too. */
+  const countryByCode = useMemo(() => new Map(countriesData.map((c) => [c.code, c])), []);
+  const worldInk = (code: string) => {
+    const c = countryByCode.get(code);
+    const v = c ? activeCountry.get(c) : null;
+    return (neonWorld ? (v !== null ? neonOf(code) : null) : colourFor(v, countryShading.breaks, worldRamp)) ?? UNSCORED;
+  };
   /* A country's own map is drawn in the colour of its living conditions, as it is on the world map; grey where it has no score. */
   const focusHue = (COUNTRY_LIVING[focusCode] && colourFor(COUNTRY_LIVING[focusCode].score, livingBreaks, livingRamp)) || UNSCORED;
   /* A state's, on the United States' map. */
@@ -3610,7 +3681,7 @@ export function WorldMapsPage() {
             onReset={worldZoom.reset}
             label="world map"
           >
-            {" "}· scroll or +/- to zoom, drag or arrows to pan
+            {" "}· scroll, pinch or +/- to zoom, drag or arrows to pan
           </ZoomControls>
           <div className="relative">
           {/* The picked-out place's card, pinned: it opens when a place is chosen and stays until closed. On a very
@@ -3719,19 +3790,22 @@ export function WorldMapsPage() {
                 unshaded layer over the fills. Lighter than the country borders so
                 countries still read first, and it takes no pointer events, so a
                 hover still reports the country underneath. */}
-            {/* Under them, the second-order borders - counties and districts - finer and fainter still: there to be seen when the map is drawn in. */}
-            {admin2BordersD && <path d={admin2BordersD} fill="none" stroke={innerInk} strokeOpacity={Math.min(0.3, 0.05 + 0.05 * worldZoom.zoom)} strokeWidth={0.16 / worldZoom.zoom} strokeLinejoin="round" pointerEvents="none" />}
-            {admin1BordersD && (
-              <path
-                d={admin1BordersD}
-                fill="none"
-                stroke={innerInk}
-                strokeOpacity={0.3}
-                strokeWidth={0.3 / worldZoom.zoom}
-                strokeLinejoin="round"
-                pointerEvents="none"
-              />
-            )}
+            {/* The borders inside each country, in the country's own colour and a little dimmer than its edge, so that they are
+                plain to see and still read as its own: its states' and provinces', and - once the map is drawn closer -
+                its counties' and districts' under them, finer. They are kept inside the land as it is drawn here: the
+                borders come from a finer tracing than the coast, and would otherwise run out past it. */}
+            <defs>
+              <clipPath id="clip-world-land">
+                {worldShapes.map(({ d }, i) => (d ? <path key={i} d={d} /> : null))}
+              </clipPath>
+            </defs>
+            <g clipPath="url(#clip-world-land)" fill="none" strokeLinejoin="round" pointerEvents="none">
+              {worldZoom.zoom >= COUNTIES_FROM &&
+                admin2Lines.map((l) => <path key={l.c} d={l.d} stroke={worldInk(l.c)} strokeOpacity={Math.min(0.8, 0.35 + 0.04 * worldZoom.zoom)} strokeWidth={0.28 / worldZoom.zoom} />)}
+              {admin1Lines.map((l) => (
+                <path key={l.c} d={l.d} stroke={worldInk(l.c)} strokeOpacity={0.75} strokeWidth={0.42 / worldZoom.zoom} />
+              ))}
+            </g>
 
             {/* The place picked out: filled in its own colour over the shading
                 and under the overlays, as a layer is, with a casing so its edge
@@ -4197,7 +4271,7 @@ export function WorldMapsPage() {
             onReset={focusZoom.reset}
             label="United States map"
           >
-            {" "}· scroll or +/- to zoom, drag or arrows to pan
+            {" "}· scroll, pinch or +/- to zoom, drag or arrows to pan
           </ZoomControls>
           <svg
             viewBox={focusZoom.viewBox}
@@ -4230,8 +4304,10 @@ export function WorldMapsPage() {
                 <title>{`${state?.name ?? name}${STATE_LIVING[state?.name ?? name] ? ` · living conditions ${STATE_LIVING[state?.name ?? name].score.toFixed(0)} of 100, worked out here` : ""}`}</title>
               </path>
             ))}
-            {/* The counties' borders, as one mesh over the states and under the labels: thinner and fainter than a state's edge, and not pointed at. */}
-            {usCountiesD && <path d={usCountiesD} fill="none" stroke={innerInk} strokeOpacity={0.24} strokeWidth={0.3 / zoom} strokeLinejoin="round" pointerEvents="none" />}
+            {/* The counties' borders, over the states and under the labels: each state's in the state's own colour, a little dimmer and finer than its edge, and not pointed at. */}
+            {usCountyLines.map((l) => (
+              <path key={l.name} d={l.d} fill="none" stroke={stateInk(l.name)} strokeOpacity={0.6} strokeWidth={0.4 / zoom} strokeLinejoin="round" pointerEvents="none" />
+            ))}
             {/* The place picked out, where it is a part of this map: the one
                 state a link named, filled as on the world map, or a city's
                 mark. A country is not picked out here - this map is already
@@ -4442,7 +4518,7 @@ export function WorldMapsPage() {
                     label={`${focusCountry?.name ?? "country"} map`}
                   >
                     {" "}· {focusLabels.inside.length} of {focusLabels.total} names
-                    shown · scroll or +/- to zoom, drag or arrows to pan
+                    shown · scroll, pinch or +/- to zoom, drag or arrows to pan
                   </ZoomControls>
 
                   {/* Map and territories side by side on a wide screen, the
@@ -4598,8 +4674,18 @@ export function WorldMapsPage() {
                           </path>
                         ))}
 
-                        {/* The finer borders inside the divisions - its districts - under the divisions' own: thinner and fainter, and not pointed at. */}
-                        {secondD && <path d={secondD} fill="none" stroke={innerInk} strokeOpacity={second && second.shapes.length > 1500 ? 0.13 : 0.24} strokeWidth={0.3 / zoom} strokeLinejoin="round" pointerEvents="none" />}
+                        {/* The borders inside it, where its districts are held: the divisions' and, finer and a little dimmer, the districts' - in the country's own colour, cut from one tracing so that they meet, and kept inside its outline. */}
+                        <defs>
+                          <clipPath id="clip-focus-land">
+                            <path d={focusMap.outline} />
+                          </clipPath>
+                        </defs>
+                        {secondLines && (
+                          <g clipPath="url(#clip-focus-land)" fill="none" stroke={focusHue} strokeLinejoin="round" pointerEvents="none">
+                            <path d={secondLines.finer} strokeOpacity={second && second.shapes.length > 1500 ? 0.4 : 0.6} strokeWidth={0.45 / zoom} />
+                            <path d={secondLines.first} strokeOpacity={0.95} strokeWidth={0.85 / zoom} />
+                          </g>
+                        )}
 
                         {/* Internal borders as a single mesh, so a shared
                             border is one stroke rather than two stacked on
@@ -4607,7 +4693,7 @@ export function WorldMapsPage() {
                             lines read heavier than the coast. The divisions
                             are not shaded by any figure: this project has no
                             per-division figures outside the US. */}
-                        {focusMap.interior && (
+                        {!secondLines && focusMap.interior && (
                           <path
                             d={focusMap.interior}
                             fill="none"
@@ -4849,7 +4935,7 @@ export function WorldMapsPage() {
                     ? `${focusCountry?.name ?? "This country"} is drawn in the colour of its living conditions: ${COUNTRY_LIVING[focusCode].score.toFixed(0)} of 100, worked out here from the figures the site holds and published by no body - its standing among all countries on ${COUNTRY_LIVING[focusCode].parts.map((p) => `${p.name.toLowerCase()} (${p.score.toFixed(0)})`).join(", ")}, averaged. The colour is the sixth of the scored countries it falls in, red the lowest and teal the highest.`
                     : `${focusCountry?.name ?? "This country"} holds too few of the figures to be given a living-conditions score, so it is drawn in grey and not in a colour of the scale.`}{" "}
                   No figures are held division by division, so its divisions are not coloured apart from it: the lines are their borders
-                  {secondD ? ", and the fainter ones its districts'" : ""}.
+                  {secondLines ? ", and the finer ones its districts'" : ""}.
                 </p>
                 <Legend ramp={livingRamp} noData={noData} noDataHatch={noDataHatch} lowLabel="Lower" highLabel="Higher" hovered={null} />
 
