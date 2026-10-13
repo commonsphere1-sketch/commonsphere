@@ -28,6 +28,7 @@ import { COUNTRY_INDEXES, INDEX_DEFS } from "../data/countryIndexes";
 import { COUNTRY_PEOPLE, COUNTRY_PEOPLE_SOURCES as SRC, POVERTY_LINE, type Shares } from "../data/countryPeople";
 import { inSentence } from "./CountryQuality";
 import { ChartNote, ChartTitle, FigureTile, MeasureBars, PartsBar, PartsDonut } from "./ModalCharts";
+import { NamedList } from "./SaidList";
 import { SourceLink } from "./SourceLink";
 
 /** A part of the panel. "people" is its ages and its peoples together, "belief" its languages and its religions. */
@@ -56,7 +57,8 @@ function Line({ title, what, s }: { title: string; /** What the shares are of, f
           <MeasureBars max={100} label={what} rows={s.parts.map(([name, v, under]) => ({ label: name, value: v, text: pct(v, under) }))} />
         )
       ) : (
-        <p className="text-[11px] font-sans text-foreground leading-snug">{s.text}</p>
+        // A line that is only words is a list of its names, each on a row, and not a sentence to be read through.
+        <NamedList text={s.text ?? ""} />
       )}
       {(s.note || (s.parts && !s.whole) || (s.parts && !s.year)) && (
         <ChartNote className="mt-2">
