@@ -339,8 +339,21 @@ export default function PlaceAtlas() {
   const [cityData, setCityData] = useState<CityModule | null>(null);
   const setPick = (p: Pick) => {
     setManual(p);
-    // The whole country is chosen from the world.
-    if (p === "country") setLevel({ kind: "world" });
+    const world = level.kind === "world";
+    // The whole country is chosen from the world, with the whole of it in view.
+    if (p === "country") {
+      if (world) glideHome();
+      else setLevel({ kind: "world" });
+      return;
+    }
+    /* The map is drawn to where that kind of place is what a press selects: to where its step begins, about the middle of
+       what is in view, and left as it is where it is already at that step. */
+    const steps: Record<Exclude<Pick, "country">, [from: number, to: number]> = world
+      ? { state: [STATES_FROM, COUNTIES_FROM], county: [COUNTIES_FROM, CITIES_FROM], city: [CITIES_FROM, Infinity] }
+      : { state: [1, 2.5], county: [2.5, 5], city: [5, Infinity] };
+    const [from, to] = steps[p];
+    const now = viewRef.current;
+    if (now.k < from || now.k >= to) glideTo({ ...now, k: from });
   };
   /* What the map fills in with as it is drawn closer. On the world: its countries from a finer tracing, the states' and
      provinces' borders, the counties' and districts', and the cities - those of a million people first, then of 300,000,
