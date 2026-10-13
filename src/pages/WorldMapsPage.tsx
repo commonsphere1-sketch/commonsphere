@@ -34,6 +34,7 @@ import { flagColor } from "../lib/flagColor";
 import { COUNTRY_LIVING, COUNTRY_LIVING_LEAST, COUNTRY_LIVING_PARTS, STATE_LIVING, STATE_LIVING_PARTS, partsSaid } from "../lib/livingScore";
 import { STATE_HEALTH_SAFETY_SOURCES } from "../data/stateHealthSafety";
 import { useAdmin2 } from "../lib/admin2";
+import { inView, useFiner, type Bounds } from "../lib/finerShapes";
 import { usStatesData } from "../data/statesData";
 import {
   countryForFeature,
@@ -539,8 +540,12 @@ const FOCUS_FIT: MapFit = { chromePx: 240, minWidthPx: 640 };
 /* Zoom bounds. 1 fits the country to the canvas; 8 is where the 1:10m arcs
    start to show their own quantisation, so there is nothing further to see. */
 const ZOOM_MIN = 1;
-/* Close enough, on the world, to tell a county from the next. */
-const ZOOM_MAX = 24;
+/* Close enough, on the world, to tell one village from the next. */
+const ZOOM_MAX = 96;
+/* How close a map must be drawn for the smaller places to be what is pointed at: on the world, a country's states and then its counties; on a country's own map, its counties or districts. */
+const STATES_PICK_FROM = 3;
+const COUNTIES_PICK_FROM = 6;
+const INNER_PICK_FROM = 2;
 /** How close the world must be drawn for its counties' and districts' borders to come in. */
 const COUNTIES_FROM = 2.5;
 const ZOOM_STEP = 1.6;
@@ -1202,7 +1207,7 @@ function useMapZoom(
     onKeyDown,
   };
 
-  return { zoom, zoomTo, reset, viewBox, panProps, style, a11yProps };
+  return { zoom, zoomTo, reset, viewBox, panProps, style, a11yProps, center };
 }
 
 /**
@@ -2415,6 +2420,91 @@ export function WorldMapsPage() {
     [admin2Borders, worldPath],
   );
 
+  /* Drawn closer, the world is pointed at by smaller places, as the Dashboard's map is: the states and provinces of the
+     countries in view, then their counties and districts (their states, where none are held). They are fetched a
+     country at a time, the nearest the middle of the view first, and only those in view are drawn. */
+  const finerOrder: 0 | 1 | 2 = worldZoom.zoom >= COUNTIES_PICK_FROM ? 2 : worldZoom.zoom >= STATES_PICK_FROM ? 1 : 0;
+  const worldBounds = useMemo<Bounds[]>(
+    () =>
+      worldDrawn.features.flatMap((f) => {
+        const c = countryForFeature(f.properties.name);
+        if (!c) return [];
+        const g = (f as unknown as { geometry: { type: string; coordinates: unknown[] } }).geometry;
+        // A piece at a time: a country with land on both sides of 180° would otherwise be "in view" from anywhere.
+        const pieces = g.type === "MultiPolygon" ? g.coordinates.map((p) => ({ type: "Polygon", coordinates: p })) : [g];
+        return pieces.flatMap((p) => {
+          const [[x0, y0], [x1, y1]] = worldPath.path.bounds(p as never);
+          return Number.isFinite(x0) && Number.isFinite(x1) ? [{ code: c.code, x0, y0, x1, y1 }] : [];
+        });
+      }),
+    [worldDrawn, worldPath],
+  );
+  const worldAt = worldZoom.center;
+  const finerCodes = useMemo(
+    () => (finerOrder ? inView(worldBounds, { x: worldAt.x, y: worldAt.y, w: WORLD_W / worldZoom.zoom, h: WORLD_H / worldZoom.zoom }, finerOrder === 1 ? 40 : 12) : []),
+    [finerOrder, worldBounds, worldAt.x, worldAt.y, worldZoom.zoom],
+  );
+  const finerOwn = useFiner(finerCodes, finerOrder);
+  const finerWithout = useMemo(() => (finerOrder === 2 ? finerCodes.filter((c) => finerOwn.get(c)?.length === 0) : []), [finerOrder, finerCodes, finerOwn]);
+  const finerFirst = useFiner(finerWithout, finerOrder === 2 ? 1 : 0);
+  type FinerHit = { key: string; code: string; name: string; value: string; d: string; cx: number; cy: number; x0: number; y0: number; x1: number; y1: number };
+  const finerBuilt = useRef(new Map<string, FinerHit[]>());
+  const finerHits = useMemo<FinerHit[]>(() => {
+    if (!finerOrder) return [];
+    const x0 = worldAt.x - WORLD_W / (2 * worldZoom.zoom);
+    const x1 = worldAt.x + WORLD_W / (2 * worldZoom.zoom);
+    const y0 = worldAt.y - WORLD_H / (2 * worldZoom.zoom);
+    const y1 = worldAt.y + WORLD_H / (2 * worldZoom.zoom);
+    const out: FinerHit[] = [];
+    for (const code of finerCodes) {
+      const own = finerOwn.get(code);
+      const list = own && own.length ? own : finerFirst.get(code);
+      if (!list || !list.length) continue;
+      const key = `${list[0].order}:${code}`;
+      if (!finerBuilt.current.has(key)) {
+        const land = countriesData.find((c) => c.code === code)?.name ?? code;
+        finerBuilt.current.set(
+          key,
+          list.flatMap((f): FinerHit[] => {
+            const d = worldPath.path(f.geo as never);
+            if (!d) return [];
+            const [[a, b], [c, e]] = worldPath.path.bounds(f.geo as never);
+            const [cx, cy] = worldPath.path.centroid(f.geo as never);
+            return [
+              {
+                key: `${key}:${f.index}`,
+                code,
+                name: [f.name, f.order === 2 ? f.parent : undefined, land].filter(Boolean).join(", "),
+                value: f.order === 1 ? `a first-order division of ${land}` : `a county or district of ${land}`,
+                d,
+                cx,
+                cy,
+                x0: a,
+                y0: b,
+                x1: c,
+                y1: e,
+              },
+            ];
+          }),
+        );
+      }
+      for (const h of finerBuilt.current.get(key)!) if (h.x1 >= x0 && h.x0 <= x1 && h.y1 >= y0 && h.y0 <= y1) out.push(h);
+    }
+    return out;
+  }, [finerOrder, finerCodes, finerOwn, finerFirst, worldAt.x, worldAt.y, worldZoom.zoom, worldPath]);
+
+  /* The United States' map, drawn closer, is pointed at by its counties: built when it first is. */
+  const wantCountyHits = focusCode === "US" && focusZoom.zoom >= INNER_PICK_FROM && Boolean(usCounties);
+  const usCountyHits = useMemo(() => {
+    if (!wantCountyHits || !usCounties) return [];
+    const stateName = new Map(states.features.map((f) => [String((f as { id?: string | number }).id ?? "").padStart(2, "0"), stateForFeature(f.properties.name)?.name ?? f.properties.name]));
+    return (feature(usCounties, usCounties.objects.counties as never) as unknown as { features: { id?: string | number; properties: { name: string } }[] }).features.flatMap((f) => {
+      const d = statePath(f as never);
+      const state = stateName.get(String(f.id ?? "").padStart(5, "0").slice(0, 2)) ?? "";
+      return d ? [{ key: String(f.id), d, state, name: [f.properties.name, state].filter(Boolean).join(", ") }] : [];
+    });
+  }, [wantCountyHits, usCounties, states, statePath]);
+
   /* These two depend on the zoom, so they are declared after it: the dots keep
      a constant size on screen, which means their radius is in canvas units
      divided by the current zoom. */
@@ -2783,6 +2873,15 @@ export function WorldMapsPage() {
   };
   /* A country's own map is drawn in the colour of its living conditions, as it is on the world map; grey where it has no score. */
   const focusHue = (COUNTRY_LIVING[focusCode] && colourFor(COUNTRY_LIVING[focusCode].score, livingBreaks, livingRamp)) || UNSCORED;
+  /* A country's own map, drawn closer, is pointed at by its districts, where they are held: built when it first is. */
+  const wantDistrictHits = zoom >= INNER_PICK_FROM && Boolean(second && focusMap);
+  const districtHits = useMemo(() => {
+    if (!wantDistrictHits || !second || !focusMap) return [];
+    return second.shapes.flatMap((s, i) => {
+      const d = focusMap.path(s as never);
+      return d ? [{ key: i, d, name: [s.properties.n, s.properties.p].filter(Boolean).join(", ") }] : [];
+    });
+  }, [wantDistrictHits, second, focusMap]);
   /* A state's, on the United States' map. */
   const stateInk = (name: string) => (STATE_LIVING[name] && colourFor(STATE_LIVING[name].score, stateLivingBreaks, livingRamp)) || UNSCORED;
 
@@ -3790,6 +3889,23 @@ export function WorldMapsPage() {
                 unshaded layer over the fills. Lighter than the country borders so
                 countries still read first, and it takes no pointer events, so a
                 hover still reports the country underneath. */}
+            {/* Drawn closer, the smaller places are what is pointed at: unseen until then, then lit in their country's colour with an edge, and named. A press on one still picks its country out. */}
+            {finerHits.map((h) => (
+              <path
+                key={h.key}
+                d={h.d}
+                fill={worldInk(h.code)}
+                stroke={worldInk(h.code)}
+                strokeWidth={1.2 / worldZoom.zoom}
+                strokeLinejoin="round"
+                className="[fill-opacity:0] [stroke-opacity:0] hover:[fill-opacity:0.6] hover:[stroke-opacity:1] transition-[fill-opacity]"
+                data-pick={`country:${h.code}`}
+                onMouseEnter={() => setHovered({ name: h.name, value: h.value, cx: h.cx, cy: h.cy })}
+                onMouseLeave={() => setHovered(null)}
+              >
+                <title>{h.name}</title>
+              </path>
+            ))}
             {/* The borders inside each country, in the country's own colour and a little dimmer than its edge, so that they are
                 plain to see and still read as its own: its states' and provinces', and - once the map is drawn closer -
                 its counties' and districts' under them, finer. They are kept inside the land as it is drawn here: the
@@ -4308,6 +4424,12 @@ export function WorldMapsPage() {
             {usCountyLines.map((l) => (
               <path key={l.name} d={l.d} fill="none" stroke={stateInk(l.name)} strokeOpacity={0.6} strokeWidth={0.4 / zoom} strokeLinejoin="round" pointerEvents="none" />
             ))}
+            {/* Drawn closer, a county is what is pointed at: lit in its state's colour, with an edge, and named. */}
+            {usCountyHits.map((h) => (
+              <path key={h.key} d={h.d} fill={stateInk(h.state)} stroke={stateInk(h.state)} strokeWidth={1.2 / zoom} strokeLinejoin="round" className="[fill-opacity:0] [stroke-opacity:0] hover:[fill-opacity:0.6] hover:[stroke-opacity:1] transition-[fill-opacity]">
+                <title>{h.name}</title>
+              </path>
+            ))}
             {/* The place picked out, where it is a part of this map: the one
                 state a link named, filled as on the world map, or a city's
                 mark. A country is not picked out here - this map is already
@@ -4671,6 +4793,12 @@ export function WorldMapsPage() {
                             stroke="none"
                           >
                             <title>{sd.n || "Unnamed division"}</title>
+                          </path>
+                        ))}
+                        {/* Drawn closer, a district is what is pointed at, where they are held: lit in the country's colour, with an edge, and named with its division. */}
+                        {districtHits.map((h) => (
+                          <path key={`district-${h.key}`} d={h.d} fill={focusHue} stroke={focusHue} strokeWidth={1.2 / zoom} strokeLinejoin="round" className="[fill-opacity:0] [stroke-opacity:0] hover:[fill-opacity:0.6] hover:[stroke-opacity:1] transition-[fill-opacity]">
+                            <title>{h.name}</title>
                           </path>
                         ))}
 
