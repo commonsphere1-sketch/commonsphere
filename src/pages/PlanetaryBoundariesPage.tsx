@@ -19,7 +19,7 @@ import { FLASHPOINTS, TIPPING_POINTS, TREATIES, TREATIES_CHECKED, type ContextIt
 import { FIGURE_CARDS, type FigureCard } from "../data/climateFigures";
 import { LIFE_CARDS, LIFE_CHECKED } from "../data/lifeOnEarth";
 import { EndangeredSpeciesList, NewSpeciesList } from "../components/SpeciesLists";
-import { ClimateExplorer } from "../components/ClimateExplorer";
+import ClimateNowExplorer from "../components/ClimateNowExplorer";
 import ClimateWatch from "../components/ClimateWatch";
 import {
   Leaf,
@@ -561,13 +561,10 @@ export function PlanetaryBoundariesPage() {
           )}
         />
 
-        {/* ── The page's explorer: everything it holds, as a list beside a detail ── */}
-        <ClimateExplorer
-          onOpenBoundary={(id) => {
-            setSelectedId(id);
-            document.getElementById("boundaries")?.scrollIntoView({ behavior: "smooth", block: "start" });
-          }}
-        />
+        {/* ── What is happening now, as a list beside a detail: the disasters under an alert, the countries struck, El Niño
+            and La Niña, the records and the latest readings. It stands where the explorer of the page's own contents -
+            boundaries, tipping points, treaties, figure cards - stood; that one (ClimateExplorer) is kept and not shown. ── */}
+        <ClimateNowExplorer />
 
         {/* ── KPI STRIP ─────────────────────────────────────────────────── */}
         {/* Each figure is the source's own: the boundary count and the two

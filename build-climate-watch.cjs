@@ -242,6 +242,8 @@ async function displaced(codes) {
     .map(([code, v]) => [code, codes.name.get(code), v]);
   return { year: Number(year), world: world ? world.value : null, countries: Object.keys(byCountry).length, top, byCountry };
 }
+/** How many days ago an alert may have ended and still count as happening now. */
+const RECENT_DAYS = 30;
 const HAZARDS = { EQ: "Earthquake", TC: "Tropical cyclone", FL: "Flood", VO: "Volcanic eruption", DR: "Drought", WF: "Wildfire", TS: "Tsunami" };
 async function alerts(codes) {
   // A month at a time, so that no answer is cut short; an event is counted once, by its kind and number.
@@ -258,6 +260,8 @@ async function alerts(codes) {
   const byKind = {};
   const byCountry = {};
   const reds = [];
+  const events = [];
+  const recentFrom = daysAgo(RECENT_DAYS);
   let n = 0;
   for (const p of seen.values()) {
     const kind = HAZARDS[p.eventtype];
@@ -272,24 +276,29 @@ async function alerts(codes) {
       const e = (byCountry[c] ??= { orange: 0, red: 0 });
       e[level]++;
     }
-    if (p.alertlevel === "Red")
-      reds.push({
-        kind,
-        ...(p.eventname ? { name: String(p.eventname).trim() } : {}),
-        from: String(p.fromdate).slice(0, 10),
-        to: String(p.todate).slice(0, 10),
-        countries: listed,
-        ...(p.severitydata?.severitytext ? { said: String(p.severitydata.severitytext).replace(/\s+/g, " ").trim() } : {}),
-        url: p.url.report,
-      });
+    const said = p.severitydata?.severitytext ? String(p.severitydata.severitytext).replace(/\s+/g, " ").trim() : "";
+    const event = {
+      kind,
+      ...(p.eventname ? { name: String(p.eventname).trim() } : {}),
+      from: String(p.fromdate).slice(0, 10),
+      to: String(p.todate).slice(0, 10),
+      countries: listed,
+      // The system writes "Magnitude 0" for a flood it gives no size for: that is not a size, and is not kept.
+      ...(said && said !== "Magnitude 0" ? { said } : {}),
+      url: p.url.report,
+    };
+    if (p.alertlevel === "Red") reds.push(event);
+    // Still going, or ended within the last ${RECENT_DAYS} days: what is happening now.
+    events.push({ ...event, alert: p.alertlevel, ...(p.iscurrent === "true" ? { current: true } : {}), ...(p.iscurrent === "true" || event.to >= recentFrom ? { recent: true } : {}) });
   }
   if (n < 10) throw new Error(`GDACS: only ${n} alerts in twelve months`);
   reds.sort((a, b) => b.to.localeCompare(a.to));
+  events.sort((a, b) => Number(Boolean(b.current)) - Number(Boolean(a.current)) || b.to.localeCompare(a.to) || b.from.localeCompare(a.from));
   const most = Object.entries(byCountry)
     .map(([code, v]) => [code, codes.name.get(code), v.orange, v.red])
     .sort((a, b) => b[2] + b[3] - (a[2] + a[3]) || b[3] - a[3])
     .slice(0, 15);
-  return { from: since, to: TODAY, total: n, byKind, countries: Object.keys(byCountry).length, most, reds, byCountry };
+  return { from: since, to: TODAY, total: n, byKind, countries: Object.keys(byCountry).length, most, reds, byCountry, events };
 }
 
 /* ── Erosion: two findings, each as its paper's abstract states it ── */
@@ -342,7 +351,7 @@ async function projected(codes) {
   const el = await enso();
   const rec = await records();
   const moved = await displaced(codes);
-  const alerted = await alerts(codes);
+  const { events: disasterEvents, ...alerted } = await alerts(codes);
   await erosion();
   const warming = await projected(codes);
   const names = Object.fromEntries([...new Set([...Object.keys(warming), ...Object.keys(moved.byCountry), ...Object.keys(alerted.byCountry)])].sort().map((c) => [c, codes.name.get(c)]));
@@ -437,6 +446,12 @@ export const DISASTER_ALERTS: {
   byCountry: Record<string, { orange: number; red: number }>;
 } = ${j(alerted)};
 
+/** An orange or red alert of the twelve months; "recent" marks one still going, or ended within the last ${RECENT_DAYS} days. */
+export type DisasterEvent = RedAlert & { alert: "Orange" | "Red"; current?: true; recent?: true };
+export const DISASTER_RECENT_DAYS = ${RECENT_DAYS};
+/** Every one of them: those still going first, then the newest. */
+export const DISASTER_EVENTS: DisasterEvent[] = ${j(disasterEvents)};
+
 /* ── Erosion: each finding as its paper's abstract states it, checked against the page when the file was built ── */
 export const EROSION = {
   beaches: { sandy: 31, eroding: 24, accreting: 28, stable: 48, rate: "more than 0.5 metres a year", years: "1984–2016" },
@@ -457,6 +472,7 @@ export const WARMING_PROJECTED: Record<string, number[][]> = ${j(warming)};
   console.log(`  Arctic September low ${rec.arctic.lowest[0].join(" ")}, ${rec.arctic.latest.y} ranks ${rec.arctic.latest.rank}; Antarctic February low ${rec.antarctic.lowest[0].join(" ")}; CO2 high ${rec.co2.high.month} ${rec.co2.high.v}`);
   console.log(`  disaster displacements ${moved.year}: world ${moved.world}, ${moved.countries} countries, most ${moved.top.slice(0, 3).map((t) => `${t[1]} ${t[2]}`).join(", ")}`);
   console.log(`  alerts ${alerted.from} to ${alerted.to}: ${alerted.total} (${JSON.stringify(alerted.byKind)}), ${alerted.countries} countries, ${alerted.reds.length} red`);
+  console.log(`  events: ${disasterEvents.length}, of them now ${disasterEvents.filter((e) => e.recent).length}`);
   console.log(`  projected warming: ${Object.keys(warming).length} countries`);
 })().catch((e) => {
   console.error(e);
