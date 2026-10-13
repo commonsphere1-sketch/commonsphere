@@ -96,6 +96,8 @@ import { alignedTo, useSecondOrder } from "../lib/secondOrder";
 import { flagFallback } from "../lib/cardFlag";
 import { OutlineMap, placeDots, type MapDot } from "../components/OutlineMap";
 import { SourceLink } from "../components/SourceLink";
+import { FollowStar } from "../components/FollowStar";
+import { useWatchlist } from "@/contexts/WatchlistContext";
 import { countriesData } from "../data/countriesData";
 import { COUNTRY_INDICATORS, COUNTRY_INDICATORS_SOURCE } from "../data/countryIndicators";
 import { PLACES_SOURCE, type PlaceRow } from "../data/placesIndex";
@@ -285,6 +287,23 @@ function SeriesChart({ points, label }: { points: [number, number][]; label: str
  * It is the size every other window on the site is, and opens to the whole screen and back at its own button; beside
  * that are the way back, the place on the map, and the way out - the buttons a country's window has at its head.
  */
+/**
+ * A division's follow star, on its card and in its window. A state of the United States is followed through the watch
+ * list, as on the States page, so the star is the same one there and here; any other division is kept in this browser.
+ */
+function DivisionStar({ s, where }: { s: Subnation; where: "card" | "window" }) {
+  const watch = useWatchlist();
+  const state = STATE_BY_CODE.get(s.code ?? "");
+  return <FollowStar where={where} id={`division:${s.id}`} name={s.name} watched={state ? { on: watch.isWatched("state", state.id), toggle: () => void watch.toggle("state", state.id) } : undefined} />;
+}
+/** A country's, in the window of its divisions: the watch list's, as on the Countries page. A place the Countries page does not hold has none. */
+function CountryStar({ cc, name }: { cc: string; name: string }) {
+  const watch = useWatchlist();
+  const c = COUNTRY.get(cc);
+  if (!c) return null;
+  return <FollowStar where="window" id={`country:${c.id}`} name={name} watched={{ on: watch.isWatched("country", c.id), toggle: () => void watch.toggle("country", c.id) }} />;
+}
+
 function Window({
   title,
   kicker,
@@ -294,9 +313,12 @@ function Window({
   onBack,
   children,
   mapTo,
+  follow,
   top = true,
   hidden = false,
 }: {
+  /** Its follow star, first among its buttons, as a country's and a state's window have theirs. */
+  follow?: ReactNode;
   title: string;
   kicker: string;
   /** The flag at its head: the place's own. */
@@ -346,6 +368,7 @@ function Window({
               </div>
             </div>
             <div className="flex items-center gap-1.5 shrink-0">
+              {follow}
               {onBack && (
                 <button onClick={onBack} className="p-2 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted/60 transition-colors cursor-pointer" aria-label="Back to the window before" title="Back">
                   <ArrowLeft size={18} />
@@ -791,7 +814,7 @@ function SubnationWindow({ s, onBack, onClose, onCounties }: { s: Subnation; /**
     ...(s.article ? [{ label: `Wikipedia — ${s.article}`, url: `https://en.wikipedia.org/wiki/${encodeURIComponent(s.article.replace(/ /g, "_"))}` }] : []),
   ];
   return (
-    <Window mapTo={`/dashboard/maps?country=${s.cc}`} top={!placeOpen} hidden={placeOpen} onBack={onBack} title={s.name} kicker={`${s.kind || "Division"} · ${c?.name ?? s.cc}`} flagSrc=
+    <Window follow={<DivisionStar s={s} where="window" />} mapTo={`/dashboard/maps?country=${s.cc}`} top={!placeOpen} hidden={placeOpen} onBack={onBack} title={s.name} kicker={`${s.kind || "Division"} · ${c?.name ?? s.cc}`} flagSrc=
 {ownFlag(s, 250) ?? flag(s.cc, 160)} chips={[...(s.code ? [s.code] : []), ...(s.capital ? [`Capital: ${s.capital}`] : []), ...(s.region ? [s.region] : [])]} onClose={onClose}>
       <div className="flex flex-wrap gap-2">
         {c && <LinkButton onClick={() => navigate(`/dashboard/countries?open=${c.id}`)}>Open {c.name}</LinkButton>}
@@ -1048,7 +1071,7 @@ function CountyWindow({ county, data, onBack, onClose }: { county: UsCounty; dat
     },
   ];
   return (
-    <Window mapTo="/dashboard/maps?country=US" top={!placeOpen} hidden={placeOpen} onBack={onBack} title={name} kicker={`County · ${state?.name ?? abbr}`} flagSrc={flag("US", 160)} chips={[`FIPS ${fips}`, state?.name ?? abbr, ...(rows ? [`${whole(rows.length)} places listed`] : [])]} onClose={onClose}>
+    <Window follow={<FollowStar where="window" id={`county:${fips}`} name={name} />} mapTo="/dashboard/maps?country=US" top={!placeOpen} hidden={placeOpen} onBack={onBack} title={name} kicker={`County · ${state?.name ?? abbr}`} flagSrc={flag("US", 160)} chips={[`FIPS ${fips}`, state?.name ?? abbr, ...(rows ? [`${whole(rows.length)} places listed`] : [])]} onClose={onClose}>
       <div className="flex flex-wrap gap-2">
         {state && <LinkButton onClick={() => navigate(`/dashboard/subnations?open=US-${state.abbreviation}`)}>{state.name}'s record</LinkButton>}
         {state && <LinkButton onClick={() => navigate(`/dashboard/states?open=${state.id}`)}>Open {state.name} on the US States page</LinkButton>}
@@ -1284,6 +1307,7 @@ function DistrictWindow({
   ];
   return (
     <Window
+      follow={<FollowStar where="window" id={`district:${cc}:${index}`} name={name} />}
       mapTo={`/dashboard/maps?country=${cc}`}
       top={!placeOpen}
       hidden={placeOpen}
@@ -1458,6 +1482,8 @@ function DivisionCard({ s, inside, onOpen }: { s: Subnation; /** What GeoNames l
           <span className="block text-[10px] font-mono text-muted-foreground truncate">{s.kind || "Division"}</span>
         </span>
         {s.code && <span className="text-[9px] font-mono px-1.5 py-0.5 rounded-full border border-border text-muted-foreground shrink-0">{s.code}</span>}
+        {/* Follow, as on a country's card: a press on it is its own, and does not open the card. */}
+        <DivisionStar s={s} where="card" />
       </span>
       <span className="flex flex-col border-t border-border/40 pt-1.5">
         {facts
@@ -1626,7 +1652,7 @@ function CountryWindow({
   const counties = useMemo(() => (countyData && countyState ? countyData.US_COUNTIES.filter((x) => x[2] === countyState) : []), [countyData, countyState]);
   const stateName = usStatesData.find((s) => s.abbreviation === countyState)?.name ?? countyState;
   return (
-    <Window mapTo={`/dashboard/maps?country=${row.cc}`} top={top && !placeOpen} hidden={!top || placeOpen} title={row.name} kicker="Country · its divisions" flagSrc={flag(row.cc, 160)} chips={[`${row.divisions.length} divisions`, ...row.kinds.slice(0, 3), ...(row.continent ? [row.continent] : [])]} onClose={onClose}>
+    <Window follow={<CountryStar cc={row.cc} name={row.name} />} mapTo={`/dashboard/maps?country=${row.cc}`} top={top && !placeOpen} hidden={!top || placeOpen} title={row.name} kicker="Country · its divisions" flagSrc={flag(row.cc, 160)} chips={[`${row.divisions.length} divisions`, ...row.kinds.slice(0, 3), ...(row.continent ? [row.continent] : [])]} onClose={onClose}>
       <div className="flex flex-wrap items-center gap-2">
         {c && <LinkButton onClick={() => navigate(`/dashboard/countries?open=${c.id}`)}>Open {c.name} on the Countries page</LinkButton>}
         <LinkButton onClick={() => navigate(`/dashboard/maps?country=${row.cc}`)}>

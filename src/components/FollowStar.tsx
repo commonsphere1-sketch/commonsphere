@@ -8,6 +8,11 @@
  * the place in this browser (lib/followedCities.ts), for everyone, signed in
  * or not - and says so when it is pointed at.
  *
+ * A place the watch list does take - a country, or a state of the United
+ * States met as a division - is followed through it all the same: whoever
+ * draws the star says whether it is on and what a press does, and the star is
+ * then the very one its country's or its state's own card carries.
+ *
  * On a card it is drawn inside the card, which is itself a button: there it
  * is a span that acts as a button, and a press on it stays its own - it does
  * not open the card. In a window it is a button among the window's others.
@@ -18,11 +23,24 @@ import { useFollowedCities } from "../lib/followedCities";
 /** What a municipality is followed by: its GeoNames id, which no other place shares. */
 export const placeFollowId = (geonameId: number | string) => `place:${geonameId}`;
 
-export function FollowStar({ id, name, where = "card" }: { /** What the place is followed by: a city's id, or placeFollowId of a municipality's. */ id: string; name: string; where?: "card" | "window" }) {
-  const follow = useFollowedCities();
+export function FollowStar({
+  id,
+  name,
+  where = "card",
+  watched,
+}: {
+  /** What the place is followed by: a city's id, placeFollowId of a municipality's, or a division's, a county's or a district's own. */
+  id: string;
+  name: string;
+  where?: "card" | "window";
+  /** For a place the watch list takes: whether it is followed there, and what a press does. Given, the star is the watch list's and not this browser's. */
+  watched?: { on: boolean; toggle: () => void };
+}) {
+  const local = useFollowedCities();
+  const follow = watched ? { isFollowed: () => watched.on, toggle: () => watched.toggle() } : local;
   const on = follow.isFollowed(id);
   const label = on ? `Unfollow ${name}` : `Follow ${name}`;
-  const title = on ? "Following · press to stop" : "Follow · saved in this browser";
+  const title = on ? "Following · press to stop" : watched ? "Follow" : "Follow · saved in this browser";
   if (where === "window")
     return (
       <button onClick={() => follow.toggle(id)} className="p-2 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted/60 transition-colors cursor-pointer" aria-pressed={on} aria-label={label} title={title}>

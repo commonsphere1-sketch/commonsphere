@@ -19,7 +19,7 @@ const KEY = "cs-followed-cities";
 function read(): string[] {
   try {
     const raw: unknown = JSON.parse(localStorage.getItem(KEY) ?? "[]");
-    return Array.isArray(raw) ? [...new Set(raw.filter((x): x is string => typeof x === "string" && x.length > 0 && x.length <= 40))].slice(0, 200) : [];
+    return Array.isArray(raw) ? [...new Set(raw.filter((x): x is string => typeof x === "string" && x.length > 0 && x.length <= 120))].slice(0, 200) : [];
   } catch {
     return [];
   }
