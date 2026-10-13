@@ -1501,3 +1501,16 @@ html.light .card-flag {
 .window-group:has(> .window-group-body:empty) {
   display: none;
 }
+/* The panels of a group are spaced alike, whatever margin each was written
+   with for the place it once had: one gap between them, the gap its tiles
+   keep among themselves. */
+.window-group-body {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+.window-group-body > * {
+  margin-top: 0 !important;
+  margin-bottom: 0 !important;
+  min-width: 0;
+}

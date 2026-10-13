@@ -19,6 +19,8 @@ const PoliticalParties = lazy(() => import("../components/PoliticalParties"));
 const StatusReport = lazy(() => import("../components/StatusReport"));
 /** How the country is governed as the World Bank scores it, and the year there day by day, each line with its report. */
 const PoliticalClimate = lazy(() => import("../components/PoliticalClimate"));
+/** The rows that fill a country's "Politics and government" tile: its legislature and elections, from the records. */
+const GovernmentFacts = lazy(() => import("../components/GovernmentFacts"));
 const Universities = lazy(() => import("../components/Universities"));
 /** The Sovereignty report: a panel with its own data, loaded when the Politics tab opens. */
 const SovereigntyReport = lazy(() => import("../components/CountryReports").then((m) => ({ default: m.SovereigntyReport })));
@@ -919,7 +921,7 @@ function CountryModal({
               <>
                 {/* What follows is in groups, as every place's window is: first the country at a glance - where it is, its capital,
                     its government and its headline figures - and then what belongs together under one heading each: its people and
-                    society, its money and work, its safety and justice, its schools, how it is got around and powered, its
+                    society, its money and work, its safety and justice, its schools, how it is powered, its
                     government and defence, and last how it scores. The groups run from what a reader most often comes for to the
                     reference detail. The site holds no count of what is searched for, so that order is a judgement, not a measurement. */}
 
@@ -1125,7 +1127,7 @@ function CountryModal({
 
                 <WindowGroup title="People & society">
                   {/* ── DEMOGRAPHICS + GENDER STACKED ── */}
-                  <div className="grid grid-cols-1 gap-4 mt-4">
+                  <div className="grid grid-cols-1 gap-3 mt-4">
                     <div>
                       <CountryDemographicsChart country={country} />
                     </div>
@@ -1292,9 +1294,8 @@ function CountryModal({
                   <CountryEducationPanel country={country} />
                 </WindowGroup>
 
-                <WindowGroup title="Getting around & energy">
-                  {/* ── TRANSPORT ── */}
-                  <CountryTransportPanel country={country} />
+                <WindowGroup title="Energy">
+                  {/* The Transport panel stood here, above Energy, and was taken off as asked: it is kept below, not shown. */}
 
                   {/* Energy */}
                   {country.energy && (
@@ -1376,7 +1377,7 @@ function EnergySection({
       {mix.length > 0 && (
         <>
           <ChartTitle>What its production is made of · % of energy produced{when}</ChartTitle>
-          <MeasureBars max={100} label="Energy production by source" rows={mix.map((m) => ({ label: m.source, value: m.pct, text: `${m.pct}%` }))} />
+          <PartsDonut label="Energy production by source" parts={mix.map((m) => ({ label: m.source, value: m.pct, text: `${m.pct}%` }))} />
         </>
       )}
       <SourceLink sources={source ? [source] : SRC_ENERGY} className="mt-3" />
@@ -1694,8 +1695,8 @@ function CountrySociologicalBreakdown({ country }: { country: Country }) {
           </div>
         )}
 
-        {/* Where its people live, and its births and deaths */}
-        <div className="modal-tile rounded-lg p-4">
+        {/* Where its people live, and its births and deaths: the whole line, as the politics tile under it is. */}
+        <div className="modal-tile rounded-lg p-4 sm:col-span-2">
           {urban ? (
             <>
               <ChartTitle>Where its people live · % of the population · {urban.y}</ChartTitle>
@@ -1723,8 +1724,8 @@ function CountrySociologicalBreakdown({ country }: { country: Country }) {
           <SourceLink sources={[urban, p.birthRate, p.deathRate].filter((x): x is PanelFigure => !!x).map(panelSource)} className="mt-2" />
         </div>
 
-        {/* Political & Governance Culture */}
-        <div className="modal-tile rounded-lg p-4">
+        {/* Political & Governance Culture: the whole line, its facts in two columns, so that it is filled and no tile beside it is left half empty. */}
+        <div className="modal-tile rounded-lg p-4 sm:col-span-2">
           <ChartTitle>Politics and government</ChartTitle>
           <div className="space-y-2">
             <div>
@@ -1771,6 +1772,10 @@ function CountrySociologicalBreakdown({ country }: { country: Country }) {
                 </div>
               </div>
             )}
+            {/* What the records add: its legislature, how and when it is elected, the party with the most seats, its score for voice and accountability, and when it joined the United Nations. */}
+            <Suspense fallback={null}>
+              <GovernmentFacts code={country.code} />
+            </Suspense>
           </div>
         </div>
       </div>
@@ -15367,7 +15372,7 @@ function CountryGenderStatsPanel({ country }: { country: Country }) {
       {gs.malePct != null && gs.femalePct != null && (
         <div className="mb-4">
           <ChartTitle>Its people by sex · % of the population · {gs.popYear}</ChartTitle>
-          <PartsBar
+          <PartsDonut
             label={`The people of ${country.name} by sex, ${gs.popYear}`}
             parts={[
               { label: "Men", value: gs.malePct, text: `${gs.malePct}%` },
@@ -15443,7 +15448,7 @@ function CountryGenderStatsPanel({ country }: { country: Country }) {
  * density, airport and commute figures were likewise uncited. They are
  * removed rather than kept looking current.
  */
-function CountryTransportPanel({ country }: { country: Country }) {
+export function CountryTransportPanel({ country }: { country: Country }) {
   const p = COUNTRY_PANELS[country.id];
   const ev = p?.evSalesShare;
   const rail = p?.railKm;
