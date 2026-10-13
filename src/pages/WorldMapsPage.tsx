@@ -31,7 +31,7 @@ import {
 import { Link } from "react-router-dom";
 import { countriesData, type Country } from "../data/countriesData";
 import { flagColor } from "../lib/flagColor";
-import { COUNTRY_LIVING, COUNTRY_LIVING_LEAST, COUNTRY_LIVING_PARTS, STATE_LIVING, STATE_LIVING_PARTS, partsSaid } from "../lib/livingScore";
+import { COUNTRY_LIVING, COUNTRY_LIVING_LEAST, COUNTRY_LIVING_PARTS, LIVING_DARK, LIVING_LIGHT, STATE_LIVING, STATE_LIVING_PARTS, UNSCORED, partsSaid } from "../lib/livingScore";
 import { STATE_HEALTH_SAFETY_SOURCES } from "../data/stateHealthSafety";
 import { useAdmin2 } from "../lib/admin2";
 import { inView, useFiner, type Bounds } from "../lib/finerShapes";
@@ -1318,13 +1318,6 @@ const RAMP_DARK = ["#464646", "#5f5f5f", "#7a7a7a", "#989898", "#b9b9b9", "#e0e0
    of these six steps, the first the faintest, in place of the six greys. They are far enough apart to be told from one
    another on both cards, and the faintest still shows against each. */
 const NEON_STEPS = ["0.14", "0.25", "0.38", "0.52", "0.68", "0.86"];
-/* Living conditions: six steps from the lowest sixth of the places scored to the highest, red through amber to green
-   and teal - the hues a reader already takes for worse and better. Each step is told from the next on both cards; the
-   figure itself is given when a place is pointed at, so nothing rests on the colour alone. */
-const LIVING_LIGHT = ["#e11d48", "#ea580c", "#d97706", "#65a30d", "#16a34a", "#0d9488"];
-const LIVING_DARK = ["#fb5a78", "#fb923c", "#fbbf24", "#a3e635", "#4ade80", "#2dd4bf"];
-/** A place with no score: neither better nor worse, so neither end's colour. */
-const UNSCORED = "#94a3b8";
 
 /** The colour of a place whose flag gives none, and of the legend's steps. */
 const NEON_ACCENT = "#22d3ee";

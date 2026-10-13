@@ -160,5 +160,24 @@ export const STATE_LIVING: Record<string, Living> = scoreAll(
   STATE_LIVING_PARTS.length,
 );
 
+/* The six colours a map draws the score in, the lowest sixth first: red through amber to green and teal - the hues a
+   reader already takes for worse and better - for the light card and for the dark one. Each step is told from the next
+   on both; the score itself is given when a place is pointed at, so nothing rests on the colour alone. */
+export const LIVING_LIGHT = ["#e11d48", "#ea580c", "#d97706", "#65a30d", "#16a34a", "#0d9488"];
+export const LIVING_DARK = ["#fb5a78", "#fb923c", "#fbbf24", "#a3e635", "#4ade80", "#2dd4bf"];
+/** A place with no score: neither better nor worse, so neither end's colour. */
+export const UNSCORED = "#94a3b8";
+/** Where the six steps fall among a list of scores: the list cut into sixths. */
+export const sixths = (scores: number[]): number[] => {
+  const sorted = [...scores].sort((a, b) => a - b);
+  return [1, 2, 3, 4, 5].map((i) => sorted[Math.floor((sorted.length * i) / 6)]);
+};
+/** Which of the six steps a score is in, 0 the lowest. */
+export const stepOf = (score: number, breaks: number[]): number => {
+  let i = 0;
+  while (i < breaks.length && score >= breaks[i]) i++;
+  return i;
+};
+
 /** The parts and their measures, as a sentence for a note under a map. */
 export const partsSaid = (parts: Part<string>[]) => parts.map((p) => `${p.name.toLowerCase()} (${p.measures.map((m) => m.name).join(", ")})`).join("; ");

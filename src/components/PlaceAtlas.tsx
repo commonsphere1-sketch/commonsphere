@@ -101,6 +101,7 @@ import { SUBNATION_FLAG_COLOR } from "../data/subnationFlagColors";
 import { ADMIN2_SOURCE, useAdmin2, useAdmin2Manifest } from "../lib/admin2";
 import { flagColor, seen, shade } from "../lib/flagColor";
 import { inView, useFiner, usePlacesOf, type Bounds, type Finer } from "../lib/finerShapes";
+import { COUNTRY_LIVING, LIVING_DARK, LIVING_LIGHT, STATE_LIVING, UNSCORED, sixths, stepOf } from "../lib/livingScore";
 import type { PlaceRow } from "../data/placesIndex";
 import { Card, Go, Head } from "./DashboardCitiesSectors";
 import { useTokens } from "./DataExplorer";
@@ -113,8 +114,9 @@ const BOX: [[number, number], [number, number]] = [
   [W - 6, H - 6],
 ];
 const COLOR = "#3b82f6";
-/** The land's colour in the dark theme: the slate blue of the window map the look was asked for from, for every map alike. */
-const WASH = "#617895";
+/* Where the six steps of living conditions fall, as the World Maps page cuts them: among the countries scored, and among the states. */
+const COUNTRY_BREAKS = sixths(countriesData.flatMap((c) => (COUNTRY_LIVING[c.code] ? [COUNTRY_LIVING[c.code].score] : [])));
+const STATE_BREAKS = sixths(Object.values(STATE_LIVING).map((s) => s.score));
 /** How close the map can be drawn: enough, on the world, to tell one village from the next. */
 const MAX_K = 200;
 /* How close the world must be drawn for each finer thing to come in. */
@@ -130,13 +132,12 @@ const WORLD_PROJECTION = geoEqualEarth().fitExtent(BOX, { type: "Sphere" } as ne
 type Geo = { type: string; id?: string | number; properties: Record<string, string>; geometry: { type: string; coordinates: unknown[] } };
 type Level = { kind: "world" } | { kind: "country"; code: string };
 /** What a press selects. */
-type Pick = "country" | "state" | "county" | "city" | "municipality";
+type Pick = "country" | "state" | "county" | "city";
 const PICKS: [Pick, string, string][] = [
   ["country", "Country", "A press opens the whole country"],
   ["state", "State", "A press goes to a state, province or other division"],
   ["county", "County", "A press goes to a county, district or municipality"],
-  ["city", "City", "A press goes to a city"],
-  ["municipality", "Municipality", "A press goes to a town or a village"],
+  ["city", "City / Town", "A press goes to a city, a town or a village"],
 ];
 type CityModule = typeof import("../data/unCities");
 /** A city on the map: a dot where its people are centred, sized by how many they are. */
@@ -234,16 +235,35 @@ export default function PlaceAtlas() {
     const hh = H / (2 * z);
     return { k: z, x: Math.max(hw, Math.min(W - hw, x)), y: Math.max(hh, Math.min(H - hh, y)) };
   };
-  /** Closer or further by a factor, about a point of the map - its middle unless one is given - which stays where it is. */
-  const zoomBy = useCallback((factor: number, at?: { x: number; y: number }) => {
-    setView((v) => {
-      const k = Math.max(1, Math.min(MAX_K, v.k * factor));
-      const p = at ?? { x: v.x, y: v.y };
-      return held(k, p.x - (p.x - v.x) * (v.k / k), p.y - (p.y - v.y) * (v.k / k));
-    });
-  }, []);
   const panBy = useCallback((dx: number, dy: number) => setView((v) => held(v.k, v.x + dx, v.y + dy)), []);
   const resetView = useCallback(() => setView({ k: 1, x: W / 2, y: H / 2 }), []);
+  /* A glide: from where the map is to where it is asked to be, over a fifth of a second, eased - closer and further by
+     equal steps of scale, so that it does not rush at the start. In a tab that is not being drawn it goes there at once. */
+  const viewRef = useRef(view);
+  viewRef.current = view;
+  const gliding = useRef<number | null>(null);
+  const glideTo = useCallback((to: { k: number; x: number; y: number }) => {
+    if (gliding.current !== null) cancelAnimationFrame(gliding.current);
+    const from = viewRef.current;
+    const target = held(to.k, to.x, to.y);
+    if (typeof document === "undefined" || document.hidden) {
+      setView(target);
+      return;
+    }
+    let began: number | null = null;
+    const tick = (now: number) => {
+      if (began === null) began = now;
+      const p = Math.min(1, (now - began) / 220);
+      const e = 1 - Math.pow(1 - p, 3);
+      const k = Math.exp(Math.log(from.k) + (Math.log(target.k) - Math.log(from.k)) * e);
+      setView(held(k, from.x + (target.x - from.x) * e, from.y + (target.y - from.y) * e));
+      gliding.current = p < 1 ? requestAnimationFrame(tick) : null;
+    };
+    gliding.current = requestAnimationFrame(tick);
+  }, []);
+  const glideBy = useCallback((factor: number) => glideTo({ ...viewRef.current, k: viewRef.current.k * factor }), [glideTo]);
+  const glideHome = useCallback(() => glideTo({ k: 1, x: W / 2, y: H / 2 }), [glideTo]);
+  useEffect(() => () => void (gliding.current !== null && cancelAnimationFrame(gliding.current)), []);
   /* A new map starts whole. */
   useEffect(() => resetView(), [level, resetView]);
   /* The wheel, and a trackpad's pinch (which arrives as a wheel with Ctrl held), draw the map closer or further about the
@@ -285,8 +305,8 @@ export default function PlaceAtlas() {
   const tipRef = useRef<HTMLDivElement | null>(null);
   // Above the pointer, turned to the side that keeps it on the map; under it near the top.
   const tipPlace = () => {
-    const { x, y, w, h } = tipAt.current;
-    return `translate(${x}px, ${y}px) translate(${x < w * 0.25 ? "0%" : x > w * 0.75 ? "-100%" : "-50%"}, ${y < h * 0.3 ? "18px" : "calc(-100% - 12px)"})`;
+    const { x, y, w } = tipAt.current;
+    return `translate(${x}px, ${y}px) translate(${x < 150 ? "0%" : x > w - 150 ? "-100%" : "-50%"}, ${y < 70 ? "18px" : "calc(-100% - 12px)"})`;
   };
   /* Dragging moves a map that is drawn closer. A drag is not a press: the press that ends one is dropped. */
   const drag = useRef<{ x: number; y: number; moved: boolean } | null>(null);
@@ -297,22 +317,18 @@ export default function PlaceAtlas() {
   const [manual, setManual] = useState<Pick | null>(null);
   const auto: Pick =
     level.kind === "world"
-      ? view.k >= TOWNS_FROM
-        ? "municipality"
-        : view.k >= CITIES_FROM
-          ? "city"
-          : view.k >= COUNTIES_FROM
-            ? "county"
-            : view.k >= STATES_FROM
-              ? "state"
-              : "country"
-      : view.k >= 9
-        ? "municipality"
-        : view.k >= 5
-          ? "city"
-          : view.k >= 2.5
-            ? "county"
-            : "state";
+      ? view.k >= CITIES_FROM
+        ? "city"
+        : view.k >= COUNTIES_FROM
+          ? "county"
+          : view.k >= STATES_FROM
+            ? "state"
+            : "country"
+      : view.k >= 5
+        ? "city"
+        : view.k >= 2.5
+          ? "county"
+          : "state";
   const pick: Pick = manual ?? auto;
   const step = useRef({ on: level.kind === "world" ? "" : level.code, auto });
   useEffect(() => {
@@ -331,9 +347,9 @@ export default function PlaceAtlas() {
      then every one the United Nations counts. On a country's own map: its cities. */
   const onWorld = level.kind === "world";
   const worldFloor = view.k >= 24 ? 0 : view.k >= 14 ? 3e5 : 1e6;
-  const onTowns = pick === "municipality";
-  /* Towns are drawn where a town is what a press selects - on the world, only once it is close enough to tell them apart. */
-  const showTowns = onTowns && (!onWorld || view.k >= CITIES_FROM);
+  /* Where a city is what a press selects, the towns and villages take the cities' place once the map is close enough to tell them apart. */
+  const showTowns = pick === "city" && (onWorld ? view.k >= TOWNS_FROM : view.k >= 4);
+  const onTowns = showTowns;
   const showCities = !showTowns && (pick === "city" || (onWorld ? view.k >= CITIES_FROM : view.k >= 3));
   /* The cities are loaded when they are first to be drawn: there are some twelve thousand. */
   useEffect(() => {
@@ -514,7 +530,7 @@ export default function PlaceAtlas() {
   /* A country's second order, fetched where a county is what a press selects: undefined while it is, null where none is held. The United States' own are the Census Bureau's, above. */
   const manifest2 = useAdmin2Manifest();
   /** Whether the map is drawn at a country's second order: where a county is what a press selects, and under the dots where a city is. */
-  const fine = pick === "county" || pick === "city" || pick === "municipality";
+  const fine = pick === "county" || pick === "city";
   const second = useAdmin2(fine && code && code !== "US" ? code : null);
   const secondInfo = code && manifest2 ? manifest2[code] : undefined;
   /** Whether the shapes on the map are a country's second order. */
@@ -624,8 +640,6 @@ export default function PlaceAtlas() {
       (f) => ({ kind: "division", name: f.properties.n }),
     );
   }, [level, divisions, counties, countyTopo, second, navigate, pick, fine, worldDrawn]);
-  /** Every shape as one outline: the slab the land stands on. */
-  const slab = useMemo(() => shapes.map((s) => s.d).join(""), [shapes]);
 
   /** The cities, where a city is what a press selects: those of a million or more on the world, and every one of the country the map is on. */
   const cityDots = useMemo<Dot[]>(() => {
@@ -636,8 +650,8 @@ export default function PlaceAtlas() {
       const xy = c[3] !== null && c[4] !== null ? project(c[4], c[3]) : null;
       if (!xy || !Number.isFinite(xy[0]) || !Number.isFinite(xy[1]) || xy[0] < 0 || xy[0] > W || xy[1] < 0 || xy[1] > H) return [];
       // A dot's area grows with its people: its radius with their square root, within bounds that keep a small city pressable and a large one from covering its neighbours.
-      const r = Math.max(world ? 1.8 : 2.2, Math.min(world ? 7 : 10, Math.sqrt(c[8] / (world ? 1e6 : 2e5)) * 1.5));
-      return [{ key: `${c[0]}-${c[1]}`, name: c[2], x: xy[0], y: xy[1], r, hot: flagColor(c[0]) ?? COLOR, go: () => navigate(`/dashboard/cities?open=un-${c[0]}-${c[1]}`), ref: { kind: "city", c } }];
+      const r = Math.max(2.8, Math.min(world ? 8 : 10, Math.sqrt(c[8] / (world ? 1e6 : 2e5)) * 1.6));
+      return [{ key: `${c[0]}-${c[1]}`, name: world ? `${c[2]}, ${COUNTRY_BY_CODE.get(c[0])?.name ?? c[0]}` : c[2], x: xy[0], y: xy[1], r, hot: flagColor(c[0]) ?? COLOR, go: () => navigate(`/dashboard/cities?open=un-${c[0]}-${c[1]}`), ref: { kind: "city", c } }];
     });
   }, [showCities, worldFloor, cityData, project, level, navigate]);
   /* The towns and villages GeoNames lists - of the countries in view on the world, of the country itself on its own map:
@@ -675,7 +689,7 @@ export default function PlaceAtlas() {
         x,
         y,
         // Its area grows with its people, within bounds that keep a village pressable.
-        r: Math.max(1.6, Math.min(5.5, Math.sqrt(row[3] / 5e4) * 1.7)),
+        r: Math.max(2.6, Math.min(7, Math.sqrt(row[3] / 5e4) * 2)),
         hot: flagColor(cc) ?? COLOR,
         go: () => navigate(`/dashboard/subnations?open=place:${cc}:${row[6]}`),
         ref: { kind: "place", cc, row, region, district: file.districts[row[7]] ?? "" },
@@ -850,26 +864,24 @@ export default function PlaceAtlas() {
   /** What the bar says while nothing is pointed at: as asked, that any area can be selected or hovered over - after anything the reader has to be told first. */
   const hint = loading
     ? "Loading the boundaries…"
-    : onCities
-      ? cityData
-        ? "Select or hover over any city."
-        : "Loading the cities…"
-      : onTowns
-        ? showTowns
-          ? "Select or hover over any town or village."
-          : "Draw the map closer to see its towns and villages."
-      : `${abroad && fine && second === null ? `No counties or districts are held for ${named}, so its divisions are shown. ` : ""}Select or hover over any area.${onWorld ? " Zoom in to select states, then counties, cities and towns." : ""}`;
+    : onTowns
+      ? "Select or hover over any city, town or village."
+      : onCities
+        ? cityData
+          ? "Select or hover over any city. Zoom in for its towns and villages."
+          : "Loading the cities…"
+        : `${abroad && fine && second === null ? `No counties or districts are held for ${named}, so its divisions are shown. ` : ""}Select or hover over any area.${onWorld ? " Zoom in to select states, then counties, then cities and towns." : ""}`;
   const none = abroad && !second && (divisions === "failed" || (manifest !== null && !manifest[level.code] && shapes.length === 0 && !loading));
 
-  const what = onCities
+  const what = onTowns
+    ? "Press a city, a town or a village to go to its window: the largest of those in view are shown."
+    : onCities
     ? !cityData
       ? "Loading the cities…"
       : level.kind === "world"
         ? `Press a city to go to its window. The ${dots.length.toLocaleString("en-US")} ${worldFloor >= 1e6 ? "of a million people or more" : worldFloor > 0 ? "of 300,000 people or more" : "the United Nations counts"} are shown here; draw the map closer for more, or press a country for every one of its cities.`
         : `Press a city of ${named} to go to its window: the ${dots.length.toLocaleString("en-US")} the United Nations counts there.`
-    : onTowns
-      ? "Press a town or a village to go to its window: the largest of those in view are shown."
-      : level.kind === "world"
+    : level.kind === "world"
       ? order === 2
         ? "Press a county or a district to go to its window."
         : order === 1
@@ -886,21 +898,37 @@ export default function PlaceAtlas() {
         : pick === "county" && second
           ? `Press one of the ${second.shapes.length.toLocaleString("en-US")} second-order divisions of ${named}${secondInfo?.kind ? ` - "${secondInfo.kind}", as their publisher has it -` : ""} to go to its window. The heavier lines are its first-order divisions'.`
           : `${pick === "county" && second === null ? `No second-order boundaries are held for ${named}, so its first-order divisions are shown. ` : ""}Press a division of ${named} to go to its record.`;
-  // In the dark theme the land is a dark grey again, as asked - but a step lighter than it first was, so that it stands clear of the card behind it.
-  const land = t.isLight ? "#dfe3ea" : "#4e5262";
-  const edge = t.isLight ? "#ffffff" : "#0b0b0d";
-  /* The dark theme's look, as the windows' maps have it: a wash of one colour on glass, its borders in the colour itself. The raised look stays with the light theme. */
-  const glass = !t.isLight;
-  const wash = WASH;
-  /* The borders. In the light theme a division's are the white the land is cut with, but a county's or a district's are a slate that shows on the pale land - there are thousands, and white was too faint to tell them apart - with the first-order borders over them darker still. */
-  const fineLine = glass ? wash : "#8b95a7";
-  const boldLine = glass ? wash : "#4f5a6e";
+  /* The map is drawn as the World Maps page draws its own, in both themes: each country in the colour of its living
+     conditions - the sixth of the scored countries it falls in - translucent inside an edge of the same colour, and grey
+     where it has no score. A country's states, counties and districts are in its colour, since no figures are held for
+     them; on the United States' own map each state, and the counties in it, is in the colour of its own score among the states. */
+  const ramp = t.isLight ? LIVING_LIGHT : LIVING_DARK;
+  const countryInk = (cc: string | null | undefined) => (cc && COUNTRY_LIVING[cc] ? ramp[stepOf(COUNTRY_LIVING[cc].score, COUNTRY_BREAKS)] : UNSCORED);
+  const stateInk = (name: string | undefined) => (name && STATE_LIVING[name] ? ramp[stepOf(STATE_LIVING[name].score, STATE_BREAKS)] : UNSCORED);
+  const inkOf = (ref: Ref): string =>
+    ref.kind === "country"
+      ? countryInk(ref.code)
+      : ref.kind === "state"
+        ? stateInk(ref.name)
+        : ref.kind === "county"
+          ? onWorld
+            ? countryInk("US")
+            : stateInk(STATE_OF_FIPS.get(ref.fips.slice(0, 2))?.name)
+          : ref.kind === "city"
+            ? countryInk(ref.c[0])
+            : ref.kind === "place"
+              ? countryInk(ref.cc)
+              : countryInk(ref.cc ?? code);
+  /** The finer borders drawn over the whole world: light on the dark card, dark on the light one. */
+  const inner = t.isLight ? "#0f172a" : "#ffffff";
   /** The casing round a place that is picked out, so that its edge reads on any ground. */
   const halo = t.isLight ? "#ffffff" : "#000000";
+  /** The dots, the largest first, so that a small one is never under a large one and can always be pressed. */
+  const dotsDrawn = [...dotsInView].sort((a, b) => b.r - a.r);
   const chip = (on: boolean) =>
     `px-3 py-1 rounded-full text-[11px] font-medium font-sans border transition-colors cursor-pointer shrink-0 whitespace-nowrap ${on ? "chip-selected" : "bg-transparent border-border text-muted-foreground hover:text-foreground hover:bg-muted/60"}`;
   const shownList = find.trim() ? listed.filter((x) => x.name.toLowerCase().includes(find.trim().toLowerCase())) : listed;
-  const tool = "w-7 h-7 rounded-full inline-flex items-center justify-center border border-border text-muted-foreground hover:text-foreground hover:bg-muted/60 transition-colors cursor-pointer disabled:opacity-40 disabled:cursor-default";
+  const tool = "w-8 h-8 rounded-full inline-flex items-center justify-center border border-border bg-background/80 backdrop-blur-sm text-foreground hover:bg-muted transition-colors cursor-pointer shadow-sm disabled:opacity-40 disabled:cursor-default";
   const crumb = "text-[11px] font-semibold font-sans px-2.5 py-1 rounded-full transition-opacity hover:opacity-80 cursor-pointer";
 
   return (
@@ -966,41 +994,25 @@ export default function PlaceAtlas() {
             hint
           )}
         </p>
-        {/* Closer and further, beside the choice: the same as the + and - keys. */}
-
-        <div className="flex items-center gap-1.5 ml-auto">
-          <button type="button" onClick={() => zoomBy(1 / 1.5)} disabled={view.k <= 1} aria-label="Draw the map further out" title="Further out ( - )" className={tool}>
-            <MagnifyingGlassMinus size={13} aria-hidden />
-          </button>
-          <button type="button" onClick={() => zoomBy(1.5)} disabled={view.k >= MAX_K} aria-label="Draw the map closer" title="Closer ( + )" className={tool}>
-            <MagnifyingGlassPlus size={13} aria-hidden />
-          </button>
-          <button type="button" onClick={resetView} disabled={view.k === 1} className="px-2.5 h-7 rounded-full text-[10px] font-mono uppercase tracking-wider border border-border text-muted-foreground hover:text-foreground hover:bg-muted/60 transition-colors cursor-pointer disabled:opacity-40 disabled:cursor-default" title="The whole map ( 0 )">
-            Reset
-          </button>
-          <span className="text-[10px] font-mono text-muted-foreground w-9 text-right" aria-live="polite">
-            {view.k.toFixed(1)}×
-          </span>
-        </div>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-[minmax(0,1fr)_14rem] gap-4">
+      <div className="flex flex-col gap-3">
         <div className="min-w-0 relative">
           <svg
             ref={svgRef}
             viewBox={`${view.x - W / (2 * view.k)} ${view.y - H / (2 * view.k)} ${W / view.k} ${H / view.k}`}
             className="w-full h-auto rounded-xl outline-none focus-visible:ring-2 focus-visible:ring-secondary/60"
             // The ground under the map is plain, as asked: black in the dark theme, white in the light.
-            style={{ background: glass ? "#000000" : "#ffffff", border: `1px solid ${glass ? "rgba(255,255,255,0.12)" : t.gridLine}`, ["--atlas-land" as string]: glass ? wash : land, ["--atlas-hot" as string]: COLOR, cursor: view.k > 1 ? "grab" : undefined, touchAction: view.k > 1 ? "none" : "pan-y" }}
+            style={{ background: t.isLight ? "#ffffff" : "#000000", border: `1px solid ${t.isLight ? t.gridLine : "rgba(255,255,255,0.12)"}`, cursor: view.k > 1 ? "grab" : undefined, touchAction: view.k > 1 ? "none" : "pan-y" }}
             role="group"
             tabIndex={0}
             aria-label={`A map to press. ${what} The wheel or a pinch draws it closer and further, and a drag moves it; with the map in focus, plus and minus do the same, the arrow keys move it and 0 puts it back.`}
             onKeyDown={(e) => {
               // The number pad's keys carry the same characters, so they are answered too.
               const step = 60 / view.k;
-              if (e.key === "+" || e.key === "=") zoomBy(1.5);
-              else if (e.key === "-" || e.key === "_") zoomBy(1 / 1.5);
-              else if (e.key === "0") resetView();
+              if (e.key === "+" || e.key === "=") glideBy(1.6);
+              else if (e.key === "-" || e.key === "_") glideBy(1 / 1.6);
+              else if (e.key === "0") glideHome();
               else if (e.key === "ArrowLeft") panBy(-step, 0);
               else if (e.key === "ArrowRight") panBy(step, 0);
               else if (e.key === "ArrowUp") panBy(0, -step);
@@ -1071,26 +1083,19 @@ export default function PlaceAtlas() {
               drag.current = null;
             }}
           >
-            {/* The land raised off the card: a shadow, then a darker slab set a little down, and the land itself on top. It is a look, and measures nothing. */}
-            <defs>
-              <filter id="atlas-lift" x="-10%" y="-10%" width="120%" height="130%">
-                <feDropShadow dx="0" dy={3 / view.k} stdDeviation={2.2 / view.k} floodColor="#000000" floodOpacity={t.isLight ? 0.28 : 0.75} />
-              </filter>
-
-            </defs>
-
-            {!glass && slab && <path d={slab} transform={`translate(0 ${2.6 / view.k})`} fill={t.isLight ? "#9aa4b5" : "#1f2128"} filter="url(#atlas-lift)" pointerEvents="none" />}
             {shapes.map((s) => (
               <path
                 key={s.key}
                 d={s.d}
-                className="cursor-pointer fill-[var(--atlas-land)] outline-none"
+                // Translucent inside a bright edge of the same colour, and fuller when it is pointed at: as the World Maps page draws a place.
+                className="cursor-pointer outline-none [fill-opacity:0.36] hover:[fill-opacity:0.6] transition-[fill-opacity]"
                 // Where the cities are what is pressed, a country still opens the map on itself; a division under the dots does nothing.
-                style={{ ["--atlas-hot" as string]: s.hot, pointerEvents: onCities && level.kind !== "world" ? "none" : undefined }}
-                fillOpacity={glass ? 0.28 : 1}
-                stroke={glass ? wash : onSecond ? fineLine : edge}
+                style={{ pointerEvents: onCities && level.kind !== "world" ? "none" : undefined }}
+                fill={inkOf(s.ref)}
+                stroke={inkOf(s.ref)}
                 // Finer where the shapes are counties or districts: there are thousands of them.
-                strokeWidth={glass ? (onSecond ? 0.45 : 0.9) : onSecond ? 0.5 : 0.6}
+                strokeWidth={onSecond ? 0.45 : 0.9}
+                strokeOpacity={onSecond ? 0.75 : 1}
                 vectorEffect="non-scaling-stroke"
                 strokeLinejoin="round"
                 onClick={s.go}
@@ -1100,14 +1105,15 @@ export default function PlaceAtlas() {
                 <title>{s.name}</title>
               </path>
             ))}
-            {/* The world's smaller places, once it is drawn close enough for them: over the countries, each pressed for itself. */}
+            {/* The world's smaller places, once it is drawn close enough for them: over their countries and in their countries' colour, a little dimmer at the edge, each pressed for itself. */}
             {finerShapes.map((s) => (
               <path
                 key={s.key}
                 d={s.d}
-                className="cursor-pointer fill-[var(--atlas-land)] outline-none"
-                fillOpacity={glass ? 0.2 : 1}
-                stroke={glass ? wash : order === 2 ? fineLine : edge}
+                className="cursor-pointer outline-none [fill-opacity:0] hover:[fill-opacity:0.3] transition-[fill-opacity]"
+                fill={inkOf(s.ref)}
+                stroke={inkOf(s.ref)}
+                strokeOpacity={order === 2 ? 0.6 : 0.8}
                 strokeWidth={order === 2 ? 0.45 : 0.7}
                 vectorEffect="non-scaling-stroke"
                 strokeLinejoin="round"
@@ -1118,49 +1124,53 @@ export default function PlaceAtlas() {
                 <title>{s.name}</title>
               </path>
             ))}
-            {/* The lines over the shapes, never pressed: the counties', fine, on the map of the states; the first-order divisions', heavier, on a map of counties or districts. */}
-            {lines && <path d={lines} fill="none" stroke={bold ? boldLine : fineLine} strokeOpacity={bold ? 1 : glass ? 0.7 : 0.9} strokeWidth={bold ? (glass ? 1.5 : 1.3) : 0.45}
- vectorEffect="non-scaling-stroke" strokeLinejoin="round" pointerEvents="none" />}
+            {/* The lines over the shapes, never pressed: the counties', fine, on the map of the states; the first-order divisions', heavier, on a map of counties or districts - in the country's own colour. */}
+            {lines && (
+              <path d={lines} fill="none" stroke={bold ? countryInk(code) : inner} strokeOpacity={bold ? 1 : 0.3} strokeWidth={bold ? 1.4 : 0.45} vectorEffect="non-scaling-stroke" strokeLinejoin="round" pointerEvents="none" />
+            )}
             {/* The world, drawn closer: the borders of its states and provinces, and closer still those of its counties and districts - fainter than the countries' own, clearer the closer the map is, and never pressed. */}
             {onWorld && stateLinesD && view.k >= STATES_FROM && order !== 1 && (
-              <path d={stateLinesD} fill="none" stroke={boldLine} strokeOpacity={Math.min(0.9, 0.3 + 0.08 * view.k)} strokeWidth={0.6} vectorEffect="non-scaling-stroke" strokeLinejoin="round" pointerEvents="none" />
+              <path d={stateLinesD} fill="none" stroke={inner} strokeOpacity={Math.min(0.5, 0.16 + 0.04 * view.k)} strokeWidth={0.6} vectorEffect="non-scaling-stroke" strokeLinejoin="round" pointerEvents="none" />
             )}
             {onWorld && countyLinesD && view.k >= COUNTIES_FROM && order !== 2 && (
-              <path d={countyLinesD} fill="none" stroke={fineLine} strokeOpacity={Math.min(0.7, 0.15 + 0.03 * view.k)} strokeWidth={0.35} vectorEffect="non-scaling-stroke" strokeLinejoin="round" pointerEvents="none" />
+              <path d={countyLinesD} fill="none" stroke={inner} strokeOpacity={Math.min(0.4, 0.1 + 0.02 * view.k)} strokeWidth={0.35} vectorEffect="non-scaling-stroke" strokeLinejoin="round" pointerEvents="none" />
             )}
-            {/* The place pointed at, picked out as the World Maps page picks one out: filled in its colour over the land, a casing so that its edge reads on any ground, and an outline in the colour itself. */}
+            {/* The place pointed at, picked out as the World Maps page and the windows' maps pick one out: filled in its colour over the land, a casing so that its edge reads on any ground, and an outline in the colour itself. */}
             {litShape && (
               <g pointerEvents="none">
-                <path d={litShape.d} fill={litShape.hot} fillOpacity={0.62} stroke={halo} strokeOpacity={0.55} strokeWidth={2.6} vectorEffect="non-scaling-stroke" strokeLinejoin="round" />
-                <path d={litShape.d} fill="none" stroke={litShape.hot} strokeWidth={1.3} vectorEffect="non-scaling-stroke" strokeLinejoin="round" />
+                <path d={litShape.d} fill={inkOf(litShape.ref)} fillOpacity={0.62} stroke={halo} strokeOpacity={0.55} strokeWidth={3} vectorEffect="non-scaling-stroke" strokeLinejoin="round" />
+                <path d={litShape.d} fill="none" stroke={inkOf(litShape.ref)} strokeWidth={1.8} vectorEffect="non-scaling-stroke" strokeLinejoin="round" />
               </g>
             )}
-            {dotsInView.map((d) => (
-
-              <circle
-                key={d.key}
-                cx={d.x}
-                cy={d.y}
-                // The same size on the screen however close the map is drawn, so that cities part as it closes in.
-                r={d.r / view.k}
-                className="cursor-pointer fill-[var(--atlas-dot)] hover:fill-[var(--atlas-hot)] transition-colors"
-                // A dot is dark on the light theme's land and pale on the dark theme's, with an edge of the other tone, so that it shows on both.
-                style={{ ["--atlas-hot" as string]: d.hot, ["--atlas-dot" as string]: t.isLight ? "rgba(15,23,42,0.72)" : "rgba(241,240,255,0.9)" }}
-                stroke={edge}
-                strokeWidth={0.6}
-                vectorEffect="non-scaling-stroke"
-                onClick={d.go}
-                onMouseEnter={() => setHover(d.name)}
-                onMouseLeave={() => setHover(null)}
-              >
+            {/* The cities and towns. Each is the same size on the screen however close the map is drawn, so that they part
+                as it closes in; a little see-through, so that one under another still shows; and drawn the largest first,
+                with a wider ground round each to be pressed by, so that a small one beside a large one can still be chosen. */}
+            {dotsDrawn.map((d) => (
+              <g key={d.key} className="cursor-pointer" onClick={d.go} onMouseEnter={() => setHover(d.name)} onMouseLeave={() => setHover(null)}>
+                <circle cx={d.x} cy={d.y} r={Math.max(d.r + 2, 7) / view.k} fill="transparent" />
+                <circle
+                  cx={d.x}
+                  cy={d.y}
+                  r={d.r / view.k}
+                  // Pale on the dark card and dark on the light one, with an edge of the other tone, so that it shows on any colour of land.
+                  fill={t.isLight ? "#0f172a" : "#ffffff"}
+                  fillOpacity={0.78}
+                  stroke={halo}
+                  strokeOpacity={0.85}
+                  strokeWidth={0.9}
+                  vectorEffect="non-scaling-stroke"
+                  pointerEvents="none"
+                />
                 <title>{d.name}</title>
-              </circle>
+              </g>
             ))}
-            {/* A city pointed at: a ring round it, cased the same way. */}
+            {/* The one pointed at: filled in its country's colour, with a ring round it, cased the same way - as the windows' maps ring a dot. */}
             {litDot && (
               <g pointerEvents="none">
-                <circle cx={litDot.x} cy={litDot.y} r={(litDot.r + 5) / view.k} fill="none" stroke={halo} strokeOpacity={0.55} strokeWidth={3.4} vectorEffect="non-scaling-stroke" />
-                <circle cx={litDot.x} cy={litDot.y} r={(litDot.r + 5) / view.k} fill="none" stroke={litDot.hot} strokeWidth={1.8} vectorEffect="non-scaling-stroke" />
+                {/* The dot itself solid, and the ring in the dot's own tone - pale on the dark card, dark on the light - inside a casing of the other, so that it stands off land of any colour, its own country's included. */}
+                <circle cx={litDot.x} cy={litDot.y} r={(litDot.r + 1.5) / view.k} fill={inner} stroke={halo} strokeWidth={1.4} vectorEffect="non-scaling-stroke" />
+                <circle cx={litDot.x} cy={litDot.y} r={(litDot.r + 7) / view.k} fill="none" stroke={halo} strokeOpacity={0.7} strokeWidth={4.2} vectorEffect="non-scaling-stroke" />
+                <circle cx={litDot.x} cy={litDot.y} r={(litDot.r + 7) / view.k} fill="none" stroke={inner} strokeWidth={2} vectorEffect="non-scaling-stroke" />
               </g>
             )}
             {(loading || none) && (
@@ -1169,6 +1179,18 @@ export default function PlaceAtlas() {
               </text>
             )}
           </svg>
+          {/* Closer and further, at the map's own corner where they are seen with it: the same as the wheel, a pinch and the + and - keys, and they glide. */}
+          <div className="absolute top-2.5 right-2.5 flex items-center gap-1.5">
+            <button type="button" onClick={() => glideBy(1 / 1.6)} disabled={view.k <= 1} aria-label="Draw the map further out" title="Further out ( - )" className={tool}>
+              <MagnifyingGlassMinus size={15} aria-hidden />
+            </button>
+            <button type="button" onClick={() => glideBy(1.6)} disabled={view.k >= MAX_K} aria-label="Draw the map closer" title="Closer ( + )" className={tool}>
+              <MagnifyingGlassPlus size={15} aria-hidden />
+            </button>
+            <button type="button" onClick={glideHome} disabled={view.k === 1} className="px-3 h-8 rounded-full text-[10px] font-mono uppercase tracking-wider border border-border bg-background/80 backdrop-blur-sm text-foreground hover:bg-muted transition-colors cursor-pointer shadow-sm disabled:opacity-40 disabled:cursor-default" title="The whole map ( 0 )" aria-live="polite">
+              {view.k === 1 ? "1.0×" : `Reset · ${view.k.toFixed(1)}×`}
+            </button>
+          </div>
           {/* The place pointed at, named beside the pointer as the windows' maps name theirs: its name, what it is, and that a press opens it. */}
           {hover && (litShape || litDot) && (
             <div ref={tipRef} role="status" className="absolute left-0 top-0 z-10 pointer-events-none modal-glass border rounded-lg px-2.5 py-1.5 shadow-lg max-w-[16rem]" style={{ transform: tipPlace() }}>
@@ -1177,6 +1199,23 @@ export default function PlaceAtlas() {
             </div>
           )}
 
+          {/* What the colours are: the scale the World Maps page has under its own map, and where it is explained. */}
+          <div className="flex flex-wrap items-center gap-x-2.5 gap-y-1 mt-2">
+            <span className="text-[10px] font-sans" style={{ color: t.mutedText }}>
+              Lower
+            </span>
+            <span className="flex rounded-full overflow-hidden" aria-hidden>
+              {ramp.map((c) => (
+                <span key={c} className="w-6 h-2" style={{ background: c }} />
+              ))}
+            </span>
+            <span className="text-[10px] font-sans" style={{ color: t.mutedText }}>
+              Higher
+            </span>
+            <span className="text-[10px] font-sans leading-snug" style={{ color: t.mutedText }}>
+              · living conditions, a score worked out here from the figures the site holds and published by no body: World Maps sets out how. Grey where too few figures are held.
+            </span>
+          </div>
           {/* Whose the boundaries on the map are, where they are a country's second order: each country's are its own publisher's, under its own licence. */}
           {abroad && fine && second && secondInfo && (
             <p className="text-[10px] font-mono leading-snug mt-2" style={{ color: t.mutedText }}>
@@ -1186,9 +1225,9 @@ export default function PlaceAtlas() {
         </div>
 
         {/* The same places by name: for one too small to press, and for a keyboard. */}
-        {/* Beside the map from a middling width up, the height of the map; under it on a phone. */}
-        <div className="min-w-0 relative md:min-h-[12rem]">
-         <div className="flex flex-col md:absolute md:inset-0">
+        {/* Under the map, which has the card's whole width: in as many columns as there is room for. */}
+        <div className="min-w-0">
+         <div className="flex flex-col">
           <p className="text-[10px] font-mono uppercase tracking-widest mb-1.5" style={{ color: t.mutedText }}>
             {listLabel}
           </p>
@@ -1196,7 +1235,7 @@ export default function PlaceAtlas() {
             <MagnifyingGlass size={12} className="text-muted-foreground shrink-0" aria-hidden />
             <input type="search" value={find} onChange={(e) => setFind(e.target.value)} placeholder="Find one by name" aria-label="Find a place in the list by name" className="flex-1 min-w-0 bg-transparent text-[11px] font-medium font-sans text-foreground placeholder:text-muted-foreground focus:outline-none" />
           </label>
-          <ul className="flex flex-col overflow-y-auto rounded-xl h-40 md:h-auto md:flex-1 md:min-h-0" style={{ border: `1px solid ${t.gridLine}` }}>
+          <ul className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 content-start overflow-y-auto rounded-xl max-h-44" style={{ border: `1px solid ${t.gridLine}` }}>
             {shownList.map((x) => (
               <li key={x.key} style={{ borderBottom: `1px solid ${t.gridLine}` }}>
                 <button type="button" onClick={x.go} onFocus={() => setHover(x.name)} onBlur={() => setHover(null)} onMouseEnter={() => setHover(x.name)} onMouseLeave={() => setHover(null)} className="w-full text-left text-[11px] font-sans px-3 py-1.5 truncate hover:opacity-70 cursor-pointer" style={{ color: t.bodyText }}>
@@ -1269,12 +1308,13 @@ export default function PlaceAtlas() {
           How this map is drawn
         </summary>
       <p className="text-[9px] font-sans leading-snug mt-2" style={{ color: t.mutedText }}>
-        The map is drawn closer with the + and - keys, the buttons above it or a pinch, moved by dragging or the arrow keys once it is closer, and put back with 0. What a press
-        selects is chosen above the map: the whole country, a state or division, a county, or a city - the cities the United Nations counts, drawn as dots sized by their people,
-        those of a million or more on the world and every one of a country's once the map is on it. The map is a way in and shades nothing by any figure. On "City" a country's counties or districts are drawn under the dots as well, so that a city can be told from the ground around it. A place pointed at is picked out as the World Maps page picks one out - filled in its colour, with a casing and an outline, and a city with a ring - in its
-
-        flag's colour when it is pointed at: a country in its own flag's, a division in its own flag's where it has one, and a division, county or district with no flag of its own
-        in a shade of the colour of the country or division it belongs to. On "State" a country opens on the divisions Natural Earth draws for it - states, provinces, regions or
+        The map is drawn closer with the wheel or a trackpad, two fingers pinched on a touch screen, the buttons at its corner and the + and - keys; it is moved by dragging or the
+        arrow keys once it is closer, and put back with 0. What a press selects follows how close it is drawn - the whole country, then a state or division, a county, and a city, town
+        or village - and can be chosen by hand above the map. It is drawn as the World Maps page draws its own: each country in the colour of its living conditions - a score worked
+        out here from the figures the site holds, shown as the sixth of the scored countries it falls in, red the lowest and teal the highest - and grey where too few figures are
+        held; that page sets out how the score is worked out. A country's states, counties and districts are in its colour, since no figures are held for them; on the United States'
+        own map each state is in the colour of its own score among the states. The cities are those the United Nations counts, as dots sized by their people; closer in, the towns and
+        villages GeoNames lists take their place - the largest of those in view. A place pointed at is filled in its colour with a casing and an outline, and a dot with a ring. On "State" a country opens on the divisions Natural Earth draws for it - states, provinces, regions or
         departments, whichever its first order is there. On "County" it opens on its second order - counties, districts, municipalities, whatever its publisher calls them: the
         Census Bureau's counties for the United States, and for other countries the boundaries geoBoundaries gathers from each country's own publisher, kept only under a licence
         the site can use and named under the map. Which first-order division a district lies in is worked out here, from where most of its outline falls. A country with no
