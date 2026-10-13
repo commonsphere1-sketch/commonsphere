@@ -1632,7 +1632,19 @@ export function WorldMapsPage() {
   const [markOn, setMarkOn] = useState(linked !== null);
   const [markState, setMarkState] = useState<string | null>(linked?.state ?? null);
   const [markCity, setMarkCity] = useState<string | null>(linked?.city ?? null);
+  /* The place last pointed at on one of the maps: what the third map, of counties and municipalities, draws. It is taken
+     once the pointer has rested on the place a moment, so that a sweep across a map does not redraw the third for every
+     place passed over; and it is kept after the pointer leaves, until another place is pointed at or a country is picked. */
+  const [pointed, setPointed] = useState<{ code: string; division?: string } | null>(null);
+  const pointTimer = useRef<number | undefined>(undefined);
+  const pointAt = useCallback((code: string | undefined, division?: string) => {
+    window.clearTimeout(pointTimer.current);
+    if (code) pointTimer.current = window.setTimeout(() => setPointed({ code, division }), 350);
+  }, []);
+  const pointOff = useCallback(() => window.clearTimeout(pointTimer.current), []);
+  useEffect(() => () => window.clearTimeout(pointTimer.current), []);
   const setFocusCode = useCallback((code: string) => {
+    setPointed(null);
     setFocusCodeOnly(code);
     setMarkState(null);
     setMarkCity(null);
@@ -2445,7 +2457,7 @@ export function WorldMapsPage() {
   const finerOwn = useFiner(finerCodes, finerOrder);
   const finerWithout = useMemo(() => (finerOrder === 2 ? finerCodes.filter((c) => finerOwn.get(c)?.length === 0) : []), [finerOrder, finerCodes, finerOwn]);
   const finerFirst = useFiner(finerWithout, finerOrder === 2 ? 1 : 0);
-  type FinerHit = { key: string; code: string; name: string; value: string; d: string; cx: number; cy: number; x0: number; y0: number; x1: number; y1: number };
+  type FinerHit = { key: string; code: string; /** The first-order division it is, or lies in. */ division?: string; name: string; value: string; d: string; cx: number; cy: number; x0: number; y0: number; x1: number; y1: number };
   const finerBuilt = useRef(new Map<string, FinerHit[]>());
   const finerHits = useMemo<FinerHit[]>(() => {
     if (!finerOrder) return [];
@@ -2472,6 +2484,7 @@ export function WorldMapsPage() {
               {
                 key: `${key}:${f.index}`,
                 code,
+                division: f.order === 1 ? f.name : f.parent,
                 name: [f.name, f.order === 2 ? f.parent : undefined, land].filter(Boolean).join(", "),
                 value: f.order === 1 ? `a first-order division of ${land}` : `a county or district of ${land}`,
                 d,
@@ -2877,9 +2890,11 @@ export function WorldMapsPage() {
     if (!wantDistrictHits || !second || !focusMap) return [];
     return second.shapes.flatMap((s, i) => {
       const d = focusMap.path(s as never);
-      return d ? [{ key: i, d, name: [s.properties.n, s.properties.p].filter(Boolean).join(", ") }] : [];
+      return d ? [{ key: i, d, division: s.properties.p, name: [s.properties.n, s.properties.p].filter(Boolean).join(", ") }] : [];
     });
   }, [wantDistrictHits, second, focusMap]);
+  /* The country the third map draws: the one last pointed at on a map above, or the one in focus. */
+  const atlasCode = pointed?.code ?? focusCode;
   /* A state's, on the United States' map. */
   const stateInk = (name: string) => (STATE_LIVING[name] && colourFor(STATE_LIVING[name].score, stateLivingBreaks, livingRamp)) || UNSCORED;
 
@@ -3833,7 +3848,8 @@ export function WorldMapsPage() {
                   // A press chooses the country as the place picked out.
                   data-pick={country ? `country:${country.code}` : undefined}
                   style={{ ["--o" as string]: solid !== null ? solid : 0.36, cursor: country && worldZoom.zoom === 1 ? "pointer" : undefined }}
-                  onMouseEnter={() =>
+                  onMouseEnter={() => {
+                    pointAt(country?.code);
                     setHovered({
                       name: country?.name ?? name,
                       value: outside
@@ -3844,9 +3860,12 @@ export function WorldMapsPage() {
                       cx,
                       cy,
                       continent: country?.continent,
-                    })
-                  }
-                  onMouseLeave={() => setHovered(null)}
+                    });
+                  }}
+                  onMouseLeave={() => {
+                    pointOff();
+                    setHovered(null);
+                  }}
                 />
               );
             })}
@@ -3865,8 +3884,14 @@ export function WorldMapsPage() {
                 strokeLinejoin="round"
                 className="[fill-opacity:0] [stroke-opacity:0] hover:[fill-opacity:0.6] hover:[stroke-opacity:1] transition-[fill-opacity]"
                 data-pick={`country:${h.code}`}
-                onMouseEnter={() => setHovered({ name: h.name, value: h.value, cx: h.cx, cy: h.cy })}
-                onMouseLeave={() => setHovered(null)}
+                onMouseEnter={() => {
+                  pointAt(h.code, h.division);
+                  setHovered({ name: h.name, value: h.value, cx: h.cx, cy: h.cy });
+                }}
+                onMouseLeave={() => {
+                  pointOff();
+                  setHovered(null);
+                }}
               >
                 <title>{h.name}</title>
               </path>
@@ -4326,6 +4351,8 @@ export function WorldMapsPage() {
                 strokeWidth={0.9 / zoom}
                 strokeLinejoin="round"
                 data-pick={state ? `state:${state.abbreviation}` : undefined}
+                onMouseEnter={() => pointAt("US", state?.name ?? name)}
+                onMouseLeave={pointOff}
                 style={{ cursor: state && zoom === 1 ? "pointer" : undefined }}
               >
 
@@ -4338,7 +4365,7 @@ export function WorldMapsPage() {
             ))}
             {/* Drawn closer, a county is what is pointed at: lit in its state's colour, with an edge, and named. */}
             {usCountyHits.map((h) => (
-              <path key={h.key} d={h.d} fill={stateInk(h.state)} stroke={stateInk(h.state)} strokeWidth={1.2 / zoom} strokeLinejoin="round" className="[fill-opacity:0] [stroke-opacity:0] hover:[fill-opacity:0.6] hover:[stroke-opacity:1] transition-[fill-opacity]">
+              <path key={h.key} d={h.d} onMouseEnter={() => pointAt("US", h.state)} onMouseLeave={pointOff} fill={stateInk(h.state)} stroke={stateInk(h.state)} strokeWidth={1.2 / zoom} strokeLinejoin="round" className="[fill-opacity:0] [stroke-opacity:0] hover:[fill-opacity:0.6] hover:[stroke-opacity:1] transition-[fill-opacity]">
                 <title>{h.name}</title>
               </path>
             ))}
@@ -4699,6 +4726,8 @@ export function WorldMapsPage() {
                         {focusMap.parts.map((sd, i) => (
                           <path
                             key={`hit-${sd.n}-${i}`}
+                            onMouseEnter={() => pointAt(focusCode, sd.n)}
+                            onMouseLeave={pointOff}
                             d={sd.d}
                             fill={focusHue}
                             className="[fill-opacity:0] hover:[fill-opacity:0.42] transition-[fill-opacity]"
@@ -4709,7 +4738,7 @@ export function WorldMapsPage() {
                         ))}
                         {/* Drawn closer, a district is what is pointed at, where they are held: lit in the country's colour, with an edge, and named with its division. */}
                         {districtHits.map((h) => (
-                          <path key={`district-${h.key}`} d={h.d} fill={focusHue} stroke={focusHue} strokeWidth={1.2 / zoom} strokeLinejoin="round" className="[fill-opacity:0] [stroke-opacity:0] hover:[fill-opacity:0.6] hover:[stroke-opacity:1] transition-[fill-opacity]">
+                          <path key={`district-${h.key}`} d={h.d} onMouseEnter={() => pointAt(focusCode, h.division)} onMouseLeave={pointOff} fill={focusHue} stroke={focusHue} strokeWidth={1.2 / zoom} strokeLinejoin="round" className="[fill-opacity:0] [stroke-opacity:0] hover:[fill-opacity:0.6] hover:[stroke-opacity:1] transition-[fill-opacity]">
                             <title>{h.name}</title>
                           </path>
                         ))}
@@ -5066,14 +5095,16 @@ export function WorldMapsPage() {
           )}
         </div>
 
-        {/* ── Counties and municipalities: one division of the country in focus above, drawn close enough for what is inside it ── */}
+        {/* ── Counties and municipalities: one division of the country in focus above - or of the place last pointed at on
+            either map - drawn close enough for what is inside it ── */}
         <div className="rounded-2xl p-4" style={{ background: cardBg, border: cardBorder, boxShadow: cardShadow }}>
           <Suspense fallback={<p className="text-xs font-sans text-muted-foreground">Loading the map of counties and municipalities…</p>}>
             <DivisionAtlas
-              code={focusCode}
-              country={focusCode === "US" ? "United States" : (focusCountry?.name ?? focusCode)}
-              color={focusHue}
-              colorOf={focusCode === "US" ? stateInk : undefined}
+              code={atlasCode}
+              country={atlasCode === "US" ? "United States" : (countryByCode.get(atlasCode)?.name ?? atlasCode)}
+              division={pointed?.division}
+              color={atlasCode === focusCode ? focusHue : worldInk(atlasCode)}
+              colorOf={atlasCode === "US" ? stateInk : undefined}
             />
           </Suspense>
         </div>

@@ -5,6 +5,11 @@
  * so that the two meet; its municipalities are the dots, the places GeoNames
  * lists in it, largest first.
  *
+ * It follows the maps above it: a country, a state or a province pointed at
+ * there, or the state a county pointed at lies in, is what this map draws
+ * next, and it stays on it until another is pointed at or picked from its
+ * menu. Nothing is fetched for it until the page reaches it.
+ *
  * It is the map at the head of a division's own window, given room and a
  * menu of the country's divisions. Drawn closer, a county or district is
  * pointed at and pressed to open its window; a dot opens the town's or
@@ -16,7 +21,7 @@
  * A country with no divisions held, or a division the maps draw no outline
  * for, is told so.
  */
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { ArrowRight } from "@phosphor-icons/react";
 import { PLACES_SOURCE } from "../data/placesIndex";
@@ -34,27 +39,26 @@ const NAMED = 12;
 /** How many are drawn as dots: the largest of them. */
 const DOTS = 300;
 
-export default function DivisionAtlas({
-  code,
-  country,
-  color,
-  colorOf,
-}: {
-  /** The ISO code of the country in focus on the map above. */
+type Props = {
+  /** The ISO code of the country in focus on the map above, or of the one last pointed at there. */
   code: string;
   country: string;
+  /** The division last pointed at on a map above, by its name: this map draws it. */
+  division?: string;
   /** The colour the country has on the maps above. */
   color: string;
   /** The colour a division has there, by its name, where divisions are coloured: the states of the United States. */
   colorOf?: (division: string) => string;
-}) {
+};
+
+function Atlas({ code, country, division, color, colorOf }: Props) {
   const navigate = useNavigate();
   const divisions = useMemo(() => SUBNATIONS.filter((s) => s.cc === code).sort((a, b) => a.name.localeCompare(b.name)), [code]);
   /** The one first shown: the country's most populous, by the latest figure each one's record holds, or the first by name. */
   const first = useMemo(() => [...divisions].filter((s) => s.pop).sort((a, b) => b.pop![1] - a.pop![1])[0] ?? divisions[0], [divisions]);
   const [picked, setPicked] = useState<string | null>(null);
-  // Another country in focus: its own first division, not the last one picked.
-  useEffect(() => setPicked(null), [code]);
+  // The division pointed at above is drawn; another country without one named is drawn by its own first division, not the last one picked.
+  useEffect(() => setPicked((division && divisions.find((d) => d.name === division)?.id) || null), [code, division, divisions]);
   const s = divisions.find((d) => d.id === picked) ?? first;
 
   const drawn = useAdmin1(s ? code : null);
@@ -118,7 +122,7 @@ export default function DivisionAtlas({
           {s.name} as the site's maps draw it
           {second && second.lines.length > 1 ? `, with the borders of its ${second.lines.length} ${second.are}: draw the map closer to point at one, and press it to open its window` : ", with no finer borders held for it"}
           {dots.length ? `. The dots are ${within!.rows.length > dots.length ? `the ${dots.length} largest of the ${whole(within!.rows.length)}` : `the ${dots.length}`} places GeoNames lists in it: press one to open it` : ""}. Nothing is shaded
-          by a figure - the colour is the one {colorOf ? s.name : country} has on the map above.
+          by a figure - the colour is the one {colorOf ? s.name : country} has on the map above. This map follows the ones above: point at a country, a state or a province there and it is drawn here.
         </p>
       )}
 
@@ -153,4 +157,19 @@ export default function DivisionAtlas({
       />
     </>
   );
+}
+
+/** The map, once the page has come near it: until then nothing of it is fetched, whatever is pointed at above. */
+export default function DivisionAtlas(props: Props) {
+  const box = useRef<HTMLDivElement>(null);
+  const [seen, setSeen] = useState(false);
+  useEffect(() => {
+    const el = box.current;
+    if (!el || seen) return;
+    if (typeof IntersectionObserver === "undefined") return setSeen(true);
+    const watch = new IntersectionObserver((entries) => entries.some((e) => e.isIntersecting) && setSeen(true), { rootMargin: "400px" });
+    watch.observe(el);
+    return () => watch.disconnect();
+  }, [seen]);
+  return <div ref={box}>{seen ? <Atlas {...props} /> : <p className="text-xs font-sans text-muted-foreground">Counties and municipalities · {props.country}: the map is drawn when the page reaches it.</p>}</div>;
 }
