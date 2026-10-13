@@ -816,15 +816,17 @@ function PlaceWindow({
             <div className="flex items-center gap-1.5 shrink-0">
               {/* Follow, as in a country's and a state's window. */}
               <FollowStar where="window" id={placeFollowId(id)} name={name} />
-              <button onClick={onBack} className="p-2 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted/60 transition-colors cursor-pointer" aria-label={`Back to ${s.name}`} title={`Back to ${s.name}`}>
-                <ArrowLeft size={18} />
-              </button>
               {/* The buttons a country's window has at its head: the place on the map, and the window opened to the whole screen. */}
               <button onClick={() => navigate(`/dashboard/maps?country=${s.cc}`)} className="p-2 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted/60 transition-colors cursor-pointer" aria-label={`Show ${country} on the map`} title="Show on map">
                 <MapTrifold size={18} />
               </button>
+              {/* The place's buttons before this rule, the window's after it: the same order in every window. */}
+              <span aria-hidden className="w-px h-5 bg-border mx-0.5 shrink-0" />
               <button onClick={() => setExpanded((v) => !v)} className="p-2 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted/60 transition-colors cursor-pointer" aria-label={expanded ? "Collapse the window" : "Expand the window to full screen"} title={expanded ? "Collapse" : "Expand to full screen"}>
                 {expanded ? <ArrowsIn size={18} /> : <ArrowsOut size={18} />}
+              </button>
+              <button onClick={onBack} className="p-2 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted/60 transition-colors cursor-pointer" aria-label={`Back to ${s.name}`} title={`Back to ${s.name}`}>
+                <ArrowLeft size={18} />
               </button>
               <button onClick={onClose} className="p-2 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted/60 transition-colors cursor-pointer" aria-label="Close" title="Close">
                 <X size={18} />

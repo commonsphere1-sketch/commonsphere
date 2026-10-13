@@ -211,11 +211,17 @@ function CityWindow({ c, onBack, onClose }: { c: UnCity; /** Back to its country
             <div className="flex items-center gap-1.5 shrink-0">
               {/* Follow, as in a country's and a state's window. */}
               <FollowStar where="window" id={profile?.id ?? unCityId(c)} name={name} />
-              <button onClick={onBack} className="p-2 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted/60 transition-colors cursor-pointer" aria-label={`Back to the cities of ${land}`} title="Back">
-                <ArrowLeft size={18} />
+              {/* On the map, as every other place's window has it: the Maps page, opened on its country. */}
+              <button onClick={() => navigate(`/dashboard/maps?country=${cc}`)} className="p-2 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted/60 transition-colors cursor-pointer" aria-label={`Show ${land} on the map`} title="Show on map">
+                <MapTrifold size={18} />
               </button>
+              {/* The place's buttons before this rule, the window's after it: the same order in every window. */}
+              <span aria-hidden className="w-px h-5 bg-border mx-0.5 shrink-0" />
               <button onClick={() => setWide((v) => !v)} className="p-2 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted/60 transition-colors cursor-pointer" aria-label={wide ? "Collapse the window" : "Expand the window to full screen"} title={wide ? "Collapse" : "Expand to full screen"}>
                 {wide ? <ArrowsIn size={18} /> : <ArrowsOut size={18} />}
+              </button>
+              <button onClick={onBack} className="p-2 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted/60 transition-colors cursor-pointer" aria-label={`Back to the cities of ${land}`} title="Back">
+                <ArrowLeft size={18} />
               </button>
               <button onClick={onClose} className="p-2 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted/60 transition-colors cursor-pointer" aria-label="Close">
                 <X size={18} />

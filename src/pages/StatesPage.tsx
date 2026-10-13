@@ -6140,6 +6140,8 @@ function StateModal({
               >
                 <MapTrifold size={18} />
               </button>
+              {/* The place's buttons before this rule, the window's after it: the same order in every window. */}
+              <span aria-hidden className="w-px h-5 bg-border mx-0.5 shrink-0" />
               <button
                 onClick={() => setIsExpanded((v) => !v)}
                 className="p-2 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted/60 transition-colors cursor-pointer"

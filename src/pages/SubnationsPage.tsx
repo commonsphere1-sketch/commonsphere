@@ -370,19 +370,21 @@ function Window({
             </div>
             <div className="flex items-center gap-1.5 shrink-0">
               {follow}
-              {onBack && (
-                <button onClick={onBack} className="p-2 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted/60 transition-colors cursor-pointer" aria-label="Back to the window before" title="Back">
-                  <ArrowLeft size={18} />
-                </button>
-              )}
               {mapTo && (
                 <button onClick={() => navigate(mapTo)} className="p-2 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted/60 transition-colors cursor-pointer" aria-label={`Show ${title} on the map`} title="Show on map">
                   <MapTrifold size={18} />
                 </button>
               )}
+              {/* The place's buttons before this rule, the window's after it: the same order in every window. */}
+              <span aria-hidden className="w-px h-5 bg-border mx-0.5 shrink-0" />
               <button onClick={() => setExpanded((v) => !v)} className="p-2 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted/60 transition-colors cursor-pointer" aria-label={expanded ? "Collapse the window" : "Expand the window to full screen"} title={expanded ? "Collapse" : "Expand to full screen"}>
                 {expanded ? <ArrowsIn size={18} /> : <ArrowsOut size={18} />}
               </button>
+              {onBack && (
+                <button onClick={onBack} className="p-2 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted/60 transition-colors cursor-pointer" aria-label="Back to the window before" title="Back">
+                  <ArrowLeft size={18} />
+                </button>
+              )}
               <button onClick={onClose} className="p-2 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted/60 transition-colors cursor-pointer" aria-label="Close" title="Close">
                 <X size={18} />
               </button>
