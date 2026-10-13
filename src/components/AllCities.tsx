@@ -49,11 +49,9 @@
 import { lazy, Suspense, useEffect, useMemo, useState, type ReactNode } from "react";
 import { useNavigate } from "react-router-dom";
 import { Area, AreaChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
-import { ArrowLeft, ArrowRight, ArrowsIn, ArrowsOut, ClockCounterClockwise, ListBullets, MagnifyingGlass, MapPin, MapTrifold, X } from "@phosphor-icons/react";
+import { ArrowLeft, ArrowRight, ArrowsIn, ArrowsOut, ClockCounterClockwise, ListBullets, MagnifyingGlass, MapPin, MapTrifold, Star, X } from "@phosphor-icons/react";
 import { ECONOMY_INDICATORS, ECONOMY_INDICATORS_SOURCE } from "../data/economyIndicators";
 import { ECONOMY_OF } from "../data/placeIndex";
-import { citiesData } from "../data/citiesData";
-import { CITY_PLACES } from "../data/cityPlaces";
 import { countriesData } from "../data/countriesData";
 import { COUNTRY_INDICATORS } from "../data/countryIndicators";
 import { byPeople, countryPeople, peopleSource, peopleSources } from "../lib/countryPeople";
@@ -63,6 +61,8 @@ import { flagColor } from "../lib/flagColor";
 import { lockScroll } from "../lib/scrollLock";
 import { ArticlePanel } from "./HistoryPanel";
 import { ChartNote, FigureRow } from "./ModalCharts";
+import CommutePanel from "./CommutePanel";
+import { PROFILED, PROFILES, namesOf, plain, unCityId } from "../lib/profiledCities";
 import CityAnalysis from "./CityAnalysis";
 import PostalCodes from "./PostalCodes";
 import PlaceIndexes from "./PlaceIndexes";
@@ -83,7 +83,6 @@ const people = (v: number) => (v >= 1e9 ? `${(v / 1e9).toFixed(2)}bn` : v >= 1e6
 const signed = (v: number) => `${v > 0 ? "+" : v < 0 ? "−" : ""}${Math.abs(v).toFixed(0)}%`;
 const flag = (cc: string, w = 40) => `https://flagcdn.com/w${w}/${cc.toLowerCase()}.png`;
 const coords = (lat: number, lon: number) => `${Math.abs(lat).toFixed(2)}°${lat >= 0 ? "N" : "S"}, ${Math.abs(lon).toFixed(2)}°${lon >= 0 ? "E" : "W"}`;
-export const unCityId = (c: UnCity) => `un-${c[0]}-${c[1]}`;
 /** Its place among all the UN's cities by 2025 population: the list is written largest first. */
 const RANK = new Map(UN_CITIES.map((c, i) => [unCityId(c), i + 1]));
 const BY_ID = new Map(UN_CITIES.map((c) => [unCityId(c), c]));
@@ -104,30 +103,6 @@ const Section = ({ title, note, children }: { title: string; note?: string; chil
 );
 const none = <span className="font-normal text-muted-foreground">Not held</span>;
 
-/** A name as compared: without accents, case or punctuation. */
-const plain = (s: string) =>
-  s
-    .normalize("NFD")
-    .replace(/[̀-ͯ]/g, "")
-    .toLowerCase()
-    .replace(/[^a-z0-9 ]+/g, " ")
-    .replace(/\s+/g, " ")
-    .trim();
-/** The names a city goes by in the UN's list: "Tōkyō (Tokyo)" is Tōkyō and Tokyo, "Takasaki [Maebashi]" Takasaki and Maebashi. */
-const namesOf = (name: string) => name.split(/[()[\]/]/).map(plain).filter(Boolean);
-const km = (a: [number, number], b: [number, number]) => {
-  const rad = Math.PI / 180;
-  const h = Math.sin(((b[0] - a[0]) * rad) / 2) ** 2 + Math.cos(a[0] * rad) * Math.cos(b[0] * rad) * Math.sin(((b[1] - a[1]) * rad) / 2) ** 2;
-  return 12742 * Math.asin(Math.sqrt(h));
-};
-/** The cities the page profiles by hand, by the UN city each one is: the same name, in the same country, within 80 km of the profile's article. */
-const PROFILED = new Map<string, { id: string; wiki: string }>();
-for (const p of citiesData) {
-  const at = CITY_PLACES[p.id];
-  if (!at) continue;
-  const near = UN_CITIES.filter((c) => c[0] === p.countryCode && c[3] !== null && c[4] !== null && namesOf(c[2]).includes(plain(p.name)) && km([c[3]!, c[4]!], [at.lat, at.lon]) <= 80);
-  if (near.length === 1) PROFILED.set(unCityId(near[0]), { id: p.id, wiki: at.wiki });
-}
 /** The article found for a city, once looked for: its title, or null where none answers. */
 const ARTICLES = new Map<string, string | null>();
 /**
@@ -332,6 +307,9 @@ function CityWindow({ c, onBack, onClose }: { c: UnCity; /** Back to its country
 
               <PostalCodes entry={cityPostal(postal, code)} cc={cc} name={name} how="city" />
 
+              {/* The journey to work: the city's own where an official series has it, and its country's under that. */}
+              <CommutePanel code={cc} country={land} place={name} city={unCityId(c)} />
+
               {/* What follows is its country's, set apart at the foot and said to be so: nobody publishes these city by city. */}
               <div className="flex items-center gap-2 pt-3">
                 <h3 className="text-xs font-bold font-sans text-foreground uppercase tracking-wide">{land}, the country it is in</h3>
@@ -357,7 +335,7 @@ function CityWindow({ c, onBack, onClose }: { c: UnCity; /** Back to its country
               <TaxPanel code={cc} country={land} place={name} />
 
               <Suspense fallback={<p className="text-xs font-sans text-muted-foreground">Loading {land}'s figures…</p>}>
-                <CountryQuality code={cc} country={land} place={name} />
+                <CountryQuality code={cc} country={land} place={name} commute={false} />
               </Suspense>
             </div>
           )}
@@ -450,6 +428,15 @@ function CityCard({ c, onOpen }: { c: UnCity; onOpen: () => void }) {
             <MapPin size={9} aria-hidden /> {c[5] ? "The capital" : "City"}
           </span>
         </span>
+        {/* One of the cities the site profiles by hand: the site's own choice of the best known, and no ranking. */}
+        {PROFILED.has(unCityId(c)) && (
+          <span
+            className="inline-flex items-center gap-1 text-[9px] font-sans font-semibold px-1.5 py-0.5 rounded-full border border-secondary/50 bg-secondary/15 text-foreground shrink-0"
+            title={`One of the ${PROFILES} cities this site profiles in full - the site's own choice, not a ranking`}
+          >
+            <Star size={9} weight="fill" aria-hidden /> Featured
+          </span>
+        )}
         <span className="text-[9px] font-mono px-1.5 py-0.5 rounded-full border border-border text-muted-foreground shrink-0" title="Its place among all the UN's cities, by population">
           #{RANK.get(unCityId(c))!.toLocaleString("en-US")}
         </span>

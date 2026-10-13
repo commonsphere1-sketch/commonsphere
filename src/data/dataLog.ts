@@ -54,6 +54,14 @@ export const DATA_LOG: DataLogEntry[] = [
     "files": 1
   },
   {
+    "what": "The journey to work: how long it takes, and how people make it",
+    "from": "Eurostat, US Census Bureau",
+    "page": "/dashboard/cities",
+    "where": "Cities",
+    "read": "2026-10-13",
+    "files": 1
+  },
+  {
     "what": "Each economy's manufacturing: value added, share of GDP, growth, manufactures in trade, high-technology exports, jobs in industry",
     "from": "World Bank",
     "page": "/dashboard/economies",
@@ -194,14 +202,6 @@ export const DATA_LOG: DataLogEntry[] = [
     "from": "Wikidata, Wikipedia",
     "page": "/dashboard/maps",
     "where": "World maps",
-    "read": "2026-10-07",
-    "files": 1
-  },
-  {
-    "what": "The journey to work: how long it takes, and how people make it",
-    "from": "Eurostat, US Census Bureau",
-    "page": "/dashboard/cities",
-    "where": "Cities",
     "read": "2026-10-07",
     "files": 1
   },

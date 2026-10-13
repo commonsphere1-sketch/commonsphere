@@ -112,7 +112,7 @@ function QualityRow({ r, color }: { r: Row; /** The panel's colour: its bars are
  * The panels for a country - and, where a figure is held for the city itself, for the city - with where each is from.
  * The city's window lays all of them out; the Dashboard gives a few under each of its cities (qualityHeadlines).
  */
-export function qualityOf(code: string, country: string, city?: string) {
+export function qualityOf(code: string, country: string, city?: string, commute = true) {
   const id = COUNTRY_OF[code];
   const p = (id && COUNTRY_PANELS[id]) || {};
   const energy = id ? COUNTRY_ENERGY[id] : undefined;
@@ -158,9 +158,10 @@ export function qualityOf(code: string, country: string, city?: string) {
 
   // The journey to work, from whichever official series covers the country; the two are different measures and each is named.
   const min = (v: number) => `${v} min`;
-  const eur = COMMUTE_EUROPE[code];
-  const usa = code === "US" ? COMMUTE_US : undefined;
-  const ownCity = city ? COMMUTE_US_CITIES[city] : undefined;
+  // A window that gives the journey to work in a panel of its own asks for it to be left out of this one.
+  const eur = commute ? COMMUTE_EUROPE[code] : undefined;
+  const usa = commute && code === "US" ? COMMUTE_US : undefined;
+  const ownCity = commute && city ? COMMUTE_US_CITIES[city] : undefined;
   if (eur) cite({ label: COMMUTE_SOURCES.eurostat.label, url: COMMUTE_SOURCES.eurostat.url });
   if (usa || ownCity) cite({ label: COMMUTE_SOURCES.acs.label, url: COMMUTE_SOURCES.acs.url });
   const eurRow = (label: string, v: number | undefined, eu: number | undefined, who: string): Row[] =>
@@ -241,7 +242,7 @@ export function qualityOf(code: string, country: string, city?: string) {
             {usa && ways(usa, false)}
             {ownCity && ways(ownCity, true)}
           </>
-        ) : commuteRows.length === 0 ? (
+        ) : commute && commuteRows.length === 0 ? (
           // No figure is better than one from a ranking that cannot be reused or checked.
           <p className="text-[10px] font-sans text-muted-foreground leading-snug mt-2">
             The journey to work: no figure is held for {inSentence(country)}. No body publishes it for every country on one footing; the site has Eurostat's for {Object.keys(COMMUTE_EUROPE).length}{" "}
@@ -353,6 +354,7 @@ export default function CountryQuality({
   country,
   place,
   city,
+  commute = true,
 }: {
   /** The country's ISO code. */
   code: string;
@@ -361,8 +363,10 @@ export default function CountryQuality({
   place: string;
   /** The city's id on the Cities page, for the figures held for the city itself. */
   city?: string;
+  /** False where the window gives the journey to work in a panel of its own. */
+  commute?: boolean;
 }) {
-  const { groups, sources } = qualityOf(code, country, city);
+  const { groups, sources } = qualityOf(code, country, city, commute);
   if (!groups.length) return null;
 
   return (
