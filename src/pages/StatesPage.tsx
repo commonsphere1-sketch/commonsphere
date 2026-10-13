@@ -7178,10 +7178,10 @@ export function StatesPage() {
               <div className="flex items-start justify-between mb-3 -mx-5 -mt-5 px-5 pt-5 pb-4">
                 {/* Flag background */}
                 <img
-                  src={`https://flagcdn.com/w320/us-${state.id}.png`}
+                  src={`https://flagcdn.com/w640/us-${state.id}.png`}
                   alt=""
                   aria-hidden="true"
-                  className="absolute inset-0 -z-10 w-full h-full object-cover opacity-[0.16] scale-105 select-none pointer-events-none"
+                  className="absolute inset-0 -z-10 w-full h-full object-cover card-flag scale-105 select-none pointer-events-none"
                 />
                 {/* Gradient overlay so text stays readable */}
                 {/* Content */}

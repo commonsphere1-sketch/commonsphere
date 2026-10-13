@@ -1433,6 +1433,21 @@ html.light .modal-tabs.modal-tabs.modal-tabs.modal-tabs {
   outline-offset: 2px;
 }
 
+/* The flag behind a card - a country's, a state's, a division's, a town's, a
+   city's, an economy's - on every page. It was a faint wash; it is now plain
+   to see in both themes - nearly twice as strong as it was - and still under
+   the card's writing. It stops short of stronger: over a flag's white in the
+   dark theme, or its black in the light one, the card's smaller grey writing
+   would begin to be lost. One class, so that every card's flag is as strong
+   as every other's. */
+.card-flag {
+  opacity: 0.3;
+  filter: saturate(1.1);
+}
+html.light .card-flag {
+  opacity: 0.28;
+}
+
 /* A row of tiles that leaves no gap: each tile grows to fill its line, so a
    line of one or two is as wide as a line of four and no cell stands empty
    beside a lone tile. A tile with a long value asks for more of the line

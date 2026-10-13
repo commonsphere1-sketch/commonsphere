@@ -137,7 +137,7 @@ const FLAG_CODE_BY_NAME = new Map(countriesData.map((c) => [c.name, c.code]));
 const economyFlag = (e: Economy) => {
   // Three go by a name the list of countries does not use for them.
   const code = e.iso2 ?? ({ "European Union": "EU", Turkey: "TR", Czechia: "CZ" } as Record<string, string>)[e.name] ?? FLAG_CODE_BY_NAME.get(e.name);
-  return code ? `https://flagcdn.com/w320/${code.toLowerCase()}.png` : null;
+  return code ? `https://flagcdn.com/w640/${code.toLowerCase()}.png` : null;
 };
 
 /**
@@ -2583,7 +2583,7 @@ export function EconomiesPage() {
                         alt=""
                         aria-hidden="true"
                         loading="lazy"
-                        className="absolute inset-0 w-full h-full object-cover opacity-[0.16] scale-105 select-none pointer-events-none"
+                        className="absolute inset-0 w-full h-full object-cover card-flag scale-105 select-none pointer-events-none"
                         onError={(e) => (e.currentTarget.style.display = "none")}
                       />
                     )}

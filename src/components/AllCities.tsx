@@ -438,7 +438,7 @@ function CityCard({ c, onOpen }: { c: UnCity; onOpen: () => void }) {
   return (
     <button type="button" onClick={onOpen} className="modal-tile relative isolate overflow-hidden rounded-xl p-4 text-left cursor-pointer transition-colors hover:border-secondary/40 flex flex-col gap-2 min-w-0">
       {/* Its country's flag behind the whole card, dimmed, as the country's own card has it: for every country's cities alike. */}
-      <img src={flag(c[0], 320)} alt="" aria-hidden="true" loading="lazy" className="absolute inset-0 -z-10 w-full h-full object-cover opacity-[0.14] scale-105 select-none pointer-events-none" onError={(e) => (e.currentTarget.style.display = "none")} />
+      <img src={flag(c[0], 640)} alt="" aria-hidden="true" loading="lazy" className="absolute inset-0 -z-10 w-full h-full object-cover card-flag scale-105 select-none pointer-events-none" onError={(e) => (e.currentTarget.style.display = "none")} />
       <span className="flex items-center gap-2.5 min-w-0">
         <span className="min-w-0 flex-1">
           <span className="block text-sm font-bold font-sans text-foreground truncate">{c[2]}</span>
@@ -496,7 +496,7 @@ function CountryCard({ row, matching, onOpen }: { row: Row; /** How many of its 
       className="modal-tile relative isolate overflow-hidden rounded-xl p-5 cursor-pointer transition-all duration-200 hover:scale-[1.01] hover:shadow-lg hover:border-secondary/40"
     >
       {/* The country's flag behind the whole card, top to bottom, dimmed as it was behind the head alone: under the writing, which stays as it was, and over the card's own ground. */}
-      <img src={flag(row.cc, 320)} alt="" aria-hidden="true" className="absolute inset-0 -z-10 w-full h-full object-cover opacity-[0.16] scale-105 select-none pointer-events-none" onError={(e) => (e.currentTarget.style.display = "none")} />
+      <img src={flag(row.cc, 640)} alt="" aria-hidden="true" className="absolute inset-0 -z-10 w-full h-full object-cover card-flag scale-105 select-none pointer-events-none" onError={(e) => (e.currentTarget.style.display = "none")} />
       <div className="relative flex items-start justify-between gap-2 mb-3 -mx-5 -mt-5 px-5 pt-5 pb-4">
         <div className="relative flex items-center gap-3 min-w-0">
           <div className="relative w-11 h-11 rounded-lg overflow-hidden shrink-0 border border-white/20 shadow-md bg-muted">

@@ -62,6 +62,7 @@ import { CountryFigures, StateFigures } from "./ParentFigures";
 import { UniversityList } from "./UniversityList";
 import { usePlacePostal } from "../lib/placePostal";
 import { useSecondOrder } from "../lib/secondOrder";
+import { flagFallback } from "../lib/cardFlag";
 import { OutlineMap } from "./OutlineMap";
 import { SeeAlso } from "./SeeAlso";
 
@@ -261,7 +262,7 @@ export function DivisionPlaces({
       {/* A card for each place: its name and what it is, its county, its people, and its head where one is confirmed. Each opens a window of its own. */}
       <div className="grid gap-3 [grid-template-columns:repeat(auto-fill,minmax(min(100%,15rem),1fr))]">
         {rows.slice(0, shown).map((p) => (
-          <PlaceCard key={p[6]} p={p} file={file!} flag={cardFlag(s)} district={file!.districts[p[7]]} onOpen={() => setOpen(p)} />
+          <PlaceCard key={p[6]} p={p} file={file!} flag={cardFlag(s)} saved={savedFlag(s)} district={file!.districts[p[7]]} onOpen={() => setOpen(p)} />
         ))}
       </div>
       {rows.length === 0 && <p className="text-[11px] font-sans text-muted-foreground py-2">None by that name.</p>}
@@ -325,9 +326,12 @@ export function placeType(p: PlaceRow, file: PlacesFile): string {
   return role ? `${size} · ${role}` : size;
 }
 /** The flag a place's card carries behind it: its division's own where one is saved with the site, and its country's otherwise. */
-const cardFlag = (s: Subnation) => (SUBNATION_FLAG_FILE[s.id] ? `/flags/divisions/${SUBNATION_FLAG_FILE[s.id]}` : `https://flagcdn.com/w320/${s.cc.toLowerCase()}.png`);
+const cardFlag = (s: Subnation) =>
+  s.flag && SUBNATION_FLAG_FILE[s.id] ? `https://commons.wikimedia.org/wiki/Special:FilePath/${encodeURIComponent(s.flag.replace(/ /g, "_"))}?width=500` : `https://flagcdn.com/w640/${s.cc.toLowerCase()}.png`;
+/** The small copy of that flag saved with the site, where there is one: what the card falls back to if the larger image does not come. */
+const savedFlag = (s: Subnation) => (s.flag && SUBNATION_FLAG_FILE[s.id] ? `/flags/divisions/${SUBNATION_FLAG_FILE[s.id]}` : undefined);
 
-function PlaceCard({ p, file, flag, district, onOpen }: { p: PlaceRow; file: PlacesFile; /** The flag behind the card: its division's, or its country's. */ flag?: string; /** The county or district GeoNames files it under. */ district?: string; onOpen: () => void }) {
+function PlaceCard({ p, file, flag, saved, district, onOpen }: { p: PlaceRow; file: PlacesFile; /** The flag behind the card: its division's, or its country's. */ flag?: string; /** The copy of it saved with the site, drawn if the larger image does not come. */ saved?: string; /** The county or district GeoNames files it under. */ district?: string; onOpen: () => void }) {
   const facts: [string, string | undefined][] = [
     ["People", p[3] > 0 ? whole(p[3]) : undefined],
     ["County or district", district || undefined],
@@ -335,7 +339,7 @@ function PlaceCard({ p, file, flag, district, onOpen }: { p: PlaceRow; file: Pla
   return (
     <button type="button" onClick={onOpen} className="modal-tile relative isolate overflow-hidden rounded-xl p-4 text-left cursor-pointer transition-colors hover:border-secondary/40 flex flex-col gap-2 min-w-0">
       {/* Its division's flag behind the whole card, dimmed, as the division's own card has it. */}
-      {flag && <img src={flag} alt="" aria-hidden="true" loading="lazy" className="absolute inset-0 -z-10 w-full h-full object-cover opacity-[0.14] scale-105 select-none pointer-events-none" onError={(e) => (e.currentTarget.style.display = "none")} />}
+      {flag && <img src={flag} data-fallback={saved} alt="" aria-hidden="true" loading="lazy" className="absolute inset-0 -z-10 w-full h-full object-cover card-flag scale-105 select-none pointer-events-none" onError={flagFallback} />}
       <span className="min-w-0">
         <span className="block text-sm font-bold font-sans text-foreground truncate">{p[0]}</span>
         <span className="flex items-center gap-1 text-[10px] font-mono text-muted-foreground truncate">
@@ -464,7 +468,7 @@ export function PlacesInside({
       )}
       <div className="grid gap-3 [grid-template-columns:repeat(auto-fill,minmax(min(100%,15rem),1fr))]">
         {found.slice(0, shown).map((p) => (
-          <PlaceCard key={p[6]} p={p} file={file} flag={cardFlag(division(p))} district={file.districts[p[7]]} onOpen={() => setOpen(p)} />
+          <PlaceCard key={p[6]} p={p} file={file} flag={cardFlag(division(p))} saved={savedFlag(division(p))} district={file.districts[p[7]]} onOpen={() => setOpen(p)} />
         ))}
       </div>
       {found.length === 0 && rows.length > 0 && <p className="text-[11px] font-sans text-muted-foreground py-2">None by that name.</p>}
