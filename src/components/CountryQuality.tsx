@@ -1,6 +1,6 @@
 /**
  * Quality of life, in a city's window: water, energy, transport, crime and
- * safety, health, education, air, business and the economy - for the country
+ * safety, health, education, business and the economy - for the country
  * the city is in.
  *
  * The city windows once had these headings filled with figures typed in for
@@ -27,8 +27,11 @@
  * statistics for a city of Europe - and beside it the country's: Eurostat's
  * mean one-way minutes for a European country and for the people living in
  * its cities, or the Census Bureau's for the United States. How people get
- * to work is a whole, so it is a ring. A place neither series covers has a
- * card that says "Not held" and is given no figure.
+ * to work is a whole, so it is a ring. A place neither series covers has no
+ * Commute card: nothing is put in its place.
+ *
+ * Air was a card of one figure - the fine particles people breathe - and is
+ * one no longer: the figure is the last row of Health.
  *
  * The Dashboard gives a few of the same rows under each of its cities
  * (qualityHeadlines, drawn by CityQualityBars), so the two cannot disagree.
@@ -36,7 +39,7 @@
  * It is loaded when a window opens, not with the page: the figures it reads
  * are the Countries page's, and large.
  */
-import { BookOpen, Bus, CurrencyDollar, Drop, FirstAid, Lightning, ShieldCheck, Storefront, Train, Wind } from "@phosphor-icons/react";
+import { BookOpen, Bus, CurrencyDollar, Drop, FirstAid, Lightning, ShieldCheck, Storefront, Train } from "@phosphor-icons/react";
 import { useEffect, useState, type ReactNode } from "react";
 import { COUNTRY_OF, ECONOMY_OF } from "../data/placeIndex";
 import { COUNTRY_PANELS, panelSource, type PanelFigure } from "../data/countryPanels";
@@ -252,7 +255,7 @@ export function qualityOf(code: string, country: string, city?: string, commute 
   );
 
   // Each panel has a colour that goes with its subject - water blue, energy yellow, safety red - for its mark and its bars.
-  const groups: { title: string; icon: ReactNode; color: string; rows: Row[]; extra?: ReactNode; /** What its card says where it has no figure. */ none?: string }[] = [
+  const groups: { title: string; icon: ReactNode; color: string; rows: Row[]; extra?: ReactNode }[] = [
     {
       title: "Water",
       color: "#0ea5e9",
@@ -296,8 +299,6 @@ export function qualityOf(code: string, country: string, city?: string, commute 
       title: "Commute",
       color: "#0891b2",
       icon: <Bus size={13} weight="fill" />,
-      // Where no figure is held, its card says so and its panel says why.
-      none: commute && commuteRows.length === 0 ? "Not held" : undefined,
       rows: commuteRows,
       extra: !commute ? undefined : usa || ownCity?.modes.length || waysEurope ? (
           <>
@@ -307,13 +308,6 @@ export function qualityOf(code: string, country: string, city?: string, commute 
             {ownCity && <p className="text-[10px] font-sans text-muted-foreground leading-snug mt-2">The city's figures are the Census Bureau's for {ownCity.place}: the city within its own boundary, not the wider built-up area around it.</p>}
             {ownEurope && <p className="text-[10px] font-sans text-muted-foreground leading-snug mt-2">The city's figures are Eurostat's, for the city it lists as {ownEurope.place}; they are gathered from national censuses and surveys, so their years differ from city to city, and from the country's own survey.</p>}
           </>
-        ) : commuteRows.length === 0 ? (
-          // No figure is better than one from a ranking that cannot be reused or checked.
-          <p className="text-[10px] font-sans text-muted-foreground leading-snug mt-2">
-            The journey to work: no figure is held for {inSentence(country)}, or for a city in it. No body publishes it for every country on one footing; the site has Eurostat's for{" "}
-            {Object.keys(COMMUTE_EUROPE).length} European countries and the Census Bureau's for the United States, with {Object.keys(COMMUTE_UN_CITIES).length} of their cities - and puts no ranking from a traffic app or an
-            opinion survey in their place.
-          </p>
         ) : undefined,
     },
     {
@@ -341,6 +335,10 @@ export function qualityOf(code: string, country: string, city?: string, commute 
         ...panel("Physicians", p.physicians, (v) => `${v}`, "per 1,000 people"),
         ...panel("Hospital beds", p.hospitalBeds, (v) => `${v}`, "per 1,000 people"),
         ...panel("Maternal deaths", p.maternalMortality, (v) => n(v), "per 100,000 live births", "maternalMortality", "world"),
+        // The air its people breathe: the one figure the Air card held, kept here as what it does to health.
+        ...(air
+          ? [{ ...row("Fine-particle pollution people breathe", air.pm25, air.year, (v) => `${one(v)} µg/m³`, "PM2.5, mean annual exposure", "pm25", "world"), from: { label: AIR_QUALITY_SOURCE.label, url: AIR_QUALITY_SOURCE.url } }]
+          : []),
       ],
     },
     {
@@ -353,14 +351,6 @@ export function qualityOf(code: string, country: string, city?: string, commute 
         ...panel("Finished upper secondary school", p.upperSecondaryPct, pct, "of people 25 and over", undefined, "share"),
         ...panel("Hold a bachelor's degree or higher", p.bachelorsPct, pct, "of people 25 and over", undefined, "share"),
       ],
-    },
-    {
-      title: "Air",
-      color: "#14b8a6",
-      icon: <Wind size={13} weight="fill" />,
-      rows: air
-        ? [{ ...row("Fine-particle pollution people breathe", air.pm25, air.year, (v) => `${one(v)} µg/m³`, "PM2.5, mean annual exposure", "pm25", "world"), from: { label: AIR_QUALITY_SOURCE.label, url: AIR_QUALITY_SOURCE.url } }]
-        : [],
     },
     {
       title: "Business",
@@ -486,11 +476,6 @@ export default function CountryQuality({
                   <span className="block text-[10px] font-sans text-muted-foreground leading-snug truncate" title={lead.label}>
                     {lead.label}
                   </span>
-                </>
-              ) : g.none ? (
-                <>
-                  <span className="block text-base font-bold font-sans text-muted-foreground leading-tight mt-1.5 truncate">{g.none}</span>
-                  <span className="block text-[10px] font-sans text-muted-foreground leading-snug truncate">no figure for {inSentence(country)}</span>
                 </>
               ) : (
                 <span className="block text-[10px] font-sans text-muted-foreground leading-snug mt-1.5">how it is made up</span>
