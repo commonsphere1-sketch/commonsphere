@@ -13,7 +13,11 @@
  * Oceanic Niño Index NOAA's, the records ranked from NASA's, NSIDC's and
  * NOAA's series (climateWatch.ts), and the readings the agencies' latest
  * (climateIndicators.ts), each with what causes it and what it does
- * (climateCauses.ts). An alert is the system's estimate, as a disaster
+ * (climateCauses.ts). A disaster's detail gives all the system's own record
+ * of it holds - its account, its size, where it was centred, whose reading
+ * it rests on, how many reports it has had, its map - and nothing the record
+ * does not state. Its row and heading are in its alert's colour, orange or
+ * red. An alert is the system's estimate, as a disaster
  * happens, of whether international help will be needed: it is not a count
  * of the dead or of damage, and the detail says so.
  */
@@ -62,7 +66,7 @@ const reading = (v: number) => (Math.abs(v) >= 100 ? v.toLocaleString("en-US", {
 
 type Kind = "now" | "earlier" | "struck" | "season" | "record" | "measured";
 const KINDS: { id: Kind; label: string; one: string; color: string }[] = [
-  { id: "now", label: "Disasters now", one: "Disaster now", color: RED },
+  { id: "now", label: "Disasters now", one: "Disaster now", color: ORANGE },
   { id: "earlier", label: "Earlier this year", one: "Disaster of the last twelve months", color: ORANGE },
   { id: "struck", label: "Countries struck", one: "Country struck", color: "#f59e0b" },
   { id: "season", label: "El Niño & La Niña", one: "El Niño and La Niña", color: COLD },
@@ -191,7 +195,7 @@ export default function ClimateNowExplorer() {
                 </Label>
               </div>
               {g.rows.map((x) => (
-                <Row key={x.key} t={t} selected={shown?.key === x.key} color={g.k.color} onClick={() => setPickedKey(x.key)}>
+                <Row key={x.key} t={t} selected={shown?.key === x.key} color={"e" in x ? toneOf(x, g.k.color) : g.k.color} onClick={() => setPickedKey(x.key)}>
                   <span className="w-1.5 h-6 rounded-full shrink-0" style={{ background: toneOf(x, g.k.color) }} aria-hidden />
                   <span className="flex-1 min-w-0">
                     <span className="block text-xs font-semibold font-sans truncate" style={{ color: t.headText }}>
@@ -213,7 +217,7 @@ export default function ClimateNowExplorer() {
             <>
               <Block>
                 <div className="min-w-0">
-                  <p className="text-[9px] font-mono uppercase tracking-widest" style={{ color: KINDS.find((k) => k.id === shown.kind)!.color }}>
+                  <p className="text-[9px] font-mono uppercase tracking-widest" style={{ color: "e" in shown ? (shown.e.alert === "Red" ? RED : ORANGE) : KINDS.find((k) => k.id === shown.kind)!.color }}>
                     {KINDS.find((k) => k.id === shown.kind)!.one}
                   </p>
                   <p className="text-sm font-bold font-sans leading-tight mt-0.5" style={{ color: t.headText }}>
@@ -247,7 +251,37 @@ export default function ClimateNowExplorer() {
                       )}
                     </div>
                   </div>
-                  {shown.e.said && body(`As the system describes it: ${shown.e.said}.`)}
+                  {(() => {
+                    const m = shown.e.more ?? {};
+                    const facts: [string, string, string?][] = [
+                      ...(m.magnitude != null ? [["Magnitude", String(m.magnitude), m.depthKm != null ? `${m.depthKm} km deep` : undefined] as [string, string, string?]] : []),
+                      ...(m.magnitude == null && m.size ? [["Its size", `${m.size[0].toLocaleString("en-US")} ${m.size[1]}`, "as the system measures this kind of disaster"] as [string, string, string?]] : []),
+                      ...(m.shaken ? [["People strongly shaken", m.shaken, "the system's count"] as [string, string, string?]] : []),
+                      ...(m.tsunamiM != null ? [["Tsunami", `${m.tsunamiM} m`, "the highest wave the system gives"] as [string, string, string?]] : []),
+                      ...(m.at ? [["Centred at", `${Math.abs(m.at[0])}°${m.at[0] >= 0 ? "N" : "S"}, ${Math.abs(m.at[1])}°${m.at[1] >= 0 ? "E" : "W"}`, "the point the system gives for it"] as [string, string, string?]] : []),
+                      ...(m.source ? [["Measured by", m.source, "whose reading the alert rests on"] as [string, string, string?]] : []),
+                      ...(m.reports ? [["Reports", String(m.reports), m.modified ? `the record last changed ${day(m.modified)}` : undefined] as [string, string, string?]] : []),
+                      ...(m.glide ? [["GLIDE number", m.glide, "the number disaster records share"] as [string, string, string?]] : []),
+                    ];
+                    return (
+                      <>
+                        {m.summary && body(m.summary)}
+                        {facts.length > 0 && (
+                          <div className="grid grid-cols-2 gap-2">
+                            {facts.map(([label, value, sub]) => (
+                              <Kpi key={label} t={t} label={label} value={value} color={t.headText} sub={sub} />
+                            ))}
+                          </div>
+                        )}
+                        {m.map && (
+                          <a href={shown.e.url} target="_blank" rel="noopener noreferrer" className="block rounded-lg overflow-hidden" style={{ border: `1px solid ${t.gridLine}` }}>
+                            <img src={m.map} alt={`The alert system's map of ${shown.name}`} loading="lazy" className="w-full h-auto block" onError={(e) => (e.currentTarget.parentElement!.style.display = "none")} />
+                          </a>
+                        )}
+                      </>
+                    );
+                  })()}
+                  {shown.e.said && body(`As the system describes its strength: ${shown.e.said}.`)}
                   {body("An alert is the system's estimate, made as a disaster happens, of whether international help will be needed. It is not a count of the dead or of damage.")}
                   {out(shown.e.url, "The system's own report of it")}
                   <SourceLink sources={[{ label: `${SRC.alerts.label} · read on ${CLIMATE_WATCH_RETRIEVED}`, url: SRC.alerts.url }]} />

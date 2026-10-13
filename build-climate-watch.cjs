@@ -289,9 +289,43 @@ async function alerts(codes) {
     };
     if (p.alertlevel === "Red") reds.push(event);
     // Still going, or ended within the last ${RECENT_DAYS} days: what is happening now.
-    events.push({ ...event, alert: p.alertlevel, ...(p.iscurrent === "true" ? { current: true } : {}), ...(p.iscurrent === "true" || event.to >= recentFrom ? { recent: true } : {}) });
+    events.push({ ...event, _type: p.eventtype, _id: p.eventid, alert: p.alertlevel, ...(p.iscurrent === "true" ? { current: true } : {}), ...(p.iscurrent === "true" || event.to >= recentFrom ? { recent: true } : {}) });
   }
   if (n < 10) throw new Error(`GDACS: only ${n} alerts in twelve months`);
+  // The system's own record of each event: read one at a time, and only what it states is kept.
+  const clean = (s) => String(s ?? "").replace(/<[^>]+>/g, " ").replace(/\s+/g, " ").replace(/ ([.,])/g, "$1").trim();
+  const number = (v) => (v !== null && v !== undefined && v !== "" && Number.isFinite(Number(v)) ? Number(v) : null);
+  for (const e of events) {
+    const { _type, _id } = e;
+    delete e._type;
+    delete e._id;
+    let d;
+    try {
+      d = JSON.parse(await cached(`gdacs-event-${_type}-${_id}.json`, `https://www.gdacs.org/gdacsapi/api/events/geteventdata?eventtype=${_type}&eventid=${_id}`));
+    } catch {
+      // An event whose record does not answer keeps what the list gave of it.
+      continue;
+    }
+    const p = d.properties ?? {};
+    const at = d.geometry && d.geometry.type === "Point" ? d.geometry.coordinates : null;
+    const q = p.earthquakedetails ?? {};
+    const more = {
+      ...(clean(p.htmldescription) ? { summary: clean(p.htmldescription) } : {}),
+      ...(clean(p.source) ? { source: clean(p.source) } : {}),
+      ...(clean(p.glide) ? { glide: clean(p.glide) } : {}),
+      ...(p.datemodified ? { modified: String(p.datemodified).slice(0, 10) } : {}),
+      ...(Array.isArray(p.episodes) && p.episodes.length ? { reports: p.episodes.length } : {}),
+      ...(at && number(at[0]) !== null && number(at[1]) !== null ? { at: [Number(Number(at[1]).toFixed(2)), Number(Number(at[0]).toFixed(2))] } : {}),
+      ...(p.severitydata && number(p.severitydata.severity) !== null && number(p.severitydata.severity) > 0 && clean(p.severitydata.severityunit) ? { size: [Number(Number(p.severitydata.severity).toFixed(1)), clean(p.severitydata.severityunit)] } : {}),
+      ...(number(q.magnitude) !== null ? { magnitude: number(q.magnitude) } : {}),
+      ...(number(q.depth) !== null ? { depthKm: number(q.depth) } : {}),
+      ...(clean(q.shakepopdescription) ? { shaken: clean(q.shakepopdescription) } : {}),
+      ...(number(q.tsmaxheight) !== null && number(q.tsmaxheight) > 0 ? { tsunamiM: number(q.tsmaxheight) } : {}),
+      // Its map, where the record gives an address that is whole: some give one with its blanks left unfilled.
+      ...(p.images && /^https:\/\/www\.gdacs\.org\/[^{}\s]+$/.test(p.images.overviewmap ?? "") ? { map: p.images.overviewmap } : {}),
+    };
+    if (Object.keys(more).length) e.more = more;
+  }
   reds.sort((a, b) => b.to.localeCompare(a.to));
   events.sort((a, b) => Number(Boolean(b.current)) - Number(Boolean(a.current)) || b.to.localeCompare(a.to) || b.from.localeCompare(a.from));
   const most = Object.entries(byCountry)
@@ -447,7 +481,27 @@ export const DISASTER_ALERTS: {
 } = ${j(alerted)};
 
 /** An orange or red alert of the twelve months; "recent" marks one still going, or ended within the last ${RECENT_DAYS} days. */
-export type DisasterEvent = RedAlert & { alert: "Orange" | "Red"; current?: true; recent?: true };
+export type DisasterEvent = RedAlert & { alert: "Orange" | "Red"; current?: true; recent?: true; more?: DisasterMore };
+/**
+ * What the system's own record of an event adds, each only where the record states it: its one-line account; whose
+ * measurement it rests on; its GLIDE number; the day the record last changed and how many reports it has had; where it
+ * was centred, as latitude and longitude; its size and the unit that is in; for an earthquake its magnitude, its depth,
+ * the people the system counts as strongly shaken, and the height of any tsunami; and the system's map of it.
+ */
+export type DisasterMore = {
+  summary?: string;
+  source?: string;
+  glide?: string;
+  modified?: string;
+  reports?: number;
+  at?: [lat: number, lon: number];
+  size?: [value: number, unit: string];
+  magnitude?: number;
+  depthKm?: number;
+  shaken?: string;
+  tsunamiM?: number;
+  map?: string;
+};
 export const DISASTER_RECENT_DAYS = ${RECENT_DAYS};
 /** Every one of them: those still going first, then the newest. */
 export const DISASTER_EVENTS: DisasterEvent[] = ${j(disasterEvents)};
