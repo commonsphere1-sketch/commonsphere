@@ -100,6 +100,8 @@ import { countryForFeature, stateForFeature } from "../data/mapJoin";
 import { SUBNATION_FLAG_COLOR } from "../data/subnationFlagColors";
 import { ADMIN2_SOURCE, useAdmin2, useAdmin2Manifest } from "../lib/admin2";
 import { flagColor, seen, shade } from "../lib/flagColor";
+import { inView, useFiner, usePlacesOf, type Bounds, type Finer } from "../lib/finerShapes";
+import type { PlaceRow } from "../data/placesIndex";
 import { Card, Go, Head } from "./DashboardCitiesSectors";
 import { useTokens } from "./DataExplorer";
 import { SourceLink } from "./SourceLink";
@@ -113,13 +115,14 @@ const BOX: [[number, number], [number, number]] = [
 const COLOR = "#3b82f6";
 /** The land's colour in the dark theme: the slate blue of the window map the look was asked for from, for every map alike. */
 const WASH = "#617895";
-/** How close the map can be drawn: enough, on the world, to tell one county from the next. */
-const MAX_K = 40;
+/** How close the map can be drawn: enough, on the world, to tell one village from the next. */
+const MAX_K = 200;
 /* How close the world must be drawn for each finer thing to come in. */
 const FINER_FROM = 2.5; // its countries from the 1:50m tracing
 const STATES_FROM = 2; // the borders of states and provinces
 const COUNTIES_FROM = 5; // those of counties and districts
 const CITIES_FROM = 8; // the cities of a million people or more; more of them further in
+const TOWNS_FROM = 14; // the towns and villages
 /** The projection of the world's map: the whole globe in the card. */
 const WORLD_PROJECTION = geoEqualEarth().fitExtent(BOX, { type: "Sphere" } as never);
 
@@ -127,12 +130,13 @@ const WORLD_PROJECTION = geoEqualEarth().fitExtent(BOX, { type: "Sphere" } as ne
 type Geo = { type: string; id?: string | number; properties: Record<string, string>; geometry: { type: string; coordinates: unknown[] } };
 type Level = { kind: "world" } | { kind: "country"; code: string };
 /** What a press selects. */
-type Pick = "country" | "state" | "county" | "city";
+type Pick = "country" | "state" | "county" | "city" | "municipality";
 const PICKS: [Pick, string, string][] = [
   ["country", "Country", "A press opens the whole country"],
   ["state", "State", "A press goes to a state, province or other division"],
   ["county", "County", "A press goes to a county, district or municipality"],
   ["city", "City", "A press goes to a city"],
+  ["municipality", "Municipality", "A press goes to a town or a village"],
 ];
 type CityModule = typeof import("../data/unCities");
 /** A city on the map: a dot where its people are centred, sized by how many they are. */
@@ -141,9 +145,10 @@ type Dot = { key: string; name: string; x: number; y: number; r: number; hot: st
 type Ref =
   | { kind: "country"; code: string }
   | { kind: "state"; fips: string; name: string }
-  | { kind: "division"; name: string }
+  | { kind: "division"; name: string; /** Its country, where the map is not on that country alone. */ cc?: string }
   | { kind: "county"; fips: string }
-  | { kind: "district"; name: string; parent?: string }
+  | { kind: "district"; name: string; parent?: string; cc?: string }
+  | { kind: "place"; cc: string; row: PlaceRow; region: string; district: string }
   | { kind: "city"; c: CityModule["UN_CITIES"][number] };
 /** What is said of a place under the map: what it is, its flag, and a few of its figures - each with whose it is or its year; null where none is held. */
 type About = { kicker: string; flag?: string; pale?: boolean; facts: [label: string, value: string | null, sub?: string][] };
@@ -274,13 +279,50 @@ export default function PlaceAtlas() {
     const [a, b] = [...pointers.current.values()];
     return { dist: Math.hypot(a.x - b.x, a.y - b.y), cx: (a.x + b.x) / 2, cy: (a.y + b.y) / 2 };
   };
+  /* Where the pointer is over the map, for the pop-up that names the place it is on: kept out of the component's state,
+     and written straight to the pop-up, so that moving the pointer does not redraw the map. */
+  const tipAt = useRef({ x: 0, y: 0, w: 1, h: 1 });
+  const tipRef = useRef<HTMLDivElement | null>(null);
+  // Above the pointer, turned to the side that keeps it on the map; under it near the top.
+  const tipPlace = () => {
+    const { x, y, w, h } = tipAt.current;
+    return `translate(${x}px, ${y}px) translate(${x < w * 0.25 ? "0%" : x > w * 0.75 ? "-100%" : "-50%"}, ${y < h * 0.3 ? "18px" : "calc(-100% - 12px)"})`;
+  };
   /* Dragging moves a map that is drawn closer. A drag is not a press: the press that ends one is dropped. */
   const drag = useRef<{ x: number; y: number; moved: boolean } | null>(null);
   const [find, setFind] = useState("");
-  const [pick, setPickOnly] = useState<Pick>("state");
+  /* What a press selects follows how close the map is drawn: a country from far out, then a state, a county, a city and
+     a town as it closes in. A reader can still choose for themselves; the choice holds until the map is drawn to another
+     step, and across a move from the world to a country's own map. */
+  const [manual, setManual] = useState<Pick | null>(null);
+  const auto: Pick =
+    level.kind === "world"
+      ? view.k >= TOWNS_FROM
+        ? "municipality"
+        : view.k >= CITIES_FROM
+          ? "city"
+          : view.k >= COUNTIES_FROM
+            ? "county"
+            : view.k >= STATES_FROM
+              ? "state"
+              : "country"
+      : view.k >= 9
+        ? "municipality"
+        : view.k >= 5
+          ? "city"
+          : view.k >= 2.5
+            ? "county"
+            : "state";
+  const pick: Pick = manual ?? auto;
+  const step = useRef({ on: level.kind === "world" ? "" : level.code, auto });
+  useEffect(() => {
+    const on = level.kind === "world" ? "" : level.code;
+    if (step.current.on === on && step.current.auto !== auto) setManual(null);
+    step.current = { on, auto };
+  }, [level, auto]);
   const [cityData, setCityData] = useState<CityModule | null>(null);
   const setPick = (p: Pick) => {
-    setPickOnly(p);
+    setManual(p);
     // The whole country is chosen from the world.
     if (p === "country") setLevel({ kind: "world" });
   };
@@ -289,7 +331,10 @@ export default function PlaceAtlas() {
      then every one the United Nations counts. On a country's own map: its cities. */
   const onWorld = level.kind === "world";
   const worldFloor = view.k >= 24 ? 0 : view.k >= 14 ? 3e5 : 1e6;
-  const showCities = pick === "city" || (onWorld ? view.k >= CITIES_FROM : view.k >= 3);
+  const onTowns = pick === "municipality";
+  /* Towns are drawn where a town is what a press selects - on the world, only once it is close enough to tell them apart. */
+  const showTowns = onTowns && (!onWorld || view.k >= CITIES_FROM);
+  const showCities = !showTowns && (pick === "city" || (onWorld ? view.k >= CITIES_FROM : view.k >= 3));
   /* The cities are loaded when they are first to be drawn: there are some twelve thousand. */
   useEffect(() => {
     if (!showCities || cityData) return;
@@ -335,6 +380,92 @@ export default function PlaceAtlas() {
   const countyLinesD = useMemo(() => (countyLines ? (worldPath(countyLines as never) ?? "") : ""), [countyLines, worldPath]);
   /** The world's countries as they are drawn: from the finer tracing once the map is close enough for the coarser to show its corners. */
   const worldDrawn = onWorld && view.k >= FINER_FROM && fineWorld ? fineWorld : WORLD;
+
+  /* The world, drawn closer, is pressed by smaller places: the states and provinces of the countries in view, then their
+     counties and districts. Which, is the order the map is close enough for and the press is on; the countries in view
+     are asked for a few at a time, the nearest the middle first. */
+  const order: 0 | 1 | 2 = !onWorld || pick === "country" ? 0 : pick === "state" ? (view.k >= STATES_FROM ? 1 : 0) : view.k >= COUNTIES_FROM ? 2 : pick === "county" ? 0 : view.k >= STATES_FROM ? 1 : 0;
+  const worldBounds = useMemo<Bounds[]>(
+    () =>
+      worldDrawn.flatMap((f) => {
+        const c = countryForFeature(f.properties.name);
+        if (!c) return [];
+        // A piece at a time: a country with land on both sides of 180° would otherwise be "in view" from anywhere.
+        const pieces = f.geometry.type === "MultiPolygon" ? (f.geometry.coordinates as unknown[]).map((p) => ({ type: "Polygon", coordinates: p })) : [f.geometry];
+        return pieces.flatMap((g) => {
+          const [[x0, y0], [x1, y1]] = worldPath.bounds(g as never);
+          return Number.isFinite(x0) && Number.isFinite(x1) ? [{ code: c.code, x0, y0, x1, y1 }] : [];
+        });
+      }),
+    [worldDrawn, worldPath],
+  );
+  const viewCodes = useMemo(
+    () => (onWorld && (order || showTowns) ? inView(worldBounds, { x: view.x, y: view.y, w: W / view.k, h: H / view.k }, order === 1 ? 40 : 12) : []),
+    [onWorld, order, showTowns, worldBounds, view],
+  );
+  const finer = useFiner(viewCodes, order);
+  /* A country with no second order held is pressed by its first. */
+  const without = useMemo(() => (order === 2 ? viewCodes.filter((c) => finer.get(c)?.length === 0) : []), [order, viewCodes, finer]);
+  const finerFirst = useFiner(without, order === 2 ? 1 : 0);
+  /** Each country's shapes, drawn once and kept, with where each lies on the map. */
+  const built = useRef(new Map<string, { s: Shape; x0: number; y0: number; x1: number; y1: number }[]>());
+  const finerShapes = useMemo<Shape[]>(() => {
+    if (!order) return [];
+    const shapeOf = (f: Finer, i: number, d: string): Shape => {
+      const land = COUNTRY_BY_CODE.get(f.code)?.name ?? f.code;
+      const base = flagColor(f.code) ?? COLOR;
+      if (f.order === 1)
+        return {
+          key: `1-${f.code}-${f.index}`,
+          name: `${f.name}, ${land}`,
+          d,
+          go: () => navigate(`/dashboard/subnations?country=${f.code}&name=${encodeURIComponent(f.name)}`),
+          hot: ownColor(f.code, f.name) ?? tint(base, i),
+          ref: { kind: "division", name: f.name, cc: f.code },
+        };
+      if (f.fips)
+        return {
+          key: `2-US-${f.fips}`,
+          name: [f.name, f.parent, land].filter(Boolean).join(", "),
+          d,
+          go: () => navigate(`/dashboard/subnations?open=county:${f.fips}`),
+          hot: tint(ownColor("US", f.parent ?? "") ?? base, i),
+          ref: { kind: "county", fips: f.fips },
+        };
+      return {
+        key: `2-${f.code}-${f.index}`,
+        name: [f.name, f.parent, land].filter(Boolean).join(", "),
+        d,
+        go: () => navigate(`/dashboard/subnations?open=district:${f.code}:${f.index}`),
+        hot: tint(ownColor(f.code, f.parent ?? "") ?? base, i),
+        ref: { kind: "district", name: f.name, parent: f.parent, cc: f.code },
+      };
+    };
+    const x0 = view.x - W / (2 * view.k);
+    const x1 = view.x + W / (2 * view.k);
+    const y0 = view.y - H / (2 * view.k);
+    const y1 = view.y + H / (2 * view.k);
+    const out: Shape[] = [];
+    for (const code of viewCodes) {
+      const own = finer.get(code);
+      const list = own && own.length ? own : finerFirst.get(code);
+      if (!list || !list.length) continue;
+      const key = `${list[0].order}:${code}`;
+      if (!built.current.has(key))
+        built.current.set(
+          key,
+          list.flatMap((f, i) => {
+            const d = worldPath(f.geo as never);
+            if (!d) return [];
+            const [[a, b], [c, e]] = worldPath.bounds(f.geo as never);
+            return [{ s: shapeOf(f, i, d), x0: a, y0: b, x1: c, y1: e }];
+          }),
+        );
+      // Only those in view are drawn: a large country has thousands.
+      for (const b of built.current.get(key)!) if (b.x1 >= x0 && b.x0 <= x1 && b.y1 >= y0 && b.y0 <= y1) out.push(b.s);
+    }
+    return out;
+  }, [order, viewCodes, finer, finerFirst, view, worldPath, navigate]);
 
   useEffect(() => {
     let off = false;
@@ -383,7 +514,7 @@ export default function PlaceAtlas() {
   /* A country's second order, fetched where a county is what a press selects: undefined while it is, null where none is held. The United States' own are the Census Bureau's, above. */
   const manifest2 = useAdmin2Manifest();
   /** Whether the map is drawn at a country's second order: where a county is what a press selects, and under the dots where a city is. */
-  const fine = pick === "county" || pick === "city";
+  const fine = pick === "county" || pick === "city" || pick === "municipality";
   const second = useAdmin2(fine && code && code !== "US" ? code : null);
   const secondInfo = code && manifest2 ? manifest2[code] : undefined;
   /** Whether the shapes on the map are a country's second order. */
@@ -497,7 +628,7 @@ export default function PlaceAtlas() {
   const slab = useMemo(() => shapes.map((s) => s.d).join(""), [shapes]);
 
   /** The cities, where a city is what a press selects: those of a million or more on the world, and every one of the country the map is on. */
-  const dots = useMemo<Dot[]>(() => {
+  const cityDots = useMemo<Dot[]>(() => {
     if (!showCities || !cityData || !project) return [];
     const world = level.kind === "world";
     const list = world ? cityData.UN_CITIES.filter((c) => c[8] >= worldFloor) : cityData.UN_CITIES.filter((c) => c[0] === level.code);
@@ -509,6 +640,49 @@ export default function PlaceAtlas() {
       return [{ key: `${c[0]}-${c[1]}`, name: c[2], x: xy[0], y: xy[1], r, hot: flagColor(c[0]) ?? COLOR, go: () => navigate(`/dashboard/cities?open=un-${c[0]}-${c[1]}`), ref: { kind: "city", c } }];
     });
   }, [showCities, worldFloor, cityData, project, level, navigate]);
+  /* The towns and villages GeoNames lists - of the countries in view on the world, of the country itself on its own map:
+     those in the part of the map that is in view, the largest first, and no more than can be told apart. */
+  const townCodes = useMemo(() => (showTowns ? (level.kind === "world" ? viewCodes.slice(0, 8) : [level.code]) : []), [showTowns, level, viewCodes]);
+  const townFiles = usePlacesOf(townCodes);
+  const townAt = useRef<{ project: unknown; by: Map<string, { x: number; y: number; row: PlaceRow }[]> }>({ project: null, by: new Map() });
+  const towns = useMemo<Dot[]>(() => {
+    if (!showTowns || !project) return [];
+    // Where each town falls is worked out once for a map, and again when the map changes.
+    if (townAt.current.project !== project) townAt.current = { project, by: new Map() };
+    const hw = W / (2 * view.k) + 6;
+    const hh = H / (2 * view.k) + 6;
+    const seen: { cc: string; x: number; y: number; row: PlaceRow }[] = [];
+    for (const cc of townCodes) {
+      const file = townFiles.get(cc);
+      if (!file) continue;
+      if (!townAt.current.by.has(cc))
+        townAt.current.by.set(
+          cc,
+          file.places.flatMap((row) => {
+            const xy = project(row[2], row[1]);
+            return xy && Number.isFinite(xy[0]) && Number.isFinite(xy[1]) && xy[0] >= 0 && xy[0] <= W && xy[1] >= 0 && xy[1] <= H ? [{ x: xy[0], y: xy[1], row }] : [];
+          }),
+        );
+      for (const p of townAt.current.by.get(cc)!) if (Math.abs(p.x - view.x) <= hw && Math.abs(p.y - view.y) <= hh) seen.push({ cc, ...p });
+    }
+    seen.sort((a, b) => b.row[3] - a.row[3]);
+    return seen.slice(0, 600).map(({ cc, x, y, row }): Dot => {
+      const file = townFiles.get(cc)!;
+      const region = file.regions[row[4]] ?? "";
+      return {
+        key: `t-${cc}-${row[6]}`,
+        name: [row[0], region, COUNTRY_BY_CODE.get(cc)?.name ?? cc].filter(Boolean).join(", "),
+        x,
+        y,
+        // Its area grows with its people, within bounds that keep a village pressable.
+        r: Math.max(1.6, Math.min(5.5, Math.sqrt(row[3] / 5e4) * 1.7)),
+        hot: flagColor(cc) ?? COLOR,
+        go: () => navigate(`/dashboard/subnations?open=place:${cc}:${row[6]}`),
+        ref: { kind: "place", cc, row, region, district: file.districts[row[7]] ?? "" },
+      };
+    });
+  }, [showTowns, project, townCodes, townFiles, view, navigate]);
+  const dots = showTowns ? towns : cityDots;
   /** The cities that are drawn: those in the part of the map that is in view, once it is drawn closer - there may be thousands off it. */
   const dotsInView = useMemo(() => {
     if (view.k <= 1) return dots;
@@ -519,12 +693,14 @@ export default function PlaceAtlas() {
   const onCities = pick === "city";
 
   /** The same places by name, for the list: at the world, every country the site holds. */
-  const listed: { key: string; name: string; go: () => void; ref: Ref }[] = onCities
+  const listed: { key: string; name: string; go: () => void; ref: Ref }[] = onCities || onTowns
     ? dots
     : level.kind === "world"
       ? COUNTRIES.map((c) => ({ key: c.code, name: c.name, ref: { kind: "country", code: c.code } as Ref, go: () => (pick === "country" ? navigate(`/dashboard/countries?open=${c.id}`) : setLevel({ kind: "country", code: c.code })) }))
       : [...new Map(shapes.map((s) => [s.name, s])).values()].sort((a, b) => a.name.localeCompare(b.name));
-  const listLabel = onCities
+  const listLabel = onTowns
+    ? `${listed.length.toLocaleString("en-US")} towns and villages in view · largest first`
+    : onCities
     ? `${listed.length.toLocaleString("en-US")} cities · largest first`
     : `${level.kind === "world" ? `${listed.length} countries` : onSecond ? `${listed.length.toLocaleString("en-US")} ${level.code === "US" ? "counties" : "counties or districts"}` : level.code === "US" ? `${listed.length} states` : `${listed.length} divisions`} · by name`;
 
@@ -532,7 +708,7 @@ export default function PlaceAtlas() {
   const loading = abroad ? (fine && second === undefined) || (!second && divisions === null) : level.kind === "country" && fine && !counties;
   /* The place pointed at, on the map or in the list: a city before the ground it stands on. */
   const litDot = hover ? dots.find((d) => d.name === hover) : undefined;
-  const litShape = hover && !litDot ? shapes.find((s) => s.name === hover) : undefined;
+  const litShape = hover && !litDot ? (finerShapes.find((s) => s.name === hover) ?? shapes.find((s) => s.name === hover)) : undefined;
 
   /* What is set out under the map: the place last pointed at, on the map or in the list. It stays when the pointer leaves, and goes when the map changes. */
   const [last, setLast] = useState<string | null>(null);
@@ -544,22 +720,22 @@ export default function PlaceAtlas() {
   const [subs, setSubs] = useState<SubModule | null>(null);
   const [usc, setUsc] = useState<CountyModule | null>(null);
   useEffect(() => {
-    if (!abroadNow || subs) return;
+    if (!(abroadNow || (onWorld && order > 0)) || subs) return;
     let off = false;
     import("../data/subnations").then((m) => !off && setSubs(m));
     return () => {
       off = true;
     };
-  }, [abroadNow, subs]);
+  }, [abroadNow, onWorld, order, subs]);
   useEffect(() => {
-    if (!(wantCounties && fine) || usc) return;
+    if (!((wantCounties && fine) || (onWorld && order === 2)) || usc) return;
     let off = false;
     import("../data/usCounties").then((m) => !off && setUsc(m));
     return () => {
       off = true;
     };
-  }, [wantCounties, fine, usc]);
-  const item = last ? (dots.find((d) => d.name === last) ?? shapes.find((s) => s.name === last) ?? listed.find((x) => x.name === last)) : undefined;
+  }, [wantCounties, fine, onWorld, order, usc]);
+  const item = last ? (dots.find((d) => d.name === last) ?? finerShapes.find((s) => s.name === last) ?? shapes.find((s) => s.name === last) ?? listed.find((x) => x.name === last)) : undefined;
   /** What the site holds of a place: looked up for the one place that is set out, when it is. */
   const describe = (ref: Ref): About => {
     if (ref.kind === "country") {
@@ -596,11 +772,12 @@ export default function PlaceAtlas() {
       };
     }
     if (ref.kind === "division") {
-      const s = subs?.SUBNATIONS.find((x) => x.cc === code && x.name === ref.name);
+      const cc = ref.cc ?? code;
+      const s = subs?.SUBNATIONS.find((x) => x.cc === cc && x.name === ref.name);
       const saved = s ? SUBNATION_FLAG_FILE[s.id] : undefined;
       return {
-        kicker: [s?.kind ?? "Division", named].join(" · "),
-        flag: saved ? `/flags/divisions/${saved}` : code ? countryFlag(code) : undefined,
+        kicker: [s?.kind ?? "Division", ref.cc ? (COUNTRY_BY_CODE.get(ref.cc)?.name ?? ref.cc) : named].join(" · "),
+        flag: saved ? `/flags/divisions/${saved}` : cc ? countryFlag(cc) : undefined,
         pale: !saved,
         facts: [
           ["Capital", s?.capital ?? null],
@@ -626,18 +803,36 @@ export default function PlaceAtlas() {
         ],
       };
     }
-    if (ref.kind === "district")
+    if (ref.kind === "district") {
+      const cc = ref.cc ?? code;
+      const info = ref.cc ? manifest2?.[ref.cc] : secondInfo;
       return {
-        kicker: [secondInfo?.kind ?? "Second-order division", named].join(" · "),
-        flag: code ? countryFlag(code) : undefined,
+        kicker: [info?.kind ?? "Second-order division", ref.cc ? (COUNTRY_BY_CODE.get(ref.cc)?.name ?? ref.cc) : named].join(" · "),
+        flag: cc ? countryFlag(cc) : undefined,
         pale: true,
         facts: [
           ["Division", ref.parent ?? null, ref.parent ? "the one most of its outline lies in" : undefined],
-          ["Boundary", secondInfo?.by ?? null, secondInfo?.year],
+          ["Boundary", info?.by ?? null, info?.year],
           ["Population", null],
           ["Area", null],
         ],
       };
+    }
+    if (ref.kind === "place") {
+      const [, lat, lon, pop] = ref.row;
+      return {
+        // A city, a town or a village by its people, as the Municipalities page calls it: from 50,000, from 5,000, below.
+        kicker: [pop >= 50000 ? "City" : pop >= 5000 ? "Town" : pop > 0 ? "Village" : "Populated place", ref.region, COUNTRY_BY_CODE.get(ref.cc)?.name ?? ref.cc].filter(Boolean).join(" · "),
+        flag: countryFlag(ref.cc),
+        pale: true,
+        facts: [
+          ["People", pop > 0 ? whole(pop) : null, pop > 0 ? "GeoNames, undated" : undefined],
+          ["County or district", ref.district || null],
+          ["Division", ref.region || null],
+          ["Coordinates", `${Math.abs(lat).toFixed(2)}°${lat >= 0 ? "N" : "S"}, ${Math.abs(lon).toFixed(2)}°${lon >= 0 ? "E" : "W"}`, "where GeoNames places it"],
+        ],
+      };
+    }
     const c = ref.c;
     const year = cityData?.UN_CITY_YEARS[2];
     return {
@@ -659,7 +854,11 @@ export default function PlaceAtlas() {
       ? cityData
         ? "Select or hover over any city."
         : "Loading the cities…"
-      : `${abroad && fine && second === null ? `No counties or districts are held for ${named}, so its divisions are shown. ` : ""}Select or hover over any area.${onWorld ? " Zoom in for states, then counties, then cities." : ""}`;
+      : onTowns
+        ? showTowns
+          ? "Select or hover over any town or village."
+          : "Draw the map closer to see its towns and villages."
+      : `${abroad && fine && second === null ? `No counties or districts are held for ${named}, so its divisions are shown. ` : ""}Select or hover over any area.${onWorld ? " Zoom in to select states, then counties, cities and towns." : ""}`;
   const none = abroad && !second && (divisions === "failed" || (manifest !== null && !manifest[level.code] && shapes.length === 0 && !loading));
 
   const what = onCities
@@ -668,8 +867,14 @@ export default function PlaceAtlas() {
       : level.kind === "world"
         ? `Press a city to go to its window. The ${dots.length.toLocaleString("en-US")} ${worldFloor >= 1e6 ? "of a million people or more" : worldFloor > 0 ? "of 300,000 people or more" : "the United Nations counts"} are shown here; draw the map closer for more, or press a country for every one of its cities.`
         : `Press a city of ${named} to go to its window: the ${dots.length.toLocaleString("en-US")} the United Nations counts there.`
-    : level.kind === "world"
-      ? pick === "country"
+    : onTowns
+      ? "Press a town or a village to go to its window: the largest of those in view are shown."
+      : level.kind === "world"
+      ? order === 2
+        ? "Press a county or a district to go to its window."
+        : order === 1
+          ? "Press a state, a province or a region to go to its record."
+          : pick === "country"
         ? "Press a country to open it."
         : pick === "county"
           ? "Press a country to open the map on its counties, districts or municipalities."
@@ -700,7 +905,7 @@ export default function PlaceAtlas() {
 
   return (
     <Card t={t}>
-      <Head t={t} icon={<MapTrifold size={16} weight="fill" />} label="Find a place" badge="countries · states · counties · cities" color={COLOR} cta="World Maps" to="/dashboard/maps" />
+      <Head t={t} icon={<MapTrifold size={16} weight="fill" />} label="Find a place" badge="countries · states · counties · cities · towns" color={COLOR} cta="World Maps" to="/dashboard/maps" />
 
       {/* Where the map is, each step a way back; and the place it is on, to open. */}
       <div className="flex flex-wrap items-center justify-between gap-x-4 gap-y-2 -mt-1 mb-2">
@@ -780,7 +985,7 @@ export default function PlaceAtlas() {
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-[minmax(0,1fr)_14rem] gap-4">
-        <div className="min-w-0">
+        <div className="min-w-0 relative">
           <svg
             ref={svgRef}
             viewBox={`${view.x - W / (2 * view.k)} ${view.y - H / (2 * view.k)} ${W / view.k} ${H / view.k}`}
@@ -811,6 +1016,11 @@ export default function PlaceAtlas() {
                 pinch.current = between();
                 drag.current = { x: e.clientX, y: e.clientY, moved: true };
               } else drag.current = { x: e.clientX, y: e.clientY, moved: false };
+            }}
+            onMouseMove={(e) => {
+              const r = e.currentTarget.getBoundingClientRect();
+              tipAt.current = { x: e.clientX - r.left, y: e.clientY - r.top, w: r.width, h: r.height };
+              if (tipRef.current) tipRef.current.style.transform = tipPlace();
             }}
             onPointerUp={(e) => {
               pointers.current.delete(e.pointerId);
@@ -890,14 +1100,32 @@ export default function PlaceAtlas() {
                 <title>{s.name}</title>
               </path>
             ))}
+            {/* The world's smaller places, once it is drawn close enough for them: over the countries, each pressed for itself. */}
+            {finerShapes.map((s) => (
+              <path
+                key={s.key}
+                d={s.d}
+                className="cursor-pointer fill-[var(--atlas-land)] outline-none"
+                fillOpacity={glass ? 0.2 : 1}
+                stroke={glass ? wash : order === 2 ? fineLine : edge}
+                strokeWidth={order === 2 ? 0.45 : 0.7}
+                vectorEffect="non-scaling-stroke"
+                strokeLinejoin="round"
+                onClick={s.go}
+                onMouseEnter={() => setHover(s.name)}
+                onMouseLeave={() => setHover(null)}
+              >
+                <title>{s.name}</title>
+              </path>
+            ))}
             {/* The lines over the shapes, never pressed: the counties', fine, on the map of the states; the first-order divisions', heavier, on a map of counties or districts. */}
             {lines && <path d={lines} fill="none" stroke={bold ? boldLine : fineLine} strokeOpacity={bold ? 1 : glass ? 0.7 : 0.9} strokeWidth={bold ? (glass ? 1.5 : 1.3) : 0.45}
  vectorEffect="non-scaling-stroke" strokeLinejoin="round" pointerEvents="none" />}
             {/* The world, drawn closer: the borders of its states and provinces, and closer still those of its counties and districts - fainter than the countries' own, clearer the closer the map is, and never pressed. */}
-            {onWorld && stateLinesD && view.k >= STATES_FROM && (
+            {onWorld && stateLinesD && view.k >= STATES_FROM && order !== 1 && (
               <path d={stateLinesD} fill="none" stroke={boldLine} strokeOpacity={Math.min(0.9, 0.3 + 0.08 * view.k)} strokeWidth={0.6} vectorEffect="non-scaling-stroke" strokeLinejoin="round" pointerEvents="none" />
             )}
-            {onWorld && countyLinesD && view.k >= COUNTIES_FROM && (
+            {onWorld && countyLinesD && view.k >= COUNTIES_FROM && order !== 2 && (
               <path d={countyLinesD} fill="none" stroke={fineLine} strokeOpacity={Math.min(0.7, 0.15 + 0.03 * view.k)} strokeWidth={0.35} vectorEffect="non-scaling-stroke" strokeLinejoin="round" pointerEvents="none" />
             )}
             {/* The place pointed at, picked out as the World Maps page picks one out: filled in its colour over the land, a casing so that its edge reads on any ground, and an outline in the colour itself. */}
@@ -941,6 +1169,13 @@ export default function PlaceAtlas() {
               </text>
             )}
           </svg>
+          {/* The place pointed at, named beside the pointer as the windows' maps name theirs: its name, what it is, and that a press opens it. */}
+          {hover && (litShape || litDot) && (
+            <div ref={tipRef} role="status" className="absolute left-0 top-0 z-10 pointer-events-none modal-glass border rounded-lg px-2.5 py-1.5 shadow-lg max-w-[16rem]" style={{ transform: tipPlace() }}>
+              <p className="text-[12px] font-bold font-sans text-foreground leading-tight">{hover}</p>
+              <p className="text-[10px] font-sans text-muted-foreground leading-snug mt-0.5">{about && item?.name === hover ? `${about.kicker} · press it to open` : "Press it to open"}</p>
+            </div>
+          )}
 
           {/* Whose the boundaries on the map are, where they are a country's second order: each country's are its own publisher's, under its own licence. */}
           {abroad && fine && second && secondInfo && (

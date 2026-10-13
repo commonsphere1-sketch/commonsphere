@@ -42,7 +42,8 @@ const manifest = (): Promise<Record<string, Admin2Info>> =>
     .catch((): Record<string, Admin2Info> => ({})));
 
 const FILES = new Map<string, Promise<Admin2File | null>>();
-const load = (cc: string) => {
+/** A country's second-order divisions, fetched once and kept: null where none are held. */
+export const loadAdmin2 = (cc: string) => {
   if (!FILES.has(cc))
     FILES.set(
       cc,
@@ -78,7 +79,7 @@ export function useAdmin2(cc: string | null): Admin2File | null | undefined {
   useEffect(() => {
     if (!cc) return;
     let off = false;
-    load(cc).then((f) => !off && setFile({ cc, file: f }));
+    loadAdmin2(cc).then((f) => !off && setFile({ cc, file: f }));
     return () => {
       off = true;
     };
