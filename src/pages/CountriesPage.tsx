@@ -57,6 +57,7 @@ import { PUBLIC_SECURITY } from "../data/publicSecurity";
 import { COUNTRY_PANELS, panelSource, type PanelField, type PanelFigure } from "../data/countryPanels";
 import { useLiveData } from "../hooks/useLiveData";
 import { SourceLink } from "../components/SourceLink";
+import { WindowGroup } from "../components/WindowGroup";
 import { HeadlinesBanner, ALL_TOPICS, followedFirst, namesAbroad, useFollowedTags } from "../components/HeadlinesBanner";
 import { FilterBar } from "../components/FilterBar";
 import { TONE, CHIP_TEXT } from "@/lib/chipTone";
@@ -916,9 +917,11 @@ function CountryModal({
                figures; its card goes straight to its geography below. */
             activeTab === "overview" && !country.uninhabited && (
               <>
-                {/* The order of what follows: what a reader most often comes to a country for first - where it is, its capital and
-                    government, its people, its money, how safe it is, its schools and how it is got around - and the reference detail
-                    last. The site holds no count of what is searched for, so the order is a judgement and not a measurement. */}
+                {/* What follows is in groups, as every place's window is: first the country at a glance - where it is, its capital,
+                    its government and its headline figures - and then what belongs together under one heading each: its people and
+                    society, its money and work, its safety and justice, its schools, how it is got around and powered, its
+                    government and defence, and last how it scores. The groups run from what a reader most often comes for to the
+                    reference detail. The site holds no count of what is searched for, so that order is a judgement, not a measurement. */}
 
                 {/* The country as the site's maps draw it, with its largest listed places: the map every window of a place opens on. */}
                 <CountryOutline code={country.code} name={country.name} />
@@ -968,6 +971,33 @@ function CountryModal({
                         </p>
                       </div>
                     ))}
+                  </div>
+                </div>
+
+                {/* Languages & Government */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-4">
+                  <div className="modal-tile rounded-lg p-4">
+                    <p className="text-xs text-muted-foreground font-sans mb-2">
+                      Government
+                    </p>
+                    <p className="text-sm font-semibold font-sans text-foreground">
+                      {country.governmentType}
+                    </p>
+                    <p className="text-xs text-muted-foreground font-sans mt-1">
+                      {country.headOfState}
+                    </p>
+                  </div>
+                  <div className="modal-tile rounded-lg p-4">
+                    <p className="text-xs text-muted-foreground font-sans mb-2">
+                      Languages · Currency
+                    </p>
+                    <p className="text-sm font-semibold font-sans text-foreground">
+                      {country.officialLanguages.join(", ")}
+                    </p>
+                    <p className="text-xs text-muted-foreground font-sans mt-1">
+                      {country.currency}
+                      {has(country.gdpGrowth) ? (country.gdpGrowth > 0 ? " · Growing" : " · Contracting") : ""}
+                    </p>
                   </div>
                 </div>
 
@@ -1093,221 +1123,208 @@ function CountryModal({
                   className="mb-4 mt-2"
                 />
 
-                {/* ── DEMOGRAPHICS + GENDER STACKED ── */}
-                <div className="grid grid-cols-1 gap-4 mt-4">
-                  <div>
-                    <CountryDemographicsChart country={country} />
-                  </div>
-                  <div>
-                    <CountryGenderStatsPanel country={country} />
-                  </div>
-                </div>
-
-                {/* Languages & Government */}
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-4">
-                  <div className="modal-tile rounded-lg p-4">
-                    <p className="text-xs text-muted-foreground font-sans mb-2">
-                      Government
-                    </p>
-                    <p className="text-sm font-semibold font-sans text-foreground">
-                      {country.governmentType}
-                    </p>
-                    <p className="text-xs text-muted-foreground font-sans mt-1">
-                      {country.headOfState}
-                    </p>
-                  </div>
-                  <div className="modal-tile rounded-lg p-4">
-                    <p className="text-xs text-muted-foreground font-sans mb-2">
-                      Languages · Currency
-                    </p>
-                    <p className="text-sm font-semibold font-sans text-foreground">
-                      {country.officialLanguages.join(", ")}
-                    </p>
-                    <p className="text-xs text-muted-foreground font-sans mt-1">
-                      {country.currency}
-                      {has(country.gdpGrowth) ? (country.gdpGrowth > 0 ? " · Growing" : " · Contracting") : ""}
-                    </p>
-                  </div>
-                </div>
-
-                {/* Spoken Languages, Landmarks, Religions */}
-                {!!(
-                  (country as any).spokenLanguages?.length ||
-                  (country as any).landmarks?.length ||
-                  (country as any).religions?.length
-                ) && (
-                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                    {(country as any).spokenLanguages?.length > 0 && (
-                      <div className="modal-tile rounded-lg p-4">
-                        <p className="text-xs text-muted-foreground font-sans mb-2 font-semibold uppercase tracking-wide">
-                          Languages Spoken
-                        </p>
-                        <div className="flex flex-wrap gap-1.5">
-                          {(country as any).spokenLanguages.map((l: string) => (
-                            <span
-                              key={l}
-                              className="text-xs bg-secondary/15 text-secondary border border-secondary/30 px-2 py-0.5 rounded-full font-sans"
-                            >
-                              {l}
-                            </span>
-                          ))}
-                        </div>
-                        {(country as any).sources?.spokenLanguages && (
-                          <SourceLink sources={(country as any).sources.spokenLanguages} />
-                        )}
-                      </div>
-                    )}
-                    {(country as any).landmarks?.length > 0 && (
-                      <div className="modal-tile rounded-lg p-4">
-                        <p className="text-xs text-muted-foreground font-sans mb-2 font-semibold uppercase tracking-wide">
-                          {/* UNESCO sites are inscribed properties, not a ranking,
-                              so they are titled as what they are. */}
-                          {(country as any).worldHeritageCount
-                            ? `World Heritage Sites${
-                                (country as any).worldHeritageCount > (country as any).landmarks.length
-                                  ? ` (${(country as any).landmarks.length} of ${(country as any).worldHeritageCount})`
-                                  : ""
-                              }`
-                            : "Top Landmarks"}
-                        </p>
-                        <ul className="space-y-1">
-                          {(country as any).landmarks.map((lm: string) => (
-                            <li
-                              key={lm}
-                              className="text-xs text-foreground font-sans flex items-start gap-1.5"
-                            >
-                              <span className="text-secondary mt-0.5">•</span>
-                              {lm}
-                            </li>
-                          ))}
-                        </ul>
-                        {(country as any).sources?.landmarks && (
-                          <SourceLink sources={(country as any).sources.landmarks} />
-                        )}
-                      </div>
-                    )}
-                    {(country as any).religions?.length > 0 && (
-                      <div className="modal-tile rounded-lg p-4">
-                        <p className="text-xs text-muted-foreground font-sans mb-2 font-semibold uppercase tracking-wide">
-                          Religions
-                        </p>
-                        <div className="flex flex-wrap gap-1.5">
-                          {(country as any).religions.map((r: string) => (
-                            <span
-                              key={r}
-                              className="text-xs bg-warning/15 text-warning border border-warning/30 px-2 py-0.5 rounded-full font-sans"
-                            >
-                              {r}
-                            </span>
-                          ))}
-                        </div>
-                        {(country as any).sources?.religions && (
-                          <SourceLink sources={(country as any).sources.religions} />
-                        )}
-                      </div>
-                    )}
-                  </div>
-                )}
-
-                {/* What its government takes in tax and of what kinds, the rates it sets, and what its employees are paid. */}
-                <TaxPanel code={country.code} country={country.name} className="mb-4" />
-
-                {/* Economy by sector + land use */}
-                {((country.keyIndustries && country.keyIndustries.length > 0) || getBiosphere(country)) && (
-                  <div className="modal-tile rounded-lg p-4 mb-4">
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
-                      <div className="min-w-0">
-                        <h3 className="text-sm font-semibold font-sans text-foreground mb-1">
-                          Economy by Sector
-                        </h3>
-                        <p className="text-[10px] text-muted-foreground font-sans mb-3">
-                          {country.keyIndustries && country.keyIndustries.length > 0
-                            ? country.sources?.keyIndustries?.label.startsWith("UN Statistics")
-                              ? `Share of value added, ${country.sources.keyIndustries.label.match(/\d{4}$/)?.[0] ?? ""}, from the UN's national accounts, so the shares sum to 100. The UN fills gaps in national reporting with its own estimates.`
-                              : country.sources?.keyIndustries?.label.startsWith("Taiwan DGBAS")
-                              ? `Share of GDP, ${country.sources.keyIndustries.label.match(/\d{4}$/)?.[0] ?? ""}, from Taiwan's statistics office, which spreads product taxes across the sectors; the small remainder is a statistical discrepancy.`
-                              : `Share of GDP (value added), ${country.sources?.keyIndustries?.label.match(/\d{4}$/)?.[0] ?? ""}. Taxes less subsidies on products belong to no sector, so the shares sum to less than 100, or to more where subsidies exceed those taxes.`
-                            : "The World Bank publishes no complete sector split for this country."}
-                        </p>
-                        {/* Each bar on 0 to 100: a sector's length is its share. */}
-                        <MeasureBars
-                          max={100}
-                          label={`The economy of ${country.name} by sector`}
-                          rows={(country.keyIndustries ?? []).map((ind) => ({ label: ind.name, value: ind.gdpShare, text: `${ind.gdpShare}%` }))}
-                        />
-                        {country.sources?.keyIndustries && (
-                          <SourceLink sources={[country.sources.keyIndustries]} className="mt-2" />
-                        )}
-                      </div>
-                      {getBiosphere(country) ? (
-                      <div className="min-w-0">
-                        <h3 className="text-sm font-semibold font-sans text-foreground mb-1">
-                          Land Use
-                        </h3>
-                        <p className="text-[10px] text-muted-foreground font-sans mb-3">
-                          Share of the country's land, {LAND_USE[country.id].y}.
-                        </p>
-                        {/* A ring, as asked for: the land's uses as arcs of one whole, each named with its share beside it. */}
-                        <PartsDonut
-                          label={`The land of ${country.name} by use, ${LAND_USE[country.id].y}`}
-                          parts={getBiosphere(country)!.map((seg) => ({ label: seg.label, value: seg.value, text: `${seg.value}%` }))}
-                        />
-                        <SourceLink sources={[LAND_USE_SOURCE]} className="mt-2" />
-                      </div>
-                      ) : null}
+                <WindowGroup title="People & society">
+                  {/* ── DEMOGRAPHICS + GENDER STACKED ── */}
+                  <div className="grid grid-cols-1 gap-4 mt-4">
+                    <div>
+                      <CountryDemographicsChart country={country} />
+                    </div>
+                    <div>
+                      <CountryGenderStatsPanel country={country} />
                     </div>
                   </div>
-                )}
 
-                {/* ── CRIME STATISTICS ── (the Safety report and the Public Security panel that stood above were removed as asked) */}
-                <CountryCrimeStatsPanel country={country} />
+                  {/* ── SOCIOLOGICAL BREAKDOWN ── */}
+                  <CountrySociologicalBreakdown country={country} />
 
-                {/* ── INCARCERATION (below crime stats) ── */}
-                {(() => {
-                  const pr = PRISON_RATES[country.id];
-                  if (!pr) return null;
-                  return (
-                    <div className="modal-tile rounded-lg p-4 mt-4">
-                      <ChartTitle>People in prison</ChartTitle>
-                      <FigureRow label="Prison population rate" value={`${pr.approx ? "c. " : ""}${pr.v}`} sub={`per 100,000 people · count at ${pr.at}`} />
-                      <SourceLink sources={[PRISON_RATES_SOURCE]} className="mt-3" />
+                  {/* Spoken Languages, Landmarks, Religions */}
+                  {!!(
+                    (country as any).spokenLanguages?.length ||
+                    (country as any).landmarks?.length ||
+                    (country as any).religions?.length
+                  ) && (
+                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                      {(country as any).spokenLanguages?.length > 0 && (
+                        <div className="modal-tile rounded-lg p-4">
+                          <p className="text-xs text-muted-foreground font-sans mb-2 font-semibold uppercase tracking-wide">
+                            Languages Spoken
+                          </p>
+                          <div className="flex flex-wrap gap-1.5">
+                            {(country as any).spokenLanguages.map((l: string) => (
+                              <span
+                                key={l}
+                                className="text-xs bg-secondary/15 text-secondary border border-secondary/30 px-2 py-0.5 rounded-full font-sans"
+                              >
+                                {l}
+                              </span>
+                            ))}
+                          </div>
+                          {(country as any).sources?.spokenLanguages && (
+                            <SourceLink sources={(country as any).sources.spokenLanguages} />
+                          )}
+                        </div>
+                      )}
+                      {(country as any).landmarks?.length > 0 && (
+                        <div className="modal-tile rounded-lg p-4">
+                          <p className="text-xs text-muted-foreground font-sans mb-2 font-semibold uppercase tracking-wide">
+                            {/* UNESCO sites are inscribed properties, not a ranking,
+                                so they are titled as what they are. */}
+                            {(country as any).worldHeritageCount
+                              ? `World Heritage Sites${
+                                  (country as any).worldHeritageCount > (country as any).landmarks.length
+                                    ? ` (${(country as any).landmarks.length} of ${(country as any).worldHeritageCount})`
+                                    : ""
+                                }`
+                              : "Top Landmarks"}
+                          </p>
+                          <ul className="space-y-1">
+                            {(country as any).landmarks.map((lm: string) => (
+                              <li
+                                key={lm}
+                                className="text-xs text-foreground font-sans flex items-start gap-1.5"
+                              >
+                                <span className="text-secondary mt-0.5">•</span>
+                                {lm}
+                              </li>
+                            ))}
+                          </ul>
+                          {(country as any).sources?.landmarks && (
+                            <SourceLink sources={(country as any).sources.landmarks} />
+                          )}
+                        </div>
+                      )}
+                      {(country as any).religions?.length > 0 && (
+                        <div className="modal-tile rounded-lg p-4">
+                          <p className="text-xs text-muted-foreground font-sans mb-2 font-semibold uppercase tracking-wide">
+                            Religions
+                          </p>
+                          <div className="flex flex-wrap gap-1.5">
+                            {(country as any).religions.map((r: string) => (
+                              <span
+                                key={r}
+                                className="text-xs bg-warning/15 text-warning border border-warning/30 px-2 py-0.5 rounded-full font-sans"
+                              >
+                                {r}
+                              </span>
+                            ))}
+                          </div>
+                          {(country as any).sources?.religions && (
+                            <SourceLink sources={(country as any).sources.religions} />
+                          )}
+                        </div>
+                      )}
                     </div>
-                  );
-                })()}
+                  )}
+                </WindowGroup>
 
-                {/* ── EDUCATION RANKING & UNIVERSITIES ── */}
-                <CountryEducationPanel country={country} />
+                <WindowGroup title="Money & work">
+                  {/* What its government takes in tax and of what kinds, the rates it sets, and what its employees are paid. */}
+                  <TaxPanel code={country.code} country={country.name} className="mb-4" />
 
-                {/* ── TRANSPORT ── */}
-                <CountryTransportPanel country={country} />
+                  {/* Economy by sector + land use */}
+                  {((country.keyIndustries && country.keyIndustries.length > 0) || getBiosphere(country)) && (
+                    <div className="modal-tile rounded-lg p-4 mb-4">
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
+                        <div className="min-w-0">
+                          <h3 className="text-sm font-semibold font-sans text-foreground mb-1">
+                            Economy by Sector
+                          </h3>
+                          <p className="text-[10px] text-muted-foreground font-sans mb-3">
+                            {country.keyIndustries && country.keyIndustries.length > 0
+                              ? country.sources?.keyIndustries?.label.startsWith("UN Statistics")
+                                ? `Share of value added, ${country.sources.keyIndustries.label.match(/\d{4}$/)?.[0] ?? ""}, from the UN's national accounts, so the shares sum to 100. The UN fills gaps in national reporting with its own estimates.`
+                                : country.sources?.keyIndustries?.label.startsWith("Taiwan DGBAS")
+                                ? `Share of GDP, ${country.sources.keyIndustries.label.match(/\d{4}$/)?.[0] ?? ""}, from Taiwan's statistics office, which spreads product taxes across the sectors; the small remainder is a statistical discrepancy.`
+                                : `Share of GDP (value added), ${country.sources?.keyIndustries?.label.match(/\d{4}$/)?.[0] ?? ""}. Taxes less subsidies on products belong to no sector, so the shares sum to less than 100, or to more where subsidies exceed those taxes.`
+                              : "The World Bank publishes no complete sector split for this country."}
+                          </p>
+                          {/* Each bar on 0 to 100: a sector's length is its share. */}
+                          <MeasureBars
+                            max={100}
+                            label={`The economy of ${country.name} by sector`}
+                            rows={(country.keyIndustries ?? []).map((ind) => ({ label: ind.name, value: ind.gdpShare, text: `${ind.gdpShare}%` }))}
+                          />
+                          {country.sources?.keyIndustries && (
+                            <SourceLink sources={[country.sources.keyIndustries]} className="mt-2" />
+                          )}
+                        </div>
+                        {getBiosphere(country) ? (
+                        <div className="min-w-0">
+                          <h3 className="text-sm font-semibold font-sans text-foreground mb-1">
+                            Land Use
+                          </h3>
+                          <p className="text-[10px] text-muted-foreground font-sans mb-3">
+                            Share of the country's land, {LAND_USE[country.id].y}.
+                          </p>
+                          {/* A ring, as asked for: the land's uses as arcs of one whole, each named with its share beside it. */}
+                          <PartsDonut
+                            label={`The land of ${country.name} by use, ${LAND_USE[country.id].y}`}
+                            parts={getBiosphere(country)!.map((seg) => ({ label: seg.label, value: seg.value, text: `${seg.value}%` }))}
+                          />
+                          <SourceLink sources={[LAND_USE_SOURCE]} className="mt-2" />
+                        </div>
+                        ) : null}
+                      </div>
+                    </div>
+                  )}
+                </WindowGroup>
 
-                {/* Energy */}
-                {country.energy && (
-                  <EnergySection
-                    energy={country.energy}
-                    countryId={country.id}
-                    source={country.sources?.energy}
-                  />
-                )}
+                <WindowGroup title="Safety & justice">
+                  {/* ── CRIME STATISTICS ── (the Safety report and the Public Security panel that stood above were removed as asked) */}
+                  <CountryCrimeStatsPanel country={country} />
 
-                {/* Military */}
-                {(MILITARY_MEASURED[country.id] || MILITARY_BRANCHES[country.id]) && (
-                  <MilitarySection
-                    measured={MILITARY_MEASURED[country.id] ?? null}
-                    branches={MILITARY_BRANCHES[country.id] ?? null}
-                    code={country.code}
-                    name={country.name}
-                  />
-                )}
+                  {/* ── INCARCERATION (below crime stats) ── */}
+                  {(() => {
+                    const pr = PRISON_RATES[country.id];
+                    if (!pr) return null;
+                    return (
+                      <div className="modal-tile rounded-lg p-4 mt-4">
+                        <ChartTitle>People in prison</ChartTitle>
+                        <FigureRow label="Prison population rate" value={`${pr.approx ? "c. " : ""}${pr.v}`} sub={`per 100,000 people · count at ${pr.at}`} />
+                        <SourceLink sources={[PRISON_RATES_SOURCE]} className="mt-3" />
+                      </div>
+                    );
+                  })()}
+                </WindowGroup>
 
-                {/* ── SOCIOLOGICAL BREAKDOWN ── */}
-                <CountrySociologicalBreakdown country={country} />
+                <WindowGroup title="Education">
+                  {/* ── EDUCATION RANKING & UNIVERSITIES ── */}
+                  <CountryEducationPanel country={country} />
+                </WindowGroup>
 
-                {/* The composite indexes the country is scored on - development, equality, governance, the economy and its statistics - each on its maker's own scale: the panel the windows of its towns and divisions carry as "the country's", here its own. */}
-                <PlaceIndexes code={country.code} country={country.name} className="mb-4" />
+                <WindowGroup title="Getting around & energy">
+                  {/* ── TRANSPORT ── */}
+                  <CountryTransportPanel country={country} />
 
-                {/* Its place in the United Nations: when it was admitted, its regional group, and its seat on the Security Council - the record, from the UN's own pages. */}
-                <UnPanel code={country.code} country={country.name} className="mb-4" />
+                  {/* Energy */}
+                  {country.energy && (
+                    <EnergySection
+                      energy={country.energy}
+                      countryId={country.id}
+                      source={country.sources?.energy}
+                    />
+                  )}
+                </WindowGroup>
+
+                <WindowGroup title="Government, defence & the world">
+                  {/* Military */}
+                  {(MILITARY_MEASURED[country.id] || MILITARY_BRANCHES[country.id]) && (
+                    <MilitarySection
+                      measured={MILITARY_MEASURED[country.id] ?? null}
+                      branches={MILITARY_BRANCHES[country.id] ?? null}
+                      code={country.code}
+                      name={country.name}
+                    />
+                  )}
+
+                  {/* Its place in the United Nations: when it was admitted, its regional group, and its seat on the Security Council - the record, from the UN's own pages. */}
+                  <UnPanel code={country.code} country={country.name} className="mb-4" />
+                </WindowGroup>
+
+                <WindowGroup title="How it scores">
+                  {/* The composite indexes the country is scored on - development, equality, governance, the economy and its statistics - each on its maker's own scale: the panel the windows of its towns and divisions carry as "the country's", here its own. */}
+                  <PlaceIndexes code={country.code} country={country.name} className="mb-4" />
+                </WindowGroup>
               </>
             ) /* end overview tab */
           }

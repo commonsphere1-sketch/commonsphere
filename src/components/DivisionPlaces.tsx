@@ -75,6 +75,7 @@ import { SUBNATION_FLAG_FILE } from "../data/subnationFlagFiles";
 import { flagColor } from "../lib/flagColor";
 import { useAdmin1, type Outline } from "../lib/outlines";
 import { SourceLink } from "./SourceLink";
+import { WindowGroup } from "./WindowGroup";
 
 const FILES = new Map<string, Promise<PlacesFile | null>>();
 const load = (cc: string) => {
@@ -894,26 +895,6 @@ function PlaceWindow({
                 )}
               </Part>
 
-              <Part title="📋 Its record">
-                <div className="modal-tile rounded-xl px-4 py-1.5">
-                  <FigureRow label="Name" value={name} />
-                  {/* Its head is named only where three records agree on one; the line is left out otherwise, as asked, and not shown as "Not held". */}
-                  {head && <FigureRow label="Head" value={head[3]} sub={`${head[4]}${head[5] ? ` · since ${head[5]}` : ""} · three records agree`} />}
-
-                  <FigureRow label="Division" value={s.name} sub={s.kind} />
-                  {district && <FigureRow label="County or district" value={district} />}
-                  <FigureRow label="Country" value={country} sub={`ISO 3166-1: ${s.cc}`} />
-                  <FigureRow label="Coordinates" value={coords(lat, lon)} />
-                  <FigureRow label="GeoNames id" value={String(id)} />
-                </div>
-                <SourceLink
-                  sources={[{ label: `GeoNames — ${name}`, url: `https://www.geonames.org/${id}` }, ...(head ? [{ label: REPRESENTATIVES_SOURCES.wikidata.label, url: REPRESENTATIVES_SOURCES.wikidata.url }] : [])]}
-                  className="mt-2"
-                />
-              </Part>
-
-              <PostalCodes entry={postal?.places?.[id]} cc={s.cc} name={name} how="place" />
-
               {(ages || women) && (
 
                 <Part
@@ -964,112 +945,138 @@ function PlaceWindow({
                 </Part>
               )}
 
-              <Part title="✈ Airports nearby" note={`The airports Natural Earth maps within ${AIRPORT_KM} km, nearest first. It maps the larger ones, not every airfield; the distance is a straight line, worked out here.`}>
-                {near === null ? (
-                  <p className="text-[11px] font-sans text-muted-foreground">Looking for airports…</p>
-                ) : near.length ? (
-                  <div className="modal-tile rounded-xl px-4 py-1.5">
-                    {near.map((a) => (
-                      <FigureRow key={a.name} label={a.name} value={`${whole(a.km)} km`} sub={a.major ? "a major airport" : "an airport"} />
-                    ))}
-                  </div>
-                ) : (
-                  <p className="text-[11px] font-sans text-muted-foreground">None of the airports it maps lies within {AIRPORT_KM} km.</p>
-                )}
-                <SourceLink sources={[{ label: "Natural Earth — 1:10m airports (public domain)", url: "https://www.naturalearthdata.com/downloads/10m-cultural-vectors/" }]} className="mt-2" />
+              <Part title="📋 Its record">
+                <div className="modal-tile rounded-xl px-4 py-1.5">
+                  <FigureRow label="Name" value={name} />
+                  {/* Its head is named only where three records agree on one; the line is left out otherwise, as asked, and not shown as "Not held". */}
+                  {head && <FigureRow label="Head" value={head[3]} sub={`${head[4]}${head[5] ? ` · since ${head[5]}` : ""} · three records agree`} />}
+
+                  <FigureRow label="Division" value={s.name} sub={s.kind} />
+                  {district && <FigureRow label="County or district" value={district} />}
+                  <FigureRow label="Country" value={country} sub={`ISO 3166-1: ${s.cc}`} />
+                  <FigureRow label="Coordinates" value={coords(lat, lon)} />
+                  <FigureRow label="GeoNames id" value={String(id)} />
+                </div>
+                <SourceLink
+                  sources={[{ label: `GeoNames — ${name}`, url: `https://www.geonames.org/${id}` }, ...(head ? [{ label: REPRESENTATIVES_SOURCES.wikidata.label, url: REPRESENTATIVES_SOURCES.wikidata.url }] : [])]}
+                  className="mt-2"
+                />
               </Part>
 
-              {neighbours.length > 0 && (
-                <Part title="🏘 Places nearby" note="The nearest other places in GeoNames' list, with the straight-line distance worked out here. Each opens its own window.">
-                  <div className="flex flex-wrap gap-1.5">
-                    {neighbours.map(({ row, km: far }) => (
-                      <button key={row[6]} type="button" onClick={() => onOpen(row)} className="text-[11px] font-sans px-2.5 py-1 rounded-full border border-border text-foreground hover:bg-muted/60 cursor-pointer">
-                        {row[0]} <span className="font-mono text-muted-foreground">{far < 10 ? far.toFixed(1) : whole(far)} km</span>
-                      </button>
-                    ))}
-                  </div>
-                </Part>
-              )}
+              <PostalCodes entry={postal?.places?.[id]} cc={s.cc} name={name} how="place" />
 
-              {un && (
-                <Part title="🏙 As a city the United Nations counts"
- note="The UN draws a city by where people live close together, not by its boundary, so its figure differs from the place's own.">
-                  <div className="tile-fill gap-3">
-                    <Tile label={`Population, ${un.years[2]}`} value={whole(un.city[8])} sub="the UN's last estimate" />
-                    {un.city[9] !== null && <Tile label={`Projected, ${un.years[3]}`} value={whole(un.city[9])} sub="the UN's projection" />}
-                    <Tile label="Among the UN's cities" value={`#${un.rank.toLocaleString("en-US")}`} sub={`of ${un.of.toLocaleString("en-US")}`} />
-                    {un.city[10] !== null && <Tile label="Land area" value={`${whole(un.city[10])} km²`} sub={String(un.years[2])} />}
-                    {un.city[11] !== null && <Tile label="People to a km²" value={whole(un.city[11])} sub={String(un.years[2])} />}
-                  </div>
-                  <button type="button" onClick={() => navigate(`/dashboard/cities?open=un-${un.city[0]}-${un.city[1]}`)} className="inline-flex items-center gap-1 text-[11px] font-semibold font-sans px-3 py-1.5 rounded-full border border-border text-foreground hover:bg-muted/60 transition-colors cursor-pointer mt-2">
-                    Its window on the Cities page <ArrowRight size={11} weight="bold" aria-hidden />
-                  </button>
-                </Part>
-              )}
-
-              {county && cPop && (
-                <Part title={`🗺 Its county · ${county.row[1]}`} note="The Census Bureau's figures for the county the place is in, not for the place.">
-                  <div className="tile-fill gap-3">
-                    <Tile label="People in the county" value={whole(cPop[cPop.length - 1])} sub={`1 July ${county.years[county.years.length - 1]}`} />
-                    {cChange !== null && <Tile label={`Since ${county.years[0]}`} value={signed(cChange)} sub="worked out here from the two figures" />}
-                    {county.row[5] !== null && <Tile label="Land area" value={`${whole(county.row[5])} km²`} sub="the county's" />}
-                  </div>
-                  <button type="button" onClick={() => navigate(`/dashboard/subnations?open=county:${county.row[0]}`)} className="inline-flex items-center gap-1 text-[11px] font-semibold font-sans px-3 py-1.5 rounded-full border border-border text-foreground hover:bg-muted/60 transition-colors cursor-pointer mt-2">
-                    Open {county.row[1]} <ArrowRight size={11} weight="bold" aria-hidden />
-                  </button>
-                </Part>
-              )}
-
-              {/* Its colleges and universities, drawn as a state's window draws its own - a card with its mark, each school a row that opens - and set at the foot of what is the place's own, as asked. */}
-              <div className="modal-tile rounded-lg p-4">
-                <div className="flex items-center gap-2 mb-4">
-                  <div className="p-1.5 bg-indigo-500/10 rounded-md border border-indigo-500/20 shrink-0">
-                    <span className="text-indigo-400 flex items-center">
-                      <svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor" aria-hidden>
-                        <path d="M12 3L1 9l11 6 9-4.91V17h2V9L12 3zM5 13.18v4L12 21l7-3.82v-4L12 17l-7-3.82z" />
-                      </svg>
-                    </span>
-                  </div>
-                  <div>
-                    <h3 className="text-xs font-bold font-sans text-foreground uppercase tracking-widest">Colleges and universities</h3>
-                    <p className="text-[10px] text-muted-foreground font-sans mt-0.5">
-                      Those among the {schools.held} the site holds for {stateRow ? s.name : inSentence(country)} whose description names {name}
-                    </p>
-                  </div>
-                </div>
-                {schools.here.length ? (
-                  <div className="mb-3">
-                    <ChartTitle>
-                      {schools.here.length} in {name} · open one for what it is about and known for
-                    </ChartTitle>
-                    <UniversityList list={schools.here} />
-                    <ChartNote className="mt-3">
-                      What each is and the year it was founded are Wikidata's; what it is known for is the opening of its Wikipedia article, fetched when its row is opened. One that
-                      the description places elsewhere, or does not place, is not listed.
-                    </ChartNote>
-                  </div>
-                ) : (
-                  <p className="text-[11px] font-sans text-muted-foreground leading-snug">
-                    None of them is described as being in {name}. One that the description places elsewhere, or does not place, is not listed.
-                  </p>
+              <WindowGroup title="Around it, and getting there" bodyClass="space-y-4">
+                {neighbours.length > 0 && (
+                  <Part title="🏘 Places nearby" note="The nearest other places in GeoNames' list, with the straight-line distance worked out here. Each opens its own window.">
+                    <div className="flex flex-wrap gap-1.5">
+                      {neighbours.map(({ row, km: far }) => (
+                        <button key={row[6]} type="button" onClick={() => onOpen(row)} className="text-[11px] font-sans px-2.5 py-1 rounded-full border border-border text-foreground hover:bg-muted/60 cursor-pointer">
+                          {row[0]} <span className="font-mono text-muted-foreground">{far < 10 ? far.toFixed(1) : whole(far)} km</span>
+                        </button>
+                      ))}
+                    </div>
+                  </Part>
                 )}
-                <SourceLink sources={[stateRow ? { label: STATE_UNIVERSITIES_SOURCE.label, url: STATE_UNIVERSITIES_SOURCE.url } : { label: UNIVERSITIES_SOURCE.label, url: UNIVERSITIES_SOURCE.url }]} className="mt-2" />
-              </div>
 
-              {/* The headline figures its state's and its country's own windows open on: theirs, and said to be. */}
-              {stateRow && <StateFigures stateId={stateRow.id} name={s.name} place={name} />}
-              <CountryFigures code={s.cc} country={country} place={name} />
+                {un && (
+                  <Part title="🏙 As a city the United Nations counts"
+   note="The UN draws a city by where people live close together, not by its boundary, so its figure differs from the place's own.">
+                    <div className="tile-fill gap-3">
+                      <Tile label={`Population, ${un.years[2]}`} value={whole(un.city[8])} sub="the UN's last estimate" />
+                      {un.city[9] !== null && <Tile label={`Projected, ${un.years[3]}`} value={whole(un.city[9])} sub="the UN's projection" />}
+                      <Tile label="Among the UN's cities" value={`#${un.rank.toLocaleString("en-US")}`} sub={`of ${un.of.toLocaleString("en-US")}`} />
+                      {un.city[10] !== null && <Tile label="Land area" value={`${whole(un.city[10])} km²`} sub={String(un.years[2])} />}
+                      {un.city[11] !== null && <Tile label="People to a km²" value={whole(un.city[11])} sub={String(un.years[2])} />}
+                    </div>
+                    <button type="button" onClick={() => navigate(`/dashboard/cities?open=un-${un.city[0]}-${un.city[1]}`)} className="inline-flex items-center gap-1 text-[11px] font-semibold font-sans px-3 py-1.5 rounded-full border border-border text-foreground hover:bg-muted/60 transition-colors cursor-pointer mt-2">
+                      Its window on the Cities page <ArrowRight size={11} weight="bold" aria-hidden />
+                    </button>
+                  </Part>
+                )}
 
-              {/* Tax: its state's own collections in the United States, and its country's everywhere - neither is the town's, and each panel says so. */}
-              {stateRow && <StateTaxPanel stateId={stateRow.id} name={s.name} place={name} />}
-              <TaxPanel code={s.cc} country={country} place={name} />
+                {county && cPop && (
+                  <Part title={`🗺 Its county · ${county.row[1]}`} note="The Census Bureau's figures for the county the place is in, not for the place.">
+                    <div className="tile-fill gap-3">
+                      <Tile label="People in the county" value={whole(cPop[cPop.length - 1])} sub={`1 July ${county.years[county.years.length - 1]}`} />
+                      {cChange !== null && <Tile label={`Since ${county.years[0]}`} value={signed(cChange)} sub="worked out here from the two figures" />}
+                      {county.row[5] !== null && <Tile label="Land area" value={`${whole(county.row[5])} km²`} sub="the county's" />}
+                    </div>
+                    <button type="button" onClick={() => navigate(`/dashboard/subnations?open=county:${county.row[0]}`)} className="inline-flex items-center gap-1 text-[11px] font-semibold font-sans px-3 py-1.5 rounded-full border border-border text-foreground hover:bg-muted/60 transition-colors cursor-pointer mt-2">
+                      Open {county.row[1]} <ArrowRight size={11} weight="bold" aria-hidden />
+                    </button>
+                  </Part>
+                )}
 
-              <Suspense fallback={<p className="text-xs font-sans text-muted-foreground">Loading {country}'s figures…</p>}>
-                <CountryQuality code={s.cc} country={country} place={name} />
-              </Suspense>
+                <Part title="✈ Airports nearby" note={`The airports Natural Earth maps within ${AIRPORT_KM} km, nearest first. It maps the larger ones, not every airfield; the distance is a straight line, worked out here.`}>
+                  {near === null ? (
+                    <p className="text-[11px] font-sans text-muted-foreground">Looking for airports…</p>
+                  ) : near.length ? (
+                    <div className="modal-tile rounded-xl px-4 py-1.5">
+                      {near.map((a) => (
+                        <FigureRow key={a.name} label={a.name} value={`${whole(a.km)} km`} sub={a.major ? "a major airport" : "an airport"} />
+                      ))}
+                    </div>
+                  ) : (
+                    <p className="text-[11px] font-sans text-muted-foreground">None of the airports it maps lies within {AIRPORT_KM} km.</p>
+                  )}
+                  <SourceLink sources={[{ label: "Natural Earth — 1:10m airports (public domain)", url: "https://www.naturalearthdata.com/downloads/10m-cultural-vectors/" }]} className="mt-2" />
+                </Part>
+              </WindowGroup>
 
-              {/* The indexes its country is scored on: the reference detail, last. */}
-              <PlaceIndexes code={s.cc} country={country} place={name} />
+              <WindowGroup title="Education" bodyClass="space-y-4">
+                {/* Its colleges and universities, drawn as a state's window draws its own - a card with its mark, each school a row that opens - and set at the foot of what is the place's own, as asked. */}
+                <div className="modal-tile rounded-lg p-4">
+                  <div className="flex items-center gap-2 mb-4">
+                    <div className="p-1.5 bg-indigo-500/10 rounded-md border border-indigo-500/20 shrink-0">
+                      <span className="text-indigo-400 flex items-center">
+                        <svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor" aria-hidden>
+                          <path d="M12 3L1 9l11 6 9-4.91V17h2V9L12 3zM5 13.18v4L12 21l7-3.82v-4L12 17l-7-3.82z" />
+                        </svg>
+                      </span>
+                    </div>
+                    <div>
+                      <h3 className="text-xs font-bold font-sans text-foreground uppercase tracking-widest">Colleges and universities</h3>
+                      <p className="text-[10px] text-muted-foreground font-sans mt-0.5">
+                        Those among the {schools.held} the site holds for {stateRow ? s.name : inSentence(country)} whose description names {name}
+                      </p>
+                    </div>
+                  </div>
+                  {schools.here.length ? (
+                    <div className="mb-3">
+                      <ChartTitle>
+                        {schools.here.length} in {name} · open one for what it is about and known for
+                      </ChartTitle>
+                      <UniversityList list={schools.here} />
+                      <ChartNote className="mt-3">
+                        What each is and the year it was founded are Wikidata's; what it is known for is the opening of its Wikipedia article, fetched when its row is opened. One that
+                        the description places elsewhere, or does not place, is not listed.
+                      </ChartNote>
+                    </div>
+                  ) : (
+                    <p className="text-[11px] font-sans text-muted-foreground leading-snug">
+                      None of them is described as being in {name}. One that the description places elsewhere, or does not place, is not listed.
+                    </p>
+                  )}
+                  <SourceLink sources={[stateRow ? { label: STATE_UNIVERSITIES_SOURCE.label, url: STATE_UNIVERSITIES_SOURCE.url } : { label: UNIVERSITIES_SOURCE.label, url: UNIVERSITIES_SOURCE.url }]} className="mt-2" />
+                </div>
+              </WindowGroup>
+
+              <WindowGroup title="Its state and its country" bodyClass="space-y-4">
+                {/* The headline figures its state's and its country's own windows open on: theirs, and said to be. */}
+                {stateRow && <StateFigures stateId={stateRow.id} name={s.name} place={name} />}
+                <CountryFigures code={s.cc} country={country} place={name} />
+
+                {/* Tax: its state's own collections in the United States, and its country's everywhere - neither is the town's, and each panel says so. */}
+                {stateRow && <StateTaxPanel stateId={stateRow.id} name={s.name} place={name} />}
+                <TaxPanel code={s.cc} country={country} place={name} />
+
+                <Suspense fallback={<p className="text-xs font-sans text-muted-foreground">Loading {country}'s figures…</p>}>
+                  <CountryQuality code={s.cc} country={country} place={name} />
+                </Suspense>
+
+                {/* The indexes its country is scored on: the reference detail, last. */}
+                <PlaceIndexes code={s.cc} country={country} place={name} />
+              </WindowGroup>
             </div>
           )}
 

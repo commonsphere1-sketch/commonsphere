@@ -40,6 +40,7 @@ import { ECONOMY_ISO3, type EconomyRents } from "../data/resourceRents";
 import { useResourceRents } from "../hooks/useResourceRents";
 import { useLiveStatus } from "../lib/liveFigures";
 import { SourceLink } from "../components/SourceLink";
+import { WindowGroup } from "../components/WindowGroup";
 import EconomyManufacturing from "../components/EconomyManufacturing";
 import TaxPanel from "../components/TaxPanel";
 import { countriesData } from "../data/countriesData";
@@ -1266,207 +1267,213 @@ function EconomyModal({
                 />
               )}
 
-              {/* ── WHAT IT HAS AND WHAT IT NEEDS: its exports, its imports and its trading partners as three tiles. They
-                  stand where the list of where the economy stands did, as asked; the figures of that list are in the tiles above. ── */}
-              <EconomyTrade economy={economy} />
+              <WindowGroup title="Pay, tax & public money" bodyClass="space-y-4">
+                {/* ── TAX AND WAGES ── what its government takes in tax and of what kinds, the rates it sets, and what its employees are paid; left out for a group of countries, which has no tax of its own. */}
+                {economyCode(economy) && <TaxPanel code={economyCode(economy)!} country={economy.name} className="mb-6" />}
 
-              {/* What the standing does not say, in charts: growth, prices and jobs together, steadiness, the stock market, borrowing. */}
-              <React.Suspense fallback={null}>
-                <EconomyMarkets economy={economy} />
-              </React.Suspense>
+                {/* ── NATIONAL BUDGET ── */}
+                {(economy.entityType === "Country" || economy.entityType === "Territory") &&
+                  (!economy.limitedData ||
+                    COUNTRY_BUDGET_BY_ISO3[ECONOMY_ISO3[economy.id] ?? ""]) && (
+                  <div>
+                    <div className="flex items-center gap-2 mb-2">
+                      <span className="text-[10px] font-bold font-sans text-muted-foreground uppercase tracking-widest">
+                        Government Spending by Function
+                      </span>
+                      <div className="flex-1 h-px bg-border/60" />
+                    </div>
+                    <div className="modal-tile rounded-xl p-4">
+                      {(() => {
+                        const iso3 = ECONOMY_ISO3[economy.id];
+                        const budget = iso3 ? COUNTRY_BUDGET_BY_ISO3[iso3] : undefined;
+                        if (!budget) {
+                          return (
+                            <p className="text-[11px] font-sans text-muted-foreground">
+                              {economy.name} does not report its government spending
+                              by function to the IMF, so no breakdown is shown rather
+                              than an estimate.
+                            </p>
+                          );
+                        }
+                        return <BudgetPie budget={budget} />;
+                      })()}
+                      <SourceLink sources={[BUDGET_SOURCE]} className="mt-3" />
+                    </div>
+                  </div>
+                )}
+              </WindowGroup>
 
-              {/* ── GDP SECTOR COMPOSITION ── */}
-              {(ECONOMY_SECTORS[economy.id] || !economy.limitedData) && (
-              <div>
-                <div className="flex items-center gap-2 mb-2">
-                  <span className="text-[10px] font-bold font-sans text-muted-foreground uppercase tracking-widest">
-                    GDP Composition by Sector
-                  </span>
-                  <div className="flex-1 h-px bg-border/60" />
-                </div>
-                <div className="modal-tile rounded-xl p-4">
-                  {(() => {
-                    /* One lookup for the whole tile. The World Bank has no
-                       national accounts for two of the economies listed here -
-                       Taiwan is not one of its reporters, and Venezuela has no
-                       figures - so those say so rather than showing a chart
-                       built from nothing. */
-                    const sectors: EconomySectors | undefined =
-                      ECONOMY_SECTORS[economy.id];
-                    if (!sectors) {
-                      return (
-                        <p className="text-[11px] font-sans text-muted-foreground">
-                          The World Bank publishes no sector breakdown for{" "}
-                          {economy.name}, so none is shown. Inventing one would
-                          be worse than leaving it out.
-                        </p>
-                      );
-                    }
-                    const ranked = [...sectors.slices].sort((a, b) => b.pct - a.pct);
-                    const dominant = ranked[0];
-                    return (
-                      <>
-                        <div className="mb-4">
-                          <SectorPie sectors={sectors} />
-                        </div>
-                        <div className="space-y-2.5 mb-3">
-                          {sectors.slices.map((x) => (
-                            <SectorBar key={x.name} name={x.name} share={x.pct} />
-                          ))}
-                        </div>
-                        <div className="grid grid-cols-3 gap-2 pt-2 border-t border-border/40">
-                          <div className="text-center">
-                            <p className="text-[9px] text-muted-foreground font-sans uppercase tracking-wide">
-                              Largest
-                            </p>
-                            <p className="text-xs font-bold font-sans text-foreground mt-0.5">
-                              {dominant.name}
-                            </p>
-                            <p
-                              className="text-[10px] font-mono"
-                              style={{ color: getSectorColor(dominant.name) }}
-                            >
-                              {dominant.pct}%{" "}
-                              {sectors.basis === "gdp" ? "of GDP" : "of value added"}
-                            </p>
-                          </div>
-                          <div className="text-center border-x border-border/40">
-                            <p className="text-[9px] text-muted-foreground font-sans uppercase tracking-wide">
-                              {sectors.topSubSector ? "Largest industry" : "Manufacturing"}
-                            </p>
-                            <p className="text-xl font-bold font-mono text-foreground mt-0.5">
-                              {sectors.topSubSector
-                                ? `${sectors.topSubSector.pct}%`
-                                : sectors.manufacturing === null
-                                  ? "—"
-                                  : `${sectors.manufacturing}%`}
-                            </p>
-                            <p className="text-[10px] text-muted-foreground font-sans">
-                              {sectors.topSubSector
-                                ? sectors.topSubSector.name.toLowerCase()
-                                : sectors.manufacturing === null
-                                  ? "not reported"
-                                  : sectors.basis === "gdp"
-                                    ? "of GDP, within industry"
-                                    : "of value added, within industry"}
-                            </p>
-                          </div>
-                          <div className="text-center">
-                            <p className="text-[9px] text-muted-foreground font-sans uppercase tracking-wide">
-                              Reported
-                            </p>
-                            <p className="text-xl font-bold font-mono text-foreground mt-0.5">
-                              {sectors.year}
-                            </p>
-                            <p className="text-[10px] text-muted-foreground font-sans">
-                              World Bank
-                            </p>
-                          </div>
-                        </div>
-                      </>
-                    );
-                  })()}
-                </div>
-              </div>
-              )}
-
-              {/* ── NATIONAL BUDGET ── */}
-              {(economy.entityType === "Country" || economy.entityType === "Territory") &&
-                (!economy.limitedData ||
-                  COUNTRY_BUDGET_BY_ISO3[ECONOMY_ISO3[economy.id] ?? ""]) && (
+              <WindowGroup title="What it makes" bodyClass="space-y-4">
+                {/* ── GDP SECTOR COMPOSITION ── */}
+                {(ECONOMY_SECTORS[economy.id] || !economy.limitedData) && (
                 <div>
                   <div className="flex items-center gap-2 mb-2">
                     <span className="text-[10px] font-bold font-sans text-muted-foreground uppercase tracking-widest">
-                      Government Spending by Function
+                      GDP Composition by Sector
                     </span>
                     <div className="flex-1 h-px bg-border/60" />
                   </div>
                   <div className="modal-tile rounded-xl p-4">
                     {(() => {
-                      const iso3 = ECONOMY_ISO3[economy.id];
-                      const budget = iso3 ? COUNTRY_BUDGET_BY_ISO3[iso3] : undefined;
-                      if (!budget) {
+                      /* One lookup for the whole tile. The World Bank has no
+                         national accounts for two of the economies listed here -
+                         Taiwan is not one of its reporters, and Venezuela has no
+                         figures - so those say so rather than showing a chart
+                         built from nothing. */
+                      const sectors: EconomySectors | undefined =
+                        ECONOMY_SECTORS[economy.id];
+                      if (!sectors) {
                         return (
                           <p className="text-[11px] font-sans text-muted-foreground">
-                            {economy.name} does not report its government spending
-                            by function to the IMF, so no breakdown is shown rather
-                            than an estimate.
+                            The World Bank publishes no sector breakdown for{" "}
+                            {economy.name}, so none is shown. Inventing one would
+                            be worse than leaving it out.
                           </p>
                         );
                       }
-                      return <BudgetPie budget={budget} />;
-                    })()}
-                    <SourceLink sources={[BUDGET_SOURCE]} className="mt-3" />
-                  </div>
-                </div>
-              )}
-
-              {/* ── MANUFACTURING ── its figures, its record over the years and its place among manufacturers; left out where the World Bank publishes nothing. */}
-              <EconomyManufacturing economy={economy} />
-
-              {/* ── TAX AND WAGES ── what its government takes in tax and of what kinds, the rates it sets, and what its employees are paid; left out for a group of countries, which has no tax of its own. */}
-              {economyCode(economy) && <TaxPanel code={economyCode(economy)!} country={economy.name} className="mb-6" />}
-
-              {/* ── TRADE & PARTNERS ── */}
-
-              {(economy.topExports.length > 0 ||
-                economy.tradingPartners.length > 0) && (
-              <div>
-                <div className="flex items-center gap-2 mb-2">
-                  <span className="text-[10px] font-bold font-sans text-muted-foreground uppercase tracking-widest">
-                    Trade &amp; Partners
-                  </span>
-                  <div className="flex-1 h-px bg-border/60" />
-                </div>
-                <div className="modal-tile rounded-xl p-4">
-                  <div className="grid grid-cols-2 gap-3">
-                    {[
-                      {
-                        label: "Top Exports",
-                        items: economy.topExports,
-                        pill: "bg-secondary/10 text-secondary border border-secondary/20",
-                      },
-                      {
-                        label: "Top Partners",
-                        items: economy.tradingPartners,
-                        pill: "bg-muted text-muted-foreground border border-border",
-                      },
-                    ]
-                      .filter((col) => col.items.length > 0)
-                      .map((col) => (
-                        <div key={col.label}>
-                          <p className="text-xs text-muted-foreground font-sans mb-1.5">
-                            {col.label}
-                          </p>
-                          <div className="flex flex-wrap gap-1">
-                            {col.items.slice(0, 4).map((x) => (
-                              <span
-                                key={x}
-                                className={`text-xs px-2 py-0.5 rounded-full font-sans ${col.pill}`}
-                              >
-                                {x}
-                              </span>
+                      const ranked = [...sectors.slices].sort((a, b) => b.pct - a.pct);
+                      const dominant = ranked[0];
+                      return (
+                        <>
+                          <div className="mb-4">
+                            <SectorPie sectors={sectors} />
+                          </div>
+                          <div className="space-y-2.5 mb-3">
+                            {sectors.slices.map((x) => (
+                              <SectorBar key={x.name} name={x.name} share={x.pct} />
                             ))}
                           </div>
-                        </div>
-                      ))}
+                          <div className="grid grid-cols-3 gap-2 pt-2 border-t border-border/40">
+                            <div className="text-center">
+                              <p className="text-[9px] text-muted-foreground font-sans uppercase tracking-wide">
+                                Largest
+                              </p>
+                              <p className="text-xs font-bold font-sans text-foreground mt-0.5">
+                                {dominant.name}
+                              </p>
+                              <p
+                                className="text-[10px] font-mono"
+                                style={{ color: getSectorColor(dominant.name) }}
+                              >
+                                {dominant.pct}%{" "}
+                                {sectors.basis === "gdp" ? "of GDP" : "of value added"}
+                              </p>
+                            </div>
+                            <div className="text-center border-x border-border/40">
+                              <p className="text-[9px] text-muted-foreground font-sans uppercase tracking-wide">
+                                {sectors.topSubSector ? "Largest industry" : "Manufacturing"}
+                              </p>
+                              <p className="text-xl font-bold font-mono text-foreground mt-0.5">
+                                {sectors.topSubSector
+                                  ? `${sectors.topSubSector.pct}%`
+                                  : sectors.manufacturing === null
+                                    ? "—"
+                                    : `${sectors.manufacturing}%`}
+                              </p>
+                              <p className="text-[10px] text-muted-foreground font-sans">
+                                {sectors.topSubSector
+                                  ? sectors.topSubSector.name.toLowerCase()
+                                  : sectors.manufacturing === null
+                                    ? "not reported"
+                                    : sectors.basis === "gdp"
+                                      ? "of GDP, within industry"
+                                      : "of value added, within industry"}
+                              </p>
+                            </div>
+                            <div className="text-center">
+                              <p className="text-[9px] text-muted-foreground font-sans uppercase tracking-wide">
+                                Reported
+                              </p>
+                              <p className="text-xl font-bold font-mono text-foreground mt-0.5">
+                                {sectors.year}
+                              </p>
+                              <p className="text-[10px] text-muted-foreground font-sans">
+                                World Bank
+                              </p>
+                            </div>
+                          </div>
+                        </>
+                      );
+                    })()}
                   </div>
-                  {economy.limitedData && economy.tradeYear && (
-                    <p className="text-[10px] font-sans text-muted-foreground mt-3 leading-snug">
-                      Goods trade reported to UN Comtrade for {economy.tradeYear}:
-                      exports by HS chapter, partners by exports plus imports.
-                    </p>
+                </div>
+                )}
+
+                {/* ── MANUFACTURING ── its figures, its record over the years and its place among manufacturers; left out where the World Bank publishes nothing. */}
+                <EconomyManufacturing economy={economy} />
+              </WindowGroup>
+
+              <WindowGroup title="What it trades" bodyClass="space-y-4">
+                {/* ── WHAT IT HAS AND WHAT IT NEEDS: its exports, its imports and its trading partners as three tiles. They
+                    stand where the list of where the economy stands did, as asked; the figures of that list are in the tiles above. ── */}
+                <EconomyTrade economy={economy} />
+
+                {/* What the standing does not say, in charts: growth, prices and jobs together, steadiness, the stock market, borrowing. */}
+                <React.Suspense fallback={null}>
+                  <EconomyMarkets economy={economy} />
+                </React.Suspense>
+
+                {/* ── TRADE & PARTNERS ── */}
+
+                {(economy.topExports.length > 0 ||
+                  economy.tradingPartners.length > 0) && (
+                <div>
+                  <div className="flex items-center gap-2 mb-2">
+                    <span className="text-[10px] font-bold font-sans text-muted-foreground uppercase tracking-widest">
+                      Trade &amp; Partners
+                    </span>
+                    <div className="flex-1 h-px bg-border/60" />
+                  </div>
+                  <div className="modal-tile rounded-xl p-4">
+                    <div className="grid grid-cols-2 gap-3">
+                      {[
+                        {
+                          label: "Top Exports",
+                          items: economy.topExports,
+                          pill: "bg-secondary/10 text-secondary border border-secondary/20",
+                        },
+                        {
+                          label: "Top Partners",
+                          items: economy.tradingPartners,
+                          pill: "bg-muted text-muted-foreground border border-border",
+                        },
+                      ]
+                        .filter((col) => col.items.length > 0)
+                        .map((col) => (
+                          <div key={col.label}>
+                            <p className="text-xs text-muted-foreground font-sans mb-1.5">
+                              {col.label}
+                            </p>
+                            <div className="flex flex-wrap gap-1">
+                              {col.items.slice(0, 4).map((x) => (
+                                <span
+                                  key={x}
+                                  className={`text-xs px-2 py-0.5 rounded-full font-sans ${col.pill}`}
+                                >
+                                  {x}
+                                </span>
+                              ))}
+                            </div>
+                          </div>
+                        ))}
+                    </div>
+                    {economy.limitedData && economy.tradeYear && (
+                      <p className="text-[10px] font-sans text-muted-foreground mt-3 leading-snug">
+                        Goods trade reported to UN Comtrade for {economy.tradeYear}:
+                        exports by HS chapter, partners by exports plus imports.
+                      </p>
+                    )}
+                  </div>
+                  {economy.limitedData && (
+                    <SourceLink
+                      sources={[MORE_ECONOMIES_SOURCE.comtrade]}
+                      showIcon={false}
+                      className="mt-1"
+                    />
                   )}
                 </div>
-                {economy.limitedData && (
-                  <SourceLink
-                    sources={[MORE_ECONOMIES_SOURCE.comtrade]}
-                    showIcon={false}
-                    className="mt-1"
-                  />
                 )}
-              </div>
-              )}
+              </WindowGroup>
             </div>
 
             {showMarketTiles && (<>

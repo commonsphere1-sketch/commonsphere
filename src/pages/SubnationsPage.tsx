@@ -111,6 +111,22 @@ type CountyData = typeof import("../data/usCounties");
 /** A field of a window: what it is, its value where one is held, and whose it is or for when. */
 type Field = { label: string; value?: string | null; sub?: string };
 type Part = { title: string; note?: string; fields: Field[]; extra?: ReactNode };
+/**
+ * The order a window's parts are read in, as the groups of every window run: what the place is and who lives there
+ * first - its people beside its society and how their number has changed - then its money, then how it is governed
+ * and its politics together, and the reference detail, its land and its codes, last. A part not named here keeps its
+ * place after them. The site holds no count of what is searched for: the order is a judgement, not a measurement.
+ */
+const PART_ORDER = ["Identity", "Demographics", "Society", "Historical trends", "Economy", "Government", "Political data", "Geography", "Its boundary", "Codes"];
+const partRank = (title: string) => {
+  const i = PART_ORDER.findIndex((o) => title.startsWith(o));
+  return i < 0 ? PART_ORDER.length : i;
+};
+const inOrder = (parts: Part[]) =>
+  parts
+    .map((p, i) => [p, i] as const)
+    .sort((a, b) => partRank(a[0].title) - partRank(b[0].title) || a[1] - b[1])
+    .map(([p]) => p);
 
 const COLOR = "#0ea5e9";
 const whole = (v: number) => Math.round(v).toLocaleString("en-US");
@@ -856,7 +872,7 @@ function SubnationWindow({ s, onBack, onClose, onCounties }: { s: Subnation; /**
               </p>
             </section>
           )}
-          {parts.map((p) => (
+          {inOrder(parts).map((p) => (
             <Section key={p.title} part={p} />
           ))}
           {/* Tax: a US state's own collections, and for every division its country's - tax law is the country's, and the panel says so. */}
@@ -1048,7 +1064,7 @@ function CountyWindow({ county, data, onBack, onClose }: { county: UsCounty; dat
       )}
       {tab === "overview" && (
         <>
-          {parts.map((p) => (
+          {inOrder(parts).map((p) => (
             <Section key={p.title} part={p} />
           ))}
           <PostalCodes entry={postal?.counties?.[fips]} cc="US" name={name} how="county" />
@@ -1351,7 +1367,7 @@ function DistrictWindow({
 
       {tab === "overview" && (
         <>
-          {parts.map((p) => (
+          {inOrder(parts).map((p) => (
             <Section key={p.title} part={p} />
           ))}
           <PostalCodes entry={postal?.districts?.[index]} cc={cc} name={name} how="district" />

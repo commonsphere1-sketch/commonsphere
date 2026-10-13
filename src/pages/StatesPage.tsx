@@ -27,6 +27,7 @@ import { OfficialsExplorer } from "../components/OfficialsExplorer";
 import { UpcomingStates } from "@/components/UpcomingStates";
 import { useLiveData } from "../hooks/useLiveData";
 import { SourceLink } from "../components/SourceLink";
+import { WindowGroup } from "../components/WindowGroup";
 import { ChartNote, ChartTitle, FigureRow, MeasureBars, PartsBar, PartsDonut, rampOf } from "../components/ModalCharts";
 import { StateTaxPanel } from "../components/TaxPanel";
 import { Figures, COUNTER_FIGURES } from "../components/Figures";
@@ -6256,165 +6257,177 @@ function StateModal({
                   </div>
                 </div>
 
-                {/* Taxes and incomes. A "Quality of Living Score" sat beside
-                    this; it was a composite with no stated source and is gone. */}
-                <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-0 items-stretch">
-                  <TaxCard
-                    incomeTax={state.stateTaxRate}
-                    salesTax={state.salesTaxRate}
-                    minimumWage={state.minimumWage}
-                    averageIncome={state.averageIncome}
+                <WindowGroup title="People & society">
+                  {/* 6 Charts */}
+                  <DemographicsCharts state={state} />
+                </WindowGroup>
+
+                <WindowGroup title="Money & work">
+                  {/* Taxes and incomes. A "Quality of Living Score" sat beside
+                      this; it was a composite with no stated source and is gone. */}
+                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-0 items-stretch">
+                    <TaxCard
+                      incomeTax={state.stateTaxRate}
+                      salesTax={state.salesTaxRate}
+                      minimumWage={state.minimumWage}
+                      averageIncome={state.averageIncome}
+                    />
+                  </div>
+                  <SourceLink
+                    sources={[...SRC_BEA, ...SRC_BLS, STATE_SOURCES.taxIncome, STATE_SOURCES.taxSales, STATE_SOURCES.dol]}
+                    className="mb-4"
                   />
-                </div>
-                <SourceLink
-                  sources={[...SRC_BEA, ...SRC_BLS, STATE_SOURCES.taxIncome, STATE_SOURCES.taxSales, STATE_SOURCES.dol]}
-                  className="mb-4"
-                />
 
-                {/* 6 Charts */}
-                <DemographicsCharts state={state} />
+                  {/* What the state itself collects in tax, and of what kinds: the Census Bureau's survey of state government finances. */}
+                  <StateTaxPanel stateId={state.id} name={state.name} className="mt-4" />
 
-                {/* Incarceration (BJS). This section also showed a homelessness
-                    rate and a "crime rate" breakdown that multiplied one
-                    unsourced crime index by fixed factors to make assault,
-                    robbery, burglary, theft, auto and fraud figures - none of
-                    them measured. Both are gone; see build-states.cjs. */}
-                {(() => {
-                  const inc = STATE_INDICATORS[state.id]?.incarcerationRate;
-                  if (!inc) return null;
-                  return (
-                    <div className="modal-tile rounded-xl p-4 mt-4 border border-border/50">
-                      <p className="text-xs font-bold font-sans text-foreground uppercase tracking-widest mb-3">
-                        Imprisonment Rate
+                  {/* Housing Panel */}
+                  <HousingPanel state={state} />
+                </WindowGroup>
+
+                <WindowGroup title="Safety & justice">
+                  {/* Incarceration (BJS). This section also showed a homelessness
+                      rate and a "crime rate" breakdown that multiplied one
+                      unsourced crime index by fixed factors to make assault,
+                      robbery, burglary, theft, auto and fraud figures - none of
+                      them measured. Both are gone; see build-states.cjs. */}
+                  {(() => {
+                    const inc = STATE_INDICATORS[state.id]?.incarcerationRate;
+                    if (!inc) return null;
+                    return (
+                      <div className="modal-tile rounded-xl p-4 mt-4 border border-border/50">
+                        <p className="text-xs font-bold font-sans text-foreground uppercase tracking-widest mb-3">
+                          Imprisonment Rate
+                        </p>
+                        <FigureRow label="Sentenced prisoners under state jurisdiction" value={`${inc.v}`} sub={`per 100,000 residents · end of ${inc.y}`} />
+                        {inc.note && <ChartNote className="mt-2">BJS note: {inc.note}</ChartNote>}
+                        <SourceLink sources={[STATE_SOURCES.bjs]} className="mt-3" />
+                      </div>
+                    );
+                  })()}
+                </WindowGroup>
+
+                <WindowGroup title="Education">
+                  {/* Education Panel */}
+                  <StateEducationPanel state={state} />
+                </WindowGroup>
+
+                <WindowGroup title="Getting around">
+                  {/* Transportation Panel */}
+                  <TransportationPanel state={state} />
+                </WindowGroup>
+
+                <WindowGroup title="Government & representatives">
+                  {/* Governor / Statehood */}
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mt-4">
+                    <div className="modal-tile rounded-lg p-4">
+                      <p className="text-xs text-muted-foreground font-sans mb-1">
+                        Governor
                       </p>
-                      <FigureRow label="Sentenced prisoners under state jurisdiction" value={`${inc.v}`} sub={`per 100,000 residents · end of ${inc.y}`} />
-                      {inc.note && <ChartNote className="mt-2">BJS note: {inc.note}</ChartNote>}
-                      <SourceLink sources={[STATE_SOURCES.bjs]} className="mt-3" />
-                    </div>
-                  );
-                })()}
-
-                {/* Transportation Panel */}
-                <TransportationPanel state={state} />
-
-                {/* Housing Panel */}
-                <HousingPanel state={state} />
-
-                {/* Education Panel */}
-                <StateEducationPanel state={state} />
-
-                {/* What the state itself collects in tax, and of what kinds: the Census Bureau's survey of state government finances. */}
-                <StateTaxPanel stateId={state.id} name={state.name} className="mt-4" />
-
-                {/* Governor / Statehood */}
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mt-4">
-                  <div className="modal-tile rounded-lg p-4">
-                    <p className="text-xs text-muted-foreground font-sans mb-1">
-                      Governor
-                    </p>
-                    <p className="text-sm font-semibold font-sans text-foreground">
-                      {state.governor}
-                    </p>
-                    <p
-                      className={`text-xs mt-1 font-sans ${state.party === "Democrat" ? "text-secondary" : "text-red-400"}`}
-                    >
-                      {state.party}
-                    </p>
-                  </div>
-                  <div className="modal-tile rounded-lg p-4">
-                    <p className="text-xs text-muted-foreground font-sans mb-1">
-                      Statehood
-                    </p>
-                    <p className="text-sm font-semibold font-sans text-foreground">
-                      Since {state.statehood}
-                    </p>
-                    <p className="text-xs text-muted-foreground font-sans mt-1">
-                      {new Date().getFullYear() - state.statehood} years as a
-                      state
-                    </p>
-                  </div>
-                </div>
-
-                {/* Senators */}
-                {state.senators && state.senators.length > 0 && (
-                  <div className="mt-4">
-                    <div className="flex items-center gap-2 mb-2">
-                      <UserCircle
-                        size={14}
-                        weight="fill"
-                        className="text-secondary"
-                      />
-                      <p className="text-xs font-semibold font-sans text-foreground uppercase tracking-wider">
-                        US Senators
+                      <p className="text-sm font-semibold font-sans text-foreground">
+                        {state.governor}
+                      </p>
+                      <p
+                        className={`text-xs mt-1 font-sans ${state.party === "Democrat" ? "text-secondary" : "text-red-400"}`}
+                      >
+                        {state.party}
                       </p>
                     </div>
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                      {state.senators.map((sen, i) => (
-                        <div
-                          key={i}
-                          className="modal-tile rounded-lg p-3 flex items-start justify-between gap-2"
-                        >
-                          <div>
-                            <p className="text-sm font-semibold font-sans text-foreground">
-                              {sen.name}
-                            </p>
-                            <p
-                              className={`text-xs font-sans mt-0.5 ${sen.party === "Democrat" ? "text-secondary" : sen.party === "Republican" ? "text-red-400" : "text-yellow-400"}`}
-                            >
-                              {sen.party}
-                            </p>
-                          </div>
-                          <span className="text-[10px] font-mono bg-card border border-border rounded px-1.5 py-0.5 text-muted-foreground shrink-0">
-                            Term ends {sen.termEnd}
-                          </span>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                )}
-
-                {/* House Representatives */}
-                {state.representatives && state.representatives.length > 0 && (
-                  <div className="mt-4">
-                    <div className="flex items-center gap-2 mb-2">
-                      <Gavel size={14} weight="fill" className="text-warning" />
-                      <p className="text-xs font-semibold font-sans text-foreground uppercase tracking-wider">
-                        House Representatives
-                        <span className="ml-2 text-muted-foreground normal-case font-normal">
-                          ({state.houseSeats} seat
-                          {state.houseSeats !== 1 ? "s" : ""})
-                        </span>
+                    <div className="modal-tile rounded-lg p-4">
+                      <p className="text-xs text-muted-foreground font-sans mb-1">
+                        Statehood
+                      </p>
+                      <p className="text-sm font-semibold font-sans text-foreground">
+                        Since {state.statehood}
+                      </p>
+                      <p className="text-xs text-muted-foreground font-sans mt-1">
+                        {new Date().getFullYear() - state.statehood} years as a
+                        state
                       </p>
                     </div>
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 max-h-52 overflow-y-auto pr-1">
-                      {state.representatives.map((rep, i) => (
-                        <div
-                          key={i}
-                          className="modal-tile rounded-lg px-3 py-2 flex items-center justify-between gap-2"
-                        >
-                          <div className="min-w-0">
-                            <p className="text-xs font-semibold font-sans text-foreground truncate">
-                              {rep.name}
-                            </p>
-                            <p className="text-[10px] text-muted-foreground font-sans">
-                              {rep.district}
-                            </p>
-                          </div>
-                          <span
-                            className={`text-[10px] font-mono shrink-0 px-1.5 py-0.5 rounded border ${rep.party === "Democrat" ? "border-secondary/40 text-secondary bg-secondary/10" : rep.party === "Republican" ? "border-red-500/40 text-red-400 bg-red-500/10" : "border-yellow-500/40 text-yellow-400 bg-yellow-500/10"}`}
+                  </div>
+
+                  {/* Senators */}
+                  {state.senators && state.senators.length > 0 && (
+                    <div className="mt-4">
+                      <div className="flex items-center gap-2 mb-2">
+                        <UserCircle
+                          size={14}
+                          weight="fill"
+                          className="text-secondary"
+                        />
+                        <p className="text-xs font-semibold font-sans text-foreground uppercase tracking-wider">
+                          US Senators
+                        </p>
+                      </div>
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                        {state.senators.map((sen, i) => (
+                          <div
+                            key={i}
+                            className="modal-tile rounded-lg p-3 flex items-start justify-between gap-2"
                           >
-                            {rep.party === "Democrat"
-                              ? "D"
-                              : rep.party === "Republican"
-                                ? "R"
-                                : "I"}
-                          </span>
-                        </div>
-                      ))}
+                            <div>
+                              <p className="text-sm font-semibold font-sans text-foreground">
+                                {sen.name}
+                              </p>
+                              <p
+                                className={`text-xs font-sans mt-0.5 ${sen.party === "Democrat" ? "text-secondary" : sen.party === "Republican" ? "text-red-400" : "text-yellow-400"}`}
+                              >
+                                {sen.party}
+                              </p>
+                            </div>
+                            <span className="text-[10px] font-mono bg-card border border-border rounded px-1.5 py-0.5 text-muted-foreground shrink-0">
+                              Term ends {sen.termEnd}
+                            </span>
+                          </div>
+                        ))}
+                      </div>
                     </div>
-                  </div>
-                )}
-                <SourceLink sources={SRC_CONGRESS} className="mt-3" />
+                  )}
+
+                  {/* House Representatives */}
+                  {state.representatives && state.representatives.length > 0 && (
+                    <div className="mt-4">
+                      <div className="flex items-center gap-2 mb-2">
+                        <Gavel size={14} weight="fill" className="text-warning" />
+                        <p className="text-xs font-semibold font-sans text-foreground uppercase tracking-wider">
+                          House Representatives
+                          <span className="ml-2 text-muted-foreground normal-case font-normal">
+                            ({state.houseSeats} seat
+                            {state.houseSeats !== 1 ? "s" : ""})
+                          </span>
+                        </p>
+                      </div>
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 max-h-52 overflow-y-auto pr-1">
+                        {state.representatives.map((rep, i) => (
+                          <div
+                            key={i}
+                            className="modal-tile rounded-lg px-3 py-2 flex items-center justify-between gap-2"
+                          >
+                            <div className="min-w-0">
+                              <p className="text-xs font-semibold font-sans text-foreground truncate">
+                                {rep.name}
+                              </p>
+                              <p className="text-[10px] text-muted-foreground font-sans">
+                                {rep.district}
+                              </p>
+                            </div>
+                            <span
+                              className={`text-[10px] font-mono shrink-0 px-1.5 py-0.5 rounded border ${rep.party === "Democrat" ? "border-secondary/40 text-secondary bg-secondary/10" : rep.party === "Republican" ? "border-red-500/40 text-red-400 bg-red-500/10" : "border-yellow-500/40 text-yellow-400 bg-yellow-500/10"}`}
+                            >
+                              {rep.party === "Democrat"
+                                ? "D"
+                                : rep.party === "Republican"
+                                  ? "R"
+                                  : "I"}
+                            </span>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                  <SourceLink sources={SRC_CONGRESS} className="mt-3" />
+                </WindowGroup>
               </>
             ) /* end overview tab */
           }

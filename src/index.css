@@ -1495,3 +1495,9 @@ html.light .card-flag {
   flex: 1 1 17rem;
   min-width: 0;
 }
+
+/* A group of related panels in a place's window (WindowGroup): where none of
+   its panels has anything to show, its heading goes with it. */
+.window-group:has(> .window-group-body:empty) {
+  display: none;
+}
