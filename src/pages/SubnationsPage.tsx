@@ -802,8 +802,6 @@ function SubnationWindow({ s, onBack, onClose, onCounties }: { s: Subnation; /**
   const byArea = useMemo(() => peers.filter((x) => x.areaKm2).sort((a, b) => b.areaKm2! - a.areaKm2!), [peers]);
   const peopleAt = byPeople.findIndex((x) => x.id === s.id) + 1;
   const areaAt = byArea.findIndex((x) => x.id === s.id) + 1;
-  /** The five at the head of a list, and this one after them where it is not among them. */
-  const beside = (list: Subnation[], at: number) => [...list.slice(0, 5), ...(at > 5 ? [s] : [])];
   /* Where a reader can check it: its own site first, then the reference records, Wikipedia last. */
   const read: Source[] = [
     ...(s.site ? [{ label: `${s.name} — official website`, url: s.site }] : []),
@@ -850,51 +848,10 @@ function SubnationWindow({ s, onBack, onClose, onCounties }: { s: Subnation; /**
                 {peopleAt > 0 && <FigureRow label="By population" value={`${peopleAt} of ${byPeople.length}`} sub="among those with a population held, the largest first" />}
                 {areaAt > 0 && <FigureRow label="By area" value={`${areaAt} of ${byArea.length}`} sub="among those with an area held, the widest first" />}
               </div>
-              <div className="chart-fill mt-2">
-                {peopleAt > 0 && (
-                  <div className="modal-tile rounded-xl p-4">
-                    <ChartTitle>Beside the most populous · people</ChartTitle>
-                    <MeasureBars
-                      label={`${s.name} beside the most populous divisions of ${c?.name ?? s.cc}`}
-                      rows={beside(byPeople, peopleAt).map((x) => ({ key: x.id, label: x.id === s.id ? `${x.name} · this one` : x.name, value: x.pop![1], text: people(x.pop![1]), sub: String(x.pop![0]), color: x.id === s.id ? (flagColor(s.cc) ?? COLOR) : undefined }))}
-                    />
-                  </div>
-                )}
-                {areaAt > 0 && (
-                  <div className="modal-tile rounded-xl p-4">
-                    <ChartTitle>Beside the widest · km²</ChartTitle>
-                    <MeasureBars
-                      label={`${s.name} beside the widest divisions of ${c?.name ?? s.cc}`}
-                      rows={beside(byArea, areaAt).map((x) => ({ key: x.id, label: x.id === s.id ? `${x.name} · this one` : x.name, value: x.areaKm2!, text: whole(x.areaKm2!), color: x.id === s.id ? (flagColor(s.cc) ?? COLOR) : undefined }))}
-                    />
-                  </div>
-                )}
-              </div>
+              {/* The two charts that set it beside the country's most populous and widest divisions stood here and were taken off as asked: its place among them is in the two lines above. */}
             </section>
           )}
-          {/* Its largest places, as bars: the head of the list the Municipalities part holds whole. */}
-          {within && within.rows.filter((p) => p[3] > 0).length > 1 && (
-            <section>
-              <div className="flex items-center gap-2 mb-2">
-                <h3 className="text-[10px] font-bold font-sans text-muted-foreground uppercase tracking-widest">🏙️ Its largest places</h3>
-                <div className="flex-1 h-px bg-border/60" />
-              </div>
-              <div className="modal-tile rounded-xl p-4">
-                <ChartTitle>People, as GeoNames has them · undated</ChartTitle>
-                <MeasureBars
-                  color={flagColor(s.cc) ?? COLOR}
-                  label={`The largest places of ${s.name} by their people`}
-                  rows={within.rows
-                    .filter((p) => p[3] > 0)
-                    .slice(0, 6)
-                    .map((p) => ({ key: String(p[6]), label: p[0], value: p[3], text: whole(p[3]) }))}
-                />
-              </div>
-              <p className="text-[10px] font-sans text-muted-foreground leading-snug mt-1">
-                The first of the {whole(within.rows.length)} places GeoNames lists in {s.name}; all of them, a card each, are under Municipalities.
-              </p>
-            </section>
-          )}
+          {/* The bars of its largest places stood here and were taken off as asked: the places themselves, a card each, are under Municipalities. */}
           {inOrder(parts).map((p) => (
             <Section key={p.title} part={p} />
           ))}
