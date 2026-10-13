@@ -839,6 +839,26 @@ function PlaceWindow({
 
           {tab === "overview" && (
             <div className="space-y-4">
+              {/* The map first: the place marked on the outline it lies in, as every other place's window opens on its map. */}
+              {around && (
+                <Part title="📍 Where it is" note={`${name}, marked on the outline of ${around.name} as the site's maps draw it, with the places nearest it as the smaller dots: press one to go to it.`}>
+
+                  <OutlineMap
+                    shapes={[around.shape]}
+                    lines={second?.lines}
+                    mark={{ id, name, lon, lat, sub: [...new Set([district, s.name, country].filter(Boolean))].join(" · ") }}
+                    dots={neighbours.map(({ row, km: far }) => ({ id: row[6], name: row[0], lon: row[2], lat: row[1], sub: `${far < 10 ? far.toFixed(1) : whole(far)} km from ${name}, in a straight line` }))}
+                    color={flagColor(s.cc) ?? "#0ea5e9"}
+                    label={`${name}, marked on the outline of ${around.name}`}
+                    // A place nearby, pressed, takes this window to it.
+                    onDot={(d) => {
+                      const hit = neighbours.find((n) => n.row[6] === d.id);
+                      if (hit) onOpen(hit.row);
+                    }}
+                  />
+                </Part>
+              )}
+
               <Part title="👥 People & place" note="What GeoNames records of the place. Its population is GeoNames' own figure and carries no date.">
                 <div className="tile-fill gap-3">
                   {pop > 0 && <Tile label="People" value={whole(pop)} sub="GeoNames, undated" />}
@@ -865,25 +885,6 @@ function PlaceWindow({
                   </div>
                 )}
               </Part>
-
-              {around && (
-                <Part title="📍 Where it is" note={`${name}, marked on the outline of ${around.name} as the site's maps draw it, with the places nearest it as the smaller dots: press one to go to it.`}>
-
-                  <OutlineMap
-                    shapes={[around.shape]}
-                    lines={second?.lines}
-                    mark={{ id, name, lon, lat, sub: [...new Set([district, s.name, country].filter(Boolean))].join(" · ") }}
-                    dots={neighbours.map(({ row, km: far }) => ({ id: row[6], name: row[0], lon: row[2], lat: row[1], sub: `${far < 10 ? far.toFixed(1) : whole(far)} km from ${name}, in a straight line` }))}
-                    color={flagColor(s.cc) ?? "#0ea5e9"}
-                    label={`${name}, marked on the outline of ${around.name}`}
-                    // A place nearby, pressed, takes this window to it.
-                    onDot={(d) => {
-                      const hit = neighbours.find((n) => n.row[6] === d.id);
-                      if (hit) onOpen(hit.row);
-                    }}
-                  />
-                </Part>
-              )}
 
               <Part title="📋 Its record">
                 <div className="modal-tile rounded-xl px-4 py-1.5">
