@@ -22,6 +22,14 @@ export interface DataLogEntry {
 
 export const DATA_LOG: DataLogEntry[] = [
   {
+    "what": "Each country's tax revenue and what its government's revenue is made of, its statutory corporate and top personal income tax rates, and what its employees are paid",
+    "from": "World Bank (IMF Government Finance Statistics), OECD, ILO",
+    "page": "/dashboard/countries",
+    "where": "Countries",
+    "read": "2026-10-13",
+    "files": 1
+  },
+  {
     "what": "Each US state's life expectancy at birth and its deaths by homicide to 100,000 residents",
     "from": "CDC (National Center for Health Statistics; National Center for Injury Prevention and Control)",
     "page": "/dashboard/maps",
@@ -408,4 +416,4 @@ export const DATA_LOG: DataLogEntry[] = [
 ];
 
 /** How many data files the log covers. */
-export const DATA_LOG_FILES = 69;
+export const DATA_LOG_FILES = 70;

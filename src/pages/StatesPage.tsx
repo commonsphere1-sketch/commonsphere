@@ -28,6 +28,7 @@ import { UpcomingStates } from "@/components/UpcomingStates";
 import { useLiveData } from "../hooks/useLiveData";
 import { SourceLink } from "../components/SourceLink";
 import { ChartNote, ChartTitle, FigureRow, MeasureBars, PartsBar, PartsDonut, rampOf } from "../components/ModalCharts";
+import { StateTaxPanel } from "../components/TaxPanel";
 import { Figures, COUNTER_FIGURES } from "../components/Figures";
 import { FilterBar } from "../components/FilterBar";
 import { TONE, CHIP_TEXT } from "@/lib/chipTone";
@@ -6301,6 +6302,9 @@ function StateModal({
 
                 {/* Education Panel */}
                 <StateEducationPanel state={state} />
+
+                {/* What the state itself collects in tax, and of what kinds: the Census Bureau's survey of state government finances. */}
+                <StateTaxPanel stateId={state.id} name={state.name} className="mt-4" />
 
                 {/* Governor / Statehood */}
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mt-4">

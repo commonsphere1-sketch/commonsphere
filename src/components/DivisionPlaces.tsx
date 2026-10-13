@@ -58,6 +58,7 @@ import { ArticlePanel } from "./HistoryPanel";
 import { ChartNote, ChartTitle, FigureRow, MeasureBars, PartsBar, PartsDonut } from "./ModalCharts";
 import PostalCodes from "./PostalCodes";
 import PlaceIndexes from "./PlaceIndexes";
+import TaxPanel, { StateTaxPanel } from "./TaxPanel";
 import { CountryFigures, StateFigures } from "./ParentFigures";
 import { UniversityList } from "./UniversityList";
 import { usePlacePostal } from "../lib/placePostal";
@@ -1060,6 +1061,10 @@ function PlaceWindow({
               <CountryFigures code={s.cc} country={country} place={name} />
 
               <PlaceIndexes code={s.cc} country={country} place={name} />
+
+              {/* Tax: its state's own collections in the United States, and its country's everywhere - neither is the town's, and each panel says so. */}
+              {stateRow && <StateTaxPanel stateId={stateRow.id} name={s.name} place={name} />}
+              <TaxPanel code={s.cc} country={country} place={name} />
 
               <Suspense fallback={<p className="text-xs font-sans text-muted-foreground">Loading {country}'s figures…</p>}>
                 <CountryQuality code={s.cc} country={country} place={name} />

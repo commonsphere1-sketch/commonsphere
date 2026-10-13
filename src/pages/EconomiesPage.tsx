@@ -41,6 +41,7 @@ import { useResourceRents } from "../hooks/useResourceRents";
 import { useLiveStatus } from "../lib/liveFigures";
 import { SourceLink } from "../components/SourceLink";
 import EconomyManufacturing from "../components/EconomyManufacturing";
+import TaxPanel from "../components/TaxPanel";
 import { countriesData } from "../data/countriesData";
 import { CODE_OF_ECONOMY } from "../data/placeIndex";
 import { SeeAlso } from "../components/SeeAlso";
@@ -134,9 +135,10 @@ const largestGdp = (group: boolean) => economiesData.filter((e) => isGroup(e) ==
 const LARGEST_GDP = { place: largestGdp(false), group: largestGdp(true) };
 /** The flag an economy's card carries behind it: its country's, by its own code or by its name; the European Union's own; none for a region of several countries. */
 const FLAG_CODE_BY_NAME = new Map(countriesData.map((c) => [c.name, c.code]));
+/** An economy's ISO code, where it is a country (or the European Union, which has a flag of its own). Three go by a name the list of countries does not use for them. */
+const economyCode = (e: Economy) => e.iso2 ?? ({ "European Union": "EU", Turkey: "TR", Czechia: "CZ" } as Record<string, string>)[e.name] ?? FLAG_CODE_BY_NAME.get(e.name);
 const economyFlag = (e: Economy) => {
-  // Three go by a name the list of countries does not use for them.
-  const code = e.iso2 ?? ({ "European Union": "EU", Turkey: "TR", Czechia: "CZ" } as Record<string, string>)[e.name] ?? FLAG_CODE_BY_NAME.get(e.name);
+  const code = economyCode(e);
   return code ? `https://flagcdn.com/w640/${code.toLowerCase()}.png` : null;
 };
 
@@ -1401,6 +1403,9 @@ function EconomyModal({
 
               {/* ── MANUFACTURING ── its figures, its record over the years and its place among manufacturers; left out where the World Bank publishes nothing. */}
               <EconomyManufacturing economy={economy} />
+
+              {/* ── TAX AND WAGES ── what its government takes in tax and of what kinds, the rates it sets, and what its employees are paid; left out for a group of countries, which has no tax of its own. */}
+              {economyCode(economy) && <TaxPanel code={economyCode(economy)!} country={economy.name} className="mb-6" />}
 
               {/* ── TRADE & PARTNERS ── */}
 

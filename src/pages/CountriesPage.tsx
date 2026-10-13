@@ -63,6 +63,7 @@ import { HistoryPanel } from "@/components/HistoryPanel";
 import { fmtArea, fmtGDP, fmtPop } from "@/lib/placeFormat";
 import { CountryOutline } from "@/components/PlaceOutlines";
 import PlaceIndexes from "@/components/PlaceIndexes";
+import TaxPanel from "@/components/TaxPanel";
 
 // ── Source citation constants ────────────────────────────────────────────
 // ── Extended per-country data ────────────────────────────────────────────────
@@ -1082,6 +1083,9 @@ function CountryModal({
 
                 {/* The composite indexes the country is scored on - development, equality, governance, the economy and its statistics - each on its maker's own scale: the panel the windows of its towns and divisions carry as "the country's", here its own. */}
                 <PlaceIndexes code={country.code} country={country.name} className="mb-4" />
+
+                {/* What its government takes in tax and of what kinds, the rates it sets, and what its employees are paid. */}
+                <TaxPanel code={country.code} country={country.name} className="mb-4" />
 
                 {/* Economy by sector + land use */}
                 {((country.keyIndustries && country.keyIndustries.length > 0) || getBiosphere(country)) && (

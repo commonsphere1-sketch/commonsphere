@@ -66,6 +66,7 @@ import { ChartNote, FigureRow } from "./ModalCharts";
 import CityAnalysis from "./CityAnalysis";
 import PostalCodes from "./PostalCodes";
 import PlaceIndexes from "./PlaceIndexes";
+import TaxPanel from "./TaxPanel";
 import { cityPostal, usePlacePostal } from "../lib/placePostal";
 import { CountryOutline } from "./PlaceOutlines";
 import { SeeAlso } from "./SeeAlso";
@@ -352,6 +353,8 @@ function CityWindow({ c, onBack, onClose }: { c: UnCity; /** Back to its country
               {/* Quality of life: its country's, said to be so - as a profiled city's window gives it. */}
 
               <PlaceIndexes code={cc} country={land} place={name} />
+
+              <TaxPanel code={cc} country={land} place={name} />
 
               <Suspense fallback={<p className="text-xs font-sans text-muted-foreground">Loading {land}'s figures…</p>}>
                 <CountryQuality code={cc} country={land} place={name} />
