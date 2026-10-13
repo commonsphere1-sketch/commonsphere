@@ -46,6 +46,14 @@ export const DATA_LOG: DataLogEntry[] = [
     "files": 1
   },
   {
+    "what": "El Niño and La Niña, the records in the measured series, disasters by country, erosion, and projected warming by country",
+    "from": "NOAA, NASA GISS, NSIDC, IDMC, GDACS, World Bank",
+    "page": "/dashboard/planetary-boundaries",
+    "where": "Climate",
+    "read": "2026-10-13",
+    "files": 1
+  },
+  {
     "what": "The composite indexes each country is scored on: human development and its adjusted forms, gender, inequality and poverty, the six governance scores, human capital, logistics and statistics",
     "from": "UNDP (Human Development Report), World Bank",
     "page": "/dashboard/subnations",
@@ -58,6 +66,14 @@ export const DATA_LOG: DataLogEntry[] = [
     "from": "Eurostat, US Census Bureau",
     "page": "/dashboard/cities",
     "where": "Cities",
+    "read": "2026-10-13",
+    "files": 1
+  },
+  {
+    "what": "The measured state of the climate",
+    "from": "NOAA, NASA GISS, NSIDC",
+    "page": "/dashboard/planetary-boundaries",
+    "where": "Climate",
     "read": "2026-10-13",
     "files": 1
   },
@@ -428,16 +444,8 @@ export const DATA_LOG: DataLogEntry[] = [
     "where": "World maps",
     "read": "2026-09-15",
     "files": 1
-  },
-  {
-    "what": "The measured state of the climate",
-    "from": "NOAA, NASA GISS, NSIDC",
-    "page": "/dashboard/planetary-boundaries",
-    "where": "Climate",
-    "read": "2026-09-15",
-    "files": 1
   }
 ];
 
 /** How many data files the log covers. */
-export const DATA_LOG_FILES = 73;
+export const DATA_LOG_FILES = 74;

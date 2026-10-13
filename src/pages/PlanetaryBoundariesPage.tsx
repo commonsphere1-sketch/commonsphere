@@ -20,6 +20,7 @@ import { FIGURE_CARDS, type FigureCard } from "../data/climateFigures";
 import { LIFE_CARDS, LIFE_CHECKED } from "../data/lifeOnEarth";
 import { EndangeredSpeciesList, NewSpeciesList } from "../components/SpeciesLists";
 import { ClimateExplorer } from "../components/ClimateExplorer";
+import ClimateWatch from "../components/ClimateWatch";
 import {
   Leaf,
   Info,
@@ -620,6 +621,10 @@ export function PlanetaryBoundariesPage() {
               </div>
             ))}
         </div>
+
+        {/* ── WHAT IS HAPPENING, AND WHAT IS PROJECTED: El Niño and La Niña, the records in the measured series, the
+            countries disasters struck, erosion, and each country's projected warming - each card its sources' own. ── */}
+        <ClimateWatch />
 
         {/* ── MAIN CONTENT GRID ─────────────────────────────────────────── */}
         {/* The nine boundaries and the one being read, side by side, so the

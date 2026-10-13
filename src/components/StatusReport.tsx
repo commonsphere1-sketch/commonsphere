@@ -173,7 +173,8 @@ export default function StatusReport({ code, country, className = "" }: { /** Th
                   </Out>{" "}
                   · {h.alert.toLowerCase()} alert · {h.from === h.to ? day(h.from) : `${day(h.from)} to ${day(h.to)}`}
                   {h.current ? " · current" : ""}
-                  {h.said ? ` · ${h.said}` : ""}
+                  {/* The system writes "Magnitude 0" for a flood it gives no size for: that is not a size, and is not shown. */}
+                  {h.said && !/^Magnitude 0$/.test(h.said) ? ` · ${h.said}` : ""}
                   {h.among ? ` · ${land} is one of ${h.among} countries it lists` : ""}
                 </span>
               </li>
