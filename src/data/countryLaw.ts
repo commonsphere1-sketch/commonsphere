@@ -23,6 +23,19 @@ export const COUNTRY_LAW_SOURCES = {
   icc: { label: "International Criminal Court — the states parties to the Rome Statute", url: "https://asp.icc-cpi.int/states-parties" },
 };
 
+/** A chamber of a legislature - or the whole of one with a single chamber - as the Factbook describes it. */
+export type Chamber = { which: "lower" | "upper" | "only"; name?: string; seats?: string; system?: string; scope?: string; term?: string; women?: string };
+/** How a country is governed, in the Factbook's words. */
+export type CountryGoverned = {
+  /** Its type of government. */
+  type?: string;
+  /** How its chief of state and head of government are chosen, and how its cabinet is formed. */
+  executive?: { chosen?: string; cabinet?: string };
+  legislature?: { name?: string; structure?: string; chambers?: Chamber[] };
+  /** Its administrative divisions: how many, of what kinds. */
+  divisions?: string;
+};
+
 /** A paragraph of the advice, a list in it, or a smaller heading. */
 export type AdviceBlock = string | string[] | { sub: string };
 /** The "Laws and cultural differences" part of the UK Foreign Office's advice for a country. */
@@ -47,6 +60,8 @@ export type CountryLawFile = {
   suffrage?: string;
   /** Whether it accepts the International Court of Justice's jurisdiction and is party to the International Criminal Court. */
   world?: string;
+  /** How it is governed: the Factbook's own words. Who holds an office is not kept. */
+  gov?: CountryGoverned;
   /** What is illegal and legal there, as the UK Foreign Office's travel advice tells a visitor: its own words. */
   local?: CountryLawAdvice;
 };

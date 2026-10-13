@@ -1,5 +1,8 @@
 import { ChipRow } from "../components/ChipRow";
-import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
+import { createContext, lazy, Suspense, useCallback, useContext, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
+
+/** Systems of government, side by side: fetched country by country, and loaded after the page. */
+const SystemsComparator = lazy(() => import("../components/SystemsComparator"));
 import { useNavigate } from "react-router-dom";
 import {
   ArrowDownRight,
@@ -1634,6 +1637,7 @@ const PILLARS: Pillar[] = [
 /** The page's nav: the overview, each pillar - each its own section, one to a row - and the rankings. */
 const SECTIONS: NavSection[] = [
   { id: "overview", label: "Overview" },
+  { id: "systems", label: "Systems of government" },
   ...PILLARS.map((p) => ({ id: p.id, label: p.title })),
   { id: "rankings", label: "Rankings" },
 ];
@@ -3260,6 +3264,13 @@ export function WorldviewPage() {
 
         {/* ── Geopolitics: the world's measures of power and conflict, and its alliances, as an explorer ── */}
         <GeopoliticsExplorer />
+
+        {/* ── Systems of government: up to four countries side by side on how each arranges authority ── */}
+        <section id="systems" className="scroll-mt-36">
+          <Suspense fallback={<p className="text-xs font-sans text-muted-foreground px-1">Loading the comparison of systems of government…</p>}>
+            <SystemsComparator />
+          </Suspense>
+        </section>
 
         {/* ── The pillars: each its own section, one to a row; each card opens its window ── */}
         <div className="px-1 pt-2 flex items-center gap-2">

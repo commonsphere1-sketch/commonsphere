@@ -12,6 +12,14 @@
  * kept as the Factbook wrote it. Nothing is worked out, shortened or
  * reworded; a field the Factbook leaves empty or marks NA is left out.
  *
+ * And how it is governed, for the systems comparator: the Factbook's
+ * "Government type", how its executive is chosen and its cabinet formed, its
+ * legislature - its name, whether it is of one chamber or two, and for each
+ * chamber its seats, electoral system, term and share of women - and the
+ * count of its administrative divisions (the Factbook's line up to its list
+ * of their names). Who holds an office is not kept: the Factbook's final
+ * edition is of January 2026 and an office-holder may have changed since.
+ *
  * And what is illegal and legal there, as a visitor is told it: the "Laws
  * and cultural differences" part of the UK Foreign, Commonwealth &
  * Development Office's travel advice for the country (Open Government
@@ -106,6 +114,41 @@ function parts(field, keys) {
   return Object.keys(out).length ? out : null;
 }
 
+/** A chamber of a legislature, or the whole of one that has a single chamber: the Factbook's own words for each thing it gives. */
+function chamberOf(field, which) {
+  const c = parts(field, { "chamber name": "name", "legislature name": "name", "number of seats": "seats", "electoral system": "system", "scope of elections": "scope", "term in office": "term", "percentage of women in chamber": "women" });
+  // A chamber is kept where the Factbook says something of it beyond its name.
+  return c && Object.keys(c).some((k) => k !== "name") ? { which, ...c } : null;
+}
+/** How a country is governed, read from the Government part of its entry. */
+function governedOf(g) {
+  const out = {};
+  const type = said(g["Government type"]);
+  if (type) out.type = type;
+  const executive = parts(g["Executive branch"], { "election/appointment process": "chosen", cabinet: "cabinet" });
+  if (executive) out.executive = executive;
+  const whole = g["Legislative branch"];
+  const legislature = parts(whole, { "legislature name": "name", "legislative structure": "structure" }) ?? {};
+  const chambers = [chamberOf(g["Legislative branch - lower chamber"], "lower"), chamberOf(g["Legislative branch - upper chamber"], "upper")].filter(Boolean);
+  // A legislature of one chamber has its seats and its elections on the legislature itself.
+  const only = chambers.length ? null : chamberOf(whole, "only");
+  if (only) chambers.push(only);
+  if (chambers.length) legislature.chambers = chambers;
+  if (Object.keys(legislature).length) out.legislature = legislature;
+  // Its divisions: the line up to the list of their names.
+  const raw = g["Administrative divisions"]?.text;
+  if (typeof raw === "string") {
+    // The marks that point to a note under the list of names go with the list; a space left where a word was set in italics is closed.
+    const head = said(raw.split(/;|<br|<p>|<strong>/)[0])
+      ?.replace(/\*/g, "")
+      .replace(/\(\s+/g, "(")
+      .replace(/\s+([),])/g, "$1")
+      .trim();
+    if (head && head.length <= 320) out.divisions = head;
+  }
+  return Object.keys(out).length ? out : null;
+}
+
 /* ── The UK Foreign Office's advice ── */
 const NAMED = { amp: "&", nbsp: " ", quot: '"', apos: "'", rsquo: "’", lsquo: "‘", ldquo: "“", rdquo: "”", ndash: "–", mdash: "—", hellip: "…", pound: "£", euro: "€", deg: "°", lt: "<", gt: ">", eacute: "é", egrave: "è", aacute: "á", iacute: "í", oacute: "ó", uacute: "ú", ntilde: "ñ", ccedil: "ç", uuml: "ü", ouml: "ö", auml: "ä", times: "×", frac12: "½" };
 /** A piece of the advice's markup as plain words. An entity that is not known stops the build. */
@@ -183,7 +226,7 @@ function lawsOf(advice, name) {
   }
 
   const held = [];
-  const count = { system: 0, constitution: 0, courts: 0, citizenship: 0, suffrage: 0, world: 0, local: 0 };
+  const count = { system: 0, constitution: 0, courts: 0, citizenship: 0, suffrage: 0, world: 0, local: 0, gov: 0 };
   for (const old of fs.readdirSync(OUT_DIR)) if (/^[A-Z]{2}\.json$/.test(old)) fs.unlinkSync(path.join(OUT_DIR, old));
   for (const c of countries) {
     const p = BY_PATH[c.code] ?? (byTld.get(c.code)?.length === 1 ? byTld.get(c.code)[0] : null);
@@ -200,6 +243,7 @@ function lawsOf(advice, name) {
     put("citizenship", parts(g.Citizenship, { "citizenship by birth": "birth", "citizenship by descent only": "descent", "dual citizenship recognized": "dual", "residency requirement for naturalization": "residency", note: "note" }));
     put("suffrage", said(g.Suffrage));
     put("world", said(g["International law organization participation"]));
+    put("gov", governedOf(g));
     const uk = STATUS[c.code]?.uk;
     if (uk) {
       const slug = /\/foreign-travel-advice\/([a-z0-9-]+)$/.exec(uk.url)?.[1];
@@ -242,6 +286,19 @@ export const COUNTRY_LAW_SOURCES = {
   icc: { label: "International Criminal Court — the states parties to the Rome Statute", url: "https://asp.icc-cpi.int/states-parties" },
 };
 
+/** A chamber of a legislature - or the whole of one with a single chamber - as the Factbook describes it. */
+export type Chamber = { which: "lower" | "upper" | "only"; name?: string; seats?: string; system?: string; scope?: string; term?: string; women?: string };
+/** How a country is governed, in the Factbook's words. */
+export type CountryGoverned = {
+  /** Its type of government. */
+  type?: string;
+  /** How its chief of state and head of government are chosen, and how its cabinet is formed. */
+  executive?: { chosen?: string; cabinet?: string };
+  legislature?: { name?: string; structure?: string; chambers?: Chamber[] };
+  /** Its administrative divisions: how many, of what kinds. */
+  divisions?: string;
+};
+
 /** A paragraph of the advice, a list in it, or a smaller heading. */
 export type AdviceBlock = string | string[] | { sub: string };
 /** The "Laws and cultural differences" part of the UK Foreign Office's advice for a country. */
@@ -266,6 +323,8 @@ export type CountryLawFile = {
   suffrage?: string;
   /** Whether it accepts the International Court of Justice's jurisdiction and is party to the International Criminal Court. */
   world?: string;
+  /** How it is governed: the Factbook's own words. Who holds an office is not kept. */
+  gov?: CountryGoverned;
   /** What is illegal and legal there, as the UK Foreign Office's travel advice tells a visitor: its own words. */
   local?: CountryLawAdvice;
 };
@@ -276,6 +335,7 @@ export const COUNTRY_LAW_HELD: ReadonlySet<string> = new Set(${JSON.stringify(he
   );
   console.log(`wrote ${path.relative(__dirname, OUT)} and ${held.length} files in static/law`);
   console.log(`  ${JSON.stringify(count)}`);
+  console.log(`  Germany, how it is governed: ${JSON.stringify(JSON.parse(fs.readFileSync(path.join(OUT_DIR, "DE.json"), "utf8")).gov).slice(0, 900)}`);
   console.log(`  India, the advice: ${JSON.stringify(JSON.parse(fs.readFileSync(path.join(OUT_DIR, "IN.json"), "utf8")).local).slice(0, 500)}`);
 })().catch((e) => {
   console.error(e);
