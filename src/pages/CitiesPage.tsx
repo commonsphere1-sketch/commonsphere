@@ -60,6 +60,8 @@ import { TONE, CHIP_TEXT } from "@/lib/chipTone";
    the figures it reads are the Countries page's, and large. */
 /** The quality-of-life cards of a profiled city, the journey to work among them as a subject of its own. */
 const ProfileQuality = lazy(() => import("../components/ProfileQuality"));
+/** A country's people, income and poverty, given in a city's window as its country's. */
+const PeoplePanel = lazy(() => import("../components/PeoplePanel"));
 const Universities = lazy(() => import("../components/Universities"));
 /** Every city the United Nations counts, under the profiled ones: loaded when the page reaches it, with its list of some twelve thousand. */
 const AllCities = lazy(() => import("../components/AllCities"));
@@ -602,6 +604,7 @@ function CityModal({ city, onClose }: { city: City; onClose: () => void }) {
               {/* The headings the windows once had - water, energy, transport, safety, business, the economy - with the
                   country's published figures under them, and said to be the country's. */}
               <Suspense fallback={null}>
+                <PeoplePanel code={city.countryCode} country={city.country} place={city.name} className="mb-4" />
                 <ProfileQuality code={city.countryCode} country={city.country} place={city.name} city={city.id} />
                 {/* The city's universities and colleges, each opening to what it is about and known for. */}
                 <Universities city={city.id} place={city.name} />

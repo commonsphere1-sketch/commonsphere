@@ -97,6 +97,7 @@ import { flagFallback } from "../lib/cardFlag";
 import { OutlineMap, placeDots, type MapDot } from "../components/OutlineMap";
 import { SourceLink } from "../components/SourceLink";
 import { FollowStar } from "../components/FollowStar";
+import PeoplePanel from "../components/PeoplePanel";
 import { useWatchlist } from "@/contexts/WatchlistContext";
 import { countriesData } from "../data/countriesData";
 import { COUNTRY_INDICATORS, COUNTRY_INDICATORS_SOURCE } from "../data/countryIndicators";
@@ -858,6 +859,8 @@ function SubnationWindow({ s, onBack, onClose, onCounties }: { s: Subnation; /**
           {/* Tax: a US state's own collections, and for every division its country's - tax law is the country's, and the panel says so. */}
           {state && <StateTaxPanel stateId={state.id} name={state.name} />}
           <TaxPanel code={s.cc} country={c?.name ?? s.cc} place={s.name} />
+          {/* The people of its country - their languages, beliefs and ages, how the country's income is shared and how many are poor - given as the country's, as nobody publishes them place by place. */}
+          <PeoplePanel code={s.cc} country={c?.name ?? s.cc} place={s.name} />
           {/* The indexes its country is scored on, last, as in every window: none is published for a division, and the panel says whose they are. */}
           <PlaceIndexes code={s.cc} country={c?.name ?? s.cc} place={s.name} />
           <div>
@@ -1050,6 +1053,7 @@ function CountyWindow({ county, data, onBack, onClose }: { county: UsCounty; dat
           <PostalCodes entry={postal?.counties?.[fips]} cc="US" name={name} how="county" />
           {state && <StateTaxPanel stateId={state.id} name={state.name} place={name} />}
           <TaxPanel code="US" country="United States" place={name} />
+          <PeoplePanel code="US" country="United States" place={name} />
           <PlaceIndexes code="US" country="United States" place={name} />
         </>
       )}
@@ -1353,6 +1357,7 @@ function DistrictWindow({
           ))}
           <PostalCodes entry={postal?.districts?.[index]} cc={cc} name={name} how="district" />
           <TaxPanel code={cc} country={country} place={name} />
+          <PeoplePanel code={cc} country={country} place={name} />
           <CountryQuality code={cc} country={country} place={name} />
           {/* The indexes the site holds are the country's: shown as the country's, last, as a town's window shows them. */}
           <PlaceIndexes code={cc} country={country} place={name} />

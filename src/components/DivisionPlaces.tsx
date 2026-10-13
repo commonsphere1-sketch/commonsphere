@@ -76,6 +76,7 @@ import { flagColor } from "../lib/flagColor";
 import { useAdmin1, type Outline } from "../lib/outlines";
 import { SourceLink } from "./SourceLink";
 import { FollowStar, placeFollowId } from "./FollowStar";
+import PeoplePanel from "./PeoplePanel";
 import { WindowGroup } from "./WindowGroup";
 
 const FILES = new Map<string, Promise<PlacesFile | null>>();
@@ -1076,6 +1077,9 @@ function PlaceWindow({
                 {/* Tax: its state's own collections in the United States, and its country's everywhere - neither is the town's, and each panel says so. */}
                 {stateRow && <StateTaxPanel stateId={stateRow.id} name={s.name} place={name} />}
                 <TaxPanel code={s.cc} country={country} place={name} />
+
+                {/* The people of its country - their languages, beliefs and ages, how the country's income is shared and how many are poor - given as the country's, as nobody publishes them place by place. */}
+                <PeoplePanel code={s.cc} country={country} place={name} />
 
                 <Suspense fallback={<p className="text-xs font-sans text-muted-foreground">Loading {country}'s figures…</p>}>
                   <CountryQuality code={s.cc} country={country} place={name} />

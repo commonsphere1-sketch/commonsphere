@@ -62,6 +62,7 @@ import { lockScroll } from "../lib/scrollLock";
 import { ArticlePanel } from "./HistoryPanel";
 import { ChartNote, FigureRow } from "./ModalCharts";
 import { FollowStar } from "./FollowStar";
+import PeoplePanel from "./PeoplePanel";
 import { PROFILED, PROFILES, namesOf, plain, unCityId } from "../lib/profiledCities";
 import CityAnalysis from "./CityAnalysis";
 import PostalCodes from "./PostalCodes";
@@ -330,6 +331,9 @@ function CityWindow({ c, onBack, onClose }: { c: UnCity; /** Back to its country
               {/* Quality of life: its country's, said to be so - as a profiled city's window gives it. */}
 
               <TaxPanel code={cc} country={land} place={name} />
+
+              {/* The people of its country - their languages, beliefs and ages, how the country's income is shared and how many are poor - given as the country's, as nobody publishes them place by place. */}
+              <PeoplePanel code={cc} country={land} place={name} />
 
               <Suspense fallback={<p className="text-xs font-sans text-muted-foreground">Loading {land}'s figures…</p>}>
                 <CountryQuality code={cc} country={land} place={name} city={unCityId(c)} />

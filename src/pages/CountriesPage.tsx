@@ -21,6 +21,8 @@ const StatusReport = lazy(() => import("../components/StatusReport"));
 const PoliticalClimate = lazy(() => import("../components/PoliticalClimate"));
 /** The rows that fill a country's "Politics and government" tile: its legislature and elections, from the records. */
 const GovernmentFacts = lazy(() => import("../components/GovernmentFacts"));
+/** How the country's income is shared among its people, and how many are poor: the World Bank's shares by fifth and tenth and its poverty rates. */
+const PeoplePanel = lazy(() => import("../components/PeoplePanel"));
 const Universities = lazy(() => import("../components/Universities"));
 /** The Sovereignty report: a panel with its own data, loaded when the Politics tab opens. */
 const SovereigntyReport = lazy(() => import("../components/CountryReports").then((m) => ({ default: m.SovereigntyReport })));
@@ -1222,6 +1224,11 @@ function CountryModal({
                 <WindowGroup title="Money & work">
                   {/* What its government takes in tax and of what kinds, the rates it sets, and what its employees are paid. */}
                   <TaxPanel code={country.code} country={country.name} className="mb-4" />
+
+                  {/* How its income is shared among its people, and how many are poor. Its languages, beliefs and ages are in the group above, as the window has long had them. */}
+                  <Suspense fallback={null}>
+                    <PeoplePanel code={country.code} country={country.name} parts={["income", "poverty"]} />
+                  </Suspense>
 
                   {/* Economy by sector + land use */}
                   {((country.keyIndustries && country.keyIndustries.length > 0) || getBiosphere(country)) && (
