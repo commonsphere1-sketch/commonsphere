@@ -811,24 +811,6 @@ function PlaceWindow({
                 </div>
               </Part>
 
-              <Part title="📋 Its record">
-                <div className="modal-tile rounded-xl px-4 py-1.5">
-                  <FigureRow label="Name" value={name} />
-                  {/* Its head is named only where three records agree on one; the line is left out otherwise, as asked, and not shown as "Not held". */}
-                  {head && <FigureRow label="Head" value={head[3]} sub={`${head[4]}${head[5] ? ` · since ${head[5]}` : ""} · three records agree`} />}
-
-                  <FigureRow label="Division" value={s.name} sub={s.kind} />
-                  {district && <FigureRow label="County or district" value={district} />}
-                  <FigureRow label="Country" value={country} sub={`ISO 3166-1: ${s.cc}`} />
-                  <FigureRow label="Coordinates" value={coords(lat, lon)} />
-                  <FigureRow label="GeoNames id" value={String(id)} />
-                </div>
-                <SourceLink
-                  sources={[{ label: `GeoNames — ${name}`, url: `https://www.geonames.org/${id}` }, ...(head ? [{ label: REPRESENTATIVES_SOURCES.wikidata.label, url: REPRESENTATIVES_SOURCES.wikidata.url }] : [])]}
-                  className="mt-2"
-                />
-              </Part>
-
               {around && (
                 <Part title="📍 Where it is" note={`${name}, marked on the outline of ${around.name} as the site's maps draw it, with the places nearest it as the smaller dots: press one to go to it.`}>
 
@@ -846,6 +828,24 @@ function PlaceWindow({
                   />
                 </Part>
               )}
+
+              <Part title="📋 Its record">
+                <div className="modal-tile rounded-xl px-4 py-1.5">
+                  <FigureRow label="Name" value={name} />
+                  {/* Its head is named only where three records agree on one; the line is left out otherwise, as asked, and not shown as "Not held". */}
+                  {head && <FigureRow label="Head" value={head[3]} sub={`${head[4]}${head[5] ? ` · since ${head[5]}` : ""} · three records agree`} />}
+
+                  <FigureRow label="Division" value={s.name} sub={s.kind} />
+                  {district && <FigureRow label="County or district" value={district} />}
+                  <FigureRow label="Country" value={country} sub={`ISO 3166-1: ${s.cc}`} />
+                  <FigureRow label="Coordinates" value={coords(lat, lon)} />
+                  <FigureRow label="GeoNames id" value={String(id)} />
+                </div>
+                <SourceLink
+                  sources={[{ label: `GeoNames — ${name}`, url: `https://www.geonames.org/${id}` }, ...(head ? [{ label: REPRESENTATIVES_SOURCES.wikidata.label, url: REPRESENTATIVES_SOURCES.wikidata.url }] : [])]}
+                  className="mt-2"
+                />
+              </Part>
 
               {(ages || women) && (
 
