@@ -16,18 +16,17 @@
  *
  * A city's window is laid out as a profiled city's is: its country, continent
  * and rank at the head, the "see also" row, and three tabs - Overview,
- * History, Map. The Overview opens on its people and place, then its
+ * Laws, Map. The Overview opens on its people and place, then its
  * country's economy and quality of life, named as the country's; the plain
  * record the window first held - identity, geography, demographics - is one
  * of the Overview's sections.
  *
- * The History tab is the city's history as its Wikipedia article tells it,
- * as a profiled city's is. The site holds no article for these cities, so
- * the article is looked for when the tab is opened: among the articles
- * Wikipedia places within ten kilometres of the city, the nearest whose
- * title is the city's own name. Where none is, the tab says so and shows
- * nothing. A city the page profiles by hand uses the article that profile
- * names, and links to the profile.
+ * The Laws tab is the law the city is under (PlaceLaws): its country's legal
+ * system, constitution, courts, citizenship and vote, as the CIA World
+ * Factbook wrote them, said to be the country's - no body gathers the
+ * by-laws of the world's cities. It stands where a History tab stood, which
+ * looked for the city's Wikipedia article and for many cities found none;
+ * useArticle, which did the looking, is kept below and is not called.
  *
  * What is listed, and in what order, is the page's to say (its sticky bar):
  * the search, the continent and the order are passed in. The countries open
@@ -49,7 +48,7 @@
 import { lazy, Suspense, useEffect, useMemo, useState, type ReactNode } from "react";
 import { useNavigate } from "react-router-dom";
 import { Area, AreaChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
-import { ArrowLeft, ArrowRight, ArrowsIn, ArrowsOut, ClockCounterClockwise, ListBullets, MagnifyingGlass, MapPin, MapTrifold, Star, X } from "@phosphor-icons/react";
+import { ArrowLeft, ArrowRight, ArrowsIn, ArrowsOut, ListBullets, MagnifyingGlass, MapPin, MapTrifold, Scales, Star, X } from "@phosphor-icons/react";
 import { ECONOMY_INDICATORS, ECONOMY_INDICATORS_SOURCE } from "../data/economyIndicators";
 import { ECONOMY_OF } from "../data/placeIndex";
 import { countriesData } from "../data/countriesData";
@@ -59,7 +58,6 @@ import { UN_CITIES, UN_CITIES_SOURCE, UN_CITY_YEARS, type UnCity } from "../data
 import { CHIP_TEXT, TONE } from "@/lib/chipTone";
 import { flagColor } from "../lib/flagColor";
 import { lockScroll } from "../lib/scrollLock";
-import { ArticlePanel } from "./HistoryPanel";
 import { ChartNote, FigureRow } from "./ModalCharts";
 import { FollowStar } from "./FollowStar";
 import PeoplePanel from "./PeoplePanel";
@@ -75,6 +73,8 @@ import { SeeAlso } from "./SeeAlso";
 
 /** The city's country's quality of life, as a profiled city's window gives it: loaded when a window opens. */
 const CountryQuality = lazy(() => import("./CountryQuality"));
+/** The law a city is under, its country's: fetched when its Laws tab is opened. */
+const PlaceLaws = lazy(() => import("./PlaceLaws"));
 import { SourceLink } from "./SourceLink";
 
 const COLOR = "#10b981";
@@ -111,7 +111,7 @@ const ARTICLES = new Map<string, string | null>();
  * The city's Wikipedia article: the profile's where the page profiles it, and otherwise the nearest article within ten
  * kilometres whose title is the city's own name. Looked for only when asked; undefined while it is.
  */
-function useArticle(c: UnCity, wanted: boolean): string | null | undefined {
+export function useArticle(c: UnCity, wanted: boolean): string | null | undefined {
   const id = unCityId(c);
   const [title, setTitle] = useState<string | null | undefined>(() => PROFILED.get(id)?.wiki ?? ARTICLES.get(id));
   useEffect(() => {
@@ -144,7 +144,7 @@ const Tile = ({ label, value, sub }: { label: string; value: string; sub?: strin
     {sub && <p className="text-[10px] text-muted-foreground font-sans mt-0.5 leading-snug">{sub}</p>}
   </div>
 );
-type Tab = "overview" | "history" | "map";
+type Tab = "overview" | "laws" | "map";
 
 function CityWindow({ c, onBack, onClose }: { c: UnCity; /** Back to its country's window. */ onBack: () => void; /** Out of every window. */ onClose: () => void }) {
   const navigate = useNavigate();
@@ -164,7 +164,6 @@ function CityWindow({ c, onBack, onClose }: { c: UnCity; /** Back to its country
   const postal = usePlacePostal(cc);
   /* The city on its country's outline: where the UN centres it. */
   const mark = useMemo(() => (lat !== null && lon !== null ? { id: unCityId(c), name, lon, lat, sub: `${land} · ${whole(p2)} people in ${Y2}, as the UN estimates${capital ? " · the capital" : ""}` } : undefined), [c, name, lat, lon, land, p2, capital]);
-  const article = useArticle(c, tab === "history");
   useEffect(() => {
     // Escape goes back one window, as the back arrow does.
     const onKey = (e: KeyboardEvent) => e.key === "Escape" && onBack();
@@ -249,7 +248,7 @@ function CityWindow({ c, onBack, onClose }: { c: UnCity; /** Back to its country
             {(
               [
                 { key: "overview", label: "Overview", icon: <ListBullets size={14} /> },
-                { key: "history", label: "History", icon: <ClockCounterClockwise size={14} /> },
+                { key: "laws", label: "Laws", icon: <Scales size={14} /> },
                 { key: "map", label: "Map", icon: <MapTrifold size={14} /> },
               ] as const
             ).map((x) => (
@@ -359,17 +358,12 @@ function CityWindow({ c, onBack, onClose }: { c: UnCity; /** Back to its country
             </div>
           )}
 
-          {/* History: the city's story from its Wikipedia article, as a profiled city's window tells it. */}
-          {tab === "history" &&
-            (article === undefined ? (
-              <p className="text-xs font-sans text-muted-foreground py-6 text-center">Looking for the article on {name}…</p>
-            ) : article ? (
-              <ArticlePanel title={article} name={name} mode="history" />
-            ) : (
-              <p className="text-xs font-sans text-muted-foreground py-6 text-center">
-                No Wikipedia article by the name of {name} was found where the United Nations places the city, so no history is shown. Its population over the years is in the Overview.
-              </p>
-            ))}
+          {/* Laws: the law the city is under - its country's, said to be so. It stands where the History tab stood. */}
+          {tab === "laws" && (
+            <Suspense fallback={<p className="text-xs font-sans text-muted-foreground py-6 text-center">Fetching the law of {land}…</p>}>
+              <PlaceLaws code={cc} country={land} place={name} />
+            </Suspense>
+          )}
 
           {tab === "map" && (
             <div className="space-y-4">

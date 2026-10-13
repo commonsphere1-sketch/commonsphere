@@ -86,6 +86,14 @@ export const DATA_LOG: DataLogEntry[] = [
     "files": 1
   },
   {
+    "what": "The law a place is under: its country's legal system, constitution, courts, citizenship and vote",
+    "from": "CIA World Factbook",
+    "page": "/dashboard/cities",
+    "where": "Cities",
+    "read": "2026-10-13",
+    "files": 1
+  },
+  {
     "what": "The measured state of the climate",
     "from": "NOAA, NASA GISS, NSIDC",
     "page": "/dashboard/planetary-boundaries",
@@ -472,4 +480,4 @@ export const DATA_LOG: DataLogEntry[] = [
 ];
 
 /** How many data files the log covers. */
-export const DATA_LOG_FILES = 77;
+export const DATA_LOG_FILES = 78;
