@@ -62,6 +62,14 @@ export const DATA_LOG: DataLogEntry[] = [
     "files": 1
   },
   {
+    "what": "What is being warned of in each country now: travel advisories, outbreaks of disease and disaster alerts",
+    "from": "US Department of State, UK Foreign Office, US CDC, GDACS",
+    "page": "/dashboard/countries",
+    "where": "Countries",
+    "read": "2026-10-13",
+    "files": 1
+  },
+  {
     "what": "Each economy's manufacturing: value added, share of GDP, growth, manufactures in trade, high-technology exports, jobs in industry",
     "from": "World Bank",
     "page": "/dashboard/economies",
@@ -424,4 +432,4 @@ export const DATA_LOG: DataLogEntry[] = [
 ];
 
 /** How many data files the log covers. */
-export const DATA_LOG_FILES = 71;
+export const DATA_LOG_FILES = 72;
