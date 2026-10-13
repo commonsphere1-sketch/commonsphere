@@ -35,7 +35,7 @@
  * are the Countries page's, and large.
  */
 import { BookOpen, CurrencyDollar, Drop, FirstAid, Lightning, ShieldCheck, Storefront, Train, Wind } from "@phosphor-icons/react";
-import type { ReactNode } from "react";
+import { useEffect, useState, type ReactNode } from "react";
 import { COUNTRY_OF, ECONOMY_OF } from "../data/placeIndex";
 import { COUNTRY_PANELS, panelSource, type PanelFigure } from "../data/countryPanels";
 import { COUNTRY_INDICATOR_FALLBACKS, COUNTRY_INDICATORS, COUNTRY_INDICATORS_SOURCE } from "../data/countryIndicators";
@@ -81,29 +81,38 @@ function barOf(v: number, w: number | null, scale: Scale | undefined): Bar | und
   return span > 0 ? { at: clamp((100 * (v - scale.from)) / span), world: w != null ? clamp((100 * (w - scale.from)) / span) : undefined, scale: `${scale.from} to ${scale.to}` } : undefined;
 }
 
-/** A figure, what it is counted in and for when, the world's beside it, and its bar where it has a scale. The name may run to two lines; nothing shares a line with it but its figure. */
-function QualityRow({ r, color }: { r: Row; /** The panel's colour: its bars are in it unless a row names a thing with a colour of its own. */ color: string }) {
+/**
+ * A figure as a tile: its name, the figure large, its bar where it has a scale - the tick on it the world's - and under
+ * it what it is counted in, for when, and the world's figure. Where the world's is on the bar, the tile says which side
+ * of it the figure falls: above or below, and nothing about which is the better.
+ */
+function QualityTile({ r, color }: { r: Row; /** The subject's colour: its bars are in it unless a figure names a thing with a colour of its own. */ color: string }) {
+  const ink = semanticColor(r.label) ?? color;
+  const side = r.bar && r.bar.world != null && r.world ? (Math.abs(r.bar.at - r.bar.world) < 0.5 ? "level with the world" : r.bar.at > r.bar.world ? "above the world" : "below the world") : null;
   return (
-    <div className="py-1.5 border-b border-border last:border-b-0">
-      <div className="flex items-baseline justify-between gap-3">
-        <span className="text-[11px] font-sans text-foreground min-w-0 leading-snug">{r.label}</span>
-        <span className="text-[12px] font-mono font-semibold text-foreground text-right shrink-0">{r.value}</span>
-      </div>
+    <div className="rounded-lg border border-border/60 bg-background/40 px-3 py-2.5 min-w-0 flex flex-col">
+      <p className="text-[11px] font-sans text-muted-foreground leading-snug">{r.label}</p>
+      <p className="text-lg font-bold font-mono text-foreground leading-tight mt-0.5">{r.value}</p>
       {r.bar && (
         <span
-          className="relative block h-1.5 rounded-full bg-muted mt-1"
+          className="relative block h-1.5 rounded-full bg-muted mt-1.5"
           role="img"
           aria-label={`${r.label}: ${r.value}${r.world ? `, against ${r.world} for the world` : ""}, on a scale of ${r.bar.scale}.`}
           title={`On a scale of ${r.bar.scale}${r.world ? ` · the tick is the world, ${r.world}` : ""}`}
         >
-          <span className="absolute inset-y-0 left-0 rounded-full" style={{ width: `${r.bar.at}%`, minWidth: r.bar.at > 0 ? 2 : 0, background: semanticColor(r.label) ?? color }} />
+          <span className="absolute inset-y-0 left-0 rounded-full" style={{ width: `${r.bar.at}%`, minWidth: r.bar.at > 0 ? 2 : 0, background: ink }} />
           {r.bar.world != null && <span className="absolute -top-0.5 -bottom-0.5 w-0.5 -ml-px rounded-full bg-foreground" style={{ left: `${r.bar.world}%` }} />}
         </span>
       )}
-      <p className="text-[10px] font-mono text-muted-foreground leading-snug mt-1">
+      <p className="text-[10px] font-mono text-muted-foreground leading-snug mt-1.5">
         {r.sub}
         {r.world ? ` · world ${r.world}` : ""}
       </p>
+      {side && (
+        <p className="text-[10px] font-sans font-semibold leading-snug mt-0.5" style={{ color: ink }}>
+          {side}
+        </p>
+      )}
     </div>
   );
 }
@@ -367,7 +376,15 @@ export default function CountryQuality({
   commute?: boolean;
 }) {
   const { groups, sources } = qualityOf(code, country, city, commute);
+  /** The subject whose figures are laid out: the first, until another's card is pressed. */
+  const [picked, setPicked] = useState<string | null>(null);
+  /** Every subject laid out at once, for a reader who wants the whole of it on the page. */
+  const [all, setAll] = useState(false);
+  // Another place's window: its own first subject, not the last one's choice.
+  useEffect(() => setPicked(null), [code, city]);
   if (!groups.length) return null;
+  const open = groups.find((g) => g.title === picked) ?? groups[0];
+  const shown = all ? groups : [open];
 
   return (
     <div>
@@ -377,28 +394,83 @@ export default function CountryQuality({
       </div>
       <p className="text-[11px] font-sans text-muted-foreground leading-snug mb-2">
         These figures are for {inSentence(country)}, not for {place}. No body publishes water, energy, transport, safety, health, schooling, business and the economy
-        city by city on one footing, so they are given for the country {place} is in, each from the body that measures it and for its latest year. A bar is on the
-        measure's own scale - 0 to 100 for a share or a score - or, where the world's figure is the only yardstick, on the larger of the two; the tick is the world.
+        city by city on one footing, so they are given for the country {place} is in, each from the body that measures it and for its latest year. Press a subject to
+        see its figures. A bar is on the measure's own scale - 0 to 100 for a share or a score - or, where the world's figure is the only yardstick, on the larger of
+        the two; the tick is the world, and “above” or “below” says only which side of it the figure falls.
       </p>
-      {/* One column, as asked: each panel the width of the window and as tall as what is in it. */}
-      <div>
-        {groups.map((g) => (
-          <div key={g.title} className="modal-tile rounded-xl p-4 min-w-0 mb-3">
-            <div className="flex items-center gap-2 mb-2 pb-2 border-b border-border/40">
-              <span className="shrink-0" style={{ color: g.color }}>
-                {g.icon}
+      {/* A card for each subject, all of them in view at once, each with its leading figure: a press lays that subject's
+          figures out under them. The subjects stood one under another as nine long panels, and were set out this way when
+          a better way to show them was asked for. */}
+      <div className="grid gap-2 [grid-template-columns:repeat(auto-fill,minmax(min(100%,8.5rem),1fr))]" role="group" aria-label={`The subjects of ${country}'s figures`}>
+        {groups.map((g) => {
+          const on = !all && g.title === open.title;
+          const lead = g.rows[0];
+          return (
+            <button
+              key={g.title}
+              type="button"
+              aria-pressed={on}
+              onClick={() => {
+                setAll(false);
+                setPicked(g.title);
+              }}
+              className="rounded-xl px-3 py-2.5 text-left cursor-pointer transition-colors border min-w-0"
+              style={{ borderColor: on ? g.color : "var(--color-border)", background: on ? `color-mix(in srgb, ${g.color} 16%, transparent)` : "color-mix(in srgb, var(--color-foreground) 5%, transparent)" }}
+            >
+              <span className="flex items-center gap-1.5 min-w-0">
+                <span className="shrink-0" style={{ color: g.color }}>
+                  {g.icon}
+                </span>
+                <span className="text-[10px] font-bold font-sans text-foreground uppercase tracking-wide truncate">{g.title}</span>
               </span>
-              <h3 className="text-xs font-bold font-sans text-foreground uppercase tracking-wide">{g.title}</h3>
-            </div>
-            <div className="flex flex-col">
+              {lead ? (
+                <>
+                  <span className="block text-base font-bold font-mono text-foreground leading-tight mt-1.5 truncate">{lead.value}</span>
+                  <span className="block text-[10px] font-sans text-muted-foreground leading-snug truncate" title={lead.label}>
+                    {lead.label}
+                  </span>
+                </>
+              ) : (
+                <span className="block text-[10px] font-sans text-muted-foreground leading-snug mt-1.5">how it is made up</span>
+              )}
+              <span className="block text-[9px] font-mono text-muted-foreground mt-1">
+                {g.rows.length} {g.rows.length === 1 ? "figure" : "figures"}
+              </span>
+            </button>
+          );
+        })}
+      </div>
+
+      {shown.map((g) => (
+        <div key={g.title} className="modal-tile rounded-xl p-4 min-w-0 mt-3" style={{ borderColor: `color-mix(in srgb, ${g.color} 45%, var(--color-border))` }}>
+          <div className="flex items-center gap-2 mb-3">
+            <span className="shrink-0" style={{ color: g.color }}>
+              {g.icon}
+            </span>
+            <h3 className="text-xs font-bold font-sans text-foreground uppercase tracking-wide">{g.title}</h3>
+            <div className="flex-1 h-px bg-border/40" />
+            <span className="text-[10px] font-mono text-muted-foreground shrink-0">{country}</span>
+          </div>
+          {g.rows.length > 0 && (
+            <div className="grid gap-2 [grid-template-columns:repeat(auto-fill,minmax(min(100%,12.5rem),1fr))]">
               {g.rows.map((r) => (
-                <QualityRow key={r.label} r={r} color={g.color} />
+                <QualityTile key={r.label} r={r} color={g.color} />
               ))}
             </div>
-            {g.extra}
-          </div>
-        ))}
-      </div>
+          )}
+          {g.extra}
+        </div>
+      ))}
+      {groups.length > 1 && (
+        <button
+          type="button"
+          onClick={() => setAll((v) => !v)}
+          aria-pressed={all}
+          className="mt-3 inline-flex items-center px-3 py-1 rounded-full text-[11px] font-medium font-sans border border-border text-foreground hover:border-secondary/60 transition-colors cursor-pointer"
+        >
+          {all ? "Show one subject at a time" : `Show all ${groups.length} subjects at once`}
+        </button>
+      )}
       <SourceLink sources={sources} className="mt-2" />
 
     </div>
