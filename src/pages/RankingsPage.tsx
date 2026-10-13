@@ -1,5 +1,6 @@
 import { ChipRow } from "../components/ChipRow";
 import React, { useState, useMemo, useCallback, useEffect, useRef } from "react";
+import IndexBuilder, { type IndexEntity, type IndexMeasure } from "../components/IndexBuilder";
 import { countriesData } from "../data/countriesData";
 import { usStatesData } from "../data/statesData";
 import { PRISON_RATES } from "../data/prisonRates";
@@ -1447,6 +1448,19 @@ const COMPARE_ROWS: CompareRow[] = [
   ...COMPARE_EXTRAS,
 ];
 
+/** The measures a reader may weigh in an index of their own: every one the page compares that has a better direction. Size, tax and total output have none, and are not offered. */
+const INDEX_MEASURES: IndexMeasure[] = COMPARE_ROWS.filter((m) => m.id !== "composite" && !m.neutral).map((m) => ({ id: m.id as string, label: m.label, higherIsBetter: m.higherIsBetter, format: m.format }));
+/** The weights the page's own composite score gives its nine indexes: what the index builder opens on. */
+const INDEX_DEFAULTS: Record<string, number> = Object.fromEntries(METRICS.filter((m) => m.weight > 0).map((m) => [m.id, m.weight]));
+/** A row as the index builder reads it: its published figures by measure, the missing ones left out. */
+const indexEntity = (r: RankRow): IndexEntity => ({
+  id: r.id,
+  name: r.name,
+  type: r.type,
+  flag: r.flag,
+  values: Object.fromEntries(INDEX_MEASURES.flatMap((m) => (hasMetric(r, m.id as keyof RankRow) ? [[m.id, r[m.id as keyof RankRow] as number]] : []))),
+});
+
 /** Rank of every entity on every metric, best = 1, over the rows that have it. */
 function buildRankByMetric(rows: RankRow[]): Map<string, Map<string, number>> {
   const out = new Map<string, Map<string, number>>();
@@ -1778,6 +1792,8 @@ export function RankingsPage() {
       composite: computeComposite(r, combined),
     }));
   }, []);
+  /** The same rows as the index builder reads them. */
+  const indexEntities = useMemo(() => allRows.map(indexEntity), [allRows]);
 
   useEffect(() => {
     const url = new URL(window.location.href);
@@ -2015,6 +2031,9 @@ export function RankingsPage() {
         onRemove={toggleCompare}
         onClear={() => setCompareIds([])}
       />
+
+      {/* ── A reader's own index: the page's measures, weighed as they choose ── */}
+      <IndexBuilder entities={indexEntities} measures={INDEX_MEASURES} defaults={INDEX_DEFAULTS} />
 
       {/* ── Filters ─────────────────────────────────────────────────────── */}
       {/* Search and filters: the same one-row sticky bar as the countries and
