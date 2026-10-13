@@ -77,6 +77,7 @@ import { useAdmin1, type Outline } from "../lib/outlines";
 import { SourceLink } from "./SourceLink";
 import { FollowStar, placeFollowId } from "./FollowStar";
 import PeoplePanel from "./PeoplePanel";
+import StatePeoplePanel from "./StatePeoplePanel";
 import { WindowGroup } from "./WindowGroup";
 
 const FILES = new Map<string, Promise<PlacesFile | null>>();
@@ -1081,6 +1082,7 @@ function PlaceWindow({
                 <TaxPanel code={s.cc} country={country} place={name} />
 
                 {/* The people of its country - their languages, beliefs and ages, how the country's income is shared and how many are poor - given as the country's, as nobody publishes them place by place. */}
+                {stateRow && <StatePeoplePanel stateId={stateRow.id} name={s.name} place={name} />}
                 <PeoplePanel code={s.cc} country={country} place={name} />
 
                 <Suspense fallback={<p className="text-xs font-sans text-muted-foreground">Loading {country}'s figures…</p>}>

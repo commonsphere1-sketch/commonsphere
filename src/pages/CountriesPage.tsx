@@ -1143,6 +1143,11 @@ function CountryModal({
                   {/* ── SOCIOLOGICAL BREAKDOWN ── */}
                   <CountrySociologicalBreakdown country={country} />
 
+                  {/* The peoples it is made of, its languages and its religions, each with its share and its year, from the Factbook: where the two plain lists of religions and languages stood. Its ages are in Demographics above. */}
+                  <Suspense fallback={null}>
+                    <PeoplePanel code={country.code} country={country.name} parts={["peoples", "languages", "religions"]} />
+                  </Suspense>
+
                   {/* Spoken Languages, Landmarks, Religions */}
                   {!!(
                     (country as any).spokenLanguages?.length ||
@@ -1669,40 +1674,7 @@ function CountrySociologicalBreakdown({ country }: { country: Country }) {
       <PanelHead icon={<Users size={13} weight="fill" />} title="Sociological Breakdown" sub="Belief, language, where people live, and how the country is governed" />
 
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-        {/* Religion */}
-        {religions && religions.length > 0 && (
-          <div className="modal-tile rounded-lg p-4">
-            <ChartTitle>Religion and belief</ChartTitle>
-            <ul className="flex flex-col gap-1.5">
-              {religions.map((r) => (
-                <li key={r} className="flex items-baseline gap-2">
-                  <span className="w-1 h-1 rounded-full bg-muted-foreground shrink-0 -translate-y-0.5" aria-hidden />
-                  <span className="text-[11px] font-sans text-foreground flex-1">{r}</span>
-                </li>
-              ))}
-            </ul>
-            {country.sources?.religions && (
-              <SourceLink sources={country.sources.religions} />
-            )}
-          </div>
-        )}
-
-        {/* Languages */}
-        {spokenLanguages && spokenLanguages.length > 0 && (
-          <div className="modal-tile rounded-lg p-4">
-            <ChartTitle>Languages spoken</ChartTitle>
-            <div className="flex flex-wrap gap-1.5">
-              {spokenLanguages.map((l) => (
-                <span key={l} className={PLAIN_CHIP}>
-                  {l}
-                </span>
-              ))}
-            </div>
-            {country.sources?.spokenLanguages && (
-              <SourceLink sources={country.sources.spokenLanguages} />
-            )}
-          </div>
-        )}
+        {/* The plain lists of religions and of languages stood here: the panel after this one gives both with their shares and their year, and they are also named in the tiles of languages, landmarks and religions. */}
 
         {/* Where its people live, and its births and deaths: the whole line, as the politics tile under it is. */}
         <div className="modal-tile rounded-lg p-4 sm:col-span-2">

@@ -30,7 +30,8 @@ import { inSentence } from "./CountryQuality";
 import { ChartNote, ChartTitle, FigureTile, MeasureBars, PartsBar, PartsDonut } from "./ModalCharts";
 import { SourceLink } from "./SourceLink";
 
-export type PeoplePart = "people" | "belief" | "income" | "poverty";
+/** A part of the panel. "people" is its ages and its peoples together, "belief" its languages and its religions. */
+export type PeoplePart = "ages" | "peoples" | "languages" | "religions" | "income" | "poverty" | "people" | "belief";
 type Source = { label: string; url: string };
 const ALL: PeoplePart[] = ["people", "belief", "income", "poverty"];
 const FIFTHS = ["Poorest fifth", "Second fifth", "Middle fifth", "Fourth fifth", "Richest fifth"];
@@ -90,10 +91,16 @@ export default function PeoplePanel({
   const land = inSentence(country);
   const sources = new Map<string, Source>();
   const cite = (s: Source) => sources.set(s.url, s);
-  const has = (k: PeoplePart) => parts.includes(k);
+  const want = new Set(parts.flatMap((k): PeoplePart[] => (k === "people" ? ["ages", "peoples"] : k === "belief" ? ["languages", "religions"] : [k])));
+  const has = (k: PeoplePart) => want.has(k);
+  const ages = has("ages") ? p?.ages : undefined;
+  const ethnic = has("peoples") ? p?.ethnic : undefined;
+  const where = has("peoples") || has("ages") ? p?.where : undefined;
+  const spoken = has("languages") ? p?.languages : undefined;
+  const faith = has("religions") ? p?.religions : undefined;
 
-  const people = has("people") && p && (p.ages || p.ethnic || p.where);
-  const belief = has("belief") && p && (p.languages || p.religions);
+  const people = Boolean(ages || ethnic);
+  const belief = Boolean(spoken || faith);
   const gini = idx.gini;
   const income = has("income") && (p?.income || gini);
   const mpm = idx.mpm;
@@ -129,21 +136,27 @@ export default function PeoplePanel({
         <>
           <Sub>Who its people are</Sub>
           <div className="chart-fill">
-            {p.ages && (
+            {ages && (
               <div className="modal-tile rounded-lg p-4 min-w-0">
                 <ChartTitle>
-                  Its people by age · % of its people{p.ages.year ? ` · ${p.ages.year}` : ""}
+                  Its people by age · % of its people{ages.year ? ` · ${ages.year}` : ""}
                 </ChartTitle>
-                <PartsBar label={`The people of ${country} by age${p.ages.year ? `, ${p.ages.year}` : ""}`} columns={3} parts={p.ages.bands.map(([band, v]) => ({ label: band, value: v, text: `${v}%` }))} />
-                {p.where && (
+                <PartsBar label={`The people of ${country} by age${ages.year ? `, ${ages.year}` : ""}`} columns={3} parts={ages.bands.map(([band, v]) => ({ label: band, value: v, text: `${v}%` }))} />
+                {where && (
                   <ChartNote className="mt-3">
-                    <span className="font-semibold text-foreground">Where they live:</span> {p.where}.
+                    <span className="font-semibold text-foreground">Where they live:</span> {where}.
                   </ChartNote>
                 )}
               </div>
             )}
-            {p.ethnic && <Line title="The peoples it is made of" what={`The ethnic groups of ${country}`} s={p.ethnic} />}
+            {ethnic && <Line title="The peoples it is made of" what={`The ethnic groups of ${country}`} s={ethnic} />}
           </div>
+          {/* Where its ages are given elsewhere in the window, where its people live is said under its peoples. */}
+          {!ages && where && (
+            <ChartNote className="mt-2">
+              <span className="font-semibold text-foreground">Where they live:</span> {where}.
+            </ChartNote>
+          )}
         </>
       )}
 
@@ -151,8 +164,8 @@ export default function PeoplePanel({
         <>
           <Sub>What they speak and believe</Sub>
           <div className="chart-fill">
-            {p.languages && <Line title="Languages spoken" what={`The languages of ${country}`} s={p.languages} />}
-            {p.religions && <Line title="Religion and belief" what={`The religions of ${country}`} s={p.religions} />}
+            {spoken && <Line title="Languages spoken" what={`The languages of ${country}`} s={spoken} />}
+            {faith && <Line title="Religion and belief" what={`The religions of ${country}`} s={faith} />}
           </div>
         </>
       )}

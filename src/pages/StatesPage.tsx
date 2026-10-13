@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, lazy, Suspense } from "react";
 import { useNavigate } from "react-router-dom";
 import {
   MapPin,
@@ -24,6 +24,7 @@ import { STATE_INDICATORS, STATE_SOURCES } from "../data/stateIndicators";
 import { STATE_UNIVERSITIES, STATE_UNIVERSITIES_SOURCE } from "../data/stateUniversities";
 import { UniversityList } from "../components/UniversityList";
 import { OfficialsExplorer, officialOf } from "../components/OfficialsExplorer";
+import StatePeoplePanel from "../components/StatePeoplePanel";
 import { UpcomingStates } from "@/components/UpcomingStates";
 import { useLiveData } from "../hooks/useLiveData";
 import { SourceLink } from "../components/SourceLink";
@@ -6007,6 +6008,9 @@ type ModalTab = "overview" | "map" | "laws" | "politics" | "history";
 /** One of a state's office-holders, as a tile of its window names them. */
 type Holder = { kind: "governor" | "senator" | "representative"; name: string; district?: string };
 
+/** The country's religions, in a state's window: no survey of religion by state is held, and the panel says whose they are. */
+const PeoplePanel = lazy(() => import("../components/PeoplePanel"));
+
 function StateModal({
   state,
   onClose,
@@ -6284,6 +6288,13 @@ function StateModal({
                 <WindowGroup title="People & society">
                   {/* 6 Charts */}
                   <DemographicsCharts state={state} />
+
+                  {/* The languages its people speak at home: the state's own, from the Census Bureau. */}
+                  <StatePeoplePanel stateId={state.id} name={state.name} parts={["languages"]} className="mt-4" />
+                  {/* Religion: the country's, said to be - the Census Bureau does not ask it, and no survey of it by state is held. */}
+                  <Suspense fallback={null}>
+                    <PeoplePanel code="US" country="United States" place={state.name} parts={["religions"]} className="mt-4" />
+                  </Suspense>
                 </WindowGroup>
 
                 <WindowGroup title="Money & work">
@@ -6304,6 +6315,9 @@ function StateModal({
 
                   {/* What the state itself collects in tax, and of what kinds: the Census Bureau's survey of state government finances. */}
                   <StateTaxPanel stateId={state.id} name={state.name} className="mt-4" />
+
+                  {/* How its households' income is shared: the state's own, from the Census Bureau. */}
+                  <StatePeoplePanel stateId={state.id} name={state.name} parts={["income"]} className="mt-4" />
 
                   {/* Housing Panel */}
                   <HousingPanel state={state} />

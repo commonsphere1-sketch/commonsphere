@@ -98,6 +98,7 @@ import { OutlineMap, placeDots, type MapDot } from "../components/OutlineMap";
 import { SourceLink } from "../components/SourceLink";
 import { FollowStar } from "../components/FollowStar";
 import PeoplePanel from "../components/PeoplePanel";
+import StatePeoplePanel from "../components/StatePeoplePanel";
 import { useWatchlist } from "@/contexts/WatchlistContext";
 import { countriesData } from "../data/countriesData";
 import { COUNTRY_INDICATORS, COUNTRY_INDICATORS_SOURCE } from "../data/countryIndicators";
@@ -862,6 +863,8 @@ function SubnationWindow({ s, onBack, onClose, onCounties }: { s: Subnation; /**
           {state && <StateTaxPanel stateId={state.id} name={state.name} />}
           <TaxPanel code={s.cc} country={c?.name ?? s.cc} place={s.name} />
           {/* The people of its country - their languages, beliefs and ages, how the country's income is shared and how many are poor - given as the country's, as nobody publishes them place by place. */}
+          {/* A state of the United States has its own: the languages its people speak at home and how its households' income is shared. */}
+          {state && <StatePeoplePanel stateId={state.id} name={state.name} />}
           <PeoplePanel code={s.cc} country={c?.name ?? s.cc} place={s.name} />
           {/* The indexes its country is scored on, last, as in every window: none is published for a division, and the panel says whose they are. */}
           <PlaceIndexes code={s.cc} country={c?.name ?? s.cc} place={s.name} />
@@ -1055,6 +1058,7 @@ function CountyWindow({ county, data, onBack, onClose }: { county: UsCounty; dat
           <PostalCodes entry={postal?.counties?.[fips]} cc="US" name={name} how="county" />
           {state && <StateTaxPanel stateId={state.id} name={state.name} place={name} />}
           <TaxPanel code="US" country="United States" place={name} />
+          {state && <StatePeoplePanel stateId={state.id} name={state.name} place={name} />}
           <PeoplePanel code="US" country="United States" place={name} />
           <PlaceIndexes code="US" country="United States" place={name} />
         </>

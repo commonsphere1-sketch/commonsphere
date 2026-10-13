@@ -30,6 +30,14 @@ export const DATA_LOG: DataLogEntry[] = [
     "files": 1
   },
   {
+    "what": "A state's people: the languages spoken at home, and how household income is shared",
+    "from": "US Census Bureau",
+    "page": "/dashboard/states",
+    "where": "US States",
+    "read": "2026-10-13",
+    "files": 1
+  },
+  {
     "what": "Each country's place in the United Nations: its date of admission, its regional group, and its seat and past terms on the Security Council",
     "from": "United Nations",
     "page": "/dashboard/countries",
@@ -464,4 +472,4 @@ export const DATA_LOG: DataLogEntry[] = [
 ];
 
 /** How many data files the log covers. */
-export const DATA_LOG_FILES = 76;
+export const DATA_LOG_FILES = 77;
