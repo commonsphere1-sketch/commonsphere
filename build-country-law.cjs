@@ -12,6 +12,17 @@
  * kept as the Factbook wrote it. Nothing is worked out, shortened or
  * reworded; a field the Factbook leaves empty or marks NA is left out.
  *
+ * And what is illegal and legal there, as a visitor is told it: the "Laws
+ * and cultural differences" part of the UK Foreign, Commonwealth &
+ * Development Office's travel advice for the country (Open Government
+ * Licence v3.0), read from GOV.UK's content API - every heading of it and
+ * every paragraph and list under each, in the Office's own words, with the
+ * day the advice was last updated and its page. The page of each country is
+ * the one the status report already names (src/data/countryStatus.ts). It
+ * is advice written for British travellers and is not the whole of a
+ * country's law; the tab says so. The build stops if any of the part's
+ * words would be dropped in the reading.
+ *
  * A country's file is fetched when the tab is opened, so the page does not
  * carry every country's law; src/data/countryLaw.ts lists which countries
  * have a file.
@@ -95,10 +106,69 @@ function parts(field, keys) {
   return Object.keys(out).length ? out : null;
 }
 
+/* ── The UK Foreign Office's advice ── */
+const NAMED = { amp: "&", nbsp: " ", quot: '"', apos: "'", rsquo: "’", lsquo: "‘", ldquo: "“", rdquo: "”", ndash: "–", mdash: "—", hellip: "…", pound: "£", euro: "€", deg: "°", lt: "<", gt: ">", eacute: "é", egrave: "è", aacute: "á", iacute: "í", oacute: "ó", uacute: "ú", ntilde: "ñ", ccedil: "ç", uuml: "ü", ouml: "ö", auml: "ä", times: "×", frac12: "½" };
+/** A piece of the advice's markup as plain words. An entity that is not known stops the build. */
+function words(html) {
+  return html
+    .replace(/<br\s*\/?>/g, " ")
+    .replace(/<[^>]+>/g, "")
+    .replace(/&#x([0-9a-f]+);/gi, (_, n) => String.fromCodePoint(parseInt(n, 16)))
+    .replace(/&#(\d+);/g, (_, n) => String.fromCodePoint(Number(n)))
+    .replace(/&([A-Za-z0-9]+);/g, (m, n) => {
+      if (!(n in NAMED)) throw new Error(`an entity was not read: ${m}`);
+      return NAMED[n];
+    })
+    .replace(/\s+/g, " ")
+    .trim();
+}
+/**
+ * The "Laws and cultural differences" part of a country's advice, read: a list of its headings, each with the
+ * paragraphs, lists and smaller headings under it. Null where the advice has no such part.
+ */
+function lawsOf(advice, name) {
+  const part = (advice.details?.parts ?? []).find((p) => /safety-and-security$/.test(p.slug));
+  const body = part?.body ?? "";
+  const open = /<h2[^>]*>\s*Laws and cultural differences\s*<\/h2>/i.exec(body);
+  if (!open) return null;
+  const rest = body.slice(open.index + open[0].length);
+  const end = rest.search(/<h2[\s>]/);
+  // Wrappers hold no words of their own: what is inside them is read as if they were not there.
+  const html = (end < 0 ? rest : rest.slice(0, end)).replace(/<\/?(?:div|section|aside|blockquote|span)\b[^>]*>/g, "");
+  const items = [];
+  let cur = null;
+  const into = () => cur ?? (items.push((cur = { h: "", b: [] })), cur);
+  let left = html;
+  for (const m of html.matchAll(/<(h3|h4|h5|p|ul|ol|table)\b[^>]*>([\s\S]*?)<\/\1>/g)) {
+    left = left.replace(m[0], " ");
+    const [, tag, inner] = m;
+    if (tag === "h3") items.push((cur = { h: words(inner), b: [] }));
+    else if (tag === "h4" || tag === "h5") words(inner) && into().b.push({ sub: words(inner) });
+    else if (tag === "p") words(inner) && into().b.push(words(inner));
+    else if (tag === "table") {
+      const rows = [...inner.matchAll(/<tr[^>]*>([\s\S]*?)<\/tr>/g)].map((r) => [...r[1].matchAll(/<t[hd][^>]*>([\s\S]*?)<\/t[hd]>/g)].map((c) => words(c[1])).filter(Boolean).join(" · ")).filter(Boolean);
+      if (rows.length) into().b.push(rows);
+    } else {
+      if (/<(?:ul|ol)\b/.test(inner)) throw new Error(`${name}: a list inside a list is not read`);
+      const list = [...inner.matchAll(/<li[^>]*>([\s\S]*?)<\/li>/g)].map((x) => words(x[1])).filter(Boolean);
+      if (list.length) into().b.push(list);
+    }
+  }
+  // Nothing of the part may fall between the pieces that were read.
+  const dropped = words(left);
+  if (dropped) throw new Error(`${name}: words of the advice were not read: "${dropped.slice(0, 120)}"`);
+  const kept = items.filter((it) => it.b.length);
+  return kept.length ? kept : null;
+}
+
 (async () => {
   const bundle = path.join(OWN, "countriesData.cjs");
   execSync(`npx esbuild src/data/countriesData.ts --bundle --format=cjs --platform=node --log-level=error --outfile="${bundle}"`, { cwd: __dirname, stdio: "inherit" });
   const countries = require(bundle).countriesData;
+  // The Foreign Office's page for each country: the one the status report names.
+  const statusBundle = path.join(OWN, "countryStatus.cjs");
+  execSync(`npx esbuild src/data/countryStatus.ts --bundle --format=cjs --platform=node --log-level=error --outfile="${statusBundle}"`, { cwd: __dirname, stdio: "inherit" });
+  const STATUS = require(statusBundle).COUNTRY_STATUS;
 
   // The Factbook's file for each country, found by its internet code.
   const tree = JSON.parse(await cached(CACHE, "tree.json", "https://api.github.com/repos/factbook/factbook.json/git/trees/master?recursive=1"));
@@ -113,12 +183,11 @@ function parts(field, keys) {
   }
 
   const held = [];
-  const count = { system: 0, constitution: 0, courts: 0, citizenship: 0, suffrage: 0, world: 0 };
+  const count = { system: 0, constitution: 0, courts: 0, citizenship: 0, suffrage: 0, world: 0, local: 0 };
   for (const old of fs.readdirSync(OUT_DIR)) if (/^[A-Z]{2}\.json$/.test(old)) fs.unlinkSync(path.join(OUT_DIR, old));
   for (const c of countries) {
     const p = BY_PATH[c.code] ?? (byTld.get(c.code)?.length === 1 ? byTld.get(c.code)[0] : null);
-    if (!p) continue;
-    const g = JSON.parse(await cached(CACHE, `${p.replace("/", "__")}.json`, `${REPO}/${p}.json`)).Government ?? {};
+    const g = p ? (JSON.parse(await cached(CACHE, `${p.replace("/", "__")}.json`, `${REPO}/${p}.json`)).Government ?? {}) : {};
     const entry = {};
     const put = (key, v) => {
       if (!v) return;
@@ -131,12 +200,20 @@ function parts(field, keys) {
     put("citizenship", parts(g.Citizenship, { "citizenship by birth": "birth", "citizenship by descent only": "descent", "dual citizenship recognized": "dual", "residency requirement for naturalization": "residency", note: "note" }));
     put("suffrage", said(g.Suffrage));
     put("world", said(g["International law organization participation"]));
+    const uk = STATUS[c.code]?.uk;
+    if (uk) {
+      const slug = /\/foreign-travel-advice\/([a-z0-9-]+)$/.exec(uk.url)?.[1];
+      if (!slug) throw new Error(`${c.name}: the Foreign Office's page is not a page of its travel advice: ${uk.url}`);
+      const advice = JSON.parse(await cached(OWN, `uk-${slug}.json`, `https://www.gov.uk/api/content/foreign-travel-advice/${slug}`, 1));
+      const items = lawsOf(advice, c.name);
+      if (items) put("local", { name: uk.name, updated: new Date(advice.public_updated_at).toISOString().slice(0, 10), url: `https://www.gov.uk${advice.base_path}/safety-and-security`, items });
+    }
     if (!Object.keys(entry).length) continue;
     fs.writeFileSync(path.join(OUT_DIR, `${c.code}.json`), JSON.stringify(entry));
     held.push(c.code);
   }
   held.sort();
-  if (count.system < 200 || count.constitution < 180) throw new Error(`too few countries: ${JSON.stringify(count)}`);
+  if (count.system < 200 || count.constitution < 180 || count.local < 150) throw new Error(`too few countries: ${JSON.stringify(count)}`);
 
   fs.writeFileSync(
     OUT,
@@ -150,18 +227,35 @@ function parts(field, keys) {
  * Each file is the Government part of the CIA World Factbook's entry for the
  * country, as its final edition (January 2026) wrote it: its legal system,
  * its constitution and how it is amended, its courts, who is a citizen, who
- * may vote, and whether it accepts the two world courts. Nothing is worked
- * out or reworded.
+ * may vote, and whether it accepts the two world courts. With it, what is
+ * illegal and legal there as the UK Foreign Office's travel advice tells a
+ * visitor. Nothing is worked out or reworded.
  */
 export const COUNTRY_LAW_RETRIEVED = "${TODAY}";
 export const COUNTRY_LAW_SOURCES = {
   factbook: { label: "CIA World Factbook, final edition (January 2026) — Government (public domain)", url: "https://github.com/factbook/factbook.json" },
+  advice: { label: "UK Foreign, Commonwealth & Development Office — Foreign travel advice: laws and cultural differences (contains public sector information licensed under the Open Government Licence v3.0)", url: "https://www.gov.uk/foreign-travel-advice" },
+  /** A second government's account of the same, to check the first against. */
+  state: { label: "US Department of State — country information: local laws and special circumstances", url: "https://travel.state.gov/content/travel/en/international-travel/International-Travel-Country-Information-Pages.html" },
   /** Where what the Factbook says of the two world courts can be checked. */
   icj: { label: "International Court of Justice — declarations recognizing the Court's jurisdiction as compulsory", url: "https://www.icj-cij.org/declarations" },
   icc: { label: "International Criminal Court — the states parties to the Rome Statute", url: "https://asp.icc-cpi.int/states-parties" },
 };
 
-/** A country's file. Every part is the Factbook's own words; a part it leaves empty is not there. */
+/** A paragraph of the advice, a list in it, or a smaller heading. */
+export type AdviceBlock = string | string[] | { sub: string };
+/** The "Laws and cultural differences" part of the UK Foreign Office's advice for a country. */
+export type CountryLawAdvice = {
+  /** The country as the Office names it. */
+  name: string;
+  /** The day the advice was last updated. */
+  updated: string;
+  url: string;
+  /** Its headings, each with what is under it; a heading of "" is what stands before the first. */
+  items: { h: string; b: AdviceBlock[] }[];
+};
+
+/** A country's file. Every part is its source's own words; a part the source leaves empty is not there. */
 export type CountryLawFile = {
   /** Its legal system. */
   system?: string;
@@ -172,6 +266,8 @@ export type CountryLawFile = {
   suffrage?: string;
   /** Whether it accepts the International Court of Justice's jurisdiction and is party to the International Criminal Court. */
   world?: string;
+  /** What is illegal and legal there, as the UK Foreign Office's travel advice tells a visitor: its own words. */
+  local?: CountryLawAdvice;
 };
 
 /** The countries with a file, by ISO code. */
@@ -180,7 +276,7 @@ export const COUNTRY_LAW_HELD: ReadonlySet<string> = new Set(${JSON.stringify(he
   );
   console.log(`wrote ${path.relative(__dirname, OUT)} and ${held.length} files in static/law`);
   console.log(`  ${JSON.stringify(count)}`);
-  console.log(`  Ethiopia: ${fs.readFileSync(path.join(OUT_DIR, "ET.json"), "utf8").slice(0, 400)}`);
+  console.log(`  India, the advice: ${JSON.stringify(JSON.parse(fs.readFileSync(path.join(OUT_DIR, "IN.json"), "utf8")).local).slice(0, 500)}`);
 })().catch((e) => {
   console.error(e);
   process.exit(1);

@@ -1,5 +1,7 @@
 /**
- * The law a place is under, in its window's Laws tab: its country's legal
+ * The law a place is under, in its window's Laws tab: first what is illegal
+ * and legal there, as the UK Foreign Office's travel advice tells a visitor
+ * (LawAdvice), then its country's legal
  * system, its constitution and how it is amended, its courts, who is a
  * citizen, who may vote, and whether it accepts the two world courts
  * (static/law, built by build-country-law.cjs).
@@ -19,6 +21,7 @@ import { useEffect, useState, type ReactNode } from "react";
 import { COUNTRY_LAW_HELD, COUNTRY_LAW_SOURCES as SRC, type CountryLawFile } from "../data/countryLaw";
 import { PUBLIC_SECURITY, PUBLIC_SECURITY_SOURCES } from "../data/publicSecurity";
 import { inSentence } from "./CountryQuality";
+import { LawAdvice } from "./LawAdvice";
 import { ChartNote, MeasureBars } from "./ModalCharts";
 import { Clauses } from "./SaidList";
 import { SourceLink } from "./SourceLink";
@@ -104,7 +107,16 @@ export default function PlaceLaws({ code, country, place }: { /** The country's 
     <div className="animate-fade-in space-y-4">
       {place && (
         <p className="text-[11px] font-sans text-muted-foreground leading-snug">
-          This is the law of {land}, which {place} is under, and not {place}'s own: no body gathers the by-laws of the world's cities, so none are given. Each line is the CIA World Factbook's, in its own words.
+          This is the law of {land}, which {place} is under, and not {place}'s own: no body gathers the by-laws of the world's cities, so none are given. What is illegal and legal is the UK Foreign Office's account; the rest is the CIA World Factbook's, each in its own words.
+        </p>
+      )}
+
+      {/* What is illegal and what is legal there: first, as it is what a reader comes to the tab for. */}
+      {law?.local ? (
+        <LawAdvice advice={law.local} country={land} place={place} />
+      ) : (
+        <p className="modal-tile rounded-xl p-4 text-xs font-sans text-muted-foreground leading-relaxed">
+          What is illegal and legal in {land}: not held. The account the site gives is the UK Foreign Office's travel advice, and it publishes none with a part on laws for {land}.
         </p>
       )}
 
@@ -168,7 +180,7 @@ export default function PlaceLaws({ code, country, place }: { /** The country's 
         <Bank size={12} className="shrink-0 mt-px" aria-hidden />
         <span>The Factbook's last edition was January 2026: a law made or a court changed since is not in it.</span>
       </div>
-      <SourceLink sources={[...(law ? [SRC.factbook] : []), ...(rule ? [{ label: PUBLIC_SECURITY_SOURCES.wgi.label, url: PUBLIC_SECURITY_SOURCES.wgi.url }] : []), ...(law?.world ? [SRC.icj, SRC.icc] : [])]} />
+      <SourceLink sources={[...(law?.local ? [SRC.advice, SRC.state] : []), ...(law && (law.system || law.constitution || law.courts || law.citizenship || law.suffrage || law.world) ? [SRC.factbook] : []), ...(rule ? [{ label: PUBLIC_SECURITY_SOURCES.wgi.label, url: PUBLIC_SECURITY_SOURCES.wgi.url }] : []), ...(law?.world ? [SRC.icj, SRC.icc] : [])]} />
     </div>
   );
 }

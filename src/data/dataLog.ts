@@ -86,8 +86,8 @@ export const DATA_LOG: DataLogEntry[] = [
     "files": 1
   },
   {
-    "what": "The law a place is under: its country's legal system, constitution, courts, citizenship and vote",
-    "from": "CIA World Factbook",
+    "what": "The law a place is under: what is illegal and legal there, and its country's legal system, constitution, courts, citizenship and vote",
+    "from": "UK Foreign, Commonwealth & Development Office, CIA World Factbook",
     "page": "/dashboard/cities",
     "where": "Cities",
     "read": "2026-10-13",

@@ -8,18 +8,35 @@
  * Each file is the Government part of the CIA World Factbook's entry for the
  * country, as its final edition (January 2026) wrote it: its legal system,
  * its constitution and how it is amended, its courts, who is a citizen, who
- * may vote, and whether it accepts the two world courts. Nothing is worked
- * out or reworded.
+ * may vote, and whether it accepts the two world courts. With it, what is
+ * illegal and legal there as the UK Foreign Office's travel advice tells a
+ * visitor. Nothing is worked out or reworded.
  */
 export const COUNTRY_LAW_RETRIEVED = "2026-10-13";
 export const COUNTRY_LAW_SOURCES = {
   factbook: { label: "CIA World Factbook, final edition (January 2026) — Government (public domain)", url: "https://github.com/factbook/factbook.json" },
+  advice: { label: "UK Foreign, Commonwealth & Development Office — Foreign travel advice: laws and cultural differences (contains public sector information licensed under the Open Government Licence v3.0)", url: "https://www.gov.uk/foreign-travel-advice" },
+  /** A second government's account of the same, to check the first against. */
+  state: { label: "US Department of State — country information: local laws and special circumstances", url: "https://travel.state.gov/content/travel/en/international-travel/International-Travel-Country-Information-Pages.html" },
   /** Where what the Factbook says of the two world courts can be checked. */
   icj: { label: "International Court of Justice — declarations recognizing the Court's jurisdiction as compulsory", url: "https://www.icj-cij.org/declarations" },
   icc: { label: "International Criminal Court — the states parties to the Rome Statute", url: "https://asp.icc-cpi.int/states-parties" },
 };
 
-/** A country's file. Every part is the Factbook's own words; a part it leaves empty is not there. */
+/** A paragraph of the advice, a list in it, or a smaller heading. */
+export type AdviceBlock = string | string[] | { sub: string };
+/** The "Laws and cultural differences" part of the UK Foreign Office's advice for a country. */
+export type CountryLawAdvice = {
+  /** The country as the Office names it. */
+  name: string;
+  /** The day the advice was last updated. */
+  updated: string;
+  url: string;
+  /** Its headings, each with what is under it; a heading of "" is what stands before the first. */
+  items: { h: string; b: AdviceBlock[] }[];
+};
+
+/** A country's file. Every part is its source's own words; a part the source leaves empty is not there. */
 export type CountryLawFile = {
   /** Its legal system. */
   system?: string;
@@ -30,7 +47,9 @@ export type CountryLawFile = {
   suffrage?: string;
   /** Whether it accepts the International Court of Justice's jurisdiction and is party to the International Criminal Court. */
   world?: string;
+  /** What is illegal and legal there, as the UK Foreign Office's travel advice tells a visitor: its own words. */
+  local?: CountryLawAdvice;
 };
 
 /** The countries with a file, by ISO code. */
-export const COUNTRY_LAW_HELD: ReadonlySet<string> = new Set(["AD","AE","AF","AG","AI","AL","AM","AO","AQ","AR","AS","AT","AU","AW","AZ","BA","BB","BD","BE","BF","BG","BH","BI","BJ","BL","BM","BN","BO","BR","BS","BT","BV","BW","BY","BZ","CA","CC","CD","CF","CG","CH","CI","CK","CL","CM","CN","CO","CR","CU","CV","CW","CX","CY","CZ","DE","DJ","DK","DM","DO","DZ","EC","EE","EG","EH","ER","ES","ET","FI","FJ","FK","FM","FO","FR","GA","GB","GD","GE","GG","GH","GI","GL","GM","GN","GQ","GR","GS","GT","GU","GW","GY","HK","HM","HN","HR","HT","HU","ID","IE","IL","IM","IN","IO","IQ","IR","IS","IT","JE","JM","JO","JP","KE","KG","KH","KI","KM","KN","KP","KR","KW","KY","KZ","LA","LB","LC","LI","LK","LR","LS","LT","LU","LV","LY","MA","MC","MD","ME","MF","MG","MH","MK","ML","MM","MN","MO","MP","MR","MS","MT","MU","MV","MW","MX","MY","MZ","NA","NC","NE","NF","NG","NI","NL","NO","NP","NR","NU","NZ","OM","PA","PE","PF","PG","PH","PK","PL","PM","PN","PR","PT","PW","PY","QA","RO","RS","RU","RW","SA","SB","SC","SD","SE","SG","SH","SI","SJ","SK","SL","SM","SN","SO","SR","SS","ST","SV","SX","SY","SZ","TC","TD","TF","TG","TH","TJ","TK","TL","TM","TN","TO","TR","TT","TV","TW","TZ","UA","UG","UM","US","UY","UZ","VA","VC","VE","VG","VI","VN","VU","WF","WS","XK","YE","ZA","ZM","ZW"]);
+export const COUNTRY_LAW_HELD: ReadonlySet<string> = new Set(["AD","AE","AF","AG","AI","AL","AM","AO","AQ","AR","AS","AT","AU","AW","AZ","BA","BB","BD","BE","BF","BG","BH","BI","BJ","BL","BM","BN","BO","BQ","BR","BS","BT","BV","BW","BY","BZ","CA","CC","CD","CF","CG","CH","CI","CK","CL","CM","CN","CO","CR","CU","CV","CW","CX","CY","CZ","DE","DJ","DK","DM","DO","DZ","EC","EE","EG","EH","ER","ES","ET","FI","FJ","FK","FM","FO","FR","GA","GB","GD","GE","GG","GH","GI","GL","GM","GN","GQ","GR","GS","GT","GU","GW","GY","HK","HM","HN","HR","HT","HU","ID","IE","IL","IM","IN","IO","IQ","IR","IS","IT","JE","JM","JO","JP","KE","KG","KH","KI","KM","KN","KP","KR","KW","KY","KZ","LA","LB","LC","LI","LK","LR","LS","LT","LU","LV","LY","MA","MC","MD","ME","MF","MG","MH","MK","ML","MM","MN","MO","MP","MR","MS","MT","MU","MV","MW","MX","MY","MZ","NA","NC","NE","NF","NG","NI","NL","NO","NP","NR","NU","NZ","OM","PA","PE","PF","PG","PH","PK","PL","PM","PN","PR","PS","PT","PW","PY","QA","RO","RS","RU","RW","SA","SB","SC","SD","SE","SG","SH","SI","SJ","SK","SL","SM","SN","SO","SR","SS","ST","SV","SX","SY","SZ","TC","TD","TF","TG","TH","TJ","TK","TL","TM","TN","TO","TR","TT","TV","TW","TZ","UA","UG","UM","US","UY","UZ","VA","VC","VE","VG","VI","VN","VU","WF","WS","XK","YE","ZA","ZM","ZW"]);
