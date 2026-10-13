@@ -62,6 +62,7 @@ import { lockScroll } from "../lib/scrollLock";
 import { ArticlePanel } from "./HistoryPanel";
 import { ChartNote, FigureRow } from "./ModalCharts";
 import CommutePanel from "./CommutePanel";
+import { FollowStar } from "./FollowStar";
 import { PROFILED, PROFILES, namesOf, plain, unCityId } from "../lib/profiledCities";
 import CityAnalysis from "./CityAnalysis";
 import PostalCodes from "./PostalCodes";
@@ -208,6 +209,8 @@ function CityWindow({ c, onBack, onClose }: { c: UnCity; /** Back to its country
               </div>
             </div>
             <div className="flex items-center gap-1.5 shrink-0">
+              {/* Follow, as in a country's and a state's window. */}
+              <FollowStar where="window" id={profile?.id ?? unCityId(c)} name={name} />
               <button onClick={onBack} className="p-2 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted/60 transition-colors cursor-pointer" aria-label={`Back to the cities of ${land}`} title="Back">
                 <ArrowLeft size={18} />
               </button>
@@ -441,6 +444,8 @@ function CityCard({ c, onOpen }: { c: UnCity; onOpen: () => void }) {
         <span className="text-[9px] font-mono px-1.5 py-0.5 rounded-full border border-border text-muted-foreground shrink-0" title="Its place among all the UN's cities, by population">
           #{RANK.get(unCityId(c))!.toLocaleString("en-US")}
         </span>
+        {/* Follow, as on a country's card: by its profile's id where the site profiles it, so that the star in its profile's window is the same one. */}
+        <FollowStar id={PROFILED.get(unCityId(c))?.id ?? unCityId(c)} name={c[2]} />
       </span>
       <span className="flex flex-col border-t border-border/40 pt-1.5">
         {(

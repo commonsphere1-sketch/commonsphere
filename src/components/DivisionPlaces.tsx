@@ -75,6 +75,7 @@ import { SUBNATION_FLAG_FILE } from "../data/subnationFlagFiles";
 import { flagColor } from "../lib/flagColor";
 import { useAdmin1, type Outline } from "../lib/outlines";
 import { SourceLink } from "./SourceLink";
+import { FollowStar, placeFollowId } from "./FollowStar";
 import { WindowGroup } from "./WindowGroup";
 
 const FILES = new Map<string, Promise<PlacesFile | null>>();
@@ -342,11 +343,15 @@ function PlaceCard({ p, file, flag, saved, district, onOpen }: { p: PlaceRow; fi
     <button type="button" onClick={onOpen} className="modal-tile relative isolate overflow-hidden rounded-xl p-4 text-left cursor-pointer transition-colors hover:border-secondary/40 flex flex-col gap-2 min-w-0">
       {/* Its division's flag behind the whole card, dimmed, as the division's own card has it. */}
       {flag && <img src={flag} data-fallback={saved} alt="" aria-hidden="true" loading="lazy" className="absolute inset-0 -z-10 w-full h-full object-cover card-flag scale-105 select-none pointer-events-none" onError={flagFallback} />}
-      <span className="min-w-0">
-        <span className="block text-sm font-bold font-sans text-foreground truncate">{p[0]}</span>
-        <span className="flex items-center gap-1 text-[10px] font-mono text-muted-foreground truncate">
-          <MapPin size={9} aria-hidden /> {placeType(p, file)}
+      <span className="flex items-start gap-2 min-w-0">
+        <span className="min-w-0 flex-1">
+          <span className="block text-sm font-bold font-sans text-foreground truncate">{p[0]}</span>
+          <span className="flex items-center gap-1 text-[10px] font-mono text-muted-foreground truncate">
+            <MapPin size={9} aria-hidden /> {placeType(p, file)}
+          </span>
         </span>
+        {/* Follow, as on a country's card. */}
+        <FollowStar id={placeFollowId(p[6])} name={p[0]} />
       </span>
       <span className="flex flex-col border-t border-border/40 pt-1.5">
         {facts
@@ -808,6 +813,8 @@ function PlaceWindow({
               </div>
             </div>
             <div className="flex items-center gap-1.5 shrink-0">
+              {/* Follow, as in a country's and a state's window. */}
+              <FollowStar where="window" id={placeFollowId(id)} name={name} />
               <button onClick={onBack} className="p-2 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted/60 transition-colors cursor-pointer" aria-label={`Back to ${s.name}`} title={`Back to ${s.name}`}>
                 <ArrowLeft size={18} />
               </button>
