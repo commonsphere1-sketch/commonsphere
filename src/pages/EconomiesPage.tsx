@@ -13,6 +13,7 @@ import {
   ListBullets,
   Mountains,
   Percent,
+  Receipt,
   X,
 } from "@phosphor-icons/react";
 import {
@@ -1017,6 +1018,8 @@ function BudgetPie({ budget }: { budget: CountryBudget }) {
 
 /** Inflation, deficits and tariffs: three sections with their own series, loaded when a window opens. */
 const EconomyDetails = React.lazy(() => import("../components/EconomyDetails"));
+// The Tax tab: the rates an economy sets, what it takes in tax, and each over the years. Loaded when the tab is opened.
+const EconomyTax = React.lazy(() => import("../components/EconomyTax"));
 // The charts of markets, prices and stability, with their series: loaded when a window opens.
 const EconomyMarkets = React.lazy(() => import("../components/EconomyMarkets"));
 
@@ -1032,7 +1035,7 @@ function EconomyModal({
 }) {
   const [isExpanded, setIsExpanded] = React.useState(false);
   /** The window's tabs, as a country's and a state's have: the overview, and inflation, deficits and tariffs. */
-  const [tab, setTab] = React.useState<"overview" | "resources" | "details">("overview");
+  const [tab, setTab] = React.useState<"overview" | "resources" | "tax" | "details">("overview");
 
   React.useEffect(() => {
     const handler = (e: KeyboardEvent) => {
@@ -1171,6 +1174,7 @@ function EconomyModal({
                 { id: "overview", label: "Overview", icon: <ListBullets size={13} weight="bold" /> },
                 // A card with neither rents nor minerals published has no Resources tab to open.
                 ...(showResources ? [{ id: "resources", label: "Resources", icon: <Mountains size={13} weight="bold" /> } as const] : []),
+                { id: "tax", label: "Tax", icon: <Receipt size={13} weight="bold" /> },
                 { id: "details", label: "Inflation, Deficits & Tariffs", icon: <Percent size={13} weight="bold" /> },
               ] as const
             ).map((x) => (
@@ -1188,6 +1192,15 @@ function EconomyModal({
               </button>
             ))}
           </div>
+
+          {/* ── TAX: the federal and the state rate on companies, the top rate on incomes, what is taken in tax - each now, over the years, and beside an average ── */}
+          {tab === "tax" && (
+            <div className="mt-4 animate-fade-in">
+              <React.Suspense fallback={<p className="text-[11px] font-sans text-muted-foreground">Loading tax rates and revenue…</p>}>
+                <EconomyTax code={CODE_OF_ECONOMY[economy.id]} name={economy.name} union={economy.id === "eu-eco"} />
+              </React.Suspense>
+            </div>
+          )}
 
           {/* ── INFLATION · DEFICITS · TARIFFS: each with its series, its projections where a body makes them, and what it measures ── */}
           {tab === "details" && (

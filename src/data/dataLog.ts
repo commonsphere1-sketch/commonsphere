@@ -70,6 +70,14 @@ export const DATA_LOG: DataLogEntry[] = [
     "files": 1
   },
   {
+    "what": "Taxation over the years: corporate rates of central and sub-central government, the top income tax rate, and tax revenue",
+    "from": "OECD, World Bank",
+    "page": "/dashboard/economies",
+    "where": "Economies",
+    "read": "2026-10-13",
+    "files": 1
+  },
+  {
     "what": "The composite indexes each country is scored on: human development and its adjusted forms, gender, inequality and poverty, the six governance scores, human capital, logistics and statistics",
     "from": "UNDP (Human Development Report), World Bank",
     "page": "/dashboard/subnations",
@@ -480,4 +488,4 @@ export const DATA_LOG: DataLogEntry[] = [
 ];
 
 /** How many data files the log covers. */
-export const DATA_LOG_FILES = 78;
+export const DATA_LOG_FILES = 79;
