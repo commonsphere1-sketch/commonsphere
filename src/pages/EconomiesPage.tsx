@@ -1,3 +1,4 @@
+import { WindowTitle } from "../components/WindowTitle";
 import { na, has, sortKey } from "../lib/na";
 import { usdFromBillions } from "../lib/money";
 import React, { useState, useCallback } from "react";
@@ -1099,8 +1100,28 @@ function EconomyModal({
         className={`relative z-10 rounded-2xl w-full shadow-2xl animate-fade-in modal-glass border overflow-y-auto transition-all duration-300 ${isExpanded ? "max-w-full max-h-full m-0" : "max-w-2xl max-h-[90vh]"}`}
       >
         <div className="p-6">
+          {/* Its name and the window's buttons: one bar across the top of the window, in sight as it is scrolled - the same in every window of the site. */}
+          <WindowTitle title={economy.name}>
+            <button
+              onClick={() => setIsExpanded((v) => !v)}
+              className="p-2 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted/60 transition-colors cursor-pointer"
+              aria-label={
+                isExpanded ? "Collapse modal" : "Expand to full screen"
+              }
+              title={isExpanded ? "Collapse" : "Expand to full screen"}
+            >
+              {isExpanded ? <ArrowsIn size={18} /> : <ArrowsOut size={18} />}
+            </button>
+            <button
+              onClick={onClose}
+              className="p-2 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted/60 transition-colors cursor-pointer"
+              aria-label="Close"
+            >
+              <X size={18} />
+            </button>
+          </WindowTitle>
           {/* ── HEADER with flag-style background ── */}
-          <div className="relative flex items-start justify-between mb-0 -mx-6 -mt-6 px-6 pt-6 pb-5 rounded-t-2xl overflow-hidden">
+          <div className="relative flex items-start justify-between mb-0 -mx-6 -mt-4 px-6 pt-5 pb-5 overflow-hidden">
             {/* Gradient background banner */}
             <div className="absolute inset-0 bg-gradient-to-r from-secondary/25 via-secondary/10 to-secondary/20 pointer-events-none" />
             <div
@@ -1115,9 +1136,6 @@ function EconomyModal({
             {/* Left: entity icon + name */}
             <div className="relative flex items-center gap-4">
               <div>
-                <h2 className="text-xl font-bold font-sans text-foreground leading-tight">
-                  {economy.name}
-                </h2>
                 <div className="flex items-center gap-2 mt-1 flex-wrap">
                   <span className={`text-xs font-sans px-2 py-0.5 rounded-full ${ENTITY_TONE[economy.entityType] ?? TONE.slate}`}>
                     {economy.entityType}
@@ -1142,25 +1160,6 @@ function EconomyModal({
             </div>
 
             {/* Right: expand + close */}
-            <div className="relative flex items-center gap-1.5 shrink-0">
-              <button
-                onClick={() => setIsExpanded((v) => !v)}
-                className="p-2 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted/60 transition-colors cursor-pointer"
-                aria-label={
-                  isExpanded ? "Collapse modal" : "Expand to full screen"
-                }
-                title={isExpanded ? "Collapse" : "Expand to full screen"}
-              >
-                {isExpanded ? <ArrowsIn size={18} /> : <ArrowsOut size={18} />}
-              </button>
-              <button
-                onClick={onClose}
-                className="p-2 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted/60 transition-colors cursor-pointer"
-                aria-label="Close"
-              >
-                <X size={18} />
-              </button>
-            </div>
           </div>
 
           {economy.limitedData && <LimitedDataNote economy={economy} />}

@@ -1,3 +1,4 @@
+import { WindowTitle } from "../components/WindowTitle";
 import { ChipRow } from "../components/ChipRow";
 import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import { useNavigate } from "react-router-dom";
@@ -2501,7 +2502,28 @@ function WorldviewModal({ state, onChange, onClose }: { state: ModalState; onCha
         className={`relative z-10 rounded-2xl w-full shadow-2xl animate-fade-in modal-glass border overflow-y-auto transition-all duration-300 ${expanded ? "max-w-full max-h-full m-0" : "max-w-3xl max-h-[90vh]"}`}
       >
         <div className="p-6">
-          <div className="relative flex items-start justify-between gap-3 -mx-6 -mt-6 px-6 pt-6 pb-5 rounded-t-2xl overflow-hidden">
+          {/* Its name and the window's buttons: one bar across the top of the window, in sight as it is scrolled - the same in every window of the site. */}
+          <WindowTitle title={f ? labelOf(f) : <span className="inline-flex items-center gap-2 min-w-0"><span style={{ color: p.color }}>{p.icon}</span>{p.title}</span>}>
+            <button
+              type="button"
+              onClick={() => setExpanded((v) => !v)}
+              className="p-2 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted/60 transition-colors cursor-pointer"
+              aria-label={expanded ? "Collapse the window" : "Expand the window to full screen"}
+              title={expanded ? "Collapse" : "Expand to full screen"}
+            >
+              {expanded ? <ArrowsIn size={18} /> : <ArrowsOut size={18} />}
+            </button>
+            <button
+              ref={closeRef}
+              type="button"
+              onClick={onClose}
+              className="p-2 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted/60 transition-colors cursor-pointer"
+              aria-label="Close"
+            >
+              <X size={18} />
+            </button>
+          </WindowTitle>
+          <div className="relative flex items-start justify-between gap-3 -mx-6 -mt-4 px-6 pt-5 pb-5 overflow-hidden">
             <div
               className="absolute inset-0 pointer-events-none"
               style={{ background: `linear-gradient(90deg, ${p.color}33, ${p.color}14, ${p.color}26)` }}
@@ -2518,7 +2540,6 @@ function WorldviewModal({ state, onChange, onClose }: { state: ModalState; onCha
                     <ArrowLeft size={11} weight="bold" /> {p.title}
                     {group ? ` · ${group.title}` : ""}
                   </button>
-                  <h2 className="text-xl font-bold font-sans text-foreground leading-tight mt-1">{labelOf(f)}</h2>
                   <div className="flex items-baseline gap-2 mt-1 flex-wrap">
                     <span className="text-lg font-bold font-mono text-foreground">{valueOf(f)}</span>
                     <span className="text-xs font-mono text-muted-foreground">{subOf(f)}</span>
@@ -2531,35 +2552,11 @@ function WorldviewModal({ state, onChange, onClose }: { state: ModalState; onCha
                 </>
               ) : (
                 <>
-                  <div className="flex items-center gap-2">
-                    <span style={{ color: p.color }}>{p.icon}</span>
-                    <h2 className="text-xl font-bold font-sans text-foreground leading-tight">{p.title}</h2>
-                  </div>
-                  <p className="text-xs font-sans text-muted-foreground mt-1">
+                  <p className="text-xs font-sans text-muted-foreground">
                     {p.kicker} · {all.length} figures · latest {latestSpan(all)}
                   </p>
                 </>
               )}
-            </div>
-            <div className="relative flex items-center gap-1.5 shrink-0">
-              <button
-                type="button"
-                onClick={() => setExpanded((v) => !v)}
-                className="p-2 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted/60 transition-colors cursor-pointer"
-                aria-label={expanded ? "Collapse the window" : "Expand the window to full screen"}
-                title={expanded ? "Collapse" : "Expand to full screen"}
-              >
-                {expanded ? <ArrowsIn size={18} /> : <ArrowsOut size={18} />}
-              </button>
-              <button
-                ref={closeRef}
-                type="button"
-                onClick={onClose}
-                className="p-2 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted/60 transition-colors cursor-pointer"
-                aria-label="Close"
-              >
-                <X size={18} />
-              </button>
             </div>
           </div>
 

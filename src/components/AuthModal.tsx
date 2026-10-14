@@ -1,3 +1,4 @@
+import { WindowTitle } from "./WindowTitle";
 import React, { useEffect, useRef, useState } from "react";
 import { Eye, EyeSlash, Spinner, ArrowsIn, ArrowsOut, X } from "@phosphor-icons/react";
 import { useAuth, type AuthResult } from "../contexts/AuthContext";
@@ -172,11 +173,13 @@ export function AuthModal({
       <div
         role="dialog"
         aria-modal="true"
-        aria-labelledby="auth-title"
-        className={`rounded-2xl p-8 w-full relative animate-fade-in modal-glass border overflow-y-auto transition-all duration-300 flex flex-col ${isExpanded ? "max-w-full h-full justify-center" : "max-w-sm max-h-[90vh]"}`}
+        aria-label={titles[mode][0]}
+        className={`rounded-2xl p-8 w-full relative animate-fade-in modal-glass border overflow-y-auto transition-all duration-300 flex flex-col ${isExpanded ? "max-w-full h-full" : "max-w-sm max-h-[90vh]"}`}
       >
-        {/* Expand and Close as icon buttons, as on every other modal. */}
-        <div className="absolute top-3 right-3 flex items-center gap-1.5">
+        {/* Its name and the window's buttons: one bar across the top of the window - the same in every window of the site. */}
+        {/* The window's padding is its own, and wider than the others': the bar reaches across that - and sticks that far
+            above the window's content edge, which is where a browser measures a sticky bar from. */}
+        <WindowTitle className="!-mx-8 !-mt-8 !-top-8 !mb-2 !px-8" title={titles[mode][0]}>
           <button
             onClick={() => setIsExpanded((v) => !v)}
             className="p-2 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted/60 transition-colors cursor-pointer"
@@ -192,13 +195,10 @@ export function AuthModal({
           >
             <X size={18} />
           </button>
-        </div>
+        </WindowTitle>
 
         {/* The form keeps its width when the panel is expanded. */}
-        <div className="w-full max-w-sm mx-auto pt-6">
-          <h2 id="auth-title" className="text-2xl font-bold text-foreground mb-1.5">
-            {titles[mode][0]}
-          </h2>
+        <div className="w-full max-w-sm mx-auto my-auto pt-2">
           <p className="text-muted-foreground mb-5 text-sm">{titles[mode][1]}</p>
 
           {!auth.isConfigured ? (

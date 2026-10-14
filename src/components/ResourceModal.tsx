@@ -1,3 +1,4 @@
+import { WindowTitle } from "./WindowTitle";
 import { useEffect, useState, type ReactNode } from "react";
 import { Area, AreaChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
 import { ArrowsIn, ArrowsOut, TrendDown, TrendUp, X } from "@phosphor-icons/react";
@@ -458,8 +459,26 @@ export function ResourceModal({
         className={`relative z-10 rounded-2xl w-full shadow-2xl animate-fade-in modal-glass border overflow-y-auto transition-all duration-300 ${isExpanded ? "max-w-full max-h-full m-0" : "max-w-2xl max-h-[90vh]"}`}
       >
         <div className="p-6">
+          {/* Its name and the window's buttons: one bar across the top of the window, in sight as it is scrolled - the same in every window of the site. */}
+          <WindowTitle title={<span className="inline-flex items-center gap-2 min-w-0"><span className="w-2.5 h-2.5 rounded-full shrink-0" style={{ background: resource.color }} aria-hidden />{resource.name}</span>}>
+            <button
+              onClick={() => setIsExpanded((v) => !v)}
+              className="relative p-2 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted/60 transition-colors cursor-pointer shrink-0"
+              aria-label={isExpanded ? "Collapse modal" : "Expand modal to full screen"}
+              title={isExpanded ? "Collapse" : "Expand to full screen"}
+            >
+              {isExpanded ? <ArrowsIn size={18} /> : <ArrowsOut size={18} />}
+            </button>
+            <button
+              onClick={onClose}
+              className="relative p-2 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted/60 transition-colors cursor-pointer shrink-0"
+              aria-label="Close"
+            >
+              <X size={18} />
+            </button>
+          </WindowTitle>
           {/* ── Header ── */}
-          <div className="relative flex items-start justify-between -mx-6 -mt-6 px-6 pt-6 pb-5 rounded-t-2xl overflow-hidden">
+          <div className="relative flex items-start justify-between -mx-6 -mt-4 px-6 pt-5 pb-5 overflow-hidden">
             <div
               className="absolute inset-0 pointer-events-none"
               style={{
@@ -467,10 +486,6 @@ export function ResourceModal({
               }}
             />
             <div className="relative min-w-0">
-              <h2 className="text-xl font-bold font-sans text-foreground leading-tight flex items-center gap-2">
-                <span className="w-2.5 h-2.5 rounded-full shrink-0" style={{ background: resource.color }} aria-hidden />
-                {resource.name}
-              </h2>
               {price ? (
                 <>
                   <div className="flex items-center gap-2 mt-1.5 flex-wrap">
@@ -496,23 +511,6 @@ export function ResourceModal({
               ) : (
                 <p className="text-[11px] font-sans text-muted-foreground mt-1.5">No published price series is held for this commodity.</p>
               )}
-            </div>
-            <div className="relative flex items-center gap-1.5 shrink-0">
-              <button
-                onClick={() => setIsExpanded((v) => !v)}
-                className="relative p-2 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted/60 transition-colors cursor-pointer shrink-0"
-                aria-label={isExpanded ? "Collapse modal" : "Expand modal to full screen"}
-                title={isExpanded ? "Collapse" : "Expand to full screen"}
-              >
-                {isExpanded ? <ArrowsIn size={18} /> : <ArrowsOut size={18} />}
-              </button>
-              <button
-                onClick={onClose}
-                className="relative p-2 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted/60 transition-colors cursor-pointer shrink-0"
-                aria-label="Close"
-              >
-                <X size={18} />
-              </button>
             </div>
           </div>
 

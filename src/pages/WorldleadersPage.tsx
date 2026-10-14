@@ -1,3 +1,4 @@
+import { WindowTitle } from "../components/WindowTitle";
 import { ChipRow } from "../components/ChipRow";
 import { decodeEntities } from "../lib/security";
 import React, { useState, useMemo } from "react";
@@ -15161,6 +15162,26 @@ function LeaderDetail({
         className={`relative z-10 rounded-2xl w-full shadow-2xl animate-fade-in modal-glass border overflow-y-auto transition-all duration-300 ${isExpanded ? "max-w-full max-h-full m-0" : "max-w-2xl max-h-[90vh]"}`}
       >
         <div className="p-6">
+          {/* Its name and the window's buttons: one bar across the top of the window, in sight as it is scrolled - the same in every window of the site. */}
+          <WindowTitle title={leader.name} where={leader.country}>
+            <button
+              onClick={() => setIsExpanded((v) => !v)}
+              className="p-2 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted/60 transition-colors cursor-pointer"
+              aria-label={
+                isExpanded ? "Collapse modal" : "Expand modal to full screen"
+              }
+              title={isExpanded ? "Collapse" : "Expand to full screen"}
+            >
+              {isExpanded ? <ArrowsIn size={18} /> : <ArrowsOut size={18} />}
+            </button>
+            <button
+              onClick={onClose}
+              className="p-2 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted/60 transition-colors cursor-pointer"
+              aria-label="Close"
+            >
+              <X size={18} />
+            </button>
+          </WindowTitle>
           {/* Header — same shape as the country and state modals. */}
           <div className="flex items-start justify-between mb-4">
             <div className="flex items-center gap-4">
@@ -15172,9 +15193,6 @@ function LeaderDetail({
                 />
               </div>
               <div>
-                <h2 className="text-2xl font-bold font-sans text-foreground">
-                  {leader.name}
-                </h2>
                 <div className="flex items-center gap-2 mt-1 flex-wrap">
                   <span className={CHIP_TEXT}>
                     {leader.title}
@@ -15195,25 +15213,6 @@ function LeaderDetail({
                   {leader.ideology && <span className={`text-xs border px-2 py-0.5 rounded-full font-sans ${IDEOLOGY_COLORS[leader.ideology]}`}>{leader.ideology}</span>}
                 </div>
               </div>
-            </div>
-            <div className="flex items-center gap-1.5 shrink-0">
-              <button
-                onClick={() => setIsExpanded((v) => !v)}
-                className="p-2 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted/60 transition-colors cursor-pointer"
-                aria-label={
-                  isExpanded ? "Collapse modal" : "Expand modal to full screen"
-                }
-                title={isExpanded ? "Collapse" : "Expand to full screen"}
-              >
-                {isExpanded ? <ArrowsIn size={18} /> : <ArrowsOut size={18} />}
-              </button>
-              <button
-                onClick={onClose}
-                className="p-2 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted/60 transition-colors cursor-pointer"
-                aria-label="Close"
-              >
-                <X size={18} />
-              </button>
             </div>
           </div>
 
@@ -15974,6 +15973,26 @@ function MonarchDetail({
         className={`relative z-10 rounded-2xl w-full shadow-2xl animate-fade-in modal-glass border overflow-y-auto transition-all duration-300 ${isExpanded ? "max-w-full max-h-full m-0" : "max-w-2xl max-h-[90vh]"}`}
       >
         <div className="p-6">
+          {/* Its name and the window's buttons: one bar across the top of the window, in sight as it is scrolled - the same in every window of the site. */}
+          <WindowTitle title={monarch.name} where={monarch.country}>
+            <button
+              onClick={() => setIsExpanded((v) => !v)}
+              className="p-2 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted/60 transition-colors cursor-pointer"
+              aria-label={
+                isExpanded ? "Collapse modal" : "Expand modal to full screen"
+              }
+              title={isExpanded ? "Collapse" : "Expand to full screen"}
+            >
+              {isExpanded ? <ArrowsIn size={18} /> : <ArrowsOut size={18} />}
+            </button>
+            <button
+              onClick={onClose}
+              className="p-2 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted/60 transition-colors cursor-pointer"
+              aria-label="Close"
+            >
+              <X size={18} />
+            </button>
+          </WindowTitle>
           {/* Header — same shape as the country and state modals: flag, title,
               meta chips, then Expand and Close as text buttons. */}
           <div className="flex items-start justify-between mb-4">
@@ -15986,9 +16005,6 @@ function MonarchDetail({
                 />
               </div>
               <div>
-                <h2 className="text-2xl font-bold font-sans text-foreground">
-                  {monarch.name}
-                </h2>
                 <div className="flex items-center gap-2 mt-1 flex-wrap">
                   <span className={CHIP_TEXT}>
                     {monarch.title}
@@ -16004,25 +16020,6 @@ function MonarchDetail({
                   </span>
                 </div>
               </div>
-            </div>
-            <div className="flex items-center gap-1.5 shrink-0">
-              <button
-                onClick={() => setIsExpanded((v) => !v)}
-                className="p-2 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted/60 transition-colors cursor-pointer"
-                aria-label={
-                  isExpanded ? "Collapse modal" : "Expand modal to full screen"
-                }
-                title={isExpanded ? "Collapse" : "Expand to full screen"}
-              >
-                {isExpanded ? <ArrowsIn size={18} /> : <ArrowsOut size={18} />}
-              </button>
-              <button
-                onClick={onClose}
-                className="p-2 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted/60 transition-colors cursor-pointer"
-                aria-label="Close"
-              >
-                <X size={18} />
-              </button>
             </div>
           </div>
 
@@ -17010,6 +17007,30 @@ export function RichestFamiliesView() {
             className={`relative z-10 w-full overflow-y-auto rounded-2xl modal-glass border shadow-2xl animate-fade-in transition-all duration-300 ${familyExpanded ? "max-w-full max-h-full m-0" : "max-w-2xl max-h-[90vh]"}`}
           >
             <div className="p-6 space-y-5">
+              {/* Its name and the window's buttons: one bar across the top of the window, in sight as it is scrolled - the same in every window of the site. */}
+              <WindowTitle title={selectedFamily.family} where={selectedFamily.country}>
+                <button
+                  onClick={() => setFamilyExpanded((v) => !v)}
+                  className="p-2 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted/60 transition-colors cursor-pointer"
+                  aria-label={
+                    familyExpanded
+                      ? "Collapse modal"
+                      : "Expand modal to full screen"
+                  }
+                  title={
+                    familyExpanded ? "Collapse" : "Expand to full screen"
+                  }
+                >
+                  {familyExpanded ? <ArrowsIn size={18} /> : <ArrowsOut size={18} />}
+                </button>
+                <button
+                  onClick={closeFamily}
+                  className="p-2 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted/60 transition-colors cursor-pointer"
+                  aria-label="Close"
+                >
+                  <X size={18} />
+                </button>
+              </WindowTitle>
               {/* Header — the default shape used across the modals: flag,
                   title, meta chips, then Expand and Close as text buttons. */}
               <div className="flex items-start justify-between">
@@ -17022,9 +17043,6 @@ export function RichestFamiliesView() {
                     />
                   </div>
                   <div>
-                    <h2 className="text-2xl font-bold font-sans text-foreground">
-                      {selectedFamily.family}
-                    </h2>
                     <div className="flex items-center gap-2 mt-1 flex-wrap">
                       <span className={CHIP_TEXT}>
                         {selectedFamily.source}
@@ -17040,29 +17058,6 @@ export function RichestFamiliesView() {
                       </span>
                     </div>
                   </div>
-                </div>
-                <div className="flex items-center gap-1.5 shrink-0">
-                  <button
-                    onClick={() => setFamilyExpanded((v) => !v)}
-                    className="p-2 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted/60 transition-colors cursor-pointer"
-                    aria-label={
-                      familyExpanded
-                        ? "Collapse modal"
-                        : "Expand modal to full screen"
-                    }
-                    title={
-                      familyExpanded ? "Collapse" : "Expand to full screen"
-                    }
-                  >
-                    {familyExpanded ? <ArrowsIn size={18} /> : <ArrowsOut size={18} />}
-                  </button>
-                  <button
-                    onClick={closeFamily}
-                    className="p-2 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted/60 transition-colors cursor-pointer"
-                    aria-label="Close"
-                  >
-                    <X size={18} />
-                  </button>
                 </div>
               </div>
 
@@ -17202,14 +17197,29 @@ function AllianceModal({
         className={`relative z-10 rounded-2xl w-full shadow-2xl animate-fade-in modal-glass border overflow-y-auto transition-all duration-300 ${isExpanded ? "max-w-full max-h-full m-0" : "max-w-2xl max-h-[90vh]"}`}
       >
         <div className="p-6">
+          {/* Its name and the window's buttons: one bar across the top of the window, in sight as it is scrolled - the same in every window of the site. */}
+          <WindowTitle title={alliance.short}>
+            <button
+              onClick={() => setIsExpanded((v) => !v)}
+              className="p-2 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted/60 transition-colors cursor-pointer"
+              aria-label={isExpanded ? "Collapse modal" : "Expand modal to full screen"}
+              title={isExpanded ? "Collapse" : "Expand to full screen"}
+            >
+              {isExpanded ? <ArrowsIn size={18} /> : <ArrowsOut size={18} />}
+            </button>
+            <button
+              onClick={onClose}
+              className="p-2 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted/60 transition-colors cursor-pointer"
+              aria-label="Close"
+            >
+              <X size={18} />
+            </button>
+          </WindowTitle>
           {/* Header — the shape used across the modals: emblem, title, meta
               chips, then Expand and Close as text buttons. */}
           <div className="flex items-start justify-between mb-6">
             <div className="flex items-center gap-4">
               <div>
-                <h2 className="text-xl font-bold font-sans text-foreground">
-                  {alliance.short}
-                </h2>
                 <div className="flex items-center gap-2 mt-1 flex-wrap">
                   <span className={CHIP_TEXT}>
                     {alliance.name}
@@ -17222,23 +17232,6 @@ function AllianceModal({
                   </span>
                 </div>
               </div>
-            </div>
-            <div className="flex items-center gap-1.5 shrink-0">
-              <button
-                onClick={() => setIsExpanded((v) => !v)}
-                className="p-2 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted/60 transition-colors cursor-pointer"
-                aria-label={isExpanded ? "Collapse modal" : "Expand modal to full screen"}
-                title={isExpanded ? "Collapse" : "Expand to full screen"}
-              >
-                {isExpanded ? <ArrowsIn size={18} /> : <ArrowsOut size={18} />}
-              </button>
-              <button
-                onClick={onClose}
-                className="p-2 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted/60 transition-colors cursor-pointer"
-                aria-label="Close"
-              >
-                <X size={18} />
-              </button>
             </div>
           </div>
 

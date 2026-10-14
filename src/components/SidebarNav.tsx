@@ -1,3 +1,4 @@
+import { WindowTitle } from "./WindowTitle";
 import React, { useState } from "react";
 import ReactDOM from "react-dom";
 import { NavLink } from "react-router-dom";
@@ -314,39 +315,25 @@ function AboutModal({ onClose }: { onClose: () => void }) {
       <div
         className={`relative w-full flex flex-col modal-glass border rounded-2xl overflow-hidden animate-fade-in transition-all duration-300 ${isExpanded ? "max-w-full h-full" : "max-w-2xl max-h-[90vh]"}`}
       >
-        {/* Header */}
-        <div className="flex items-center justify-between px-6 py-4 border-b border-border/40 modal-tile shrink-0">
-          <div className="flex items-center gap-2.5">
-            <div className="p-1.5 rounded-lg bg-secondary/10">
-              <Globe size={18} weight="fill" className="text-secondary" />
-            </div>
-            <div>
-              <h2 className="text-base font-bold font-sans text-foreground">
-                About CommonSphere
-              </h2>
-              <p className="text-[11px] text-muted-foreground font-sans">
-                Political intelligence platform
-              </p>
-            </div>
-          </div>
-          <div className="flex items-center gap-1.5 shrink-0">
-            <button
-              onClick={() => setIsExpanded((v) => !v)}
-              className="p-2 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted/60 transition-colors cursor-pointer"
-              aria-label={isExpanded ? "Collapse modal" : "Expand modal to full screen"}
-              title={isExpanded ? "Collapse" : "Expand to full screen"}
-            >
-              {isExpanded ? <ArrowsIn size={18} /> : <ArrowsOut size={18} />}
-            </button>
-            <button
-              onClick={onClose}
-              className="p-2 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted/60 transition-colors cursor-pointer"
-              aria-label="Close"
-            >
-              <X size={18} />
-            </button>
-          </div>
-        </div>
+        {/* Its name and the window's buttons: one bar across the top of the window - the same in every window of the site. */}
+        {/* The window does not scroll as a whole - its body does - so the bar has no padding to reach across. */}
+        <WindowTitle className="!m-0 shrink-0" title={<span className="inline-flex items-center gap-2 min-w-0"><Globe size={18} weight="fill" className="text-secondary shrink-0" aria-hidden />About CommonSphere</span>} note="Political intelligence platform">
+          <button
+            onClick={() => setIsExpanded((v) => !v)}
+            className="p-2 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted/60 transition-colors cursor-pointer"
+            aria-label={isExpanded ? "Collapse modal" : "Expand modal to full screen"}
+            title={isExpanded ? "Collapse" : "Expand to full screen"}
+          >
+            {isExpanded ? <ArrowsIn size={18} /> : <ArrowsOut size={18} />}
+          </button>
+          <button
+            onClick={onClose}
+            className="p-2 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted/60 transition-colors cursor-pointer"
+            aria-label="Close"
+          >
+            <X size={18} />
+          </button>
+        </WindowTitle>
 
         {/* Tabs */}
         <div className="flex gap-0 px-6 pt-4 shrink-0">

@@ -3,9 +3,10 @@
  * the window's buttons - one bar across the top of the window, above the
  * flag, that stays in sight as the window is scrolled.
  *
- * It is the same in every place's window - a country's, a state's, a
- * city's, a town's, a division's - so the name is always in the window's
- * top left corner and the way out always in its top right.
+ * It is the same in every window of the site - a place's, a leader's, a
+ * figure's, a commodity's, an alliance's, and the sign-in and About windows -
+ * so the name is always in the window's top left corner and the way out
+ * always in its top right.
  *
  * The bar of tabs under it is sticky too, and has to stop under this bar and
  * not behind it. This bar's height is not fixed - a long name or a narrow
@@ -18,12 +19,15 @@ import { useLayoutEffect, useRef, type ReactNode } from "react";
 export function WindowTitle({
   title,
   where,
+  note,
   children,
   className = "",
 }: {
   title: ReactNode;
   /** Where the place is - its capital, its country, the division it is in - set beside its name. */
   where?: ReactNode;
+  /** What the window is, where it is not a place's: a line beside its name, with no pin. */
+  note?: ReactNode;
   /** The window's buttons, at the bar's right. */
   children?: ReactNode;
   className?: string;
@@ -51,6 +55,7 @@ export function WindowTitle({
             <MapPin size={12} weight="fill" className="shrink-0" aria-hidden /> {where}
           </span>
         )}
+        {note && <span className="text-xs font-medium font-sans text-foreground/80 min-w-0">{note}</span>}
       </div>
       {children && <div className="flex items-center gap-1.5 shrink-0">{children}</div>}
     </div>
