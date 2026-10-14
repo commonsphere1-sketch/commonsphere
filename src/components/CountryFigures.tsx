@@ -21,7 +21,7 @@
  * people say online, and whether the law protects their data.
  */
 import { Children, isValidElement, type ReactElement, type ReactNode } from "react";
-import { Area, AreaChart, Bar, BarChart, CartesianGrid, Cell, Pie, PieChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
+import { Area, AreaChart, Bar, BarChart, CartesianGrid, Cell, LabelList, Pie, PieChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
 import { COUNTRY_PANELS, PANEL_SOURCES, type PanelField } from "../data/countryPanels";
 import { COUNTRY_INDICATORS, COUNTRY_INDICATORS_SOURCE } from "../data/countryIndicators";
 import { COUNTRY_FIGURES, COUNTRY_FIGURE_SOURCES } from "../data/worldview";
@@ -321,6 +321,7 @@ export default function CountryFigures({ code, name }: { code: string; name: str
   const cm = COUNTRY_FIGURES.childMortality[code];
   const air = AIR_QUALITY[code];
   const watch = pick(SURVEILLANCE, code);
+  const birthsDeaths = ([["birthRate", "Births", INK[1]], ["deathRate", "Deaths", INK[4]]] as [PanelField, string, string][]).flatMap(([f, n, color]) => (P[f] ? [{ n, v: P[f]!.v, color }] : []));
   // Its manufacturing, from the World Bank's figures for its economy.
   const econ = economyForCountry({ code, name });
   const mf = econ ? ECONOMY_MANUFACTURING[econ.id] : undefined;
@@ -592,27 +593,34 @@ export default function CountryFigures({ code, name }: { code: string; name: str
         <Panel t={t} title="Births, deaths and the sexes" meta="a year">
           {has("birthRate", "deathRate", "femalePct") ? (
             <>
-              <ResponsiveContainer width="100%" height={130}>
+              {/* Slim bars on faint tracks, in a gradient of their colours, each with its figure at its end. */}
+              <ResponsiveContainer width="100%" height={84}>
                 <BarChart
                   layout="vertical"
-                  data={(
-                    [
-                      ["birthRate", "Births per 1,000"],
-                      ["deathRate", "Deaths per 1,000"],
-                    ] as [PanelField, string][]
-                  ).flatMap(([f, n]) => (P[f] ? [{ n, v: P[f]!.v }] : []))}
-                  margin={{ top: 4, right: 16, left: 0, bottom: 0 }}
+                  data={birthsDeaths}
+                  margin={{ top: 2, right: 40, left: 0, bottom: 2 }}
+                  barCategoryGap="28%"
                 >
-                  <CartesianGrid stroke={t.gridLine} horizontal={false} />
-                  <XAxis type="number" {...axis} />
-                  <YAxis type="category" dataKey="n" {...axis} width={96} />
-                  <Tooltip {...tip} formatter={(v: number) => [v.toFixed(1), "per 1,000 people"]} />
-                  <Bar dataKey="v" isAnimationActive={false} radius={[0, 3, 3, 0]}>
-                    <Cell fill={INK[1]} />
-                    <Cell fill={INK[4]} />
+                  <defs>
+                    {birthsDeaths.map(({ n, color: c }) => (
+                      <linearGradient key={n} id={`bd-${code}-${n}`} x1="0" y1="0" x2="1" y2="0">
+                        <stop offset="0%" stopColor={c} stopOpacity={0.35} />
+                        <stop offset="100%" stopColor={c} stopOpacity={1} />
+                      </linearGradient>
+                    ))}
+                  </defs>
+                  <XAxis type="number" hide domain={[0, (max: number) => Math.max(10, Math.ceil(max / 5) * 5)]} />
+                  <YAxis type="category" dataKey="n" axisLine={false} tickLine={false} width={52} tick={{ fontSize: 11, fill: t.bodyText }} />
+                  <Tooltip {...tip} cursor={false} formatter={(v: number) => [`${v.toFixed(1)} per 1,000 people`, "a year"]} />
+                  <Bar dataKey="v" barSize={10} radius={5} background={{ fill: t.gridLine, radius: 5 }} isAnimationActive={false}>
+                    {birthsDeaths.map((d) => (
+                      <Cell key={d.n} fill={`url(#bd-${code}-${d.n})`} />
+                    ))}
+                    <LabelList dataKey="v" position="right" formatter={(v: number) => v.toFixed(1)} style={{ fontSize: 11, fontFamily: "monospace", fontWeight: 600, fill: t.headText }} />
                   </Bar>
                 </BarChart>
               </ResponsiveContainer>
+              <Note t={t}>Births and deaths in a year, each per 1,000 people.</Note>
               <Tiles
                 t={t}
                 items={[
