@@ -1,4 +1,7 @@
 import React, { useState, useMemo, useEffect } from "react";
+
+/** Allocate a budget: a fixed sum shared among the states by a rule the reader sets. Loaded after the page. */
+const AllocationCalculator = React.lazy(() => import("../components/AllocationCalculator"));
 import { createPortal } from "react-dom";
 import {
   Leaf,
@@ -10892,6 +10895,11 @@ export function PolicyPage() {
       />
 
       {/* The policies explorer stood here and was taken off the page, as asked. DataExplorer keeps its policies panel (only="policies"), unmounted. */}
+
+      {/* Allocate a budget: who receives more and who less as the rule for sharing it changes */}
+      <React.Suspense fallback={null}>
+        <AllocationCalculator />
+      </React.Suspense>
 
       {/* Entity rows */}
       {paginatedGroups.length === 0 ? (
