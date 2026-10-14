@@ -14,6 +14,11 @@ import {
   TreeStructure,
   MapTrifold,
   SquaresFour,
+  House,
+  UserCircle,
+  Crown,
+  Handshake,
+  ChartBar,
 } from "@phosphor-icons/react";
 import { useTheme } from "@/contexts/ThemeContext";
 import { Input } from "@/components/ui/input";
@@ -44,7 +49,7 @@ interface HeaderNavProps {
   mobileSidebarOpen: boolean;
 }
 
-type SearchType = "Page" | "Country" | "State" | "City" | "Division" | "Economy" | "County";
+type SearchType = "Page" | "Country" | "State" | "City" | "Division" | "Economy" | "County" | "Town" | "Person" | "Family" | "Group" | "Index";
 
 interface SearchResult {
   id: string;
@@ -67,7 +72,7 @@ const fold = (s: string) =>
 const entry = (r: Omit<SearchResult, "key" | "subkey">): SearchResult => ({ ...r, key: fold(r.label), subkey: fold(r.sublabel) });
 
 /** Which kind comes first where two answer equally well. */
-const TYPE_ORDER: Record<SearchType, number> = { Page: 0, Country: 1, State: 2, City: 3, Division: 4, Economy: 5, County: 6 };
+const TYPE_ORDER: Record<SearchType, number> = { Page: 0, Country: 1, State: 2, Person: 3, City: 4, Division: 5, Group: 6, Economy: 7, County: 8, Town: 9, Family: 10, Index: 11 };
 
 const TYPE_ICON: Record<SearchType, React.ReactNode> = {
   Page: <SquaresFour size={14} weight="fill" className="text-secondary shrink-0" />,
@@ -77,6 +82,11 @@ const TYPE_ICON: Record<SearchType, React.ReactNode> = {
   Division: <TreeStructure size={14} weight="fill" className="text-secondary shrink-0" />,
   Economy: <ChartLine size={14} weight="fill" className="text-secondary shrink-0" />,
   County: <MapTrifold size={14} weight="fill" className="text-secondary shrink-0" />,
+  Town: <House size={14} weight="fill" className="text-secondary shrink-0" />,
+  Person: <UserCircle size={14} weight="fill" className="text-secondary shrink-0" />,
+  Family: <Crown size={14} weight="fill" className="text-secondary shrink-0" />,
+  Group: <Handshake size={14} weight="fill" className="text-secondary shrink-0" />,
+  Index: <ChartBar size={14} weight="fill" className="text-secondary shrink-0" />,
 };
 
 /** The site's pages, by the names the side menu gives them. */
@@ -119,21 +129,76 @@ function buildSearchIndex(): SearchResult[] {
 const SEARCH_INDEX = buildSearchIndex();
 
 /**
- * The rest of what the site holds, fetched when the search is first used: every division of every country, every city
- * the United Nations counts and every US county - some twenty thousand names, too many to carry on every page. Once
- * they are in, the UN's cities stand for the few profiled ones, which they include. A town is found inside its
- * country's or its division's window on the Municipalities page, where its country's list is fetched.
+ * The rest of what the site holds, fetched when the search is first used - too many names to carry on every page:
+ *
+ *   places   every division of every country, every city the United Nations counts, every US county, and every town
+ *            GeoNames lists with 15,000 people or more (static/search/towns.json). A smaller town or a village is
+ *            found inside its country's or its division's window on the Municipalities page.
+ *   people   the leaders the World Leaders page profiles, every country's head of state and of government as the
+ *            Maps page lists them, each US state's governor and senators, and the royal houses' members.
+ *   others   the wealthiest families with a published estimate, the alliances and blocs of the Worldview page, and
+ *            the published indexes.
+ *
+ * Once they are in, the UN's cities stand for the few profiled ones, which they include, and a town that is one of
+ * the UN's cities by the same name in the same country is not listed twice. Each answer goes to the window or the
+ * page that holds the thing; a person with no profile of their own goes to their country's or their state's window.
  */
 let MORE: Promise<SearchResult[]> | null = null;
 const more = () =>
-  (MORE ??= Promise.all([import("@/data/subnations"), import("@/data/unCities"), import("@/data/usCounties")])
-    .then(([sub, un, us]) => {
+  (MORE ??= Promise.all([
+    import("@/data/subnations"),
+    import("@/data/unCities"),
+    import("@/data/usCounties"),
+    import("@/data/leaderIndex"),
+    import("@/data/representatives"),
+    import("@/data/stateIndicators"),
+    import("@/data/royalFamiliesData"),
+    import("@/data/wealthyFamilies"),
+    import("@/data/alliances"),
+    import("@/data/countryIndexes"),
+    // The towns: a file of its own, and the search goes on without it should it not come.
+    fetch("/search/towns.json")
+      .then((r) => (r.ok && /json/.test(r.headers.get("content-type") ?? "") ? (r.json() as Promise<{ towns: [name: string, cc: string, id: number, people: number, region: string][] }>) : { towns: [] }))
+      .catch(() => ({ towns: [] as [name: string, cc: string, id: number, people: number, region: string][] })),
+  ])
+    .then(([sub, un, us, leaders, reps, states, royals, wealthy, groups, indexes, towns]) => {
       const country = new Map(countriesData.map((c) => [c.code, c.name]));
+      const countryId = new Map(countriesData.map((c) => [c.code, c.id]));
+      /* ── People ── */
+      const people: SearchResult[] = [];
+      const named = new Set<string>();
+      const person = (r: Omit<SearchResult, "key" | "subkey" | "type">) => {
+        // One answer a person: the profile first, then the office they are listed under.
+        const k = fold(r.label);
+        if (!r.label || named.has(k)) return;
+        named.add(k);
+        people.push(entry({ ...r, type: "Person" }));
+      };
+      for (const [cc, list] of Object.entries(leaders.LEADERS_BY_COUNTRY))
+        for (const l of list) person({ id: `leader-${l.id}`, label: l.name, sublabel: `${l.title} · ${country.get(cc) ?? cc}`, to: `/dashboard/world-leaders?open=${encodeURIComponent(l.id)}` });
+      for (const [cc, name, , , lines] of reps.NATIONAL_HEADS)
+        for (const [, said] of lines) {
+          // "President – Badra Gunba": the office, a dash, the name.
+          const cut = said.split(" – ");
+          if (cut.length !== 2) continue;
+          const id = countryId.get(cc);
+          person({ id: `head-${cc || name}-${cut[1]}`, label: cut[1], sublabel: `${cut[0]} · ${name}`, to: id ? `/dashboard/countries?open=${encodeURIComponent(id)}` : "/dashboard/maps" });
+        }
+      for (const s of usStatesData) {
+        const i = states.STATE_INDICATORS[s.id];
+        if (!i) continue;
+        const to = `/dashboard/states?open=${encodeURIComponent(s.id)}`;
+        if (i.governor?.name) person({ id: `governor-${s.id}`, label: i.governor.name, sublabel: `Governor · ${s.name}`, to });
+        for (const x of i.senators ?? []) person({ id: `senator-${s.id}-${x.name}`, label: x.name, sublabel: `US Senator · ${s.name}`, to });
+      }
+      for (const r of royals.ROYAL_FAMILIES) person({ id: `royal-${r.id}`, label: r.name, sublabel: `Royal house · ${r.country}`, to: "/dashboard/world-leaders" });
+      /* ── Towns: not one that is a city of the UN's by the same name in the same country ── */
+      const cityNames = new Set(un.UN_CITIES.map((c) => `${c[0]}|${fold(c[2])}`));
       const stateOf = new Map(usStatesData.map((s) => [s.abbreviation, s.name]));
-      const people = (v: number) => (v >= 1e6 ? `${(v / 1e6).toFixed(2)}M` : Math.round(v).toLocaleString("en-US"));
+      const people_ = (v: number) => (v >= 1e6 ? `${(v / 1e6).toFixed(2)}M` : Math.round(v).toLocaleString("en-US"));
       return [
         ...un.UN_CITIES.map((c) =>
-          entry({ id: `un-${c[0]}-${c[1]}`, label: c[2], sublabel: `${country.get(c[0]) ?? c[0]} · ${people(c[8])} people, 2025 (UN)${c[5] ? " · capital" : ""}`, type: "City", to: `/dashboard/cities?open=un-${c[0]}-${c[1]}` }),
+          entry({ id: `un-${c[0]}-${c[1]}`, label: c[2], sublabel: `${country.get(c[0]) ?? c[0]} · ${people_(c[8])} people, 2025 (UN)${c[5] ? " · capital" : ""}`, type: "City", to: `/dashboard/cities?open=un-${c[0]}-${c[1]}` }),
         ),
         // A US state is found as a state: its division's record is left out of the list, so that it is not there twice.
         ...sub.SUBNATIONS.filter((s) => !(s.cc === "US" && s.code && stateOf.has(s.code.slice(3)))).map((s) =>
@@ -146,6 +211,17 @@ const more = () =>
           }),
         ),
         ...us.US_COUNTIES.map((x) => entry({ id: `county-${x[0]}`, label: x[1], sublabel: `County · ${stateOf.get(x[2]) ?? x[2]}`, type: "County", to: `/dashboard/subnations?open=county:${x[0]}` })),
+        ...people,
+        ...towns.towns
+          .filter((t) => !cityNames.has(`${t[1]}|${fold(t[0])}`))
+          .map((t) => entry({ id: `town-${t[2]}`, label: t[0], sublabel: `${[t[4], country.get(t[1]) ?? t[1]].filter(Boolean).join(" · ")} · ${people_(t[3])} people (GeoNames)`, type: "Town", to: `/dashboard/subnations?open=place:${t[1]}:${t[2]}` })),
+        ...wealthy.WEALTHY_FAMILIES.map((f) => entry({ id: `family-${f.name}-${f.from ?? ""}`, label: `${f.name} family`, sublabel: [f.from, f.country].filter(Boolean).join(" · "), type: "Family", to: "/dashboard/world-leaders" })),
+        ...groups.ALLIANCES.flatMap((a) => [
+          entry({ id: `group-${a.id}`, label: a.name, sublabel: `${a.kind}${a.short && a.short !== a.name ? ` · ${a.short}` : ""}`, type: "Group", to: "/dashboard/worldview" }),
+          // By its short name too: "NATO" answers as well as its full name.
+          ...(a.short && a.short !== a.name ? [entry({ id: `group-${a.id}-short`, label: a.short, sublabel: `${a.kind} · ${a.name}`, type: "Group", to: "/dashboard/worldview" })] : []),
+        ]),
+        ...indexes.INDEX_DEFS.map((d) => entry({ id: `index-${d.id}`, label: d.name, sublabel: `${d.by} · ${d.what}`, type: "Index", to: "/dashboard/indexes" })),
       ];
     })
     .catch(() => {
@@ -200,7 +276,7 @@ export function HeaderNav({ onMenuToggle, mobileSidebarOpen }: HeaderNavProps) {
     });
     // The best answer first; among equals, the kind of thing, and then the list's own order - the cities are in it largest first.
     found.sort((a, b) => a.score - b.score || TYPE_ORDER[a.r.type] - TYPE_ORDER[b.r.type] || a.at - b.at);
-    const matches = found.slice(0, 10).map((x) => x.r);
+    const matches = found.slice(0, 12).map((x) => x.r);
     setResults(matches);
     setOpen(matches.length > 0);
   }, [searchValue, extra]);
@@ -303,7 +379,7 @@ export function HeaderNav({ onMenuToggle, mobileSidebarOpen }: HeaderNavProps) {
           />
           <Input
             type="search"
-            placeholder="Search countries, states, cities, counties, pages…"
+            placeholder="Search places, people, families, alliances, pages…"
             value={searchValue}
             onChange={(e) =>
               setSearchValue(e.target.value.slice(0, LIMITS.SEARCH_QUERY))
