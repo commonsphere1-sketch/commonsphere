@@ -4,8 +4,8 @@
  * reference design the page follows - its headline figures, its GDP year by
  * year and the change on each year before, its tax revenue against the
  * world's, what its government spends by function, how many of its people
- * have the basics, who lives there by age, and where it stands among every
- * country on each of the five measures the map once had chips for.
+ * have the basics, and who lives there by age. (A panel of where it stood
+ * among every country on five measures was taken off, as asked.)
  *
  * Every figure is its publisher's, read from data the site already holds,
  * with its year and its source under its panel: the World Bank's indicators
@@ -59,7 +59,7 @@ export function headlineOf(code: string): { rows: { label: string; text: string;
   if (hdi) sources.push(PANEL_SOURCES[(hdi.s ?? "hdr") as keyof typeof PANEL_SOURCES]);
   return { rows, sources };
 }
-export default function CountryDashboard({ code, name, standings }: { code: string; name: string; standings: Standing[] }) {
+export default function CountryDashboard({ code, name }: { code: string; name: string }) {
   const t = useTokens();
   const id = useId().replace(/:/g, "");
   const gdp = (GDP_HISTORY[code] ?? []).map((r) => ({ year: r.year, gdp: r.gdp }));
@@ -293,43 +293,6 @@ export default function CountryDashboard({ code, name, standings }: { code: stri
         </Panel>
       </div>
 
-      {/* Where it stands on each measure: its place among every country with a figure, highest first, on a line from the highest to the lowest. */}
-      <Panel t={t} title={`Where ${name} stands`} meta="among every country with a figure, highest first · worked out here">
-        <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-5 gap-3">
-          {standings.map((s) => {
-            const at = s.ranked.findIndex((r) => r.code === code);
-            const r = at >= 0 ? s.ranked[at] : null;
-            return (
-              <div key={s.id} className="rounded-lg px-3 py-2.5 flex flex-col gap-1.5" style={{ background: t.tile, border: `1px solid ${t.gridLine}` }}>
-                <p className="text-[9px] font-mono uppercase tracking-widest" style={{ color: t.mutedText }}>
-                  {s.label}
-                </p>
-                <p className="text-lg font-bold font-mono leading-none" style={{ color: r ? t.headText : t.mutedText }}>
-                  {r ? s.fmt(r.v) : "Not held"}
-                </p>
-                <p className="text-[9px] font-mono" style={{ color: t.mutedText }}>
-                  {r ? `${at + 1} of ${s.ranked.length} · ${r.y}` : `no figure held for ${name}`}
-                </p>
-                {r && (
-                  <div className="relative h-1.5 rounded-full mt-1" style={{ background: t.gridLine }} role="img" aria-label={`${name} is ${at + 1} of ${s.ranked.length} on ${s.label.toLowerCase()}, highest first`}>
-                    <span className="absolute top-1/2 w-2.5 h-2.5 rounded-full -translate-x-1/2 -translate-y-1/2" style={{ left: `${s.ranked.length > 1 ? (at / (s.ranked.length - 1)) * 100 : 0}%`, background: s.color, boxShadow: `0 0 0 2px ${t.cardBg}` }} />
-                  </div>
-                )}
-                {r && (
-                  <p className="flex justify-between text-[8px] font-mono uppercase tracking-wider" style={{ color: t.mutedText }}>
-                    <span>highest</span>
-                    <span>lowest</span>
-                  </p>
-                )}
-                <p className="text-[9px] font-sans leading-snug" style={{ color: t.mutedText }}>
-                  {s.unit}
-                </p>
-              </div>
-            );
-          })}
-        </div>
-        <SourceLink sources={standings.map((s) => s.source)} />
-      </Panel>
       {/* Every subject the site holds official figures on for it, as charts of their own kinds, as asked. */}
       <CountryFigures code={code} name={name} />
     </div>

@@ -32,7 +32,7 @@
  * under the map with its own figures (CountryDashboard), as asked; the page
  * opens on the United States.
  */
-import { type ReactNode, useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { type ReactNode, useCallback, useEffect, useRef, useState } from "react";
 import { ArrowCounterClockwise, MagnifyingGlassMinus, MagnifyingGlassPlus } from "@phosphor-icons/react";
 import { flagColor } from "../lib/flagColor";
 import { geoArea, geoEqualEarth, geoGraticule10, geoPath } from "d3-geo";
@@ -66,7 +66,8 @@ type Measure = {
 };
 const compact = (v: number) => (v >= 1e6 ? `${(v / 1e6).toFixed(1)}M` : v >= 1e3 ? `${Math.round(v / 1e3)}K` : String(Math.round(v)));
 const pair = (r: [number, number] | undefined): Reading | null => (r ? { v: r[1], y: String(r[0]) } : null);
-const MEASURES: Measure[] = [
+/** Five measures the map was once shaded by, and the panel under it ranked: kept, not drawn. */
+export const MEASURES: Measure[] = [
   {
     id: "freedom",
     label: "Freedom",
@@ -533,20 +534,6 @@ export default function WorldviewMap() {
     const k = Math.min(MAX_K, 0.8 * Math.min(W / Math.max(1, x1 - x0), H / Math.max(1, y1 - y0)));
     glideTo({ k: Math.max(1.4, k), x: (x0 + x1) / 2, y: (y0 + y1) / 2 });
   };
-  /* Every country with a figure on each of the five measures, highest first: where the country picked stands, in the panel under the map. */
-  const standings = useMemo(
-    () =>
-      MEASURES.map((x) => ({
-        ...x,
-        ranked: SHAPES.flatMap((s) => {
-          const r = s.code ? x.read(s.code) : null;
-          return s.code && r && Number.isFinite(r.v) ? [{ name: s.name, code: s.code, ...r }] : [];
-        })
-          .filter((r, i, a) => a.findIndex((y) => y.code === r.code) === i)
-          .sort((a, b) => b.v - a.v),
-      })),
-    [],
-  );
   const shown = hover ? SHAPES.find((s) => s.code === hover) : null;
   const pickedName = SHAPES.find((s) => s.code === picked)?.name ?? picked;
   return (
@@ -710,7 +697,7 @@ export default function WorldviewMap() {
       </div>
     </section>
     {/* The country picked: its own figures, filled in under the map. */}
-    <CountryDashboard code={picked} name={pickedName} standings={standings} />
+    <CountryDashboard code={picked} name={pickedName} />
     </>
   );
 }
