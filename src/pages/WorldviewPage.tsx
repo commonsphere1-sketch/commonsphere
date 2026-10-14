@@ -19,7 +19,6 @@ import {
   Coins,
   Cpu,
   Factory,
-  GlobeHemisphereWest,
   GlobeStand,
   Leaf,
   Lightbulb,
@@ -41,7 +40,6 @@ import {
   BY_INCOME,
   COUNTRY_FIGURES,
   COUNTRY_FIGURE_SOURCES,
-  PEW_CHECKED,
   type IncomeGroup,
   type WorldIndicator,
   type WorldPoint,
@@ -1609,10 +1607,12 @@ const PILLARS: Pillar[] = [
 ];
 
 /** The page's nav: the overview, each pillar - each its own section, one to a row - and the rankings. */
+/** The bar's chips: what the page holds now, top to bottom. The twelve pillars and the rankings had chips here, and went with them. */
 const SECTIONS: NavSection[] = [
+  { id: "world-map", label: "The map" },
+  { id: "country-figures", label: "The place picked" },
   { id: "overview", label: "Overview" },
-  ...PILLARS.map((p) => ({ id: p.id, label: p.title })),
-  { id: "rankings", label: "Rankings" },
+  { id: "geopolitics", label: "Geopolitics" },
 ];
 
 /** How many of a pillar's measures improved, worsened, or have no verdict, over about ten years. */
@@ -1727,7 +1727,8 @@ function ChangeLists({ figures, onPick, max, onMore }: { figures: Figure[]; onPi
  * together, which measures got better or worse, and where the figures come
  * from. "Open" shows every figure of the pillar in a window.
  */
-function PillarCard({ p }: { p: Pillar }) {
+/** A pillar's card. The twelve were taken off the page as asked; the card is kept, and is not drawn. */
+export function PillarCard({ p }: { p: Pillar }) {
   const { card, head, muted } = useLook();
   const open = useContext(OpenWorldview);
   const tiles = p.tiles();
@@ -3157,7 +3158,8 @@ function RankCard({ r }: { r: RankingDef }) {
   );
 }
 
-function Rankings() {
+/** The rankings. Taken off the page as asked; kept, and not drawn. */
+export function Rankings() {
   const [pillar, setPillar] = useState<"all" | Pillar["id"]>("all");
   const shown = RANKINGS.filter((r) => pillar === "all" || r.pillar === pillar);
   return (
@@ -3200,7 +3202,6 @@ function Rankings() {
 // ── The page ───────────────────────────────────────────────────────────────
 
 export function WorldviewPage() {
-  const { head } = useLook();
   const [modal, setModal] = useState<ModalState | null>(null);
   const openWindow = useCallback((pillar: Pillar, figure?: Figure) => setModal({ pillar, figure: figure ?? null }), []);
   const closeWindow = useCallback(() => setModal(null), []);
@@ -3238,39 +3239,13 @@ export function WorldviewPage() {
         />
 
         {/* ── Geopolitics: the world's measures of power and conflict, and its alliances, as an explorer ── */}
-        <GeopoliticsExplorer />
-
-        {/* A comparison of systems of government stood here and was moved, as asked, to the Rankings page's Compare card, where a toggle switches to it. */}
-
-        {/* ── The pillars: each its own panel; each card opens its window ── */}
-        <div className="px-1 pt-2 flex items-center gap-2">
-          <GlobeHemisphereWest size={18} weight="fill" className="text-[#2a78d6] dark:text-[#3987e5]" />
-          <h2 className="text-xl font-bold font-sans" style={{ color: head }}>
-            The {inWords(PILLARS.length)} pillars
-          </h2>
-        </div>
-        {/* A mosaic of panels: two across on a wide screen, each pillar's figures and charts in its own. */}
-        <div className="grid grid-cols-1 xl:grid-cols-2 gap-4 items-start">
-          {PILLARS.map((p) => (
-            <PillarCard key={p.id} p={p} />
-          ))}
+        <div id="geopolitics" className="scroll-mt-36">
+          <GeopoliticsExplorer />
         </div>
 
-        <Rankings />
-
-        <p className="text-[10px] font-sans text-muted-foreground leading-relaxed max-w-4xl px-1">
-          Figures retrieved {WORLDVIEW_RETRIEVED} by build-worldview.cjs: the World Bank's world and income-group aggregates (carrying figures
-          from the ILO, the IEA, the FAO, the ITU, UNESCO, the US National Science Foundation, UN Comtrade, the IMF, the IISS, SIPRI and
-          WHO/UNICEF), the IMF's World Economic Outlook, UCDP, V-Dem, UNDP's Human Development Report, the Energy Institute's Statistical
-          Review of World Energy, Ember, the IEA's Global EV Outlook, EM-DAT, the Federation of American Scientists, the International
-          Federation of Robotics and Quid (from the AI Index Report) and CSET via Our World in Data, UNHCR, and the UN's World
-          Population Prospects; climate readings from NASA and NOAA, retrieved {CLIMATE_RETRIEVED}; religion from Pew Research Center's 2025 report, read
-          from it on {PEW_CHECKED}; rankings and the developed / developing split use the figures on each country's page. Arrows compare with
-          about ten years earlier - for religion, with 2010, in Pew's own words; "better" and "worse" - and the counts of them - follow one rule:{" "}
-          {VERDICT_RULE} The share of people displaced is UNHCR's count over the World Bank's population for
-          the same year, and the shares in Free and Not Free countries sum the site's population figures by Freedom House status. Open any
-          figure for its trend, its full series and its source.
-        </p>
+        {/* The twelve pillars, the rankings and the note on their sources stood here, and were taken off as asked: the page is
+            the map, the place picked on it with every figure held for it, the overview, the headlines and the explorer. The
+            pillars' and the rankings' components are kept (PillarCard, Rankings), and are not drawn. */}
       </div>
     </div>
     {modal && <WorldviewModal state={modal} onChange={setModal} onClose={closeWindow} />}

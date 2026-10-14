@@ -185,7 +185,7 @@ export default function WorldviewMap() {
   const pickedName = SHAPES.find((s) => s.code === picked)?.name ?? picked;
   return (
     <>
-    <section className="rounded-2xl overflow-hidden" style={{ background: t.cardBg, border: t.cardBorder, boxShadow: t.cardShadow }} aria-label="The world, country by country">
+    <section id="world-map" className="scroll-mt-36 rounded-2xl overflow-hidden" style={{ background: t.cardBg, border: t.cardBorder, boxShadow: t.cardShadow }} aria-label="The world, country by country">
       <div className="flex flex-wrap items-center gap-x-4 gap-y-2 px-4 py-3 border-b" style={{ borderColor: t.gridLine }}>
         <p className="text-[10px] font-mono uppercase tracking-widest" style={{ color: t.mutedText }}>
           The world, country by country
