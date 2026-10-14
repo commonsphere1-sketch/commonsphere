@@ -200,11 +200,29 @@ function groupsOf(code: string): Group[] {
   return out;
 }
 
+/** A place's headline figures, for the map card's column: each with its year, or not held; and whose they are. */
+export function headlineOf(code: string): { rows: { label: string; text: string; y?: string }[]; sources: { label: string; url: string }[] } {
+  const ind = COUNTRY_INDICATORS[code] ?? {};
+  const hdi = COUNTRY_PANELS[code.toLowerCase()]?.hdi;
+  const kpis: [string, Measured | undefined, (v: number) => string][] = [
+    ["People", ind.population, people],
+    ["GDP", ind.gdp, usd],
+    ["GDP a head", ind.gdpPerCapita, (v) => `$${Math.round(v).toLocaleString("en-US")}`],
+    ["Growth", ind.gdpGrowth, (v) => `${v > 0 ? "+" : ""}${v.toFixed(1)}%`],
+    ["Life expectancy", ind.lifeExpectancy, (v) => `${v.toFixed(1)} yrs`],
+    ["Inflation", ind.inflationRate, (v) => `${v.toFixed(1)}%`],
+    ["Unemployment", ind.unemploymentRate, (v) => `${v.toFixed(1)}%`],
+  ];
+  const rows = kpis.map(([label, m, fmt]) => (m ? { label, text: fmt(m.v), y: m.y } : { label, text: "Not held" }));
+  if (hdi) rows.push({ label: "Human development", text: hdi.v.toFixed(3), y: hdi.y });
+  const sources = [...new Map(kpis.flatMap(([, m]) => (m ? [m.s ? COUNTRY_INDICATOR_FALLBACKS[m.s] : { label: COUNTRY_INDICATORS_SOURCE.label, url: COUNTRY_INDICATORS_SOURCE.url }] : [])).map((s) => [s.label, s])).values()];
+  if (hdi) sources.push(PANEL_SOURCES[(hdi.s ?? "hdr") as keyof typeof PANEL_SOURCES]);
+  return { rows, sources };
+}
 export default function CountryDashboard({ code, name, measure, ranked }: { code: string; name: string; measure: { label: string; unit: string; color: string; fmt: (v: number) => string }; ranked: Ranked[] }) {
   const t = useTokens();
   const id = useId().replace(/:/g, "");
   const groups = groupsOf(code);
-  const ind = COUNTRY_INDICATORS[code] ?? {};
   const gdp = (GDP_HISTORY[code] ?? []).map((r) => ({ year: r.year, gdp: r.gdp }));
   const change = gdp.slice(1).map((r, i) => ({ year: r.year, pct: gdp[i].gdp ? ((r.gdp - gdp[i].gdp) / gdp[i].gdp) * 100 : 0 }));
   const tax = TAX_HISTORY[code]?.revenue ?? [];
@@ -230,15 +248,6 @@ export default function CountryDashboard({ code, name, measure, ranked }: { code
   const ages = (["age0to14", "age15to64", "age65up"] as const).map((f, i) => ({ f, label: ["Under 15", "15 to 64", "65 and over"][i], fig: panels[f], color: INK[i] }));
   const place = ranked.findIndex((r) => r.code === code);
   const panelSources = [...new Set([...accessRows.map((r) => r.s ?? "wb"), ...ages.flatMap((a) => (a.fig ? [a.fig.s ?? "wb"] : []))])].map((s) => PANEL_SOURCES[s as keyof typeof PANEL_SOURCES]);
-  const kpis: [string, Measured | undefined, (v: number) => string][] = [
-    ["People", ind.population, people],
-    ["GDP", ind.gdp, usd],
-    ["GDP a head", ind.gdpPerCapita, (v) => `$${Math.round(v).toLocaleString("en-US")}`],
-    ["Growth", ind.gdpGrowth, (v) => `${v > 0 ? "+" : ""}${v.toFixed(1)}%`],
-    ["Life expectancy", ind.lifeExpectancy, (v) => `${v.toFixed(1)} yrs`],
-    ["Inflation", ind.inflationRate, (v) => `${v.toFixed(1)}%`],
-  ];
-  const kpiSources = [...new Map(kpis.flatMap(([, m]) => (m ? [m.s ? COUNTRY_INDICATOR_FALLBACKS[m.s] : { label: COUNTRY_INDICATORS_SOURCE.label, url: COUNTRY_INDICATORS_SOURCE.url }] : [])).map((s) => [s.label, s])).values()];
   const axis = { tick: { fontSize: 9, fill: t.mutedText, fontFamily: "monospace" }, axisLine: false, tickLine: false } as const;
   const tip = { contentStyle: { background: t.tooltipBg, border: t.cardBorder, borderRadius: 8, fontSize: 11 }, labelStyle: { color: t.headText }, itemStyle: { color: t.headText } };
 
@@ -249,29 +258,10 @@ export default function CountryDashboard({ code, name, measure, ranked }: { code
           {name}
         </h2>
         <span className="text-[11px] font-sans" style={{ color: t.mutedText }}>
-          its own figures, picked on the map · pick another country to fill the panels with its own
+          its own figures, picked on the map - its headline figures are beside the map · pick another country to fill the panels with its own
         </span>
       </div>
 
-      {/* Its headline figures, a tile each. */}
-      <div className="grid grid-cols-2 sm:grid-cols-3 xl:grid-cols-6 gap-3">
-        {kpis.map(([label, m, fmt]) => (
-          <div key={label} className="rounded-xl px-3.5 py-3 min-w-0" style={{ background: t.cardBg, border: t.cardBorder }}>
-            <p className="text-[9px] font-mono uppercase tracking-widest" style={{ color: t.mutedText }}>
-              {label}
-            </p>
-            <p className="text-lg font-bold font-mono leading-tight mt-1" style={{ color: t.headText }}>
-              {m ? fmt(m.v) : "Not held"}
-            </p>
-            {m && (
-              <p className="text-[9px] font-mono" style={{ color: t.mutedText }}>
-                {m.y}
-              </p>
-            )}
-          </div>
-        ))}
-      </div>
-      {kpiSources.length > 0 && <SourceLink sources={kpiSources} className="-mt-1 px-1" />}
 
       <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-3">
         <Panel t={t} title="GDP, year by year" meta={gdp.length ? `current US$ · ${gdp[0].year}–${gdp[gdp.length - 1].year}` : undefined}>
