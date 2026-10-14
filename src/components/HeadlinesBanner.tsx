@@ -659,6 +659,7 @@ export function HeadlinesBanner({
   untagged = false,
   pick = newestSpread,
   subject,
+  open = false,
   note,
   className = "",
 }: {
@@ -680,6 +681,8 @@ export function HeadlinesBanner({
   pick?: HeadlinePick;
   /** The page's subject (see SUBJECT), for topping up when its own desks give fewer than a dozen. */
   subject?: RegExp;
+  /** Whether the full list is open from the start: for a page part that is its headlines and little else. */
+  open?: boolean;
   /** The line under the banner, given the outlets it is showing. */
   note: (outlets: string) => ReactNode;
   className?: string;
@@ -699,7 +702,7 @@ export function HeadlinesBanner({
 
   // The full list: everything the page's desks carry in the window, read when
   // the list is opened. Until that read lands the banner's own stands in.
-  const [showAll, setShowAll] = useState(false);
+  const [showAll, setShowAll] = useState(open);
   const listId = useId();
   const deep = useHeadlineRead(topics, days, ALL_READ, untagged, subject, showAll);
   const from = deep.rows.length ? deep : own;

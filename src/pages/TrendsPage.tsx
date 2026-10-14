@@ -23,7 +23,8 @@ import { Area, AreaChart, Bar, BarChart, CartesianGrid, Line, LineChart, Referen
 import { ChartLineUp, Cpu, Factory, Globe, Leaf, Lightning, Target, TrendUp, Users } from "@phosphor-icons/react";
 import { useTheme } from "../contexts/ThemeContext";
 import { SourceLink } from "../components/SourceLink";
-import { HeadlinesBanner, SUBJECT } from "../components/HeadlinesBanner";
+import { ALL_TOPICS, HeadlinesBanner, SUBJECT, pickWhere } from "../components/HeadlinesBanner";
+import { ALLIANCES, ALLIANCES_CHECKED, HUMAN_RIGHTS_CHECKED } from "../data/alliances";
 import { SectionNav, type NavSection } from "../components/SectionNav";
 import { StyledSelect } from "../components/StyledSelect";
 import { StatExplorer, type StatGroup } from "../components/StatExplorer";
@@ -1381,18 +1382,113 @@ function TechnologySection() {
 
 // ── Page ───────────────────────────────────────────────────────────────────
 
-const SECTIONS: NavSection[] = [
-  // The page opens on the week's news and the explorer of every figure; each part after has a chip of its own.
-  { id: "overview", label: "Overview" },
-  { id: "economy", label: "World economy" },
-  { id: "countries", label: "Countries" },
-  { id: "population", label: "Population" },
-  { id: "scenarios", label: "Scenarios" },
-  { id: "renewables", label: "Renewables" },
-  { id: "emerging-tech", label: "Tech in charts" },
-  // The trends, a chip to each group of them; the first group sits under the section's heading, so its chip goes there.
-  ...TREND_GROUPS.map((g, i) => ({ id: i === 0 ? "trends" : g.id, label: g.nav })),
+/* ── The fields of the Developments page ─────────────────────────────────── */
+
+/** How regimes are counted and which way countries are moving: V-Dem's world series, as cards, for the Political field. */
+const REGIME_IDS = ["democracies", "democracyShare", "liberalDemocracyShare", "electoralAutocracyShare", "closedAutocracyShare", "autocratizing", "democratizing"];
+const REGIME_CARDS: StatCardData[] = REGIME_IDS.flatMap((id) => trendCard(id, "#8b5cf6", "Regimes", REGIME_IDS) ?? []);
+/** The bodies that say what they are working on: each one's agenda, as its own page gives it (alliances.ts). */
+const AGENDAS = ALLIANCES.filter((a) => a.agenda?.length);
+
+/** Headlines whose own words name a field. Whole words, any case; picked by the words alone, which the banner says. */
+const named = (re: RegExp) => pickWhere((h) => re.test(h.title));
+type Field = {
+  id: string;
+  label: string;
+  /** Its headlines: the banner's heading, which headlines are its, and what the line under it says of them. */
+  news: { label: string; pick: ReturnType<typeof pickWhere> | undefined; note: string };
+  /** Its published figures, a part at a time. */
+  parts: { id: string; label: string }[];
+};
+const FIELDS: Field[] = [
+  {
+    id: "overview",
+    label: "Overview",
+    news: { label: "Developments this week", pick: undefined, note: "The last week's headlines from every desk the site reads, five at most from one outlet." },
+    parts: [],
+  },
+  {
+    id: "social",
+    label: "Social",
+    news: {
+      label: "Social developments",
+      pick: named(/\b(health|hospitals?|schools?|education|students?|housing|homeless(ness)?|poverty|welfare|pensions?|migrants?|migration|refugees?|inequality|women|children|famil(y|ies)|birth rates?|ageing|aging|population|hunger|wages?|workers?|strikes?|protests?)\b/i),
+      note: "The last week's headlines whose words name health, schooling, housing, work, migration, poverty or population.",
+    },
+    parts: [
+      { id: "trend-people", label: "People" },
+      { id: "population", label: "Population" },
+      { id: "scenarios", label: "Population scenarios" },
+    ],
+  },
+  {
+    id: "political",
+    label: "Political",
+    news: {
+      label: "Political developments",
+      pick: named(/\b(elections?|votes?|voters?|ballots?|parliament|congress|senate|president|prime minister|ministers?|government|coalition|cabinet|opposition|referendum|constitution|sanctions?|treat(y|ies)|diplomat(s|ic)?|ceasefire|coup)\b/i),
+      note: "The last week's headlines whose words name an election, a government, a parliament, a treaty or sanctions.",
+    },
+    parts: [...(REGIME_CARDS.length ? [{ id: "regimes", label: "Regimes" }] : []), { id: "trend-relations", label: "International relations" }],
+  },
+  {
+    id: "technological",
+    label: "Technological",
+    news: {
+      label: "Technological developments",
+      pick: named(/\b(tech|technology|AI|artificial intelligence|digital|cyber|cyberattacks?|chips?|semiconductors?|robots?|robotics|software|satellites?|quantum|data cent(er|re)s?|electric vehicles?|EVs?|batter(y|ies)|drones?|5G|spacecraft|rockets?)\b/i),
+      note: "The last week's headlines whose words name a technology - AI, chips, satellites, batteries, drones and the like.",
+    },
+    parts: [
+      { id: "trend-technology", label: "Take-up" },
+      { id: "emerging-tech", label: "Tech in charts" },
+      { id: "trend-energy", label: "Energy" },
+      { id: "renewables", label: "Renewables" },
+    ],
+  },
+  {
+    id: "research",
+    label: "Research",
+    news: {
+      label: "Research developments",
+      pick: named(/\b(research(ers)?|scientists?|stud(y|ies)|universit(y|ies)|clinical trials?|experiments?|findings|laborator(y|ies)|peer[- ]reviewed|astronomers?|physicists?|genome|telescope)\b/i),
+      note: "The last week's headlines whose words name a study, a trial, scientists or a laboratory.",
+    },
+    parts: [{ id: "trend-research", label: "Research & development" }],
+  },
+  {
+    id: "breakthroughs",
+    label: "Breakthroughs",
+    news: {
+      label: "Breakthroughs",
+      pick: named(/\b(breakthroughs?|discover(y|ies|ed|s)|first[- ]ever|world[- ]first|for the first time|milestones?|pioneering|cure[sd]?|vaccines?|new (drug|treatment|therapy|species|material))\b/i),
+      note: "The last week's headlines whose own words claim a breakthrough, a discovery, a first or a cure. No body keeps a list of the world's breakthroughs, so none is given: these are what the outlets called one.",
+    },
+    parts: [],
+  },
+  {
+    id: "agendas",
+    label: "Agendas",
+    news: {
+      label: "Agendas in the news",
+      pick: named(/\b(agenda|summits?|roadmap|strateg(y|ies)|action plan|five[- ]year plan|pledges?|targets?|manifesto|reforms?|budget|COP\d+|G7|G20|SDGs?|net[- ]zero)\b/i),
+      note: "The last week's headlines whose words name a summit, a plan, a pledge, a reform or a budget.",
+    },
+    parts: [{ id: "agendas-bodies", label: "What the world's bodies are working on" }],
+  },
+  {
+    id: "economic",
+    label: "Economic",
+    news: { label: "Economic developments", pick: named(SUBJECT.economy), note: "The last week's headlines whose words name the economy - growth, prices, trade, markets, debt." },
+    parts: [
+      { id: "economy", label: "World economy" },
+      { id: "countries", label: "Countries" },
+      { id: "trend-industry", label: "Industry & trade" },
+    ],
+  },
 ];
+/** The bar's chips: a field each. */
+const SECTIONS: NavSection[] = FIELDS.map((f) => ({ id: f.id, label: f.label }));
 
 /**
  * The headline projections as cards: the IMF's for the economy, the UN's for
@@ -1628,22 +1724,27 @@ export function IndustriesExplorer({ embedded = false, action }: { embedded?: bo
 
 export function TrendsPage() {
   const look = useLook();
-  /* The part of the page shown: one at a time, picked from the bar. The page was every part one under another - some
-     thirty screens of it - and the bar only scrolled to them. A link to a part (#renewables) opens on it. */
-  const [tab, setTab] = useState(() => {
+  /* The field shown, picked from the bar, and the part of it shown, picked from the chips under its headlines: one at a
+     time. The page was every part one under another - some thirty screens - and is now the Developments page, as asked:
+     social, political, technological, research, breakthroughs and agendas, with the economy after them. A link to a
+     field or to a part of one (#renewables) opens on it. */
+  const [where, setWhere] = useState(() => {
     const asked = typeof window === "undefined" ? "" : window.location.hash.slice(1);
-    return SECTIONS.some((s) => s.id === asked) ? asked : SECTIONS[0].id;
+    const field = FIELDS.find((f) => f.id === asked) ?? FIELDS.find((f) => f.parts.some((p) => p.id === asked)) ?? FIELDS[0];
+    return { tab: field.id, parts: field.parts.some((p) => p.id === asked) ? { [field.id]: asked } : ({} as Record<string, string>) };
   });
+  const tab = where.tab;
+  const field = FIELDS.find((f) => f.id === tab) ?? FIELDS[0];
+  /** The part of the field shown: the one picked, or its first. */
+  const part = where.parts[tab] ?? field.parts[0]?.id ?? "";
   const partRef = useRef<HTMLDivElement | null>(null);
   const pick = (id: string) => {
-    setTab(id);
-    // Where the reader has scrolled down into a part, the next one starts at its top, under the bar.
+    setWhere((w) => ({ ...w, tab: id }));
+    // Where the reader has scrolled down into a field, the next one starts at its top, under the bar.
     const el = partRef.current;
     if (el && el.getBoundingClientRect().top < 120) requestAnimationFrame(() => el.scrollIntoView({ block: "start" }));
   };
-  /** A group of the trends is a part of its own: the first under the chip of the section they stood in. */
-  const trendPart = (g: (typeof TREND_GROUPS)[number], i: number) => (i === 0 ? "trends" : g.id);
-  const onTrends = TREND_GROUPS.some((g, i) => trendPart(g, i) === tab);
+  const onTrends = TREND_GROUPS.some((g) => g.id === part);
   const { head, muted } = look;
   const first = WEO.firstProjected;
   const end = WEO.lastYear;
@@ -1682,53 +1783,116 @@ export function TrendsPage() {
   return (
     <div className="min-h-screen w-full animate-fade-in" style={{ background: "var(--color-background)" }}>
       <div className="max-w-screen-2xl mx-auto px-5 sm:px-10 py-10 sm:py-14 flex flex-col gap-14 sm:gap-20">
-        {/* ── Header: the plain one every page has (PageHeader). It was a card with the IMF's projection of world GDP in
-            very large figures; the projection is in the line now, still said to be one. ── */}
+        {/* ── Header: the plain one every page has (PageHeader). ── */}
         <PageHeader
-          title="Where the world is heading"
+          title="Developments"
           aside={
             <>
-              IMF World Economic Outlook, {WEO.edition} · UN World Population Prospects {WPP.revision} · World Bank
+              IMF World Economic Outlook, {WEO.edition} · UN World Population Prospects {WPP.revision} · World Bank · V-Dem
               <br />
-              retrieved {PROJECTIONS_RETRIEVED}
+              figures retrieved {PROJECTIONS_RETRIEVED} · headlines refreshed every half hour
             </>
           }
         >
-          The world economy to {end} as the IMF projects it, the world's people to 2100 as the UN does, and the trends behind both — world GDP of{" "}
-          <span className="font-mono font-semibold text-foreground">{usdFromBillions(gdpEnd)}</span> in {end} on the IMF's central projection, from{" "}
-          {usdFromBillions(gdpBase)} in {first - 1} ({signed(((gdpEnd - gdpBase) / (gdpBase || 1)) * 100, 0)}% in current dollars)
+          What is changing in the world, field by field — social, political, technological, research, breakthroughs and agendas, and the economy: the week's
+          headlines in each, and under them the published figures and projections behind it
         </PageHeader>
 
-        <SectionNav label="Trends and projections sections" sections={SECTIONS} picked={tab} onPick={pick} />
-        {/* Where a newly picked part starts: under the bar. It takes no room, and the gap after it is given back. */}
+        <SectionNav label="Fields of development" sections={SECTIONS} picked={tab} onPick={pick} />
+        {/* Where a newly picked field starts: under the bar. It takes no room, and the gap after it is given back. */}
         <div ref={partRef} className="scroll-mt-36 -mb-14 sm:-mb-20" aria-hidden />
 
-        {/* The Trends & Projections desk stood here and was removed as asked. The sections below take each of its
-            subjects at length; its energy panel is kept, under Renewables. */}
-        {tab === "overview" && (
-          <>
-            <HeadlinesBanner
-              label="Economy headlines"
-              topics={["economy"]}
-              subject={SUBJECT.economy}
-              days={7}
-              note={(outlets) => (
-                <>
-                  The last week's economic news - {outlets}, five at most from each - refreshed every half hour. The tag is the place a story is about, violet for more than
-                  one. Each links to its source.
-                </>
-              )}
-            />
+        {/* The field picked: the week's headlines that name it, then its parts - one at a time, from the chips under the
+            headlines. A field with no figures of its own (breakthroughs) opens its headlines as a list. */}
+        <div className="flex flex-col gap-6">
+          <HeadlinesBanner
+            key={field.id}
+            label={field.news.label}
+            topics={ALL_TOPICS}
+            days={7}
+            read={400}
+            untagged
+            pick={field.news.pick}
+            open={field.parts.length === 0 && field.id !== "overview"}
+            note={(outlets) => (
+              <>
+                {field.news.note}
+                {field.news.pick ? " They are picked by the words in the headline alone, so a few will be off the subject." : ""} From {outlets}, refreshed every half hour;
+                the tag is the place a story is about. Each links to its source.
+              </>
+            )}
+          />
+          {field.parts.length > 1 && (
+            <div role="tablist" aria-label={`${field.label}: the figures behind it`} className="flex flex-wrap items-center gap-1.5">
+              <span className="text-[10px] font-mono uppercase tracking-widest mr-1" style={{ color: muted }}>
+                The figures
+              </span>
+              {field.parts.map((p) => (
+                <button
+                  key={p.id}
+                  type="button"
+                  role="tab"
+                  aria-selected={part === p.id}
+                  onClick={() => setWhere((w) => ({ ...w, parts: { ...w.parts, [tab]: p.id } }))}
+                  className={`px-3 py-1 rounded-full text-[11px] font-medium font-sans border transition-colors cursor-pointer ${
+                    part === p.id ? "chip-selected" : "bg-transparent border-border text-muted-foreground hover:text-foreground hover:bg-muted/60"
+                  }`}
+                >
+                  {p.label}
+                </button>
+              ))}
+            </div>
+          )}
+          {/* ── Explorer: every figure of the page, by group, beside its detail - as the
+              Countries and Economies pages have their own ── */}
+          {tab === "overview" && <TrendsExplorer />}
+        </div>
 
-            {/* ── Explorer: every figure of the page, by group, beside its detail - as the
-                Countries and Economies pages have their own ── */}
-            <TrendsExplorer />
-          </>
+        {/* ══ Political: how the world is ruled ══ */}
+        {part === "regimes" && (
+          <section id="regimes" className="scroll-mt-36 flex flex-col gap-8 sm:gap-10" aria-labelledby="regimes-title">
+            <SectionHead icon={<Globe size={18} weight="fill" />} color="#8b5cf6" title="Regimes" kicker="How many countries are democracies, who lives under which kind of rule, and which way countries are moving" />
+            <h2 id="regimes-title" className="sr-only">
+              Regimes
+            </h2>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
+              {REGIME_CARDS.map((s) => (
+                <StatCard key={`${s.label}·${s.sub}`} s={s} more="Regions, types, names and the full series" />
+              ))}
+            </div>
+            <SourceLink sources={REGIME_IDS.flatMap((id) => figureOf(id)?.source ?? [])} />
+          </section>
+        )}
+
+        {/* ══ Agendas: what each body says it is working on ══ */}
+        {part === "agendas-bodies" && (
+          <section id="agendas-bodies" className="scroll-mt-36 flex flex-col gap-8 sm:gap-10" aria-labelledby="agendas-title">
+            <SectionHead icon={<Target size={18} weight="fill" />} color="#0ea5e9" title="What the world's bodies are working on" kicker={`The agenda of each alliance, bloc and agency, as its own page gives it · ${AGENDAS.length} bodies`} />
+            <h2 id="agendas-title" className="sr-only">
+              Agendas
+            </h2>
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 sm:gap-8">
+              {AGENDAS.map((a) => (
+                <Card key={a.id}>
+                  <CardHead title={a.name} kicker={`${a.kind} · ${a.memberCount} members · checked ${a.kind === "Human rights body" ? HUMAN_RIGHTS_CHECKED : ALLIANCES_CHECKED}`} />
+                  <ul className="flex flex-col gap-2.5 list-disc pl-4">
+                    {(a.agenda ?? []).map((x) => (
+                      <li key={x} className="text-[12px] font-sans leading-relaxed" style={{ color: head }}>
+                        {x}
+                      </li>
+                    ))}
+                  </ul>
+                  <SourceLink sources={[a.source]} className="mt-4" />
+                </Card>
+              ))}
+            </div>
+            <Note>Each body's agenda is what its own page says it is working on, checked on the day shown; a body that states none is not listed.</Note>
+          </section>
         )}
 
         {/* ══ Overview ══ */}
         {/* ══ World economy ══ */}
-        {tab === "economy" && (
+        {part === "economy" && (
           <section id="economy" className="scroll-mt-36 flex flex-col gap-8 sm:gap-10" aria-labelledby="economy-title">
             <SectionHead icon={<TrendUp size={18} weight="fill" />} color="#6366f1" title="World economy" kicker={`The IMF's outlook to ${end}: output, growth, prices and debt`} />
             <h2 id="economy-title" className="sr-only">
@@ -1775,7 +1939,7 @@ export function TrendsPage() {
         )}
 
         {/* ══ Countries ══ */}
-        {tab === "countries" && (
+        {part === "countries" && (
           <section id="countries" className="scroll-mt-36 flex flex-col gap-8 sm:gap-10" aria-labelledby="countries-title">
             <SectionHead icon={<Globe size={18} weight="fill" />} color="#3b82f6" title="Countries" kicker={`${WEO_COUNTRIES.length} economies, as the IMF projects each`} />
             <h2 id="countries-title" className="sr-only">
@@ -1822,7 +1986,7 @@ export function TrendsPage() {
         )}
 
         {/* ══ Population ══ */}
-        {tab === "population" && (
+        {part === "population" && (
           <section id="population" className="scroll-mt-36 flex flex-col gap-8 sm:gap-10" aria-labelledby="population-title">
             <SectionHead icon={<Users size={18} weight="fill" />} color="#8b5cf6" title="Population" kicker="The UN's medium variant to 2100: how many people, how old, and where" />
             <h2 id="population-title" className="sr-only">
@@ -1919,7 +2083,7 @@ export function TrendsPage() {
         )}
 
         {/* ══ Scenarios ══ */}
-        {tab === "scenarios" && (
+        {part === "scenarios" && (
           <section id="scenarios" className="scroll-mt-36 flex flex-col gap-8 sm:gap-10" aria-labelledby="scenarios-title">
             <SectionHead icon={<Target size={18} weight="fill" />} color="#f97316" title="Scenarios" kicker="The UN's own: what the world's population does if families are a little smaller or larger" />
             <h2 id="scenarios-title" className="sr-only">
@@ -1960,10 +2124,10 @@ export function TrendsPage() {
         )}
 
         {/* ══ Renewables ══ */}
-        {tab === "renewables" && <RenewablesSection />}
+        {part === "renewables" && <RenewablesSection />}
 
         {/* ══ Technology in charts ══ */}
-        {tab === "emerging-tech" && <TechnologySection />}
+        {part === "emerging-tech" && <TechnologySection />}
 
         {/* ══ Trends ══ */}
         {onTrends && (
@@ -1972,7 +2136,7 @@ export function TrendsPage() {
             <h2 id="trends-title" className="sr-only">
               Trends
             </h2>
-            {TREND_GROUPS.filter((g, i) => trendPart(g, i) === tab).map((g) => (
+            {TREND_GROUPS.filter((g) => g.id === part).map((g) => (
               <div key={g.title} id={g.id} className="scroll-mt-36 flex flex-col gap-6 pt-2">
                 <div className="flex items-center gap-2">
                   <span className="w-2 h-2 rounded-full" style={{ background: g.color }} aria-hidden />

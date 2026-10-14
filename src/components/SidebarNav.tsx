@@ -76,8 +76,8 @@ const analysisNav = [
     icon: ArrowsLeftRight,
     end: false,
   },
-  // Where it is heading: the IMF's and the UN's projections, and the trends behind them.
-  { to: "/dashboard/trends", label: "Trends", icon: ChartLine, end: false },
+  // What is changing, field by field: the week's headlines, and the projections and trends behind them. It was "Trends".
+  { to: "/dashboard/trends", label: "Developments", icon: ChartLine, end: false },
   // The world as a whole: peace, debt, climate, development, food, technology.
   { to: "/dashboard/worldview", label: "Worldview", icon: GlobeStand, end: false },
   {

@@ -250,7 +250,7 @@ const SITE_PAGES = [
   { icon: <Flag size={18} weight="fill" />, label: "World Leaders", desc: "Who governs, and the royal houses", color: "text-indigo-400", bg: "bg-indigo-500/10" },
   { icon: <Article size={18} weight="fill" />, label: "Policy", desc: "What governments spend, with a calculator", color: "text-violet-400", bg: "bg-violet-500/10" },
   { icon: <Ranking size={18} weight="fill" />, label: "Compare", desc: "Figures and systems of government, side by side", color: "text-secondary", bg: "bg-secondary/10" },
-  { icon: <Lightning size={18} weight="fill" />, label: "Trends", desc: "Where the figures are heading", color: "text-yellow-400", bg: "bg-yellow-500/10" },
+  { icon: <Lightning size={18} weight="fill" />, label: "Developments", desc: "What is changing, field by field", color: "text-yellow-400", bg: "bg-yellow-500/10" },
   { icon: <Globe size={18} weight="fill" />, label: "Worldview", desc: "The world as a whole", color: "text-teal-400", bg: "bg-teal-500/10" },
   { icon: <Leaf size={18} weight="fill" />, label: "Climate", desc: "Disasters now, and the state of the living world", color: "text-green-400", bg: "bg-green-500/10" },
   { icon: <Gavel size={18} weight="fill" />, label: "Crime Statistics", desc: "Crime and justice", color: "text-rose-400", bg: "bg-rose-500/10" },
