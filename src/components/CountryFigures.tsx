@@ -44,7 +44,6 @@ import { RESOURCE_PRODUCERS, type Share } from "../data/resourceProducers";
 import { ENERGY_PRODUCERS } from "../data/energyProducers";
 import { CRITICAL_MINERALS, CRITICAL_MINERALS_SOURCE } from "../data/criticalMinerals";
 import { countryForFeature } from "../data/mapJoin";
-import { BASES_ABROAD, BASES_HOSTED, MILITARY_BASES_SOURCE } from "../data/militaryBases";
 import { ALLIANCES, ALLIANCE_KIND_PLURAL } from "../data/alliances";
 import { SURVEILLANCE, SURVEILLANCE_SCALES, SURVEILLANCE_SOURCE, type SurveillanceMeasure } from "../data/surveillance";
 import { COUNTRY_LAW_HELD, COUNTRY_LAW_SOURCES, type CountryLawAdvice, type CountryLawFile } from "../data/countryLaw";
@@ -110,9 +109,9 @@ const Foot = ({ sources }: { sources: (Src | undefined)[] }) => {
 };
 
 /** Rows of bars, each its figure and year: `share` is the bar's length out of 100. */
-function Bars({ t, rows }: { t: Tokens; rows: { label: string; text: string; y?: string | number; share: number; color?: string }[] }) {
+function Bars({ t, rows, wide = false }: { t: Tokens; rows: { label: string; text: string; y?: string | number; share: number; color?: string }[]; /** Two across, for a panel the width of its row. */ wide?: boolean }) {
   return (
-    <ul className="flex flex-col gap-2">
+    <ul className={wide ? "grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-2.5" : "flex flex-col gap-2"}>
       {rows.map((r, i) => (
         <li key={r.label} className="grid grid-cols-[minmax(0,1fr)_auto] gap-x-2 items-baseline">
           <span className="text-[11px] font-sans leading-snug" style={{ color: t.bodyText }}>
@@ -317,8 +316,6 @@ export default function CountryFigures({ code, name }: { code: string; name: str
   const land = pick(LAND_USE, code);
   const indexes = pick(COUNTRY_INDEXES, code) ?? {};
   const un = pick(COUNTRY_UN, code);
-  const abroad = pick(BASES_ABROAD, code) ?? [];
-  const hosted = pick(BASES_HOSTED, code) ?? [];
   const blocs = ALLIANCES.filter((a) => a.members?.includes(code));
   const fr = COUNTRY_FIGURES.freedom[code];
   const cm = COUNTRY_FIGURES.childMortality[code];
@@ -998,12 +995,13 @@ export default function CountryFigures({ code, name }: { code: string; name: str
       </Section>
 
       {/* ── Standing and the world ── */}
-      <Section t={t} title="Standing, relations and the world" kicker="how it is ranked, whom it is allied with, who comes and goes">
-        <Panel t={t} title="Official indexes" meta={`${indexRows.length} held`} className="md:col-span-2 xl:col-span-1">
+      <Section t={t} title="Standing, relations and the world" kicker="how it is ranked, and whom it is allied with">
+        <Panel t={t} title="Official indexes" meta={`${indexRows.length} held`} className="md:!basis-full xl:!basis-full">
           {indexRows.length ? (
             <>
               <Bars
                 t={t}
+                wide
                 rows={indexRows.map(({ d, f, share }) => ({
                   label: `${d.name} (${d.by})`,
                   text: `${f.v}${f.rank ? ` · #${f.rank}` : f.place ? ` · ${f.place} of ${f.of}` : ""}`,
@@ -1109,21 +1107,6 @@ export default function CountryFigures({ code, name }: { code: string; name: str
           ) : (
             <None t={t}>{name} belongs to none of the alliances and blocs the site holds.</None>
           )}
-        </Panel>
-        <Panel t={t} title="Bases, and coming and going" meta="abroad and at home">
-          <Tiles
-            t={t}
-            items={[
-              { label: "Hosts its forces abroad", text: `${abroad.length} ${abroad.length === 1 ? "country" : "countries"}` },
-              { label: "Hosts others' forces", text: `${hosted.length} ${hosted.length === 1 ? "country" : "countries"}` },
-              ...(COUNTRY_FIGURES.migrantShare[code] ? [{ label: "Born abroad", text: pct(COUNTRY_FIGURES.migrantShare[code][1]), y: COUNTRY_FIGURES.migrantShare[code][0] }] : []),
-              ...(COUNTRY_FIGURES.arrivals[code] ? [{ label: "Overnight visitors", text: big(COUNTRY_FIGURES.arrivals[code][1]), y: COUNTRY_FIGURES.arrivals[code][0] }] : []),
-            ]}
-          />
-          {abroad.length > 0 && <Note t={t}>Its bases abroad are in {abroad.slice(0, 12).join(", ")}{abroad.length > 12 ? ` and ${abroad.length - 12} more` : ""}.</Note>}
-          {hosted.length > 0 && <Note t={t}>It hosts bases of {hosted.join(", ")}.</Note>}
-          <Note t={t}>Host countries named by Wikipedia's list, not a count of bases.</Note>
-          <Foot sources={[MILITARY_BASES_SOURCE, COUNTRY_FIGURES.migrantShare[code] ? COUNTRY_FIGURE_SOURCES.migrantShare : undefined, COUNTRY_FIGURES.arrivals[code] ? COUNTRY_FIGURE_SOURCES.arrivals : undefined]} />
         </Panel>
       </Section>
     </div>
