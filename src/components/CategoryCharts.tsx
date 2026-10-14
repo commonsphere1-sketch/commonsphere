@@ -23,7 +23,7 @@
  * told by colour alone.
  */
 import { useId, type ReactNode } from "react";
-import { Area, AreaChart, CartesianGrid, Line, LineChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
+import { Area, AreaChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
 import { useTheme } from "../contexts/ThemeContext";
 import { DISPLACED_BY_KIND, WORLD, type WorldIndicator, type WorldPoint } from "../data/worldview";
 import { REGION_SERIES } from "../data/regionSeries";
@@ -158,22 +158,37 @@ function Reading({ look, children }: { look: Look; children: ReactNode }) {
 
 type LineDef = { key: string; label: string; color: string; series: WorldPoint[] };
 
-/** Several series against the years, a line each. */
+/**
+ * Several series against the years: each a line over a fill of its colour that fades to nothing beneath it, on a
+ * faint full grid - the look of the reference design the Worldview page was set after, in the site's colours. The
+ * lines were bare over dashed rules across.
+ */
 function Lines({ look, lines, fmt, tick, label }: { look: Look; lines: LineDef[]; fmt: (v: number) => string; tick: (v: number) => string; label: string }) {
+  const id = useId().replace(/:/g, "");
   const years = [...new Set(lines.flatMap((l) => l.series.map(([y]) => y)))].sort((a, b) => a - b);
   const data = years.map((y) => ({ year: String(y), ...Object.fromEntries(lines.map((l) => [l.key, l.series.find(([x]) => x === y)?.[1] ?? null])) }));
+  // One series fills more strongly than several, whose fills lie over one another.
+  const strength = lines.length === 1 ? 0.32 : 0.16;
   return (
     <div role="img" aria-label={label}>
       <ResponsiveContainer width="100%" height={230}>
-        <LineChart data={data} margin={{ top: 6, right: 16, left: 0, bottom: 0 }}>
-          <CartesianGrid stroke={look.grid} strokeDasharray="3 3" vertical={false} />
+        <AreaChart data={data} margin={{ top: 6, right: 16, left: 0, bottom: 0 }}>
+          <defs>
+            {lines.map((l) => (
+              <linearGradient key={l.key} id={`${id}-${l.key}`} x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0%" stopColor={l.color} stopOpacity={strength} />
+                <stop offset="100%" stopColor={l.color} stopOpacity={0} />
+              </linearGradient>
+            ))}
+          </defs>
+          <CartesianGrid stroke={look.grid} />
           <XAxis dataKey="year" {...look.axis} minTickGap={22} />
           <YAxis {...look.axis} width={48} tickFormatter={tick} domain={["auto", "auto"]} />
           <Tooltip {...look.tooltip} formatter={(v: number, k: string) => [fmt(v), lines.find((l) => l.key === k)?.label ?? k]} />
           {lines.map((l) => (
-            <Line key={l.key} type="monotone" dataKey={l.key} stroke={l.color} strokeWidth={2} dot={false} connectNulls isAnimationActive={false} />
+            <Area key={l.key} type="monotone" dataKey={l.key} stroke={l.color} strokeWidth={2} fill={`url(#${id}-${l.key})`} fillOpacity={1} dot={false} connectNulls isAnimationActive={false} />
           ))}
-        </LineChart>
+        </AreaChart>
       </ResponsiveContainer>
     </div>
   );
@@ -298,7 +313,7 @@ function StackChart({ def, frame, look }: { def: Extract<ChartDef, { kind: "stac
       <div role="img" aria-label={`${def.title}, ${first.year} to ${now.year}. In ${now.year}: ${s.parts.map((p) => `${p.label} ${s.fmt(now[p.key])}`).join(", ")}.`}>
         <ResponsiveContainer width="100%" height={230}>
           <AreaChart data={s.rows.map((r) => ({ ...r, year: String(r.year) }))} margin={{ top: 6, right: 16, left: 0, bottom: 0 }}>
-            <CartesianGrid stroke={look.grid} strokeDasharray="3 3" vertical={false} />
+            <CartesianGrid stroke={look.grid} />
             <XAxis dataKey="year" {...look.axis} minTickGap={22} />
             <YAxis {...look.axis} width={48} tickFormatter={s.tick} domain={s.shares ? [0, 100] : [0, "auto"]} ticks={s.shares ? [0, 25, 50, 75, 100] : undefined} allowDataOverflow={s.shares} />
             <Tooltip {...look.tooltip} formatter={(v: number, k: string) => [s.fmt(v), s.parts.find((p) => p.key === k)?.label ?? k]} />
