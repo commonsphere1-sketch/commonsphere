@@ -798,67 +798,72 @@ function RowDetailPanel({
   // The share of the other places it ranks ahead of. It read "Top 99th percentile", which is neither a top share nor a percentile.
   const aheadOf = totalInPool > 1 ? Math.round(((totalInPool - rank) / (totalInPool - 1)) * 100) : null;
 
+  /* Its flag, name and rank; and its buttons. The strip sets them out with its bars, so that the details of a bar can
+     stand under the buttons. */
+  const head = (
+    <div className="flex items-center gap-3 flex-wrap">
+      <EntityFlag
+        row={row}
+        imgClassName="w-12 h-8 rounded-md object-cover border border-border shadow-sm"
+        iconSize={12}
+      />
+      <div>
+        <h3 className="text-sm font-bold text-foreground">{row.name}</h3>
+        <p className="text-[11px] text-muted-foreground">
+          Rank #{rank} of {totalInPool}
+          {aheadOf !== null ? (rank === 1 ? " · none ranks above it" : ` · ahead of ${aheadOf}% of the others`) : ""}
+        </p>
+      </div>
+      <div className="px-2.5 py-1 bg-yellow-500/15 rounded-lg">
+        <span className="text-xs font-bold text-yellow-400">
+          {row.composite.toFixed(1)}
+        </span>
+        <span className="text-[10px] text-yellow-400/70 ml-1">
+          composite
+        </span>
+      </div>
+    </div>
+  );
+  const actions = (
+    <div className="flex items-center gap-1.5 shrink-0">
+      {/* Pinning from the row itself, so the comparison can be built while
+          reading the table rather than only from the search at the top. */}
+      <button
+        onClick={(e) => {
+          e.stopPropagation();
+          onToggleCompare();
+        }}
+        disabled={!inCompare && compareFull}
+        title={
+          !inCompare && compareFull
+            ? `Remove one first — ${COMPARE_MAX} is the limit`
+            : undefined
+        }
+        className={`px-2.5 py-1 rounded-lg text-[10px] font-sans border transition-colors cursor-pointer disabled:cursor-not-allowed disabled:opacity-50 ${
+          inCompare
+            ? "border-border bg-muted text-foreground"
+            : "border-border text-muted-foreground hover:text-foreground hover:bg-muted/50"
+        }`}
+      >
+        {inCompare ? "In comparison" : "Compare"}
+      </button>
+      <button
+        onClick={(e) => {
+          e.stopPropagation();
+          onClose();
+        }}
+        className="p-1.5 rounded-lg hover:bg-muted/50 text-muted-foreground hover:text-foreground transition-colors"
+      >
+        <X size={14} />
+      </button>
+    </div>
+  );
+
   return (
     <div className="animate-fade-in">
-      <div className="flex items-center justify-between mb-4 flex-wrap gap-2">
-        <div className="flex items-center gap-3 flex-wrap">
-          <EntityFlag
-            row={row}
-            imgClassName="w-12 h-8 rounded-md object-cover border border-border shadow-sm"
-            iconSize={12}
-          />
-          <div>
-            <h3 className="text-sm font-bold text-foreground">{row.name}</h3>
-            <p className="text-[11px] text-muted-foreground">
-              Rank #{rank} of {totalInPool}
-              {aheadOf !== null ? (rank === 1 ? " · none ranks above it" : ` · ahead of ${aheadOf}% of the others`) : ""}
-            </p>
-          </div>
-          <div className="px-2.5 py-1 bg-yellow-500/15 rounded-lg">
-            <span className="text-xs font-bold text-yellow-400">
-              {row.composite.toFixed(1)}
-            </span>
-            <span className="text-[10px] text-yellow-400/70 ml-1">
-              composite
-            </span>
-          </div>
-        </div>
-        <div className="flex items-center gap-1.5 shrink-0">
-          {/* Pinning from the row itself, so the comparison can be built while
-              reading the table rather than only from the search at the top. */}
-          <button
-            onClick={(e) => {
-              e.stopPropagation();
-              onToggleCompare();
-            }}
-            disabled={!inCompare && compareFull}
-            title={
-              !inCompare && compareFull
-                ? `Remove one first — ${COMPARE_MAX} is the limit`
-                : undefined
-            }
-            className={`px-2.5 py-1 rounded-lg text-[10px] font-sans border transition-colors cursor-pointer disabled:cursor-not-allowed disabled:opacity-50 ${
-              inCompare
-                ? "border-border bg-muted text-foreground"
-                : "border-border text-muted-foreground hover:text-foreground hover:bg-muted/50"
-            }`}
-          >
-            {inCompare ? "In comparison" : "Compare"}
-          </button>
-          <button
-            onClick={(e) => {
-              e.stopPropagation();
-              onClose();
-            }}
-            className="p-1.5 rounded-lg hover:bg-muted/50 text-muted-foreground hover:text-foreground transition-colors"
-          >
-            <X size={14} />
-          </button>
-        </div>
-      </div>
       {/* The same strip the collapsed row carries, opened out: the figure
           above each bar and the measure's name below. */}
-      <ProfileStrip row={row} allValuesMap={allValuesMap} />
+      <ProfileStrip row={row} allValuesMap={allValuesMap} head={head} actions={actions} />
       <p className="text-[9px] text-muted-foreground mt-2">
         Bar height is where this entity places among all those with the
         measure, not the value itself — so a short bar is a low placing, whether
@@ -955,10 +960,16 @@ function ProfileStrip({
   row,
   allValuesMap,
   bare = false,
+  head,
+  actions,
 }: {
   row: RankRow;
   allValuesMap: Partial<Record<string, number[]>>;
   bare?: boolean;
+  /** The opened row's heading, over the bars. */
+  head?: React.ReactNode;
+  /** The opened row's buttons, at the top right: the details of a bar stand under them. */
+  actions?: React.ReactNode;
 }) {
   /* The bar whose details are open under the strip: the one pointed at, or the one last selected. */
   const [picked, setPicked] = useState<string | null>(null);
@@ -1005,8 +1016,13 @@ function ProfileStrip({
 
   const open = placed.find((x) => x.m.id === (hovered ?? picked)) ?? null;
   return (
-    <div>
-      <div className="flex flex-wrap items-end gap-x-1 gap-y-3 pb-1" role="group" aria-label={`${row.name}: its placing on each measure`}>
+    /* Two columns on a wide window: the heading over the bars on the left; the buttons and, under them, the details of
+       the bar pointed at on the right, upright - they lay across the foot of the panel, a scroll below the bars they
+       are about. On a narrow one the details go under the bars, as they did. */
+    <div className="grid grid-cols-[minmax(0,1fr)_auto] md:grid-cols-[minmax(0,1fr)_17rem] items-start gap-x-4 gap-y-3">
+      <div className="min-w-0">{head}</div>
+      <div className="flex justify-end">{actions}</div>
+      <div className="col-span-2 md:col-span-1 flex flex-wrap items-end gap-x-1 gap-y-3 pb-1" role="group" aria-label={`${row.name}: its placing on each measure`}>
         {placed.map(({ m, val, p }) => {
           const isOpen = open?.m.id === m.id;
           return (
@@ -1045,9 +1061,9 @@ function ProfileStrip({
       </div>
 
       {/* The details of the bar pointed at or selected: what it measures, the figure, its rank, and the range it sits in. */}
-      <div className="mt-2 rounded-lg border border-border bg-background/40 px-3 py-2.5 min-h-[5.5rem]" aria-live="polite">
+      <div className="col-span-2 md:col-span-1 rounded-lg border border-border bg-background/40 px-3 py-3 min-h-[5.5rem]" aria-live="polite">
         {open ? (
-          <div className="grid grid-cols-1 md:grid-cols-[minmax(0,1.2fr)_minmax(0,1fr)] gap-x-6 gap-y-2">
+          <div className="flex flex-col gap-3.5">
             <div className="min-w-0">
               <p className="text-xs font-bold font-sans text-foreground flex items-center gap-1.5">
                 <span className={`w-2 h-2 rounded-sm shrink-0 ${colorOf(open.m)}`} aria-hidden />
