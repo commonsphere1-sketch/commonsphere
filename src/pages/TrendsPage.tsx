@@ -18,7 +18,7 @@
  * the UN's low and high variants - with no likelihood put on either.
  */
 import { PageHeader } from "../components/PageHeader";
-import { useMemo, useState, type ReactNode } from "react";
+import { useMemo, useRef, useState, type ReactNode } from "react";
 import { Area, AreaChart, Bar, BarChart, CartesianGrid, Line, LineChart, ReferenceArea, ReferenceLine, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
 import { ChartLineUp, Cpu, Factory, Globe, Leaf, Lightning, Target, TrendUp, Users } from "@phosphor-icons/react";
 import { useTheme } from "../contexts/ThemeContext";
@@ -1382,6 +1382,8 @@ function TechnologySection() {
 // ── Page ───────────────────────────────────────────────────────────────────
 
 const SECTIONS: NavSection[] = [
+  // The page opens on the week's news and the explorer of every figure; each part after has a chip of its own.
+  { id: "overview", label: "Overview" },
   { id: "economy", label: "World economy" },
   { id: "countries", label: "Countries" },
   { id: "population", label: "Population" },
@@ -1626,6 +1628,22 @@ export function IndustriesExplorer({ embedded = false, action }: { embedded?: bo
 
 export function TrendsPage() {
   const look = useLook();
+  /* The part of the page shown: one at a time, picked from the bar. The page was every part one under another - some
+     thirty screens of it - and the bar only scrolled to them. A link to a part (#renewables) opens on it. */
+  const [tab, setTab] = useState(() => {
+    const asked = typeof window === "undefined" ? "" : window.location.hash.slice(1);
+    return SECTIONS.some((s) => s.id === asked) ? asked : SECTIONS[0].id;
+  });
+  const partRef = useRef<HTMLDivElement | null>(null);
+  const pick = (id: string) => {
+    setTab(id);
+    // Where the reader has scrolled down into a part, the next one starts at its top, under the bar.
+    const el = partRef.current;
+    if (el && el.getBoundingClientRect().top < 120) requestAnimationFrame(() => el.scrollIntoView({ block: "start" }));
+  };
+  /** A group of the trends is a part of its own: the first under the chip of the section they stood in. */
+  const trendPart = (g: (typeof TREND_GROUPS)[number], i: number) => (i === 0 ? "trends" : g.id);
+  const onTrends = TREND_GROUPS.some((g, i) => trendPart(g, i) === tab);
   const { head, muted } = look;
   const first = WEO.firstProjected;
   const end = WEO.lastYear;
@@ -1681,290 +1699,306 @@ export function TrendsPage() {
           {usdFromBillions(gdpBase)} in {first - 1} ({signed(((gdpEnd - gdpBase) / (gdpBase || 1)) * 100, 0)}% in current dollars)
         </PageHeader>
 
-        <SectionNav label="Trends and projections sections" sections={SECTIONS} />
+        <SectionNav label="Trends and projections sections" sections={SECTIONS} picked={tab} onPick={pick} />
+        {/* Where a newly picked part starts: under the bar. It takes no room, and the gap after it is given back. */}
+        <div ref={partRef} className="scroll-mt-36 -mb-14 sm:-mb-20" aria-hidden />
 
         {/* The Trends & Projections desk stood here and was removed as asked. The sections below take each of its
             subjects at length; its energy panel is kept, under Renewables. */}
-        <HeadlinesBanner
-          label="Economy headlines"
-          topics={["economy"]}
-          subject={SUBJECT.economy}
-          days={7}
-          note={(outlets) => (
-            <>
-              The last week's economic news - {outlets}, five at most from each - refreshed every half hour. The tag is the place a story is about, violet for more than
-              one. Each links to its source.
-            </>
-          )}
-        />
+        {tab === "overview" && (
+          <>
+            <HeadlinesBanner
+              label="Economy headlines"
+              topics={["economy"]}
+              subject={SUBJECT.economy}
+              days={7}
+              note={(outlets) => (
+                <>
+                  The last week's economic news - {outlets}, five at most from each - refreshed every half hour. The tag is the place a story is about, violet for more than
+                  one. Each links to its source.
+                </>
+              )}
+            />
 
-        {/* ── Explorer: every figure of the page, by group, beside its detail - as the
-            Countries and Economies pages have their own ── */}
-        <TrendsExplorer />
+            {/* ── Explorer: every figure of the page, by group, beside its detail - as the
+                Countries and Economies pages have their own ── */}
+            <TrendsExplorer />
+          </>
+        )}
 
         {/* ══ Overview ══ */}
         {/* ══ World economy ══ */}
-        <section id="economy" className="scroll-mt-36 flex flex-col gap-8 sm:gap-10" aria-labelledby="economy-title">
-          <SectionHead icon={<TrendUp size={18} weight="fill" />} color="#6366f1" title="World economy" kicker={`The IMF's outlook to ${end}: output, growth, prices and debt`} />
-          <h2 id="economy-title" className="sr-only">
-            World economy
-          </h2>
-          <Card>
-            <CardHead title="World GDP, and where the IMF projects it" kicker={`Current US dollars · IMF World Economic Outlook, ${WEO.edition} · ${gdp[0]?.[0]}–${end}`} />
-            <SplitArea series={gdp} split={first} color={SERIES.world} name="World GDP" fmt={(v) => usdFromBillions(v)} tick={(v) => `$${Math.round(v / 1000)}T`} />
-            <Legend
-              items={[
-                { color: SERIES.world, label: `Estimated, ${first - 1}`, value: usdFromBillions(gdpBase) },
-                { color: SERIES.world, label: `Projected, ${end}`, value: usdFromBillions(gdpEnd), dashed: true },
-              ]}
-            />
-            <Note>
-              In current dollars, so the rise is part growth and part price rises and exchange rates. The shaded years are projections; the line is dashed through them.
-            </Note>
-            <SourceLink sources={[WEO]} className="mt-3" />
-          </Card>
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 sm:gap-8">
-            {(
-              [
-                { key: "growth", title: "Real GDP growth", kicker: "% a year" },
-                { key: "inflation", title: "Inflation", kicker: "Consumer prices, % a year" },
-                { key: "debt", title: "Government debt", kicker: "% of GDP" },
-              ] as const
-            ).map((m) => {
-              const lines: LineSpec[] = [
-                { key: "w", label: "World", color: SERIES.world, series: world[m.key] ?? [] },
-                { key: "a", label: "Advanced economies", color: SERIES.advanced, series: advanced[m.key] ?? [] },
-                { key: "e", label: "Emerging and developing", color: SERIES.emerging, series: emerging[m.key] ?? [] },
-              ].filter((l) => l.series.length > 1);
-              return (
-                <Card key={m.key}>
-                  <CardHead title={m.title} kicker={`${m.kicker} · IMF · to ${end}`} />
-                  <OutlookLines lines={lines} split={first} fmt={(v) => pct(v, m.key === "debt" ? 0 : 1)} from={2015} />
-                  <Legend items={lines.map((l) => ({ color: l.color, label: `${l.label}, ${first}`, value: pct(at(l.series, first) ?? 0) }))} />
-                  <SourceLink sources={[WEO]} className="mt-3" />
-                </Card>
-              );
-            })}
-          </div>
-        </section>
-
-        {/* ══ Countries ══ */}
-        <section id="countries" className="scroll-mt-36 flex flex-col gap-8 sm:gap-10" aria-labelledby="countries-title">
-          <SectionHead icon={<Globe size={18} weight="fill" />} color="#3b82f6" title="Countries" kicker={`${WEO_COUNTRIES.length} economies, as the IMF projects each`} />
-          <h2 id="countries-title" className="sr-only">
-            Countries
-          </h2>
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 sm:gap-8">
+        {tab === "economy" && (
+          <section id="economy" className="scroll-mt-36 flex flex-col gap-8 sm:gap-10" aria-labelledby="economy-title">
+            <SectionHead icon={<TrendUp size={18} weight="fill" />} color="#6366f1" title="World economy" kicker={`The IMF's outlook to ${end}: output, growth, prices and debt`} />
+            <h2 id="economy-title" className="sr-only">
+              World economy
+            </h2>
             <Card>
-              <CardHead title={`The fifteen largest economies in ${end}`} kicker={`GDP, current US dollars · IMF projection · with the change on ${first - 1}`} />
-              <ul className="flex flex-col gap-2.5" aria-label={`Largest economies projected for ${end}`}>
-                {largest.map(({ c, now, then }, i) => (
-                  <RankRow key={c.iso3} name={c.name} code={c.code} value={then} top={largest[0].then} text={usdFromBillions(then)} sub={`${signed(((then - now) / now) * 100, 0)}%`} color={PALETTE[i % PALETTE.length]} />
-                ))}
-              </ul>
-              <Note>
-                The percentage is the change in current dollars from the IMF's {first - 1} estimate to its {end} projection - growth, price rises and exchange rates together -
-                worked out here from the two published figures.
-              </Note>
-              <SourceLink sources={[WEO]} className="mt-3" />
-            </Card>
-            <Card>
-              <CardHead title={`Growth projected for ${first}`} kicker={`Real GDP, % · IMF · the ten fastest and ten slowest of ${growth.of}`} />
-              <p className="text-[10px] font-mono uppercase tracking-widest mb-2" style={{ color: muted }}>
-                Fastest
-              </p>
-              <ul className="flex flex-col gap-2" aria-label="Fastest growth projected">
-                {growth.fastest.map(({ c, v }) => (
-                  <RankRow key={c.iso3} name={c.name} code={c.code} value={v} top={growth.fastest[0].v} text={`${signed(v)}%`} color="#10b981" />
-                ))}
-              </ul>
-              <p className="text-[10px] font-mono uppercase tracking-widest mt-4 mb-2" style={{ color: muted }}>
-                Slowest
-              </p>
-              <ul className="flex flex-col gap-2" aria-label="Slowest growth projected">
-                {growth.slowest.map(({ c, v }) => (
-                  <RankRow key={c.iso3} name={c.name} code={c.code} value={Math.abs(v)} top={Math.max(...growth.slowest.map((r) => Math.abs(r.v)), 1)} text={`${signed(v)}%`} color={v < 0 ? "#ef4444" : "#f59e0b"} />
-                ))}
-              </ul>
-              <Note>Small economies lead both ends: one mine, one harvest or one conflict moves a small economy's year a long way.</Note>
-              <SourceLink sources={[WEO]} className="mt-3" />
-            </Card>
-          </div>
-          <CountryOutlookCard />
-        </section>
-
-        {/* ══ Population ══ */}
-        <section id="population" className="scroll-mt-36 flex flex-col gap-8 sm:gap-10" aria-labelledby="population-title">
-          <SectionHead icon={<Users size={18} weight="fill" />} color="#8b5cf6" title="Population" kicker="The UN's medium variant to 2100: how many people, how old, and where" />
-          <h2 id="population-title" className="sr-only">
-            Population
-          </h2>
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 sm:gap-8">
-            <Card className="lg:col-span-2">
-              <CardHead title="World population, 1950 to 2100" kicker={`People on 1 July · UN World Population Prospects ${WPP.revision}, medium variant`} />
-              <SplitArea
-                series={WORLD_POP.population}
-                split={WPP.firstProjected}
-                color={SERIES.people}
-                name="World population"
-                fmt={people}
-                tick={(v) => `${(v / 1e9).toFixed(0)}bn`}
-                height={280}
-                ticks={[1950, 1975, 2000, 2025, 2050, 2075, 2100]}
-                mark={{ year: POP_PEAK[0], label: `peak ${POP_PEAK[0]}` }}
-              />
+              <CardHead title="World GDP, and where the IMF projects it" kicker={`Current US dollars · IMF World Economic Outlook, ${WEO.edition} · ${gdp[0]?.[0]}–${end}`} />
+              <SplitArea series={gdp} split={first} color={SERIES.world} name="World GDP" fmt={(v) => usdFromBillions(v)} tick={(v) => `$${Math.round(v / 1000)}T`} />
               <Legend
                 items={[
-                  { color: SERIES.people, label: `Now, ${THIS_YEAR}`, value: people(at(WORLD_POP.population, THIS_YEAR) ?? 0) },
-                  { color: SERIES.people, label: `Peak, ${POP_PEAK[0]}`, value: people(POP_PEAK[1]), dashed: true },
-                  { color: SERIES.people, label: "2100", value: people(at(WORLD_POP.population, 2100) ?? 0), dashed: true },
+                  { color: SERIES.world, label: `Estimated, ${first - 1}`, value: usdFromBillions(gdpBase) },
+                  { color: SERIES.world, label: `Projected, ${end}`, value: usdFromBillions(gdpEnd), dashed: true },
                 ]}
               />
-              <PopulationExplained />
-              <SourceLink sources={[WPP]} className="mt-3" />
+              <Note>
+                In current dollars, so the rise is part growth and part price rises and exchange rates. The shaded years are projections; the line is dashed through them.
+              </Note>
+              <SourceLink sources={[WEO]} className="mt-3" />
             </Card>
-            <div className="grid grid-cols-1 sm:grid-cols-3 lg:grid-cols-1 gap-3">
-              {[
-                { label: "Median age", s: WORLD_POP.medianAge, fmt: (v: number) => `${v.toFixed(1)} years`, about: "Half the world is older than this." },
-                { label: "Births per woman", s: WORLD_POP.fertility, fmt: (v: number) => v.toFixed(2), about: "About 2.1 keeps a population level over time." },
-                { label: "Life expectancy", s: WORLD_POP.lifeExpectancy, fmt: (v: number) => `${v.toFixed(1)} years`, about: "At birth, for the year's death rates." },
-              ].map((m) => (
-                <StatCard
-                  key={m.label}
-                  s={{
-                    label: m.label,
-                    value: m.fmt(at(m.s, THIS_YEAR) ?? 0),
-                    sub: `UN · ${THIS_YEAR}`,
-                    about: m.about,
-                    series: m.s,
-                    split: WPP.firstProjected,
-                    color: SERIES.people,
-                    fmt: m.fmt,
-                    facts: [
-                      { label: "Projected", value: m.fmt(at(m.s, 2050) ?? 0), sub: "2050" },
-                      { label: "By the century's end", value: m.fmt(at(m.s, 2100) ?? 0), sub: "2100" },
-                    ],
-                    source: WPP,
-                  }}
-                />
-              ))}
-            </div>
-          </div>
-          <Card>
-            <CardHead title="Where the people will be" kicker={`Population by region · UN medium variant · ${THIS_YEAR}, 2050 and 2100`} />
-            <ul className="grid grid-cols-1 lg:grid-cols-2 gap-x-8 gap-y-4" aria-label="Population by region">
-              {regions.map((r, i) => {
-                const pts = [THIS_YEAR, 2050, 2100].map((y) => ({ y, v: at(r.population, y) ?? 0 }));
-                const color = PALETTE[(i * 2) % PALETTE.length];
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 sm:gap-8">
+              {(
+                [
+                  { key: "growth", title: "Real GDP growth", kicker: "% a year" },
+                  { key: "inflation", title: "Inflation", kicker: "Consumer prices, % a year" },
+                  { key: "debt", title: "Government debt", kicker: "% of GDP" },
+                ] as const
+              ).map((m) => {
+                const lines: LineSpec[] = [
+                  { key: "w", label: "World", color: SERIES.world, series: world[m.key] ?? [] },
+                  { key: "a", label: "Advanced economies", color: SERIES.advanced, series: advanced[m.key] ?? [] },
+                  { key: "e", label: "Emerging and developing", color: SERIES.emerging, series: emerging[m.key] ?? [] },
+                ].filter((l) => l.series.length > 1);
                 return (
-                  <li key={r.name}>
-                    <div className="flex items-baseline justify-between gap-2 mb-1">
-                      <span className="text-[12px] font-semibold font-sans" style={{ color: head }}>
-                        {r.name}
-                      </span>
-                      <span className="text-[10px] font-mono" style={{ color: muted }}>
-                        {signed(((pts[2].v - pts[0].v) / (pts[0].v || 1)) * 100, 0)}% by 2100
-                      </span>
-                    </div>
-                    {pts.map((p, k) => (
-                      <div key={p.y} className="grid grid-cols-[2.5rem_1fr_3.5rem] items-center gap-x-2 mb-1">
-                        <span className="text-[10px] font-mono" style={{ color: muted }}>
-                          {p.y}
-                        </span>
-                        <span className="h-2 rounded-full overflow-hidden" style={{ background: look.track }}>
-                          <span className="block h-full rounded-full" style={{ width: `${Math.max(1, (100 * p.v) / regionTop)}%`, background: color, opacity: k === 0 ? 1 : k === 1 ? 0.7 : 0.45 }} />
-                        </span>
-                        <span className="text-[11px] font-mono font-bold text-right tabular-nums" style={{ color: head }}>
-                          {people(p.v)}
-                        </span>
-                      </div>
-                    ))}
-                  </li>
+                  <Card key={m.key}>
+                    <CardHead title={m.title} kicker={`${m.kicker} · IMF · to ${end}`} />
+                    <OutlookLines lines={lines} split={first} fmt={(v) => pct(v, m.key === "debt" ? 0 : 1)} from={2015} />
+                    <Legend items={lines.map((l) => ({ color: l.color, label: `${l.label}, ${first}`, value: pct(at(l.series, first) ?? 0) }))} />
+                    <SourceLink sources={[WEO]} className="mt-3" />
+                  </Card>
                 );
               })}
-            </ul>
-            <Note>A region's three bars are on one scale across all six, so they can be compared; the lighter the bar, the further ahead the year.</Note>
-            <SourceLink sources={[WPP]} className="mt-3" />
-          </Card>
-        </section>
+            </div>
+          </section>
+        )}
 
-        {/* ══ Scenarios ══ */}
-        <section id="scenarios" className="scroll-mt-36 flex flex-col gap-8 sm:gap-10" aria-labelledby="scenarios-title">
-          <SectionHead icon={<Target size={18} weight="fill" />} color="#f97316" title="Scenarios" kicker="The UN's own: what the world's population does if families are a little smaller or larger" />
-          <h2 id="scenarios-title" className="sr-only">
-            Scenarios
-          </h2>
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 sm:gap-8">
-            <Card className="lg:col-span-2">
-              <CardHead title="Three variants of the world's population" kicker={`People on 1 July · UN World Population Prospects ${WPP.revision} · ${WPP.firstProjected}–2100`} />
-              <OutlookLines lines={variantRows.map((v) => ({ key: v.key, label: v.label, color: v.color, series: v.series }))} split={WPP.firstProjected} fmt={(v) => `${(v / 1e9).toFixed(1)}bn`} height={280} />
-              <Legend items={variantRows.map((v) => ({ color: v.color, label: `${v.label}, 2100`, value: people(at(v.series, 2100) ?? 0), dashed: true }))} />
-              <Note>
-                The low and high variants assume half a child fewer or more per woman than the medium, everywhere and throughout. The UN gives neither a likelihood, and
-                nor does this page: they mark out how much rests on fertility, which is the least certain part of the projection.
-              </Note>
+        {/* ══ Countries ══ */}
+        {tab === "countries" && (
+          <section id="countries" className="scroll-mt-36 flex flex-col gap-8 sm:gap-10" aria-labelledby="countries-title">
+            <SectionHead icon={<Globe size={18} weight="fill" />} color="#3b82f6" title="Countries" kicker={`${WEO_COUNTRIES.length} economies, as the IMF projects each`} />
+            <h2 id="countries-title" className="sr-only">
+              Countries
+            </h2>
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 sm:gap-8">
+              <Card>
+                <CardHead title={`The fifteen largest economies in ${end}`} kicker={`GDP, current US dollars · IMF projection · with the change on ${first - 1}`} />
+                <ul className="flex flex-col gap-2.5" aria-label={`Largest economies projected for ${end}`}>
+                  {largest.map(({ c, now, then }, i) => (
+                    <RankRow key={c.iso3} name={c.name} code={c.code} value={then} top={largest[0].then} text={usdFromBillions(then)} sub={`${signed(((then - now) / now) * 100, 0)}%`} color={PALETTE[i % PALETTE.length]} />
+                  ))}
+                </ul>
+                <Note>
+                  The percentage is the change in current dollars from the IMF's {first - 1} estimate to its {end} projection - growth, price rises and exchange rates together -
+                  worked out here from the two published figures.
+                </Note>
+                <SourceLink sources={[WEO]} className="mt-3" />
+              </Card>
+              <Card>
+                <CardHead title={`Growth projected for ${first}`} kicker={`Real GDP, % · IMF · the ten fastest and ten slowest of ${growth.of}`} />
+                <p className="text-[10px] font-mono uppercase tracking-widest mb-2" style={{ color: muted }}>
+                  Fastest
+                </p>
+                <ul className="flex flex-col gap-2" aria-label="Fastest growth projected">
+                  {growth.fastest.map(({ c, v }) => (
+                    <RankRow key={c.iso3} name={c.name} code={c.code} value={v} top={growth.fastest[0].v} text={`${signed(v)}%`} color="#10b981" />
+                  ))}
+                </ul>
+                <p className="text-[10px] font-mono uppercase tracking-widest mt-4 mb-2" style={{ color: muted }}>
+                  Slowest
+                </p>
+                <ul className="flex flex-col gap-2" aria-label="Slowest growth projected">
+                  {growth.slowest.map(({ c, v }) => (
+                    <RankRow key={c.iso3} name={c.name} code={c.code} value={Math.abs(v)} top={Math.max(...growth.slowest.map((r) => Math.abs(r.v)), 1)} text={`${signed(v)}%`} color={v < 0 ? "#ef4444" : "#f59e0b"} />
+                  ))}
+                </ul>
+                <Note>Small economies lead both ends: one mine, one harvest or one conflict moves a small economy's year a long way.</Note>
+                <SourceLink sources={[WEO]} className="mt-3" />
+              </Card>
+            </div>
+            <CountryOutlookCard />
+          </section>
+        )}
+
+        {/* ══ Population ══ */}
+        {tab === "population" && (
+          <section id="population" className="scroll-mt-36 flex flex-col gap-8 sm:gap-10" aria-labelledby="population-title">
+            <SectionHead icon={<Users size={18} weight="fill" />} color="#8b5cf6" title="Population" kicker="The UN's medium variant to 2100: how many people, how old, and where" />
+            <h2 id="population-title" className="sr-only">
+              Population
+            </h2>
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 sm:gap-8">
+              <Card className="lg:col-span-2">
+                <CardHead title="World population, 1950 to 2100" kicker={`People on 1 July · UN World Population Prospects ${WPP.revision}, medium variant`} />
+                <SplitArea
+                  series={WORLD_POP.population}
+                  split={WPP.firstProjected}
+                  color={SERIES.people}
+                  name="World population"
+                  fmt={people}
+                  tick={(v) => `${(v / 1e9).toFixed(0)}bn`}
+                  height={280}
+                  ticks={[1950, 1975, 2000, 2025, 2050, 2075, 2100]}
+                  mark={{ year: POP_PEAK[0], label: `peak ${POP_PEAK[0]}` }}
+                />
+                <Legend
+                  items={[
+                    { color: SERIES.people, label: `Now, ${THIS_YEAR}`, value: people(at(WORLD_POP.population, THIS_YEAR) ?? 0) },
+                    { color: SERIES.people, label: `Peak, ${POP_PEAK[0]}`, value: people(POP_PEAK[1]), dashed: true },
+                    { color: SERIES.people, label: "2100", value: people(at(WORLD_POP.population, 2100) ?? 0), dashed: true },
+                  ]}
+                />
+                <PopulationExplained />
+                <SourceLink sources={[WPP]} className="mt-3" />
+              </Card>
+              <div className="grid grid-cols-1 sm:grid-cols-3 lg:grid-cols-1 gap-3">
+                {[
+                  { label: "Median age", s: WORLD_POP.medianAge, fmt: (v: number) => `${v.toFixed(1)} years`, about: "Half the world is older than this." },
+                  { label: "Births per woman", s: WORLD_POP.fertility, fmt: (v: number) => v.toFixed(2), about: "About 2.1 keeps a population level over time." },
+                  { label: "Life expectancy", s: WORLD_POP.lifeExpectancy, fmt: (v: number) => `${v.toFixed(1)} years`, about: "At birth, for the year's death rates." },
+                ].map((m) => (
+                  <StatCard
+                    key={m.label}
+                    s={{
+                      label: m.label,
+                      value: m.fmt(at(m.s, THIS_YEAR) ?? 0),
+                      sub: `UN · ${THIS_YEAR}`,
+                      about: m.about,
+                      series: m.s,
+                      split: WPP.firstProjected,
+                      color: SERIES.people,
+                      fmt: m.fmt,
+                      facts: [
+                        { label: "Projected", value: m.fmt(at(m.s, 2050) ?? 0), sub: "2050" },
+                        { label: "By the century's end", value: m.fmt(at(m.s, 2100) ?? 0), sub: "2100" },
+                      ],
+                      source: WPP,
+                    }}
+                  />
+                ))}
+              </div>
+            </div>
+            <Card>
+              <CardHead title="Where the people will be" kicker={`Population by region · UN medium variant · ${THIS_YEAR}, 2050 and 2100`} />
+              <ul className="grid grid-cols-1 lg:grid-cols-2 gap-x-8 gap-y-4" aria-label="Population by region">
+                {regions.map((r, i) => {
+                  const pts = [THIS_YEAR, 2050, 2100].map((y) => ({ y, v: at(r.population, y) ?? 0 }));
+                  const color = PALETTE[(i * 2) % PALETTE.length];
+                  return (
+                    <li key={r.name}>
+                      <div className="flex items-baseline justify-between gap-2 mb-1">
+                        <span className="text-[12px] font-semibold font-sans" style={{ color: head }}>
+                          {r.name}
+                        </span>
+                        <span className="text-[10px] font-mono" style={{ color: muted }}>
+                          {signed(((pts[2].v - pts[0].v) / (pts[0].v || 1)) * 100, 0)}% by 2100
+                        </span>
+                      </div>
+                      {pts.map((p, k) => (
+                        <div key={p.y} className="grid grid-cols-[2.5rem_1fr_3.5rem] items-center gap-x-2 mb-1">
+                          <span className="text-[10px] font-mono" style={{ color: muted }}>
+                            {p.y}
+                          </span>
+                          <span className="h-2 rounded-full overflow-hidden" style={{ background: look.track }}>
+                            <span className="block h-full rounded-full" style={{ width: `${Math.max(1, (100 * p.v) / regionTop)}%`, background: color, opacity: k === 0 ? 1 : k === 1 ? 0.7 : 0.45 }} />
+                          </span>
+                          <span className="text-[11px] font-mono font-bold text-right tabular-nums" style={{ color: head }}>
+                            {people(p.v)}
+                          </span>
+                        </div>
+                      ))}
+                    </li>
+                  );
+                })}
+              </ul>
+              <Note>A region's three bars are on one scale across all six, so they can be compared; the lighter the bar, the further ahead the year.</Note>
               <SourceLink sources={[WPP]} className="mt-3" />
             </Card>
-            <div className="grid grid-cols-1 sm:grid-cols-3 lg:grid-cols-1 gap-3">
-              {variantRows.map((v) => (
-                <div key={v.key} className="modal-tile rounded-xl px-3 py-2.5">
-                  <p className="text-[10px] font-sans uppercase tracking-wider flex items-center gap-1.5" style={{ color: muted }}>
-                    <span className="w-2 h-2 rounded-full" style={{ background: v.color }} aria-hidden />
-                    {v.label}
-                  </p>
-                  <p className="text-xl font-bold font-mono leading-tight mt-0.5" style={{ color: head }}>
-                    {people(at(v.series, 2100) ?? 0)}
-                  </p>
-                  <p className="text-[10px] font-mono" style={{ color: muted }}>
-                    in 2100 · {people(at(v.series, 2050) ?? 0)} in 2050
-                  </p>
-                  <p className="text-[11px] font-sans leading-snug mt-1" style={{ color: muted }}>
-                    {v.key === "low" ? "Half a child fewer per woman than the medium." : v.key === "high" ? "Half a child more per woman than the medium." : "The UN's central projection, used everywhere else on this page."}
-                  </p>
-                </div>
-              ))}
+          </section>
+        )}
+
+        {/* ══ Scenarios ══ */}
+        {tab === "scenarios" && (
+          <section id="scenarios" className="scroll-mt-36 flex flex-col gap-8 sm:gap-10" aria-labelledby="scenarios-title">
+            <SectionHead icon={<Target size={18} weight="fill" />} color="#f97316" title="Scenarios" kicker="The UN's own: what the world's population does if families are a little smaller or larger" />
+            <h2 id="scenarios-title" className="sr-only">
+              Scenarios
+            </h2>
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 sm:gap-8">
+              <Card className="lg:col-span-2">
+                <CardHead title="Three variants of the world's population" kicker={`People on 1 July · UN World Population Prospects ${WPP.revision} · ${WPP.firstProjected}–2100`} />
+                <OutlookLines lines={variantRows.map((v) => ({ key: v.key, label: v.label, color: v.color, series: v.series }))} split={WPP.firstProjected} fmt={(v) => `${(v / 1e9).toFixed(1)}bn`} height={280} />
+                <Legend items={variantRows.map((v) => ({ color: v.color, label: `${v.label}, 2100`, value: people(at(v.series, 2100) ?? 0), dashed: true }))} />
+                <Note>
+                  The low and high variants assume half a child fewer or more per woman than the medium, everywhere and throughout. The UN gives neither a likelihood, and
+                  nor does this page: they mark out how much rests on fertility, which is the least certain part of the projection.
+                </Note>
+                <SourceLink sources={[WPP]} className="mt-3" />
+              </Card>
+              <div className="grid grid-cols-1 sm:grid-cols-3 lg:grid-cols-1 gap-3">
+                {variantRows.map((v) => (
+                  <div key={v.key} className="modal-tile rounded-xl px-3 py-2.5">
+                    <p className="text-[10px] font-sans uppercase tracking-wider flex items-center gap-1.5" style={{ color: muted }}>
+                      <span className="w-2 h-2 rounded-full" style={{ background: v.color }} aria-hidden />
+                      {v.label}
+                    </p>
+                    <p className="text-xl font-bold font-mono leading-tight mt-0.5" style={{ color: head }}>
+                      {people(at(v.series, 2100) ?? 0)}
+                    </p>
+                    <p className="text-[10px] font-mono" style={{ color: muted }}>
+                      in 2100 · {people(at(v.series, 2050) ?? 0)} in 2050
+                    </p>
+                    <p className="text-[11px] font-sans leading-snug mt-1" style={{ color: muted }}>
+                      {v.key === "low" ? "Half a child fewer per woman than the medium." : v.key === "high" ? "Half a child more per woman than the medium." : "The UN's central projection, used everywhere else on this page."}
+                    </p>
+                  </div>
+                ))}
+              </div>
             </div>
-          </div>
-        </section>
+          </section>
+        )}
 
         {/* ══ Renewables ══ */}
-        <RenewablesSection />
+        {tab === "renewables" && <RenewablesSection />}
 
         {/* ══ Technology in charts ══ */}
-        <TechnologySection />
+        {tab === "emerging-tech" && <TechnologySection />}
 
         {/* ══ Trends ══ */}
-        <section id="trends" className="scroll-mt-36 flex flex-col gap-8 sm:gap-10" aria-labelledby="trends-title">
-          <SectionHead icon={<Lightning size={18} weight="fill" />} color="#10b981" title="Trends" kicker="What has been moving: the latest reading of each measure, and its change on about ten years before" />
-          <h2 id="trends-title" className="sr-only">
-            Trends
-          </h2>
-          {TREND_GROUPS.map((g) => (
-            <div key={g.title} id={g.id} className="scroll-mt-36 flex flex-col gap-6 pt-2">
-              <div className="flex items-center gap-2">
-                <span className="w-2 h-2 rounded-full" style={{ background: g.color }} aria-hidden />
-                <span className="text-[10px] font-bold font-sans uppercase tracking-widest" style={{ color: head }}>
-                  {g.title}
-                </span>
-                <span className="text-[10px] font-sans hidden sm:inline" style={{ color: muted }}>
-                  {g.kicker}
-                </span>
-                <div className="flex-1 h-px" style={{ background: look.grid }} />
-              </div>
-              {!NO_CARDS.has(g.id) && (
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
-                  {(TREND_CARDS.find((c) => c.title === g.title)?.items ?? []).map((s) => (
-                    <StatCard key={`${s.label}·${s.sub}`} s={s} more="Regions, types, names and the full series" />
-                  ))}
+        {onTrends && (
+          <section id="trends" className="scroll-mt-36 flex flex-col gap-8 sm:gap-10" aria-labelledby="trends-title">
+            <SectionHead icon={<Lightning size={18} weight="fill" />} color="#10b981" title="Trends" kicker="What has been moving: the latest reading of each measure, and its change on about ten years before" />
+            <h2 id="trends-title" className="sr-only">
+              Trends
+            </h2>
+            {TREND_GROUPS.filter((g, i) => trendPart(g, i) === tab).map((g) => (
+              <div key={g.title} id={g.id} className="scroll-mt-36 flex flex-col gap-6 pt-2">
+                <div className="flex items-center gap-2">
+                  <span className="w-2 h-2 rounded-full" style={{ background: g.color }} aria-hidden />
+                  <span className="text-[10px] font-bold font-sans uppercase tracking-widest" style={{ color: head }}>
+                    {g.title}
+                  </span>
+                  <span className="text-[10px] font-sans hidden sm:inline" style={{ color: muted }}>
+                    {g.kicker}
+                  </span>
+                  <div className="flex-1 h-px" style={{ background: look.grid }} />
                 </div>
-              )}
-              <SourceLink sources={g.ids.flatMap((id) => figureOf(id)?.source ?? [])} />
-              {/* The group in charts: its lead figures by region, year by year. */}
-              {TREND_CHARTS[g.id] && <CategoryCharts charts={TREND_CHARTS[g.id]} frame="card" />}
-            </div>
-          ))}
-          <Note>These are measured, not projected: each is a published world series to its latest year. The Worldview page has all of them, with what each means.</Note>
-        </section>
+                {!NO_CARDS.has(g.id) && (
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
+                    {(TREND_CARDS.find((c) => c.title === g.title)?.items ?? []).map((s) => (
+                      <StatCard key={`${s.label}·${s.sub}`} s={s} more="Regions, types, names and the full series" />
+                    ))}
+                  </div>
+                )}
+                <SourceLink sources={g.ids.flatMap((id) => figureOf(id)?.source ?? [])} />
+                {/* The group in charts: its lead figures by region, year by year. */}
+                {TREND_CHARTS[g.id] && <CategoryCharts charts={TREND_CHARTS[g.id]} frame="card" />}
+              </div>
+            ))}
+            <Note>These are measured, not projected: each is a published world series to its latest year. The Worldview page has all of them, with what each means.</Note>
+          </section>
+        )}
 
         <p className="text-[10px] font-sans leading-relaxed max-w-2xl px-1" style={{ color: muted }}>
           Every projection on this page is its publisher's own: the economy from the IMF's World Economic Outlook ({WEO.edition}; estimates to {first - 1}, projections{" "}
