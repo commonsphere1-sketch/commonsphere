@@ -1,3 +1,4 @@
+import { SourceLink } from "../components/SourceLink";
 import React, { useState } from "react";
 import { useTheme } from "../contexts/ThemeContext";
 import { HeadlinesBanner, SUBJECT } from "../components/HeadlinesBanner";
@@ -328,13 +329,9 @@ function BoundaryDetailPanel({
         </ul>
       </div>
 
-      <p className="text-[9px] font-sans mt-4 pt-3 border-t" style={{ color: mutedText, borderColor: gridLine }}>
-        Source:{" "}
-        <a href={PHC_2026.summaryUrl} target="_blank" rel="noopener noreferrer" className="underline decoration-dotted hover:opacity-80">
-          {PHC_2026.title}
-        </a>
-        , summary p. {boundary.page} ({PHC_2026.publisher}).
-      </p>
+      <div className="mt-4 pt-3 border-t" style={{ borderColor: gridLine }}>
+        <SourceLink className="!mt-0" sources={{ label: `${PHC_2026.title}, summary p. ${boundary.page} (${PHC_2026.publisher})`, url: PHC_2026.summaryUrl }} />
+      </div>
     </div>
   );
 }
@@ -484,17 +481,7 @@ function FigureCardView({
         </div>
       )}
 
-      <p className="text-[9px] font-sans mt-auto pt-3" style={{ color: mutedText }}>
-        Source:{" "}
-        {card.sources.map((src, k) => (
-          <span key={src.url}>
-            {k > 0 && " · "}
-            <a href={src.url} target="_blank" rel="noopener noreferrer" className="underline decoration-dotted hover:opacity-80">
-              {src.label}
-            </a>
-          </span>
-        ))}
-      </p>
+      <SourceLink sources={card.sources} className="mt-auto pt-3" />
     </div>
   );
 }

@@ -1,3 +1,4 @@
+import { SourceLink } from "../components/SourceLink";
 import { ChipRow } from "../components/ChipRow";
 import { na, has, orZero } from "../lib/na";
 import { LAND_USE, LAND_USE_SOURCE } from "@/data/landUse";
@@ -3770,18 +3771,10 @@ export function WorldMapsPage() {
           {activeCountry.source && (
 
 
-            <p className="text-[10px] font-sans text-muted-foreground mb-3 leading-snug">
-              {activeCountry.source.note} Source:{" "}
-              <a
-                href={activeCountry.source.url}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="underline decoration-dotted underline-offset-2 hover:text-foreground"
-              >
-                {activeCountry.source.label}
-              </a>
-              .
-            </p>
+            <div className="text-[10px] font-sans text-muted-foreground mb-3 leading-snug">
+              {activeCountry.source.note}
+              <SourceLink sources={{ label: activeCountry.source.label, url: activeCountry.source.url }} />
+            </div>
           )}
 
           {layerToggles(worldLayers, setWorldLayers)}

@@ -437,18 +437,18 @@ function PickedColumn({ code, name, t, region, onClearRegion, pressed, onClearPr
           </Block>
         )}
       </div>
-      {/* The rest, on a press: the resources past the first three, and where every line is from. */}
-      {(resources.length > SHOWN || sources.length > 0) && (
+      {/* The resources past the first three, on a press; where every line is from, folded under its own pill. */}
+      {resources.length > SHOWN && (
         <button
           type="button"
           onClick={() => setMore((m) => !m)}
           aria-expanded={more}
           className="self-start px-2.5 h-7 rounded-full border border-border bg-background/70 text-[10px] font-mono uppercase tracking-wider text-muted-foreground hover:text-foreground cursor-pointer transition-colors"
         >
-          {more ? "Less" : resources.length > SHOWN ? `${resources.length - SHOWN} more · sources` : "Sources"}
+          {more ? "Fewer" : `${resources.length - SHOWN} more resources`}
         </button>
       )}
-      {more && sources.length > 0 && <SourceLink sources={sources} />}
+      {sources.length > 0 && <SourceLink sources={sources} />}
     </div>
   );
 }

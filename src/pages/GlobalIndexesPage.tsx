@@ -1,3 +1,4 @@
+import { SourceLink } from "../components/SourceLink";
 import React, { useState, useMemo } from "react";
 import {
   DOMAINS,
@@ -22,7 +23,6 @@ import {
   Newspaper,
   Globe,
   MagnifyingGlass,
-  ArrowSquareOut,
   Star,
   CaretDown,
   CaretUp,
@@ -219,18 +219,9 @@ function IndicatorCard({
             {indicator.description}
           </p>
           <div className="flex items-center justify-between flex-wrap gap-2">
-            <div className="flex items-center gap-2">
-              <span className="text-[10px] text-muted-foreground">Source:</span>
-              <a
-                href={indicator.sourceUrl}
-                target="_blank"
-                rel="noopener noreferrer"
-                onClick={(e) => e.stopPropagation()}
-                className={`text-[10px] font-semibold ${c.text} hover:underline flex items-center gap-1`}
-              >
-                {indicator.source}
-                <ArrowSquareOut size={9} weight="bold" />
-              </a>
+            {/* Its source, folded under the site's Sources pill; a press on it does not fold the card. */}
+            <div onClick={(e) => e.stopPropagation()}>
+              <SourceLink sources={{ label: indicator.source, url: indicator.sourceUrl }} className="!mt-0" />
             </div>
             <div className="flex items-center gap-2">
               <span
