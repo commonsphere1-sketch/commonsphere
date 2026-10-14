@@ -219,10 +219,13 @@ function HistoryView({ state, what, none, note }: { state: State; what: string; 
       )}
 
       {history.eras.length > 0 && (
-        <ol className="relative border-l border-border ml-2 space-y-4">
+        // The rail and its dots are drawn in the text's own colour, so they show on a dark window as on a light one. The dot
+        // was filled with "bg-foreground/70", which this site's colour tokens cannot take an opacity on - it came out with
+        // no fill at all - and ringed in the page's ground, which is black on a dark page: nothing was left to see.
+        <ol className="relative border-l ml-2 space-y-4" style={{ borderColor: "color-mix(in srgb, var(--color-foreground) 30%, transparent)" }}>
           {history.eras.map((era) => (
             <li key={era.title} className="pl-5 relative">
-              <span className="absolute -left-[5px] top-1.5 w-2.5 h-2.5 rounded-full bg-foreground/70 ring-4 ring-background" aria-hidden />
+              <span className="absolute -left-[5px] top-1.5 w-2.5 h-2.5 rounded-full bg-foreground" style={{ boxShadow: "0 0 0 4px color-mix(in srgb, var(--color-foreground) 20%, transparent)" }} aria-hidden />
               <a
                 href={wikiUrl(history.article, era.title)}
                 target="_blank"
