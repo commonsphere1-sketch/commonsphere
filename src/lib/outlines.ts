@@ -77,6 +77,78 @@ export function useAdmin1(cc: string | null): Outline[] | null | undefined {
   return got && got.cc === cc ? got.list : undefined;
 }
 
+/* ── Which outline is a division's ─────────────────────────────────────────
+   The outlines are Natural Earth's and carry its names; the divisions are the site's and carry theirs. Most agree to
+   the letter. Where they do not, a division is matched by any of its own names with accents, marks and case taken
+   away ("Sant Julià de Lòria" and "Sant Julia de Loria"), and then by the table below. */
+
+/** A name as compared: without accents, marks or case. */
+const fold = (s: string) =>
+  s
+    .normalize("NFD")
+    .replace(/\p{M}/gu, "")
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, " ")
+    .trim();
+
+/**
+ * A division whose outline is drawn under another name altogether: by country, the division's name on the site and
+ * the outline's in Natural Earth. Each is the same place in another language or spelling - Malta's localities in
+ * Maltese and in English, Somalia's regions in Somali and in English, French Polynesia's island groups in English and
+ * in French - and each was checked on 13 October 2026 against where the division lies: but for the three marked, the
+ * division's own coordinates fall inside that outline and no other unmatched division's do. Nothing is paired on
+ * position alone: a division that merely lies inside a larger outline (a parish of Anguilla inside "Anguilla") has no
+ * outline of its own, and is told so.
+ */
+const OUTLINE_ALIASES: Record<string, Record<string, string>> = {
+  BH: { "Al Manāmah": "Capital Governorate" },
+  GD: { "Carriacou and Petite Martinique": "Southern Grenadine Islands" },
+  KN: { "Saint John Capesterre": "Saint John Capisterre", "Saint Paul Capesterre": "Saint Paul Capisterre" },
+  LC: { "Anse-la-Raye": "Anse la Raya" },
+  MF: { "St. Martin": "Saint-Martin" },
+  MT: {
+    "Fontana, Gozo": "Fontana",
+    Għajnsielem: "Ghajnsielem",
+    Għarb: "Gharb",
+    Għasri: "Ghasri",
+    "San Giljan": "Saint Julian's",
+    "San Ġwann": "Saint John",
+    "San Lawrenz": "Saint Lawerence",
+    "San Pawl il-Bahar": "Saint Paul's Bay",
+    Victoria: "Rabat Gozo",
+  },
+  MU: { "Rivière Noire": "Black River" },
+  // The last three by their names alone, which are each other's translation: their coordinates fall in the sea between their islands.
+  PF: { "Marquesas Islands": "Îles Marquises", "Windward Islands": "Îles du Vent", "Leeward Islands": "Îles Sous-le-Vent", "Austral Islands": "Îles Australes", "Tuamotu-Gambier": "Îles Tuamotu-Gambier" },
+  SC: { "English River": "La Rivière Anglaise" },
+  SO: { Banaadir: "Banadir", Galguduud: "Galgaduud", "Shabeellaha Dhexe": "Middle Shebelle", "Shabeellaha Hoose": "Lower Shebelle" },
+  ST: { Príncipe: "Príncipe Province", "São Tomé": "São Tomé Province" },
+  VA: { Vatican: "Vatican City" },
+  WS: { "Fa'asaleleaga": "Fa'asaleleage" },
+};
+
+/** What a division is known by: its name on the site, and the other names its record holds. */
+export type Named = { name: string; article?: string; official?: string; native?: string };
+
+/**
+ * The outlines that are a division's, among its country's: by its name; else by the table of other names; else by any
+ * of its names without accents and marks - but never an outline that is another division's by name.
+ */
+export function outlinesOf(drawn: Outline[], cc: string, s: Named, all: Named[] = []): Outline[] {
+  const exact = drawn.filter((f) => f.properties.n === s.name);
+  if (exact.length) return exact;
+  const alias = OUTLINE_ALIASES[cc]?.[s.name];
+  if (alias) return drawn.filter((f) => f.properties.n === alias);
+  const others = new Set(all.filter((d) => d !== s).map((d) => d.name));
+  const names = new Set([s.name, s.article, s.official, s.native].filter((x): x is string => Boolean(x)).map(fold));
+  return drawn.filter((f) => f.properties.n && !others.has(f.properties.n) && names.has(fold(f.properties.n)));
+}
+/** The outlines of a country that are no division's: each drawn on the maps, with no record on the site behind it. */
+export function spareOutlines(drawn: Outline[], cc: string, all: Named[]): Outline[] {
+  const taken = new Set(all.flatMap((s) => outlinesOf(drawn, cc, s, all)));
+  return drawn.filter((f) => f.properties.n && !taken.has(f));
+}
+
 const PLACES = new Map<string, Promise<PlacesFile | null>>();
 const placesFile = (cc: string) => {
   if (!PLACES.has(cc))

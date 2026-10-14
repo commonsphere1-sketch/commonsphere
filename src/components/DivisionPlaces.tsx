@@ -72,7 +72,7 @@ import { PLACE_KINDS, PLACES_SOURCE, type PlaceRow, type PlacesFile } from "../d
 import type { Subnation } from "../data/subnations";
 import { SUBNATION_FLAG_FILE } from "../data/subnationFlagFiles";
 import { flagColor } from "../lib/flagColor";
-import { useAdmin1, type Outline } from "../lib/outlines";
+import { outlinesOf, useAdmin1, type Outline } from "../lib/outlines";
 import { SourceLink } from "./SourceLink";
 import { FollowStar, placeFollowId } from "./FollowStar";
 import PeoplePanel from "./PeoplePanel";
@@ -791,7 +791,8 @@ function PlaceWindow({
   /* The outline it is marked on: the one its window was opened from, or its division's among the ones the site's maps draw. */
   const divisions = useAdmin1(outline ? null : s.cc);
   const second = useSecondOrder(outline ? null : s.cc, s.name);
-  const around = outline ?? (divisions?.find((f) => f.properties.n === s.name) ? { shape: divisions.find((f) => f.properties.n === s.name)!, name: s.name } : null);
+  const own = divisions ? outlinesOf(divisions, s.cc, s)[0] : undefined;
+  const around = outline ?? (own ? { shape: own, name: s.name } : null);
 
   const cPop = county?.row[7];
   const cChange = cPop && cPop[0] > 0 ? (100 * (cPop[cPop.length - 1] - cPop[0])) / cPop[0] : null;

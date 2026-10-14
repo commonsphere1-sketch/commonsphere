@@ -79,7 +79,7 @@ import { TONE } from "@/lib/chipTone";
 import { ADMIN2_SOURCE, useAdmin2, useAdmin2Manifest } from "../lib/admin2";
 import { DIVISION_DETAILS_SOURCES, useDivisionDetails, type DivisionDetails, type Money } from "../lib/divisionDetails";
 import { liveRecord, type LiveRecord } from "../lib/liveRecord";
-import { framed, placesWithin, useAdmin1, useCountyOutline } from "../lib/outlines";
+import { framed, outlinesOf, placesWithin, useAdmin1, useCountyOutline } from "../lib/outlines";
 import { flagColor } from "../lib/flagColor";
 import { byPeople, countryPeople, peopleSource, peopleSources } from "../lib/countryPeople";
 import { lockScroll } from "../lib/scrollLock";
@@ -792,7 +792,8 @@ function SubnationWindow({ s, onBack, onClose, onCounties }: { s: Subnation; /**
 
   /* Its outline, among the ones the site's maps draw for its country, and the places GeoNames lists in it: the map at the head of its window. */
   const drawn = useAdmin1(s.cc);
-  const outline = useMemo(() => (drawn ? drawn.filter((f) => f.properties.n === s.name) : []), [drawn, s.name]);
+  // Its outline: by its name, or by another spelling of it (lib/outlines).
+  const outline = useMemo(() => (drawn ? outlinesOf(drawn, s.cc, s) : []), [drawn, s]);
   const second = useSecondOrder(s.cc, s.name);
   const listed = usePlaces(s.cc);
   const within = useMemo(() => (listed ? insideOf(listed, s) : null), [listed, s]);

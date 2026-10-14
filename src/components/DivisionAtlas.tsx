@@ -24,16 +24,21 @@
  * map is in the colour its division - or, outside the United States, its
  * country - has on the maps above.
  *
- * A country with no divisions held, or a division the maps draw no outline
- * for, is told so.
+ * Every outline the maps hold for a country is in the menu. A division finds
+ * its own under another spelling of its name where the two differ
+ * (lib/outlines); an outline that is no division's - a city of the
+ * Philippines, an atoll of the Marshall Islands - is listed after the
+ * divisions as an outline only, and drawn with the places that fall inside
+ * it. A country with no divisions held, or a division the maps draw no
+ * outline for, is told so.
  */
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { ArrowRight } from "@phosphor-icons/react";
 import { PLACE_COUNTRIES, PLACES_SOURCE } from "../data/placesIndex";
-import { SUBNATIONS } from "../data/subnations";
+import { SUBNATIONS, type Subnation } from "../data/subnations";
 import { flagColor } from "../lib/flagColor";
-import { useAdmin1 } from "../lib/outlines";
+import { outlinesOf, placesWithin, spareOutlines, useAdmin1 } from "../lib/outlines";
 import { useSecondOrder } from "../lib/secondOrder";
 import { insideOf, usePlaces } from "./DivisionPlaces";
 import { OutlineMap, placeDots } from "./OutlineMap";
@@ -46,6 +51,8 @@ const NAMED = 12;
 /** How many are drawn as dots: the largest of them. */
 const DOTS = 300;
 
+/** How the menu marks an outline that is no division's: its value is this and the outline's name. */
+const OUTLINE = "outline:";
 /** Every country the site holds divisions for, by name: what the map's first menu offers. */
 const COUNTRIES = [...new Set(SUBNATIONS.map((s) => s.cc))].map((cc) => ({ value: cc, label: PLACE_COUNTRIES[cc]?.[0] ?? cc })).sort((a, b) => a.label.localeCompare(b.label));
 
@@ -78,13 +85,26 @@ function Atlas({ code: above, country: aboveName, division, color: aboveColor, c
   const [picked, setPicked] = useState<string | null>(null);
   // The division pointed at above is drawn; another country without one named is drawn by its own first division, not the last one picked.
   useEffect(() => setPicked((!own && division && divisions.find((d) => d.name === division)?.id) || null), [code, own, division, divisions]);
-  const s = divisions.find((d) => d.id === picked) ?? first;
+  /* An outline the maps draw that is no division's - a city of the Philippines, an atoll of the Marshall Islands - is
+     offered all the same, so that every outline held can be drawn here: it stands in the menu as an outline only, with
+     no record of its own behind it. */
+  const bare = picked?.startsWith(OUTLINE) ? picked.slice(OUTLINE.length) : null;
+  const s: Subnation | undefined = bare !== null ? ({ id: picked!, cc: code, name: bare, kind: "" } as Subnation) : (divisions.find((d) => d.id === picked) ?? first);
 
-  const drawn = useAdmin1(s ? code : null);
-  const outline = useMemo(() => (drawn && s ? drawn.filter((f) => f.properties.n === s.name) : []), [drawn, s]);
-  const second = useSecondOrder(s ? code : null, s?.name);
+  const drawn = useAdmin1(code);
+  // Its outline: by its name, or by another spelling of it (lib/outlines).
+  const outline = useMemo(() => (drawn && s ? (bare !== null ? drawn.filter((f) => f.properties.n === bare) : outlinesOf(drawn, code, s, divisions)) : []), [drawn, s, bare, code, divisions]);
+  /** The outlines of the country that are no division's, by name. */
+  const spare = useMemo(() => (drawn ? [...new Set(spareOutlines(drawn, code, divisions).map((f) => f.properties.n!))].sort((a, b) => a.localeCompare(b)) : []), [drawn, code, divisions]);
+  const second = useSecondOrder(s && bare === null ? code : null, s?.name);
   const listed = usePlaces(code);
-  const within = useMemo(() => (listed && s ? insideOf(listed, s) : null), [listed, s]);
+  // What lies in it: the places GeoNames lists under its name, or - for an outline with no record - those whose point falls inside it.
+  const within = useMemo(() => {
+    if (!listed || !s) return null;
+    const named = insideOf(listed, s);
+    if (named || bare === null || !outline.length) return named;
+    return { order: 2 as const, rows: outline.flatMap((o) => placesWithin(o, listed.places)).sort((a, b) => b[3] - a[3]), districts: [] };
+  }, [listed, s, bare, outline]);
   const dots = useMemo(() => placeDots(within?.rows ?? [], DOTS, listed), [within, listed]);
   /** Every municipality of the division, by name: what the third menu goes to. */
   const towns = useMemo(() => (within?.rows ?? []).map((p) => ({ value: String(p[6]), label: p[0] })).sort((a, b) => a.label.localeCompare(b.label)), [within]);
@@ -95,7 +115,7 @@ function Atlas({ code: above, country: aboveName, division, color: aboveColor, c
     <div className="flex items-start justify-between gap-3 mb-3 flex-wrap">
       <div>
         <p className="text-[10px] font-mono uppercase tracking-widest text-secondary">Counties and municipalities · {country}</p>
-        <h2 className="text-sm font-bold font-sans text-foreground">{s ? `${s.name}${s.kind ? ` · ${s.kind}` : ""}` : country}</h2>
+        <h2 className="text-sm font-bold font-sans text-foreground">{s ? `${s.name}${bare !== null ? " · an outline only" : s.kind ? ` · ${s.kind}` : ""}` : country}</h2>
       </div>
       {/* Its two menus: any country the site holds divisions for, and any division of the one chosen. */}
       <div className="flex items-center gap-2 flex-wrap">
@@ -108,12 +128,12 @@ function Atlas({ code: above, country: aboveName, division, color: aboveColor, c
             triggerClassName="!text-[12px] font-semibold !text-foreground"
           />
         </div>
-        {divisions.length > 1 && s && (
+        {divisions.length + spare.length > 1 && s && (
           <div className="rounded-full border border-border px-3 py-1.5">
             <StyledSelect
               value={s.id}
               onValueChange={setPicked}
-              options={divisions.map((d) => ({ value: d.id, label: d.name }))}
+              options={[...divisions.map((d) => ({ value: d.id, label: d.name })), ...spare.map((n) => ({ value: `${OUTLINE}${n}`, label: `${n} · outline only` }))]}
               ariaLabel={`Which division of ${country} the map draws`}
               triggerClassName="!text-[12px] font-semibold !text-foreground"
             />
@@ -164,7 +184,7 @@ function Atlas({ code: above, country: aboveName, division, color: aboveColor, c
       )}
       {shapes.length > 0 && (
         <p className="text-[10px] font-sans text-muted-foreground leading-snug mt-2">
-          {s.name} as the site's maps draw it
+          {s.name} as the site's maps draw it{bare !== null ? " - an outline the maps hold with no record of its own on the site, so it has no window; the places are those whose point falls inside it" : ""}
           {second && second.lines.length > 1 ? `, with the borders of its ${second.lines.length} ${second.are}: draw the map closer to point at one, and press it to open its window` : ", with no finer borders held for it"}
           {dots.length ? `. The dots are ${within!.rows.length > dots.length ? `the ${dots.length} largest of the ${whole(within!.rows.length)}` : `the ${dots.length}`} places GeoNames lists in it: press one to open it` : ""}. Nothing is shaded
           by a figure - the colour is {own ? `${country}'s, from its flag` : `the one ${colorOf ? s.name : country} has on the map above`}. This map follows the ones above - point at a country, a state or a province there and it is drawn here - and its menus reach any country, any of its divisions, and every municipality of the one drawn.
@@ -186,6 +206,7 @@ function Atlas({ code: above, country: aboveName, division, color: aboveColor, c
                 {p[3] > 0 && <span className="font-mono text-muted-foreground">{whole(p[3])}</span>}
               </button>
             ))}
+            {bare === null && (
             <button
               type="button"
               onClick={() => navigate(`/dashboard/subnations?open=${encodeURIComponent(s.id)}`)}
@@ -193,6 +214,7 @@ function Atlas({ code: above, country: aboveName, division, color: aboveColor, c
             >
               All of {s.name} <ArrowRight size={11} weight="bold" aria-hidden />
             </button>
+            )}
           </div>
         </div>
       )}
