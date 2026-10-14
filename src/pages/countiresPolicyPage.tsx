@@ -10400,8 +10400,9 @@ function PolicyCardItem({ card, open, onToggle, panelId }: { card: PolicyCard; o
     // keyboard and says whether the details are open; its press reaches the card, so it is answered once.
     <div
       onClick={onToggle}
-      className={`bg-card rounded-2xl border p-4 flex flex-col gap-2.5 hover:shadow-sm transition-all duration-150 w-64 shrink-0 snap-start cursor-pointer ${
-        open ? "border-foreground shadow-sm" : "border-border/50 hover:border-border/80"
+      // The hover of the site's other cards (a country's, on its page): a slight lift, a deeper shadow, the accent on its border.
+      className={`bg-card rounded-2xl border p-4 flex flex-col gap-2.5 transition-all duration-200 hover:scale-[1.01] hover:shadow-lg w-64 shrink-0 snap-start cursor-pointer ${
+        open ? "border-foreground shadow-sm" : "border-border/50 hover:border-secondary/40"
       }`}
     >
       {/* Top row: the area | its published figure */}
@@ -10730,7 +10731,8 @@ function EntityRow({ group }: { group: EntityGroup }) {
         <div className="px-5 pb-5 pt-1 border-t border-border/40 min-w-0">
           {/* Stretched, so every card is as tall as the tallest. */}
           <div
-            className="flex items-stretch gap-3 mt-3 overflow-x-auto pb-1 snap-x"
+            // Room round the cards, so the row does not cut off a card that lifts or its shadow.
+            className="flex items-stretch gap-3 mt-1 -mx-1 px-1 pt-2 pb-3 overflow-x-auto snap-x"
             tabIndex={0}
             role="group"
             aria-label="Policy areas — scrolls sideways"
