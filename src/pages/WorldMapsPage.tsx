@@ -648,13 +648,14 @@ const OVERLAYS: { id: OverlayId; label: string; about: string }[] = [
     id: "capitals",
     label: "Capitals",
     about:
-      "180+ national capitals and major political centers worldwide. Includes primary capitals and major secondary cities serving governmental functions.",
+      // It read "180+ national capitals and major political centers … and major secondary cities": the file holds 204, one a country and no second cities.
+      "204 capitals, one for each country and territory the site holds, from GeoNames (CC BY 4.0): the capital the site's country data names, at that town's own coordinates. A country with more than one seat of government is marked at one of them.",
   },
   {
     id: "cities",
     label: "Major cities",
     about:
-      "6,461 cities from GeoNames (public domain): every city of 100,000 or more, and at least the five largest in each country. Cities of a million or more are drawn large; the rest appear on the world map once zoomed in. Populations are GeoNames' own figures, not metro areas.",
+      "6,461 cities from GeoNames (CC BY 4.0): every city of 100,000 or more, and at least the five largest in each country. Cities of a million or more are drawn large; the rest appear on the world map once zoomed in. Populations are GeoNames' own figures, not metro areas.",
   },
   {
     id: "climate",
