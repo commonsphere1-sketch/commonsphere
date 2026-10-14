@@ -1,7 +1,9 @@
 import { PageHeader } from "../components/PageHeader";
 import { WindowTitle } from "../components/WindowTitle";
 import { ChipRow } from "../components/ChipRow";
-import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
+import { createContext, lazy, Suspense, useCallback, useContext, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
+/** The world map across the top of the page, with its outlines: loaded after the page. */
+const WorldviewMap = lazy(() => import("../components/WorldviewMap"));
 import { useNavigate } from "react-router-dom";
 import {
   ArrowDownRight,
@@ -3209,8 +3211,14 @@ export function WorldviewPage() {
         <Hero />
         <SectionNav label="Worldview sections" sections={SECTIONS} />
 
-        {/* ── Overview: the wheel of the pillars, then the headline figures ── */}
-        <section id="overview" className="scroll-mt-36 flex flex-col gap-4">
+        {/* ── The world, country by country, across the top: the page is set out after the reference design it was given -
+            the map first, then a mosaic of panels - in the site's own colours, as asked. ── */}
+        <Suspense fallback={<div className="rounded-2xl h-[28rem] modal-tile animate-pulse" aria-hidden />}>
+          <WorldviewMap />
+        </Suspense>
+
+        {/* ── Overview: the wheel of the pillars beside the headline figures, on a wide screen ── */}
+        <section id="overview" className="scroll-mt-36 grid grid-cols-1 xl:grid-cols-2 gap-4 items-start">
           <WorldWheel />
           <HeadlinePills />
         </section>
@@ -3234,16 +3242,19 @@ export function WorldviewPage() {
 
         {/* A comparison of systems of government stood here and was moved, as asked, to the Rankings page's Compare card, where a toggle switches to it. */}
 
-        {/* ── The pillars: each its own section, one to a row; each card opens its window ── */}
+        {/* ── The pillars: each its own panel; each card opens its window ── */}
         <div className="px-1 pt-2 flex items-center gap-2">
           <GlobeHemisphereWest size={18} weight="fill" className="text-[#2a78d6] dark:text-[#3987e5]" />
           <h2 className="text-xl font-bold font-sans" style={{ color: head }}>
             The {inWords(PILLARS.length)} pillars
           </h2>
         </div>
-        {PILLARS.map((p) => (
-          <PillarCard key={p.id} p={p} />
-        ))}
+        {/* A mosaic of panels: two across on a wide screen, each pillar's figures and charts in its own. */}
+        <div className="grid grid-cols-1 xl:grid-cols-2 gap-4 items-start">
+          {PILLARS.map((p) => (
+            <PillarCard key={p.id} p={p} />
+          ))}
+        </div>
 
         <Rankings />
 
