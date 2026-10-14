@@ -21,7 +21,7 @@
  * people say online, and whether the law protects their data.
  */
 import { Children, isValidElement, type ReactElement, type ReactNode } from "react";
-import { Area, AreaChart, Bar, BarChart, CartesianGrid, Cell, LabelList, Pie, PieChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
+import { Area, AreaChart, Bar, BarChart, CartesianGrid, Cell, Pie, PieChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
 import { COUNTRY_PANELS, PANEL_SOURCES, type PanelField } from "../data/countryPanels";
 import { COUNTRY_INDICATORS, COUNTRY_INDICATORS_SOURCE } from "../data/countryIndicators";
 import { COUNTRY_FIGURES, COUNTRY_FIGURE_SOURCES } from "../data/worldview";
@@ -49,6 +49,7 @@ import { ALLIANCES, ALLIANCE_KIND_PLURAL } from "../data/alliances";
 import { SURVEILLANCE, SURVEILLANCE_SCALES, SURVEILLANCE_SOURCE, type SurveillanceMeasure } from "../data/surveillance";
 import { useTokens, type Tokens } from "./DataExplorer";
 import { SourceLink } from "./SourceLink";
+import SlimBars from "./SlimBars";
 
 /** The site's colours for the panels, in turn. */
 export const INK = ["#2a78d6", "#10b981", "#f59e0b", "#8b5cf6", "#ef4444", "#06b6d4", "#ec4899", "#84cc16", "#f97316", "#6366f1"];
@@ -119,8 +120,8 @@ function Bars({ t, rows }: { t: Tokens; rows: { label: string; text: string; y?:
             {r.text}
             {r.y !== undefined && <span className="font-normal" style={{ color: t.mutedText }}> · {r.y}</span>}
           </span>
-          <span className="col-span-2 h-1 rounded-full overflow-hidden mt-1" style={{ background: t.gridLine }} aria-hidden>
-            <span className="block h-full rounded-full" style={{ width: `${Math.max(1, Math.min(100, r.share))}%`, background: r.color ?? INK[i % INK.length] }} />
+          <span className="col-span-2 h-2 rounded-full overflow-hidden mt-1" style={{ background: t.gridLine }} aria-hidden>
+            <span className="block h-full rounded-full" style={{ width: `${Math.max(1, Math.min(100, r.share))}%`, background: `linear-gradient(90deg, color-mix(in srgb, ${r.color ?? INK[i % INK.length]} 35%, transparent), ${r.color ?? INK[i % INK.length]})` }} />
           </span>
         </li>
       ))}
@@ -433,19 +434,12 @@ export default function CountryFigures({ code, name }: { code: string; name: str
         <Panel t={t} title="How its income is shared" meta={people?.income ? `share by fifth · ${people.income.y}` : undefined}>
           {people?.income ? (
             <>
-              <ResponsiveContainer width="100%" height={150}>
-                <BarChart data={people.income.fifths.map((v, i) => ({ fifth: ["Poorest", "Second", "Middle", "Fourth", "Richest"][i], v }))} margin={{ top: 4, right: 6, left: 0, bottom: 0 }}>
-                  <CartesianGrid stroke={t.gridLine} vertical={false} />
-                  <XAxis dataKey="fifth" {...axis} />
-                  <YAxis {...axis} width={30} tickFormatter={(v: number) => `${Math.round(v)}%`} />
-                  <Tooltip {...tip} formatter={(v: number) => [`${v.toFixed(1)}% of income`, "share"]} />
-                  <Bar dataKey="v" isAnimationActive={false} radius={[3, 3, 0, 0]}>
-                    {people.income.fifths.map((_, i) => (
-                      <Cell key={i} fill={INK[i]} />
-                    ))}
-                  </Bar>
-                </BarChart>
-              </ResponsiveContainer>
+              <SlimBars
+                label={`The share of income or spending of each fifth of the people of ${name}, ${people.income.y}`}
+                labelWidth="4rem"
+                rows={people.income.fifths.map((v, i) => ({ key: String(i), label: ["Poorest", "Second", "Middle", "Fourth", "Richest"][i], v, color: INK[i] }))}
+                fmt={(v) => `${v.toFixed(1)}%`}
+              />
               {people.income.top10 !== undefined && people.income.bottom10 !== undefined && (
                 <Note t={t}>
                   The richest tenth has {pct(people.income.top10)} of income or spending; the poorest tenth {pct(people.income.bottom10)}.
@@ -594,32 +588,7 @@ export default function CountryFigures({ code, name }: { code: string; name: str
           {has("birthRate", "deathRate", "femalePct") ? (
             <>
               {/* Slim bars on faint tracks, in a gradient of their colours, each with its figure at its end. */}
-              <ResponsiveContainer width="100%" height={84}>
-                <BarChart
-                  layout="vertical"
-                  data={birthsDeaths}
-                  margin={{ top: 2, right: 40, left: 0, bottom: 2 }}
-                  barCategoryGap="28%"
-                >
-                  <defs>
-                    {birthsDeaths.map(({ n, color: c }) => (
-                      <linearGradient key={n} id={`bd-${code}-${n}`} x1="0" y1="0" x2="1" y2="0">
-                        <stop offset="0%" stopColor={c} stopOpacity={0.35} />
-                        <stop offset="100%" stopColor={c} stopOpacity={1} />
-                      </linearGradient>
-                    ))}
-                  </defs>
-                  <XAxis type="number" hide domain={[0, (max: number) => Math.max(10, Math.ceil(max / 5) * 5)]} />
-                  <YAxis type="category" dataKey="n" axisLine={false} tickLine={false} width={52} tick={{ fontSize: 11, fill: t.bodyText }} />
-                  <Tooltip {...tip} cursor={false} formatter={(v: number) => [`${v.toFixed(1)} per 1,000 people`, "a year"]} />
-                  <Bar dataKey="v" barSize={10} radius={5} background={{ fill: t.gridLine, radius: 5 }} isAnimationActive={false}>
-                    {birthsDeaths.map((d) => (
-                      <Cell key={d.n} fill={`url(#bd-${code}-${d.n})`} />
-                    ))}
-                    <LabelList dataKey="v" position="right" formatter={(v: number) => v.toFixed(1)} style={{ fontSize: 11, fontFamily: "monospace", fontWeight: 600, fill: t.headText }} />
-                  </Bar>
-                </BarChart>
-              </ResponsiveContainer>
+              <SlimBars label={`Births and deaths in ${name}, per 1,000 people`} labelWidth="3.5rem" rows={birthsDeaths.map((d) => ({ key: d.n, label: d.n, v: d.v, color: d.color }))} fmt={(v) => v.toFixed(1)} max={Math.max(10, Math.ceil(Math.max(...birthsDeaths.map((d) => d.v)) / 5) * 5)} />
               <Note t={t}>Births and deaths in a year, each per 1,000 people.</Note>
               <Tiles
                 t={t}
@@ -756,28 +725,19 @@ export default function CountryFigures({ code, name }: { code: string; name: str
         <Panel t={t} title="Reading, by sex" meta="% of adults">
           {has("literacy", "literacyMale", "literacyFemale") ? (
             <>
-              <ResponsiveContainer width="100%" height={150}>
-                <BarChart
-                  data={(
-                    [
-                      ["literacy", "All"],
-                      ["literacyMale", "Men"],
-                      ["literacyFemale", "Women"],
-                    ] as [PanelField, string][]
-                  ).flatMap(([f, n]) => (P[f] ? [{ n, v: P[f]!.v, y: P[f]!.y }] : []))}
-                  margin={{ top: 4, right: 6, left: 0, bottom: 0 }}
-                >
-                  <CartesianGrid stroke={t.gridLine} vertical={false} />
-                  <XAxis dataKey="n" {...axis} />
-                  <YAxis {...axis} width={30} domain={[0, 100]} tickFormatter={(v: number) => `${v}%`} />
-                  <Tooltip {...tip} formatter={(v: number) => [pct(v), "can read"]} />
-                  <Bar dataKey="v" isAnimationActive={false} radius={[3, 3, 0, 0]}>
-                    <Cell fill={INK[0]} />
-                    <Cell fill={INK[5]} />
-                    <Cell fill={INK[6]} />
-                  </Bar>
-                </BarChart>
-              </ResponsiveContainer>
+              <SlimBars
+                label={`Adults who can read in ${name}, by sex`}
+                labelWidth="3.5rem"
+                max={100}
+                rows={(
+                  [
+                    ["literacy", "All", INK[0]],
+                    ["literacyMale", "Men", INK[5]],
+                    ["literacyFemale", "Women", INK[6]],
+                  ] as [PanelField, string, string][]
+                ).flatMap(([f, n, color]) => (P[f] ? [{ key: n, label: n, v: P[f]!.v, color, tip: `${n}: ${pct(P[f]!.v)} can read · ${P[f]!.y}` }] : []))}
+                fmt={pct}
+              />
               <Foot sources={[wb("literacy")]} />
             </>
           ) : (
@@ -826,19 +786,12 @@ export default function CountryFigures({ code, name }: { code: string; name: str
         <Panel t={t} title="Recorded crime" meta="per 100,000 people">
           {crimeRows.length ? (
             <>
-              <ResponsiveContainer width="100%" height={150}>
-                <BarChart data={crimeRows} margin={{ top: 4, right: 6, left: 0, bottom: 0 }}>
-                  <CartesianGrid stroke={t.gridLine} vertical={false} />
-                  <XAxis dataKey="label" {...axis} interval={0} tick={{ ...axis.tick, fontSize: 8 }} />
-                  <YAxis {...axis} width={34} />
-                  <Tooltip {...tip} formatter={(v: number, _k: string, p: { payload?: { y: string } }) => [`${v} per 100,000 · ${p.payload?.y ?? ""}`, "recorded"]} />
-                  <Bar dataKey="v" isAnimationActive={false} radius={[3, 3, 0, 0]}>
-                    {crimeRows.map((r, i) => (
-                      <Cell key={r.label} fill={INK[(i + 4) % INK.length]} />
-                    ))}
-                  </Bar>
-                </BarChart>
-              </ResponsiveContainer>
+              <SlimBars
+                label={`Offences recorded in ${name}, per 100,000 people`}
+                labelWidth="7rem"
+                rows={crimeRows.map((r, i) => ({ key: r.label, label: r.label, v: r.v, color: INK[(i + 4) % INK.length], tip: `${r.label}: ${r.v} per 100,000 · ${r.y}` }))}
+                fmt={(v) => (v >= 100 ? Math.round(v).toLocaleString("en-US") : v.toFixed(1))}
+              />
               <Note t={t}>
                 {crimeRows.map((r) => `${r.label} ${r.v} (${r.y})`).join(" · ")}. Offences recorded by the police, as UNODC gathers them
                 {crimeRows.some((r) => r.derived) ? "; a rate marked from counts is worked out from UNODC's count and the population" : ""}.

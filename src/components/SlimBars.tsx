@@ -1,0 +1,85 @@
+/**
+ * The site's bar chart for things set side by side - countries, regions,
+ * kinds of crime, fifths of the people: each a slim rounded bar on a faint
+ * track the width of the scale, filled in a gradient of its colour, its name
+ * to its left on one line and its figure at the end of the bar. It was first
+ * drawn for the births and deaths of the place picked on the Worldview page,
+ * and every chart of its kind on the site was made like it, as asked.
+ *
+ * It draws what it is given: the figures are the caller's, with their
+ * sources beside the chart. The scale runs from nothing to a round number
+ * at or above the largest figure, so that bars are measured from zero.
+ */
+import type { ReactNode } from "react";
+
+export type SlimRow = {
+  /** Unique among the rows. */
+  key: string;
+  /** Its name, to the left of its bar. */
+  label: ReactNode;
+  v: number;
+  color: string;
+  /** What pointing at it says, where more than the figure is to be said. */
+  tip?: string;
+  /** Drawn fainter: a figure that is projected, estimated, or otherwise apart. */
+  faint?: boolean;
+};
+
+/** A round number at or above the largest figure: 1, 1.5, 2, 2.5, 3, 4, 5, 6 or 8 times a power of ten. */
+function roundUp(v: number): number {
+  if (v <= 0) return 1;
+  const p = Math.pow(10, Math.floor(Math.log10(v)));
+  for (const m of [1, 1.5, 2, 2.5, 3, 4, 5, 6, 8, 10]) if (m * p >= v) return m * p;
+  return 10 * p;
+}
+
+export default function SlimBars({
+  rows,
+  fmt,
+  labelWidth = "5.5rem",
+  max,
+  className = "",
+  label,
+}: {
+  rows: SlimRow[];
+  /** How a figure is written at the end of its bar. */
+  fmt: (v: number) => string;
+  /** How wide the names' column is. */
+  labelWidth?: string;
+  /** The top of the scale, where the caller has one (a share out of 100); otherwise a round number above the largest. */
+  max?: number;
+  className?: string;
+  /** What the chart is, for a screen reader. */
+  label?: string;
+}) {
+  const top = max ?? roundUp(Math.max(0, ...rows.map((r) => r.v)));
+  return (
+    <ul className={`flex flex-col gap-3 py-1 text-foreground ${className}`} aria-label={label}>
+      {rows.map((r) => {
+        const w = Math.max(0, Math.min(100, (r.v / top) * 100));
+        return (
+          <li key={r.key} className="grid items-center gap-x-3" style={{ gridTemplateColumns: `${labelWidth} minmax(0,1fr)` }} title={r.tip ?? `${typeof r.label === "string" ? r.label : ""}: ${fmt(r.v)}`.replace(/^: /, "")}>
+            <span className="text-[11px] font-sans leading-tight text-right truncate opacity-80">{r.label}</span>
+            {/* The track leaves room at its right for the figure at the end of the longest bar. */}
+            <span className="relative flex items-center h-4 pr-12">
+              <span className="relative block w-full h-2.5 rounded-full" style={{ background: "color-mix(in srgb, currentColor 7%, transparent)" }}>
+                <span
+                  className="absolute inset-y-0 left-0 rounded-full"
+                  style={{
+                    width: `${w}%`,
+                    minWidth: r.v > 0 ? "0.625rem" : 0,
+                    background: `linear-gradient(90deg, color-mix(in srgb, ${r.color} 35%, transparent), ${r.color})`,
+                    opacity: r.faint ? 0.45 : 1,
+                  }}
+                />
+                <span className="absolute top-1/2 -translate-y-1/2 pl-1.5 text-[11px] font-mono font-semibold tabular-nums whitespace-nowrap" style={{ left: `${w}%` }}>
+                  {fmt(r.v)}
+                </span>
+              </span>
+            </span>
+          </li>
+        );
+      })}
+    </ul>
+  );
+}
