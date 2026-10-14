@@ -107,7 +107,7 @@ const ITEMS: Item[] = [
   ...CLIMATE_INDICATORS.map((m): Item => ({ key: `m-${m.id}`, kind: "measured", name: m.label, said: `${reading(m.value)} ${m.unit} · ${m.period}`, m })),
 ];
 
-export default function ClimateNowExplorer() {
+export default function ClimateNowExplorer({ embedded = false }: { /** Inside the Dashboard's explorer, which has its own frame and its own tab for a heading. */ embedded?: boolean } = {}) {
   const t = useTokens();
   const [search, setSearch] = useState("");
   const [kind, setKind] = useState<Kind | null>(null);
@@ -132,14 +132,16 @@ export default function ClimateNowExplorer() {
   );
 
   return (
-    <div className="explorer flex flex-col rounded-2xl overflow-hidden w-full mb-6" style={{ background: t.cardBg, border: t.cardBorder, boxShadow: t.cardShadow }}>
-      <div className="flex items-center gap-1.5 px-4 py-3 border-b" style={{ borderColor: t.gridLine, color: ACCENT }}>
-        <Warning size={12} weight="fill" aria-hidden />
-        <h2 className="text-[11px] font-bold font-sans">Climate crises, natural disasters and events now</h2>
-        <span className="text-[9px] font-mono px-1.5 py-0.5 rounded-full" style={{ background: ACCENT + "15" }}>
-          {ITEMS.length}
-        </span>
-      </div>
+    <div className={embedded ? "flex flex-col w-full" : "explorer flex flex-col rounded-2xl overflow-hidden w-full mb-6"} style={embedded ? undefined : { background: t.cardBg, border: t.cardBorder, boxShadow: t.cardShadow }}>
+      {!embedded && (
+        <div className="flex items-center gap-1.5 px-4 py-3 border-b" style={{ borderColor: t.gridLine, color: ACCENT }}>
+          <Warning size={12} weight="fill" aria-hidden />
+          <h2 className="text-[11px] font-bold font-sans">Climate crises, natural disasters and events now</h2>
+          <span className="text-[9px] font-mono px-1.5 py-0.5 rounded-full" style={{ background: ACCENT + "15" }}>
+            {ITEMS.length}
+          </span>
+        </div>
+      )}
 
       <div className="px-4 py-2.5 border-b flex items-center gap-2" style={{ borderColor: t.gridLine }}>
         <MagnifyingGlass size={13} style={{ color: t.mutedText }} aria-hidden />

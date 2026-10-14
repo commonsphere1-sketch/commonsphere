@@ -61,7 +61,8 @@ const TrendsTab = lazy(() => import("../pages/TrendsPage").then((m) => ({ defaul
 /** The explorers of the Worldview, Crime and Climate pages, each with its data: loaded when its tab is opened. The Industries tab stood here and was taken off as asked. */
 const GeopoliticsTab = lazy(() => import("./GeopoliticsExplorer"));
 const UnrestTab = lazy(() => import("./UnrestExplorer"));
-const ClimateTab = lazy(() => import("./ClimateExplorer"));
+// The explorer the Climate page has now - the crises, disasters and events of the moment. The one it replaced (ClimateExplorer: boundaries, tipping points, treaties) is kept, and is not drawn.
+const ClimateTab = lazy(() => import("./ClimateNowExplorer"));
 
 export type ExplorerTab = "countries" | "economies" | "policies";
 /** The Dashboard's tabs: countries and economies, and the explorers that come from other pages. */
