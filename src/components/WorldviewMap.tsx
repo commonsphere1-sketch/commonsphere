@@ -26,7 +26,9 @@
  * leaders, GDP, life expectancy, inflation and human development, its
  * languages and resources (PickedColumn); the rest opens on a press. Drawn
  * closer, the country picked can be pressed by its states, provinces and
- * regions, and the column then gives the division's own record first.
+ * regions; closer still by its counties, districts and municipalities, and
+ * the cities by their points - and the column then gives that place's own
+ * record first.
  *
  * A country pressed on the map fills the panels
  * under the map with its own figures (CountryDashboard), as asked; the page
@@ -37,6 +39,7 @@ import { ArrowCounterClockwise, MagnifyingGlassMinus, MagnifyingGlassPlus } from
 import { flagColor } from "../lib/flagColor";
 import { geoArea, geoEqualEarth, geoGraticule10, geoPath } from "d3-geo";
 import type { Subnation } from "../data/subnations";
+import { ADMIN2_SOURCE, loadAdmin2, useAdmin2Manifest } from "../lib/admin2";
 import { feature } from "topojson-client";
 import type { Topology } from "topojson-specification";
 import worldTopo from "world-atlas/countries-110m.json";
@@ -161,6 +164,13 @@ const COUNTIES_FROM = 2.5;
 const CITIES_FROM = 4;
 /** Drawn this close, the country picked can be pressed by its states, provinces and regions: as close as a press on a country draws it. */
 const REGIONS_FROM = 1.3;
+/** Drawn this close, the country picked is pressed by its counties, districts and municipalities instead, where their outlines are held. */
+const COUNTIES_PICK_FROM = 3;
+type Src = { label: string; url: string };
+/** A county or a city pressed on the map: what the column says of it, every line its publisher's. */
+type Pressed = { kind: "county" | "city"; key: string; name: string; sub: string; rows: [string, string][]; sources: Src[]; note?: string };
+const US_COUNTY_LINES: Src = { label: "US Census Bureau — cartographic boundary files, via us-atlas", url: "https://www.census.gov/geographies/mapping-files/time-series/geo/cartographic-boundary.html" };
+const GEONAMES: Src = { label: "GeoNames — cities of 100,000 or more (CC BY 4.0)", url: "https://www.geonames.org/" };
 type Geo = { type: string; properties: { n?: string }; geometry: { type: string; coordinates: unknown } };
 /** A division's rings turned the way d3 reads them, where its file has them the other way round (they would cover the globe). */
 function rewind(f: Geo): Geo {
@@ -187,7 +197,7 @@ const PRODUCED = Object.entries({ ...RESOURCE_PRODUCERS, ...ENERGY_PRODUCERS });
  * (the page's own leaders explorer reads the same list); the World Bank's and UNDP's figures; the USGS's, the EIA's and
  * OPEC's tables of the largest producers. A line with nothing held is left out.
  */
-function PickedColumn({ code, name, t, region, onClearRegion }: { code: string; name: string; t: Tokens; region: string | null; onClearRegion: () => void }) {
+function PickedColumn({ code, name, t, region, onClearRegion, pressed, onClearPressed }: { code: string; name: string; t: Tokens; region: string | null; onClearRegion: () => void; pressed: Pressed | null; onClearPressed: () => void }) {
   // The divisions' records - Natural Earth's divisions, each with its own Wikidata record - read when a division is first pressed.
   const [subs, setSubs] = useState<{ list: Subnation[]; sources: Record<string, { label: string; url: string }> } | null>(null);
   useEffect(() => {
@@ -265,8 +275,46 @@ function PickedColumn({ code, name, t, region, onClearRegion }: { code: string; 
           </p>
         </div>
       </div>
+      {/* A county or a city pressed on the map: its own record, and the country's figures below it. */}
+      {pressed && (
+        <div className="rounded-lg px-3 py-2.5 flex flex-col gap-1.5" style={{ background: t.tile, border: `1px solid ${t.gridLine}` }}>
+          <div className="flex items-start justify-between gap-2">
+            <div className="min-w-0">
+              <p className="text-[12px] font-sans font-semibold leading-tight" style={{ color: t.headText }}>
+                {pressed.name}
+              </p>
+              <p className="text-[10px] font-sans" style={{ color: t.mutedText }}>
+                {pressed.sub}
+              </p>
+            </div>
+            <button type="button" onClick={onClearPressed} aria-label={`Back to the whole of ${name}`} title={`Back to ${name}`} className="px-2 h-6 rounded-full border border-border bg-background/70 text-[9px] font-mono uppercase tracking-wider text-muted-foreground hover:text-foreground cursor-pointer transition-colors shrink-0">
+              Back
+            </button>
+          </div>
+          {pressed.rows.length > 0 && (
+            <ul className="flex flex-col">
+              {pressed.rows.map(([k, v]) => (
+                <li key={k} className="flex items-baseline justify-between gap-2 py-0.5">
+                  <span className="text-[9px] font-mono uppercase tracking-widest shrink-0" style={{ color: t.mutedText }}>
+                    {k}
+                  </span>
+                  <span className="text-[11px] font-sans font-semibold text-right" style={{ color: t.headText }}>
+                    {v}
+                  </span>
+                </li>
+              ))}
+            </ul>
+          )}
+          {pressed.note && (
+            <p className="text-[10px] font-sans" style={{ color: t.mutedText }}>
+              {pressed.note}
+            </p>
+          )}
+          <SourceLink sources={pressed.sources} />
+        </div>
+      )}
       {/* The division pressed on the map: its own record, and the country's figures below it. */}
-      {region && (
+      {region && !pressed && (
         <div className="rounded-lg px-3 py-2.5 flex flex-col gap-1.5" style={{ background: t.tile, border: `1px solid ${t.gridLine}` }}>
           <div className="flex items-start justify-between gap-2">
             <div className="min-w-0">
@@ -414,8 +462,10 @@ export default function WorldviewMap() {
   const [regions, setRegions] = useState<{ code: string; list: { name: string; d: string }[] } | null>(null);
   const [region, setRegion] = useState<string | null>(null);
   const [hoverRegion, setHoverRegion] = useState<string | null>(null);
+  const [pressed, setPressed] = useState<Pressed | null>(null);
   useEffect(() => {
     setRegion(null);
+    setPressed(null);
     setHoverRegion(null);
     let off = false;
     fetch(`/geo/admin1/${picked}.json`)
@@ -436,7 +486,85 @@ export default function WorldviewMap() {
   }, [picked]);
   /* How close the map is drawn and where its middle is, in the map's own units - 1 is the whole of it - as the Dashboard's map does. */
   const [view, setView] = useState({ k: 1, x: W / 2, y: H / 2 });
-  const keep = (k: number, x: number, y: number) => {
+  /* The counties, districts and municipalities of the country picked, fetched once it is drawn close enough to press them: the
+     United States' are the Census Bureau's, by us-atlas; every other country's geoBoundaries', as the World Maps page draws them. */
+  type County = { name: string; parent?: string; id: string; d: string; b: [[number, number], [number, number]] };
+  const [counties, setCounties] = useState<{ code: string; list: County[] } | null>(null);
+  const admin2 = useAdmin2Manifest();
+  const wantCounties = view.k >= COUNTIES_PICK_FROM;
+  useEffect(() => {
+    if (!wantCounties || counties?.code === picked) return;
+    let off = false;
+    const shape = (f: { id?: string | number; geometry: unknown }, name: string, parent?: string): County[] => {
+      const d = PATH(f as never);
+      return d ? [{ name, parent, id: String(f.id ?? name), d, b: PATH.bounds(f as never) as County["b"] }] : [];
+    };
+    if (picked === "US") {
+      import("us-atlas/counties-10m.json").then((m) => {
+        if (off) return;
+        const topo = (m.default ?? m) as unknown as Topology;
+        type F = { id?: string | number; properties: { name: string }; geometry: unknown };
+        const states = new Map((feature(topo, topo.objects.states as never) as unknown as { features: F[] }).features.map((f) => [String(f.id), f.properties.name]));
+        const list = (feature(topo, topo.objects.counties as never) as unknown as { features: F[] }).features.flatMap((f) => shape(f, f.properties.name, states.get(String(f.id).slice(0, 2))));
+        setCounties({ code: "US", list });
+      });
+    } else {
+      loadAdmin2(picked).then((file) => {
+        if (off) return;
+        setCounties({ code: picked, list: file ? file.shapes.flatMap((f, i) => shape({ ...f, id: f.id ?? `${f.properties.n}-${i}` }, f.properties.n, f.properties.p)) : [] });
+      });
+    }
+    return () => {
+      off = true;
+    };
+  }, [wantCounties, picked, counties?.code]);
+  const countiesShown = wantCounties && counties?.code === picked && counties.list.length > 0;
+  /** A county pressed: the Census Bureau's record of it in the United States; elsewhere what its boundaries' publisher records. */
+  const pressCounty = (c: County) => {
+    setRegion(null);
+    const country = SHAPES.find((s) => s.code === picked)?.name ?? picked;
+    if (picked === "US") {
+      import("../data/usCounties").then((m) => {
+        const r = m.US_COUNTIES.find((x) => x[0] === c.id);
+        const years = m.US_COUNTY_YEARS;
+        const people = r?.[7] ?? [];
+        setPressed({
+          kind: "county",
+          key: c.id,
+          name: r?.[1] ?? c.name,
+          sub: `${c.parent ? `${c.parent}, ` : ""}${country}`,
+          rows: r
+            ? [
+                ...(people.length ? [["People", `${people[people.length - 1].toLocaleString("en-US")} · ${years[years.length - 1]}`] as [string, string]] : []),
+                ...(people.length > 1 ? [[`Since ${years[0]}`, `${people[people.length - 1] >= people[0] ? "+" : ""}${(people[people.length - 1] - people[0]).toLocaleString("en-US")}`] as [string, string]] : []),
+                ...(r[5] !== null ? [["Land", `${r[5].toLocaleString("en-US")} km²`] as [string, string]] : []),
+                ...(r[6] !== null ? [["Water", `${r[6].toLocaleString("en-US")} km²`] as [string, string]] : []),
+                ["Births, the year", r[8].toLocaleString("en-US")],
+                ["Deaths, the year", r[9].toLocaleString("en-US")],
+              ]
+            : [],
+          note: r ? `Births and deaths in the year to 1 July ${years[years.length - 1]}; the change since ${years[0]} is worked out here.` : "No record of it is held.",
+          sources: [m.US_COUNTY_SOURCES.estimates, m.US_COUNTY_SOURCES.gazetteer, US_COUNTY_LINES],
+        });
+      });
+      return;
+    }
+    const info = admin2?.[picked];
+    setPressed({
+      kind: "county",
+      key: c.id,
+      name: c.name,
+      sub: `${info?.kind ? `${info.kind.charAt(0).toUpperCase()}${info.kind.slice(1)}` : "A division"}${c.parent ? ` in ${c.parent}` : ""}, ${country}`,
+      rows: info ? [["Boundaries", `${info.by}, ${info.year}`], ["Licence", info.licence]] : [],
+      note: "Its outline is all that is held of it: no figures for it are on the site.",
+      sources: [ADMIN2_SOURCE],
+    });
+  };
+  /** A city pressed: GeoNames' count of its people. */
+  const pressCity = (c: { name: string; country: string; people: number }) => {
+    setRegion(null);
+    setPressed({ kind: "city", key: `${c.name}-${c.country}`, name: c.name, sub: `City, ${c.country}`, rows: [["People", c.people.toLocaleString("en-US")]], note: "GeoNames' count of its people, of the city itself.", sources: [GEONAMES] });
+  };  const keep = (k: number, x: number, y: number) => {
     const z = Math.max(1, Math.min(MAX_K, k));
     const hw = W / (2 * z);
     const hh = H / (2 * z);
@@ -467,7 +595,7 @@ export default function WorldviewMap() {
   /* The borders inside the countries - states and provinces, then counties and districts - and the cities: the World Maps
      page's own files, fetched after the map is drawn. A file that does not come leaves the map without that layer. */
   const [inner, setInner] = useState<{ one: { c: string; d: string }[]; two: { c: string; d: string }[] }>({ one: [], two: [] });
-  const [cities, setCities] = useState<{ name: string; country: string; people: number; x: number; y: number }[]>([]);
+  const [cities, setCities] = useState<{ name: string; country: string; cc: string | null; people: number; x: number; y: number }[]>([]);
   useEffect(() => {
     let off = false;
     const lines = (url: string) =>
@@ -491,7 +619,7 @@ export default function WorldviewMap() {
         setCities(
           j.rows.flatMap(([name, country, people, lon, lat]) => {
             const p = PROJECTION([lon, lat]);
-            return p ? [{ name, country, people, x: p[0], y: p[1] }] : [];
+            return p ? [{ name, country, cc: countryForFeature(country)?.code ?? null, people, x: p[0], y: p[1] }] : [];
           }),
         );
       })
@@ -618,7 +746,37 @@ export default function WorldviewMap() {
               ))}
             </g>
             {/* The country picked, by its divisions, once drawn closer: each lit when pointed at and pressed. */}
-            {view.k >= REGIONS_FROM && regions?.code === picked && (
+            {/* Closer still, the country picked by its counties, districts and municipalities, where they are held: those in view. */}
+            {countiesShown && (
+              <g>
+                {counties!.list.map((c) => {
+                  const hw = W / (2 * view.k);
+                  const hh = H / (2 * view.k);
+                  if (c.b[1][0] < view.x - hw || c.b[0][0] > view.x + hw || c.b[1][1] < view.y - hh || c.b[0][1] > view.y + hh) return null;
+                  const on = pressed?.kind === "county" && pressed.key === c.id;
+                  return (
+                    <path
+                      key={c.id}
+                      d={c.d}
+                      vectorEffect="non-scaling-stroke"
+                      className="cursor-pointer"
+                      fill={inkOf(picked)}
+                      fillOpacity={on ? 0.6 : hoverRegion === c.id ? 0.32 : 0}
+                      stroke={on ? inkOf(picked) : "none"}
+                      strokeWidth={1.4}
+                      onClick={() => {
+                        if (!dragged.current) pressCounty(c);
+                      }}
+                      onMouseEnter={() => setHoverRegion(c.id)}
+                      onMouseLeave={() => setHoverRegion(null)}
+                    >
+                      <title>{c.parent ? `${c.name}, ${c.parent}` : c.name}</title>
+                    </path>
+                  );
+                })}
+              </g>
+            )}
+            {!countiesShown && view.k >= REGIONS_FROM && regions?.code === picked && (
               <g>
                 {regions.list.map((r, i) => (
                   <path
@@ -631,7 +789,9 @@ export default function WorldviewMap() {
                     stroke={region === r.name ? inkOf(picked) : "none"}
                     strokeWidth={1.4}
                     onClick={() => {
-                      if (!dragged.current) setRegion(r.name);
+                      if (dragged.current) return;
+                      setPressed(null);
+                      setRegion(r.name);
                     }}
                     onMouseEnter={() => setHoverRegion(r.name)}
                     onMouseLeave={() => setHoverRegion(null)}
@@ -649,7 +809,7 @@ export default function WorldviewMap() {
                 const hh = H / (2 * view.k);
                 if (Math.abs(c.x - view.x) > hw || Math.abs(c.y - view.y) > hh) return null;
                 return (
-                  <circle key={`${c.name}-${c.country}-${c.x}`} cx={c.x} cy={c.y} r={(c.people >= 1e6 ? 2.6 : 1.6) / view.k} fill={t.headText} fillOpacity={0.85} stroke={t.cardBg} strokeWidth={0.6} vectorEffect="non-scaling-stroke">
+                  <circle key={`${c.name}-${c.country}-${c.x}`} cx={c.x} cy={c.y} r={((c.people >= 1e6 ? 2.6 : 1.6) * (pressed?.kind === "city" && pressed.key === `${c.name}-${c.country}` ? 1.8 : 1)) / view.k} fill={pressed?.kind === "city" && pressed.key === `${c.name}-${c.country}` ? inkOf(picked) : t.headText} fillOpacity={0.9} stroke={t.cardBg} strokeWidth={0.6} vectorEffect="non-scaling-stroke" className={c.cc === picked ? "cursor-pointer" : undefined} onClick={() => c.cc === picked && !dragged.current && pressCity(c)} onMouseEnter={() => c.cc === picked && setHoverRegion(`city:${c.name}`)} onMouseLeave={() => setHoverRegion(null)}>
                     <title>{`${c.name}, ${c.country}: ${c.people.toLocaleString("en-US")} people (GeoNames)`}</title>
                   </circle>
                 );
@@ -673,7 +833,7 @@ export default function WorldviewMap() {
           <div className="absolute left-5 bottom-5 max-w-[calc(100%-2.5rem)] h-7 px-3 rounded-full border border-border bg-background/70 flex items-center gap-1.5 text-[10px] font-mono text-muted-foreground truncate">
             {hoverRegion && view.k >= REGIONS_FROM ? (
               <>
-                <span className="font-sans font-semibold text-foreground truncate">{hoverRegion}</span>
+                <span className="font-sans font-semibold text-foreground truncate">{hoverRegion.startsWith("city:") ? hoverRegion.slice(5) : countiesShown ? (counties!.list.find((c) => c.id === hoverRegion)?.name ?? hoverRegion) : hoverRegion}</span>
                 <span>press for its record</span>
               </>
             ) : shown ? (
@@ -682,12 +842,12 @@ export default function WorldviewMap() {
                 <span>press for its figures</span>
               </>
             ) : (
-              <span className="truncate">Scroll to zoom, drag to move · press a country for its figures, then its states and provinces</span>
+              <span className="truncate">Scroll to zoom, drag to move · press a country for its figures, then its states, counties and cities</span>
             )}
           </div>
         </div>
         {/* The place picked, beside the map: what it is and who leads it, as asked. */}
-        <PickedColumn code={picked} name={pickedName} t={t} region={region} onClearRegion={() => setRegion(null)} />
+        <PickedColumn code={picked} name={pickedName} t={t} region={region} onClearRegion={() => setRegion(null)} pressed={pressed} onClearPressed={() => setPressed(null)} />
       </div>
       <div className="flex flex-wrap items-center gap-x-4 gap-y-2 px-4 py-3 border-t" style={{ borderColor: t.gridLine }}>
         <p className="text-[10px] font-sans flex-1 min-w-[12rem]" style={{ color: t.mutedText }}>
