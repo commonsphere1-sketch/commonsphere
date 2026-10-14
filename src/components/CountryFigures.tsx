@@ -997,21 +997,80 @@ export default function CountryFigures({ code, name }: { code: string; name: str
             <None t={t}>No published index scores are held for {name}.</None>
           )}
         </Panel>
-        <Panel t={t} title="Alliances and blocs" meta={`${blocs.length} the site holds`}>
+        <Panel t={t} title="Alliances and blocs" meta={`${blocs.length} the site holds`} className="md:!basis-full xl:!basis-full order-last">
           {blocs.length ? (
             <>
+              {/* Each grouping by its kind, and each body described: what it is, its founding, seat and members, and - on a press - what it is working on and what it has done. */}
               {[...new Set(blocs.map((b) => b.kind))].map((kind, i) => (
-                <div key={kind}>
-                  <p className="text-[9px] font-mono uppercase tracking-widest mb-1" style={{ color: t.mutedText }}>
+                <div key={kind} className="flex flex-col gap-2">
+                  <p className="text-[9px] font-mono uppercase tracking-widest" style={{ color: t.mutedText }}>
                     {ALLIANCE_KIND_PLURAL[kind]}
                   </p>
-                  <div className="flex flex-wrap gap-1.5">
+                  <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-2">
                     {blocs
                       .filter((b) => b.kind === kind)
                       .map((b) => (
-                        <span key={b.id} className="text-[10px] font-sans px-2 py-0.5 rounded-full" style={{ background: `${INK[i % INK.length]}1f`, color: t.headText, border: `1px solid ${INK[i % INK.length]}55` }}>
-                          {b.short}
-                        </span>
+                        <div key={b.id} className="rounded-lg px-3 py-2.5 flex flex-col gap-1.5 min-w-0" style={{ background: t.tile, border: `1px solid ${t.gridLine}` }}>
+                          <div className="flex items-baseline gap-2 min-w-0">
+                            <span className="text-[10px] font-sans font-semibold px-2 py-0.5 rounded-full shrink-0" style={{ background: `${INK[i % INK.length]}1f`, color: t.headText, border: `1px solid ${INK[i % INK.length]}55` }}>
+                              {b.short}
+                            </span>
+                            {b.name !== b.short && (
+                              <span className="text-[11px] font-sans font-semibold leading-tight truncate" style={{ color: t.headText }} title={b.name}>
+                                {b.name}
+                              </span>
+                            )}
+                          </div>
+                          <p className="text-[9px] font-mono" style={{ color: t.mutedText }}>
+                            {[b.founded ? `founded ${b.founded}` : null, b.headquarters ? `seat ${b.headquarters}` : null, `${b.memberCount} members`].filter(Boolean).join(" · ")}
+                          </p>
+                          {b.what && (
+                            <p className="text-[11px] font-sans leading-snug" style={{ color: t.bodyText }}>
+                              {b.what}
+                            </p>
+                          )}
+                          {b.note && (
+                            <p className="text-[10px] font-sans leading-snug" style={{ color: t.mutedText }}>
+                              {b.note}
+                            </p>
+                          )}
+                          {!!(b.agenda?.length || b.impact?.length) && (
+                            <details className="group">
+                              <summary className="cursor-pointer list-none text-[9px] font-mono uppercase tracking-wider select-none" style={{ color: t.mutedText }}>
+                                <span className="group-open:hidden">Its work and record +</span>
+                                <span className="hidden group-open:inline">Its work and record −</span>
+                              </summary>
+                              {b.agenda?.length ? (
+                                <>
+                                  <p className="text-[9px] font-mono uppercase tracking-widest mt-1.5" style={{ color: t.mutedText }}>
+                                    Working on
+                                  </p>
+                                  <ul className="list-disc pl-4 flex flex-col gap-0.5">
+                                    {b.agenda.map((x) => (
+                                      <li key={x} className="text-[10px] font-sans leading-snug" style={{ color: t.bodyText }}>
+                                        {x}
+                                      </li>
+                                    ))}
+                                  </ul>
+                                </>
+                              ) : null}
+                              {b.impact?.length ? (
+                                <>
+                                  <p className="text-[9px] font-mono uppercase tracking-widest mt-1.5" style={{ color: t.mutedText }}>
+                                    What it has done
+                                  </p>
+                                  <ul className="list-disc pl-4 flex flex-col gap-0.5">
+                                    {b.impact.map((x) => (
+                                      <li key={x} className="text-[10px] font-sans leading-snug" style={{ color: t.bodyText }}>
+                                        {x}
+                                      </li>
+                                    ))}
+                                  </ul>
+                                </>
+                              ) : null}
+                            </details>
+                          )}
+                        </div>
                       ))}
                   </div>
                 </div>
@@ -1024,7 +1083,7 @@ export default function CountryFigures({ code, name }: { code: string; name: str
                   {un.council === "permanent" ? "; a permanent member of the Security Council" : ""}.
                 </Note>
               )}
-              <Foot sources={[...blocs.slice(0, 4).map((b) => b.source), un ? COUNTRY_UN_SOURCES.members : undefined]} />
+              <Foot sources={[...blocs.map((b) => b.source), un ? COUNTRY_UN_SOURCES.members : undefined]} />
             </>
           ) : (
             <None t={t}>{name} belongs to none of the alliances and blocs the site holds.</None>
