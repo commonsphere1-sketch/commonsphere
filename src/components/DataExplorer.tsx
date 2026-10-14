@@ -33,7 +33,7 @@
 import { lazy, Suspense, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { Area, AreaChart, Bar, BarChart, CartesianGrid, Cell, LabelList, Line, LineChart, ReferenceLine, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
-import { ArrowRight, ArrowSquareOut, ChartBar, ChartLine, Globe, GlobeHemisphereWest, Heart, Leaf, MagnifyingGlass, MapPin, Megaphone, Scales, Tree, Users, X } from "@phosphor-icons/react";
+import { ArrowRight, ArrowSquareOut, ChartBar, ChartLine, Globe, GlobeHemisphereWest, Heart, Leaf, Lightbulb, MagnifyingGlass, MapPin, Megaphone, Scales, Tree, Users, X } from "@phosphor-icons/react";
 import { useTheme } from "../contexts/ThemeContext";
 import { useLiveCountries } from "../contexts/LiveDataContext";
 import type { Country, DataSource, ReferenceField } from "../data/countriesData";
@@ -66,7 +66,7 @@ const ClimateTab = lazy(() => import("./ClimateNowExplorer"));
 
 export type ExplorerTab = "countries" | "economies" | "policies";
 /** The Dashboard's tabs: countries and economies, and the explorers that come from other pages. */
-type Tab = ExplorerTab | "resources" | "trends" | "geopolitics" | "unrest" | "climate";
+type Tab = ExplorerTab | "resources" | "trends" | "geopolitics" | "ideologies" | "unrest" | "climate";
 type TabDef = { id: Tab; label: string; color: string; path: string; Icon: typeof Globe };
 
 const TABS: TabDef[] = [
@@ -74,8 +74,10 @@ const TABS: TabDef[] = [
   { id: "economies", label: "Economies", color: "#f59e0b", path: "/dashboard/economies", Icon: ChartBar },
   { id: "resources", label: "Resources", color: "#059669", path: "/dashboard/economies?view=resources", Icon: Tree },
   { id: "trends", label: "Trends", color: "#0ea5e9", path: "/dashboard/trends", Icon: ChartLine },
-  // The explorers added since: power, political theories and forms of governance; revolutions, protests and boycotts; the climate.
-  { id: "geopolitics", label: "Geopolitics & ideas", color: "#6366f1", path: "/dashboard/worldview", Icon: GlobeHemisphereWest },
+  // The explorers added since: power; political theories and forms of governance; revolutions, protests and boycotts; the climate.
+  // Geopolitics and the ideologies were one tab, and are two as asked: each is a half of the Worldview page's explorer.
+  { id: "geopolitics", label: "Geopolitics", color: "#6366f1", path: "/dashboard/worldview", Icon: GlobeHemisphereWest },
+  { id: "ideologies", label: "Ideologies", color: "#d946ef", path: "/dashboard/worldview", Icon: Lightbulb },
   { id: "unrest", label: "Revolutions & protests", color: "#f97316", path: "/dashboard/crime", Icon: Megaphone },
   { id: "climate", label: "Climate", color: "#10b981", path: "/dashboard/planetary-boundaries", Icon: Leaf },
 ];
@@ -193,6 +195,7 @@ export function DataExplorer({
     trends: `${TREND_FIGURES}`,
     // Their counts are in their data, which is loaded only when the tab is opened: no number is shown on the tab.
     geopolitics: "",
+    ideologies: "",
     unrest: "",
     climate: "",
   };
@@ -264,7 +267,9 @@ export function DataExplorer({
           ) : tab === "trends" ? (
             <TrendsTab embedded action={toPage} />
           ) : tab === "geopolitics" ? (
-            <GeopoliticsTab embedded />
+            <GeopoliticsTab embedded only="geopolitics" />
+          ) : tab === "ideologies" ? (
+            <GeopoliticsTab embedded only="ideas" />
           ) : tab === "unrest" ? (
             <UnrestTab embedded />
           ) : (

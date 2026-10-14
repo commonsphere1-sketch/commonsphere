@@ -22,6 +22,14 @@ export interface DataLogEntry {
 
 export const DATA_LOG: DataLogEntry[] = [
   {
+    "what": "Political theories and forms of governance, each described and with works to read; where each began, its figures, history, countries and parties",
+    "from": "Wikidata, CIA World Factbook, Wikipedia; links to Britannica, the Stanford and Internet encyclopedias of philosophy",
+    "page": "/dashboard/worldview",
+    "where": "Worldview",
+    "read": "2026-10-14",
+    "files": 1
+  },
+  {
     "what": "A country's people: its languages, religions, peoples and ages, how its income is shared, and how many are poor",
     "from": "CIA World Factbook, World Bank",
     "page": "/dashboard/countries",
@@ -242,14 +250,6 @@ export const DATA_LOG: DataLogEntry[] = [
     "from": "flagcdn.com flag images",
     "page": "/dashboard/countries",
     "where": "Countries",
-    "read": "2026-10-07",
-    "files": 1
-  },
-  {
-    "what": "Political theories and forms of governance, each described and with works to read",
-    "from": "Wikidata, Wikipedia; links to Britannica, the Stanford and Internet encyclopedias of philosophy",
-    "page": "/dashboard/worldview",
-    "where": "Worldview",
     "read": "2026-10-07",
     "files": 1
   },

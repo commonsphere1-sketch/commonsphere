@@ -25,18 +25,32 @@
  *                          opening of its Wikipedia article, with the
  *                          Stanford and Internet encyclopedias of philosophy
  *                          and the Britannica listed first, to read and cite.
+ *                          Under the description, what three records state:
+ *                          where it began and how many parties are of it
+ *                          (its Wikidata record); its figures, history,
+ *                          countries, organizations, works, variants and
+ *                          principles (the idea's own sidebar in Wikipedia,
+ *                          the people checked against Wikidata and only
+ *                          those no longer living given); and, for a form of
+ *                          government, the countries the CIA World Factbook
+ *                          describes with its word. Each part says whose it
+ *                          is; one there is nothing for is not drawn.
  *
  * A measure also says what it counts and why it matters, in its source's
  * terms (worldviewExplain.ts). The list is searched by name, member or place,
  * and narrowed by kind.
+ *
+ * `only` shows one half alone: the Dashboard has the measures and alliances
+ * under one tab and the political ideas under another, as asked; the
+ * Worldview page has them together.
  */
-import { useMemo, useState } from "react";
+import { useMemo, useState, type ReactNode } from "react";
 import { Globe, MagnifyingGlass, X } from "@phosphor-icons/react";
 import { WORLD, type WorldIndicator } from "../data/worldview";
 import { EXPLAIN } from "../data/worldviewExplain";
-import { POLITICAL_IDEAS, POLITICAL_THEORIES_RETRIEVED, type PoliticalIdea } from "../data/politicalTheories";
+import { POLITICAL_IDEAS, POLITICAL_THEORIES_RETRIEVED, type PoliticalGuidePart, type PoliticalIdea } from "../data/politicalTheories";
 import { ALLIANCES, ALLIANCES_CHECKED, ALLIANCE_KIND_PLURAL, HUMAN_RIGHTS_CHECKED, type Alliance, type AllianceKind } from "../data/alliances";
-import { Block, Empty, Kpi, Label, Row, useTokens } from "./DataExplorer";
+import { Block, Empty, Kpi, Label, Row, useTokens, type Tokens } from "./DataExplorer";
 import { SourceLink } from "./SourceLink";
 
 const ACCENT = "#6366f1";
@@ -99,30 +113,98 @@ const ITEMS: Item[] = [
     group: IDEA_GROUP[p.kind].group,
     color: IDEA_GROUP[p.kind].color,
     name: p.name,
-    said: `${p.classed} · ${p.sources.length} works to read`,
-    find: `${p.name} ${p.said}`,
+    said: [
+      p.classed,
+      p.origin?.when ? `from ${p.origin.when}` : "",
+      p.states ? `${p.states.codes.length} ${p.states.codes.length === 1 ? "country" : "countries"}` : "",
+      p.parties ? `${p.parties.n.toLocaleString("en-US")} parties` : "",
+      p.guide || p.states || p.parties ? "" : `${p.sources.length} works to read`,
+    ]
+      .filter(Boolean)
+      .join(" · "),
+    find: [p.name, p.said, ...(p.origin?.by ?? []), ...(p.origin?.where ?? []), ...(p.guide?.parts.flatMap((x) => x.items) ?? []), ...(p.states?.codes ?? []).map(placeName)].join(" "),
     p,
   })),
 ];
-const GROUPS = [...new Set(ITEMS.map((x) => x.group))];
+/** The half of the explorer shown: the measures and alliances, the political ideas, or both. */
+export type GeopoliticsHalf = "geopolitics" | "ideas";
+const HALF: Record<GeopoliticsHalf | "all", { items: Item[]; title: string; search: string; placeholder: string; none: string }> = {
+  all: { items: ITEMS, title: "Geopolitics", search: "Search the geopolitical measures, alliances and political ideas", placeholder: "Search measures, alliances, blocs, member countries, ideologies…", none: "No measure, alliance or political idea matches the search." },
+  geopolitics: { items: ITEMS.filter((x) => !("p" in x)), title: "Geopolitics", search: "Search the geopolitical measures and alliances", placeholder: "Search measures, alliances, blocs, member countries…", none: "No measure or alliance matches the search." },
+  ideas: { items: ITEMS.filter((x) => "p" in x), title: "Ideologies", search: "Search the political theories and forms of governance", placeholder: "Search ideologies, forms of government, figures, countries…", none: "No political theory or form of governance matches the search." },
+};
 
-export function GeopoliticsExplorer({ embedded = false }: { /** Shown inside another explorer's card, under its tab: no card or heading of its own. */ embedded?: boolean } = {}) {
+/** A name in a pill: a figure, an organization, a place. */
+function Chip({ t, children }: { t: Tokens; children: ReactNode }) {
+  return (
+    <span className="inline-flex items-center gap-1 text-[10px] font-sans px-1.5 py-0.5 rounded-full" style={{ background: t.tile, border: `1px solid ${t.gridLine}`, color: t.headText }}>
+      {children}
+    </span>
+  );
+}
+/** What a record states of one thing - "Founded by" - with the names it gives. */
+function Stated({ t, label, names }: { t: Tokens; label: string; names?: string[] }) {
+  if (!names?.length) return null;
+  return (
+    <div className="flex items-baseline gap-2 min-w-0">
+      <span className="text-[10px] font-mono shrink-0 w-24" style={{ color: t.mutedText }}>
+        {label}
+      </span>
+      <span className="text-[11px] font-sans leading-snug min-w-0" style={{ color: t.bodyText }}>
+        {names.join(" · ")}
+      </span>
+    </div>
+  );
+}
+/** A part of an idea's sidebar in Wikipedia, under the sidebar's own heading: what it lists, and of how many where it lists more. */
+function GuidePart({ t, part }: { t: Tokens; part: PoliticalGuidePart }) {
+  return (
+    <>
+      <Label t={t}>
+        {part.title} · {part.of > part.items.length ? `${part.items.length} of ${part.of}` : part.items.length}
+      </Label>
+      <div className="flex flex-wrap gap-1.5">
+        {part.items.map((x) => (
+          <Chip key={x} t={t}>
+            {x}
+          </Chip>
+        ))}
+      </div>
+    </>
+  );
+}
+const NOTE = "text-[10px] font-sans leading-snug";
+/** The parts of a sidebar by what they hold, in the order the detail gives them. */
+const partsOf = (p: PoliticalIdea, ...kinds: PoliticalGuidePart["kind"][]) => kinds.flatMap((k) => p.guide?.parts.filter((x) => x.kind === k) ?? []);
+
+export function GeopoliticsExplorer({
+  embedded = false,
+  only,
+}: {
+  /** Shown inside another explorer's card, under its tab: no card or heading of its own. */
+  embedded?: boolean;
+  /** One half alone: the measures and alliances, or the political ideas. */
+  only?: GeopoliticsHalf;
+} = {}) {
+  const half = HALF[only ?? "all"];
+  const pool = half.items;
+  const groups = useMemo(() => [...new Set(pool.map((x) => x.group))], [pool]);
   const t = useTokens();
   const [search, setSearch] = useState("");
   const [group, setGroup] = useState<string | null>(null);
   const [pickedKey, setPickedKey] = useState<string | null>(null);
   const q = search.trim().toLowerCase();
-  const list = useMemo(() => ITEMS.filter((x) => (!group || x.group === group) && (!q || x.find.toLowerCase().includes(q))), [q, group]);
-  const shown = (pickedKey ? ITEMS.find((x) => x.key === pickedKey) : null) ?? list[0] ?? null;
+  const list = useMemo(() => pool.filter((x) => (!group || x.group === group) && (!q || x.find.toLowerCase().includes(q))), [pool, q, group]);
+  const shown = (pickedKey ? pool.find((x) => x.key === pickedKey) : null) ?? list[0] ?? null;
 
   return (
     <div className={embedded ? "flex flex-col w-full" : "explorer flex flex-col rounded-2xl overflow-hidden w-full"} style={embedded ? undefined : { background: t.cardBg, border: t.cardBorder, boxShadow: t.cardShadow }}>
       {!embedded && (
         <div className="flex items-center gap-1.5 px-4 py-3 border-b" style={{ borderColor: t.gridLine, color: ACCENT }}>
           <Globe size={12} weight="fill" aria-hidden />
-          <h2 className="text-[11px] font-bold font-sans">Geopolitics</h2>
+          <h2 className="text-[11px] font-bold font-sans">{half.title}</h2>
           <span className="text-[9px] font-mono px-1.5 py-0.5 rounded-full" style={{ background: ACCENT + "15" }}>
-            {ITEMS.length}
+            {pool.length}
           </span>
         </div>
       )}
@@ -133,8 +215,8 @@ export function GeopoliticsExplorer({ embedded = false }: { /** Shown inside ano
           type="text"
           value={search}
           onChange={(e) => setSearch(e.target.value)}
-          aria-label="Search the geopolitical measures and alliances"
-          placeholder="Search measures, alliances, blocs, member countries…"
+          aria-label={half.search}
+          placeholder={half.placeholder}
           className="flex-1 bg-transparent text-[11px] font-sans outline-none border-none"
           style={{ color: t.bodyText }}
         />
@@ -148,9 +230,9 @@ export function GeopoliticsExplorer({ embedded = false }: { /** Shown inside ano
       <div className="explorer-panes flex flex-col md:flex-row md:h-[520px]">
         <div className="explorer-list flex flex-col overflow-y-auto max-h-[320px] md:max-h-none md:h-full md:w-[44%] border-b md:border-b-0 md:border-r" style={{ borderColor: t.gridLine }}>
           <div className="flex flex-wrap gap-1.5 px-4 pt-3" role="group" aria-label="Kind">
-            {GROUPS.map((g) => {
+            {groups.map((g) => {
               const on = group === g;
-              const color = ITEMS.find((x) => x.group === g)!.color;
+              const color = pool.find((x) => x.group === g)!.color;
               return (
                 <button
                   key={g}
@@ -164,12 +246,12 @@ export function GeopoliticsExplorer({ embedded = false }: { /** Shown inside ano
                   style={{ background: on ? color + "22" : t.tile, border: `1px solid ${on ? color + "88" : t.gridLine}`, color: t.headText }}
                 >
                   <span className="w-1.5 h-1.5 rounded-full" style={{ background: color }} aria-hidden />
-                  {g} · {ITEMS.filter((x) => x.group === g).length}
+                  {g} · {pool.filter((x) => x.group === g).length}
                 </button>
               );
             })}
           </div>
-          {GROUPS.map((g) => {
+          {groups.map((g) => {
             const rows = list.filter((x) => x.group === g);
             if (!rows.length) return null;
             return (
@@ -195,7 +277,7 @@ export function GeopoliticsExplorer({ embedded = false }: { /** Shown inside ano
               </div>
             );
           })}
-          {list.length === 0 && <Empty t={t}>No measure, alliance or political idea matches the search.</Empty>}
+          {list.length === 0 && <Empty t={t}>{half.none}</Empty>}
         </div>
 
         <div className="explorer-detail flex-1 overflow-y-auto p-4 flex flex-col gap-3 md:h-full">
@@ -259,25 +341,131 @@ export function GeopoliticsExplorer({ embedded = false }: { /** Shown inside ano
               );
             })()
           ) : "p" in shown ? (
-            <Block>
-              <div className="min-w-0">
-                <p className="text-[9px] font-mono uppercase tracking-widest" style={{ color: shown.color }}>
-                  {shown.group} · classed as a {shown.p.classed}
-                </p>
-                <p className="text-sm font-bold font-sans leading-tight mt-0.5" style={{ color: t.headText }}>
-                  {shown.p.name}
-                </p>
-              </div>
-              <p className="text-[12px] font-sans leading-relaxed" style={{ color: t.bodyText }}>
-                {shown.p.said}
-              </p>
-              <Label t={t}>Works to read · {shown.p.sources.length}</Label>
-              <SourceLink sources={shown.p.sources} />
-              <p className="text-[10px] font-sans leading-snug" style={{ color: t.mutedText }}>
-                The description is the opening of its Wikipedia article, the one of these works whose words are open to reuse. The others are linked to be read and cited; none of
-                their text is taken. It is here because more than one work of reference has an entry for it. Read on {POLITICAL_THEORIES_RETRIEVED}.
-              </p>
-            </Block>
+            (() => {
+              const p = shown.p;
+              const people = partsOf(p, "people");
+              const moments = partsOf(p, "history");
+              const places = partsOf(p, "places");
+              const bodies = partsOf(p, "groups");
+              const rest = partsOf(p, "variants", "ideas", "works");
+              return (
+                <>
+                  <Block>
+                    <div className="min-w-0">
+                      <p className="text-[9px] font-mono uppercase tracking-widest" style={{ color: shown.color }}>
+                        {shown.group} · classed as a {p.classed}
+                      </p>
+                      <p className="text-sm font-bold font-sans leading-tight mt-0.5" style={{ color: t.headText }}>
+                        {p.name}
+                      </p>
+                    </div>
+                    <p className="text-[12px] font-sans leading-relaxed" style={{ color: t.bodyText }}>
+                      {p.said}
+                    </p>
+                    {p.origin && (
+                      <>
+                        <Label t={t}>Where it began</Label>
+                        <div className="flex flex-col gap-1.5">
+                          <Stated t={t} label="Began" names={p.origin.when ? [p.origin.when] : undefined} />
+                          <Stated t={t} label="Where" names={p.origin.where} />
+                          <Stated t={t} label="Founded by" names={p.origin.by} />
+                          <Stated t={t} label="Named after" names={p.origin.named} />
+                        </div>
+                        <p className={NOTE} style={{ color: t.mutedText }}>
+                          As its Wikidata record states it; what the record leaves blank is left blank here.
+                        </p>
+                      </>
+                    )}
+                    {moments.map((x) => (
+                      <GuidePart key={x.title} t={t} part={x} />
+                    ))}
+                    <Label t={t}>Works to read · {p.sources.length}</Label>
+                    <SourceLink sources={p.sources} />
+                    <p className={NOTE} style={{ color: t.mutedText }}>
+                      The description is the opening of its Wikipedia article, the one of these works whose words are open to reuse. The others are linked to be read and cited; none
+                      of their text is taken. It is here because more than one work of reference has an entry for it. Read on {POLITICAL_THEORIES_RETRIEVED}.
+                    </p>
+                  </Block>
+
+                  {(people.length > 0 || places.length > 0 || p.states) && (
+                    <Block>
+                      {people.map((x) => (
+                        <GuidePart key={x.title} t={t} part={x} />
+                      ))}
+                      {people.length > 0 && (
+                        <p className={NOTE} style={{ color: t.mutedText }}>
+                          The people its Wikipedia sidebar lists, under the sidebar's own heading - editors' chosen list, not a ruling. Each is one Wikidata's record says is a person
+                          and gives a date of death for: no living person is given an ideology here. The most widely written-about come first, by how many language editions of
+                          Wikipedia have an article on them.
+                        </p>
+                      )}
+                      {p.states && (
+                        <>
+                          <Label t={t}>
+                            Countries the Factbook calls “{p.states.word}” · {p.states.codes.length}
+                          </Label>
+                          <div className="flex flex-wrap gap-1.5">
+                            {p.states.codes.map((code) => (
+                              <Chip key={code} t={t}>
+                                <img src={`https://flagcdn.com/w20/${code.toLowerCase()}.png`} alt="" width={14} height={10} className="rounded-[1px]" loading="lazy" />
+                                {placeName(code)}
+                              </Chip>
+                            ))}
+                          </div>
+                          <p className={NOTE} style={{ color: t.mutedText }}>
+                            The countries and territories whose type of government the CIA World Factbook's final edition (January 2026) describes with the word “{p.states.word}” -
+                            a count of its wording, made here.
+                          </p>
+                        </>
+                      )}
+                      {places.map((x) => (
+                        <GuidePart key={x.title} t={t} part={x} />
+                      ))}
+                      {places.length > 0 && (
+                        <p className={NOTE} style={{ color: t.mutedText }}>
+                          The countries and regions its Wikipedia sidebar has an article on it for: where it has been written about, not a list of where it is held or rules.
+                        </p>
+                      )}
+                    </Block>
+                  )}
+
+                  {(bodies.length > 0 || p.parties || rest.length > 0) && (
+                    <Block>
+                      {bodies.map((x) => (
+                        <GuidePart key={x.title} t={t} part={x} />
+                      ))}
+                      {p.parties && (
+                        <>
+                          <Label t={t}>Parties of it</Label>
+                          <div className="grid grid-cols-2 gap-2">
+                            <Kpi t={t} label="Parties" value={p.parties.n.toLocaleString("en-US")} color={t.headText} sub="past and present" />
+                            <Kpi t={t} label="Countries" value={p.parties.in.toLocaleString("en-US")} color={t.headText} sub="they are recorded in" />
+                          </div>
+                          <p className={NOTE} style={{ color: t.mutedText }}>
+                            Political parties whose Wikidata record lists {p.name.toLowerCase()} among their ideologies, counted here: a count of that volunteer-kept record, not of
+                            every party there has been.
+                          </p>
+                        </>
+                      )}
+                      {rest.map((x) => (
+                        <GuidePart key={x.title} t={t} part={x} />
+                      ))}
+                      {(bodies.length > 0 || rest.length > 0) && (
+                        <p className={NOTE} style={{ color: t.mutedText }}>
+                          From its Wikipedia sidebar, each under the sidebar's heading, by the title of the article it links to; where it lists more, the first it gives.
+                        </p>
+                      )}
+                    </Block>
+                  )}
+
+                  {!p.origin && !p.guide && !p.states && !p.parties && (
+                    <p className={NOTE} style={{ color: t.mutedText }}>
+                      No more is held of it: its Wikipedia article has no sidebar of its own, and its Wikidata record states no origin and fewer than ten parties.
+                    </p>
+                  )}
+                </>
+              );
+            })()
           ) : (
             (() => {
               const a = shown.a;
@@ -355,7 +543,7 @@ export function GeopoliticsExplorer({ embedded = false }: { /** Shown inside ano
 
       <div className="px-4 py-2.5 border-t" style={{ borderColor: t.gridLine }}>
         <span className="text-[10px] font-mono" style={{ color: t.mutedText }}>
-          {list.length} of {ITEMS.length} · alliances checked {ALLIANCES_CHECKED} · political ideas read {POLITICAL_THEORIES_RETRIEVED}
+          {[`${list.length} of ${pool.length}`, only === "ideas" ? "" : `alliances checked ${ALLIANCES_CHECKED}`, only === "geopolitics" ? "" : `political ideas read ${POLITICAL_THEORIES_RETRIEVED}`].filter(Boolean).join(" · ")}
         </span>
       </div>
     </div>
