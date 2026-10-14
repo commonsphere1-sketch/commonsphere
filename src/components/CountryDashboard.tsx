@@ -5,7 +5,7 @@
  * year and the change on each year before, its tax revenue against the
  * world's, what its government spends by function, how many of its people
  * have the basics, who lives there by age, and where it stands among every
- * country on the map's measure.
+ * country on each of the five measures the map once had chips for.
  *
  * Every figure is its publisher's, read from data the site already holds,
  * with its year and its source under its panel: the World Bank's indicators
@@ -34,6 +34,8 @@ const usd = (b: number) => (b >= 1000 ? `$${(b / 1000).toFixed(2)}T` : b >= 1 ? 
 const people = (v: number) => (v >= 1e9 ? `${(v / 1e9).toFixed(2)}B` : v >= 1e6 ? `${(v / 1e6).toFixed(1)}M` : Math.round(v).toLocaleString("en-US"));
 
 export type Ranked = { name: string; code: string; v: number; y: string };
+/** A measure, and every country with a figure on it, highest first. */
+export type Standing = { id: string; label: string; unit: string; color: string; fmt: (v: number) => string; source: { label: string; url: string }; ranked: Ranked[] };
 
 
 
@@ -56,7 +58,7 @@ export function headlineOf(code: string): { rows: { label: string; text: string;
   if (hdi) sources.push(PANEL_SOURCES[(hdi.s ?? "hdr") as keyof typeof PANEL_SOURCES]);
   return { rows, sources };
 }
-export default function CountryDashboard({ code, name, measure, ranked }: { code: string; name: string; measure: { label: string; unit: string; color: string; fmt: (v: number) => string }; ranked: Ranked[] }) {
+export default function CountryDashboard({ code, name, standings }: { code: string; name: string; standings: Standing[] }) {
   const t = useTokens();
   const id = useId().replace(/:/g, "");
   const gdp = (GDP_HISTORY[code] ?? []).map((r) => ({ year: r.year, gdp: r.gdp }));
@@ -82,7 +84,6 @@ export default function CountryDashboard({ code, name, measure, ranked }: { code
   ];
   const accessRows = access.flatMap(([f, label]) => (panels[f] ? [{ f, label, ...panels[f]! }] : []));
   const ages = (["age0to14", "age15to64", "age65up"] as const).map((f, i) => ({ f, label: ["Under 15", "15 to 64", "65 and over"][i], fig: panels[f], color: INK[i] }));
-  const place = ranked.findIndex((r) => r.code === code);
   const panelSources = [...new Set([...accessRows.map((r) => r.s ?? "wb"), ...ages.flatMap((a) => (a.fig ? [a.fig.s ?? "wb"] : []))])].map((s) => PANEL_SOURCES[s as keyof typeof PANEL_SOURCES]);
   const axis = { tick: { fontSize: 9, fill: t.mutedText, fontFamily: "monospace" }, axisLine: false, tickLine: false } as const;
   const tip = { contentStyle: { background: t.tooltipBg, border: t.cardBorder, borderRadius: 8, fontSize: 11 }, labelStyle: { color: t.headText }, itemStyle: { color: t.headText } };
@@ -302,24 +303,42 @@ export default function CountryDashboard({ code, name, measure, ranked }: { code
         </Panel>
       </div>
 
-      {/* Where it stands on the map's measure: every country with a figure, highest first, it marked. */}
-      <Panel t={t} title={`Where ${name} stands · ${measure.label}`} meta={place >= 0 ? `${place + 1} of ${ranked.length}, highest first · worked out here` : `no figure held for ${name}`}>
-        <ResponsiveContainer width="100%" height={180}>
-          <BarChart data={ranked} margin={{ top: 4, right: 6, left: 0, bottom: 0 }} barCategoryGap={1}>
-            <CartesianGrid stroke={t.gridLine} vertical={false} />
-            <XAxis dataKey="name" hide />
-            <YAxis {...axis} width={40} tickFormatter={(v: number) => measure.fmt(v)} />
-            <Tooltip {...tip} formatter={(v: number, _k: string, p: { payload?: Ranked }) => [`${measure.fmt(v)} · ${p.payload?.y ?? ""}`, measure.label]} />
-            <Bar dataKey="v" isAnimationActive={false}>
-              {ranked.map((r) => (
-                <Cell key={r.code} fill={measure.color} fillOpacity={r.code === code ? 1 : 0.35} />
-              ))}
-            </Bar>
-          </BarChart>
-        </ResponsiveContainer>
-        <p className="text-[10px] font-sans" style={{ color: t.mutedText }}>
-          Each bar a country, {measure.unit}; {name}'s is the bright one. Pick another measure on the map to rank them on it.
-        </p>
+      {/* Where it stands on each measure: its place among every country with a figure, highest first, on a line from the highest to the lowest. */}
+      <Panel t={t} title={`Where ${name} stands`} meta="among every country with a figure, highest first · worked out here">
+        <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-5 gap-3">
+          {standings.map((s) => {
+            const at = s.ranked.findIndex((r) => r.code === code);
+            const r = at >= 0 ? s.ranked[at] : null;
+            return (
+              <div key={s.id} className="rounded-lg px-3 py-2.5 flex flex-col gap-1.5" style={{ background: t.tile, border: `1px solid ${t.gridLine}` }}>
+                <p className="text-[9px] font-mono uppercase tracking-widest" style={{ color: t.mutedText }}>
+                  {s.label}
+                </p>
+                <p className="text-lg font-bold font-mono leading-none" style={{ color: r ? t.headText : t.mutedText }}>
+                  {r ? s.fmt(r.v) : "Not held"}
+                </p>
+                <p className="text-[9px] font-mono" style={{ color: t.mutedText }}>
+                  {r ? `${at + 1} of ${s.ranked.length} · ${r.y}` : `no figure held for ${name}`}
+                </p>
+                {r && (
+                  <div className="relative h-1.5 rounded-full mt-1" style={{ background: t.gridLine }} role="img" aria-label={`${name} is ${at + 1} of ${s.ranked.length} on ${s.label.toLowerCase()}, highest first`}>
+                    <span className="absolute top-1/2 w-2.5 h-2.5 rounded-full -translate-x-1/2 -translate-y-1/2" style={{ left: `${s.ranked.length > 1 ? (at / (s.ranked.length - 1)) * 100 : 0}%`, background: s.color, boxShadow: `0 0 0 2px ${t.cardBg}` }} />
+                  </div>
+                )}
+                {r && (
+                  <p className="flex justify-between text-[8px] font-mono uppercase tracking-wider" style={{ color: t.mutedText }}>
+                    <span>highest</span>
+                    <span>lowest</span>
+                  </p>
+                )}
+                <p className="text-[9px] font-sans leading-snug" style={{ color: t.mutedText }}>
+                  {s.unit}
+                </p>
+              </div>
+            );
+          })}
+        </div>
+        <SourceLink sources={standings.map((s) => s.source)} />
       </Panel>
       {/* Every subject the site holds official figures on for it, as charts of their own kinds, as asked. */}
       <CountryFigures code={code} name={name} />

@@ -1,19 +1,18 @@
 /**
  * The Worldview page's map: the world, country by country, across the top of
  * the page - as the reference design the page was set after has its map, in
- * the site's own colours. A measure is picked from the chips; each country is
- * shaded by which fifth of the countries with the figure it falls in, and the
- * column beside the map lists the highest and the lowest, with their bars.
+ * the site's own colours. It once had chips of measures to shade it by; they
+ * and the shading were taken off, as asked, and every country is drawn alike.
+ * The five measures stay, for the panel under the map that places the country
+ * picked on each of them.
  *
  * Every figure is its publisher's, read from data the site already holds,
  * each with its year: Freedom House's scores, the World Bank's deaths before
  * age five and migrants' share of people, UN Tourism's arrivals, and the World
- * Bank's PM2.5 exposure. The fifths are worked out here from those figures.
- * A country with no figure is left grey and counted.
+ * Bank's PM2.5 exposure. The places among the countries are worked out here.
  *
  * It is drawn as the World Maps page draws its maps: each country in its
- * flag's colour, translucent inside a bright edge of the same colour, and the
- * more solid the higher the fifth its figure falls in; with its states' and
+ * flag's colour, translucent inside a bright edge of the same colour; with its states' and
  * provinces' borders, its counties' and districts' once the map is drawn
  * closer, and the cities - every one of 100,000 or more, GeoNames' - as
  * named points closer still.
@@ -149,8 +148,9 @@ const SHAPES = WORLD.features.flatMap((f) => {
 const DRAWN = new Set(SHAPES.flatMap((s) => (s.code ? [s.code] : []))).size;
 /** As close as the map is drawn: twelve times the whole. */
 const MAX_K = 12;
-/** How solid each fifth is drawn, the lowest figures first: the World Maps page's neon steps. */
-const STEPS = [0.14, 0.27, 0.42, 0.6, 0.82];
+/** How solid a country is drawn, and the one picked or pointed at: the World Maps page's middle neon step, and a step up. */
+const FILL = 0.42;
+const FILL_ON = 0.6;
 /** A country's ink: its flag's colour, or the page's accent where none is held. */
 const inkOf = (code: string | null) => (code && flagColor(code)) || "#22d3ee";
 /** Drawn this close, the counties' and districts' borders show; this close, the cities. */
@@ -332,11 +332,9 @@ function PickedColumn({ code, name, t }: { code: string; name: string; t: Tokens
 
 export default function WorldviewMap() {
   const t = useTokens();
-  const [id, setId] = useState(MEASURES[0].id);
   const [hover, setHover] = useState<string | null>(null);
   /** The country whose figures fill the panels under the map. */
   const [picked, setPicked] = useState("US");
-  const m = MEASURES.find((x) => x.id === id)!;
   /* How close the map is drawn and where its middle is, in the map's own units - 1 is the whole of it - as the Dashboard's map does. */
   const [view, setView] = useState({ k: 1, x: W / 2, y: H / 2 });
   const keep = (k: number, x: number, y: number) => {
@@ -437,25 +435,21 @@ export default function WorldviewMap() {
     const k = Math.min(MAX_K, 0.8 * Math.min(W / Math.max(1, x1 - x0), H / Math.max(1, y1 - y0)));
     glideTo({ k: Math.max(1.4, k), x: (x0 + x1) / 2, y: (y0 + y1) / 2 });
   };
-  const { shaded, cuts, ranked, held } = useMemo(() => {
-    const read = new Map<string, Reading>();
-    for (const s of SHAPES) {
-      if (!s.code) continue;
-      const r = m.read(s.code);
-      if (r && Number.isFinite(r.v)) read.set(s.code, r);
-    }
-    const values = [...read.values()].map((r) => r.v).sort((a, b) => a - b);
-    // The four values that split the countries into fifths.
-    const cuts = [1, 2, 3, 4].map((k) => values[Math.min(values.length - 1, Math.floor((values.length * k) / 5))]);
-    const step = (v: number) => cuts.filter((c) => v >= c).length;
-    const shaded = new Map([...read].map(([cc, r]) => [cc, { ...r, step: step(r.v) }]));
-    const ranked = SHAPES.flatMap((s) => (s.code && read.has(s.code) ? [{ name: s.name, code: s.code, ...read.get(s.code)! }] : []))
-      .filter((x, i, a) => a.findIndex((y) => y.code === x.code) === i)
-      .sort((a, b) => b.v - a.v);
-    return { shaded, cuts, ranked, held: read.size };
-  }, [m]);
+  /* Every country with a figure on each of the five measures, highest first: where the country picked stands, in the panel under the map. */
+  const standings = useMemo(
+    () =>
+      MEASURES.map((x) => ({
+        ...x,
+        ranked: SHAPES.flatMap((s) => {
+          const r = s.code ? x.read(s.code) : null;
+          return s.code && r && Number.isFinite(r.v) ? [{ name: s.name, code: s.code, ...r }] : [];
+        })
+          .filter((r, i, a) => a.findIndex((y) => y.code === r.code) === i)
+          .sort((a, b) => b.v - a.v),
+      })),
+    [],
+  );
   const shown = hover ? SHAPES.find((s) => s.code === hover) : null;
-  const shownReading = hover ? shaded.get(hover) : undefined;
   const pickedName = SHAPES.find((s) => s.code === picked)?.name ?? picked;
   return (
     <>
@@ -464,19 +458,6 @@ export default function WorldviewMap() {
         <p className="text-[10px] font-mono uppercase tracking-widest" style={{ color: t.mutedText }}>
           The world, country by country
         </p>
-        <div className="flex flex-wrap gap-1.5 ml-auto" role="group" aria-label="The measure the map is shaded by">
-          {MEASURES.map((x) => (
-            <button
-              key={x.id}
-              type="button"
-              aria-pressed={x.id === id}
-              onClick={() => setId(x.id)}
-              className={`px-3 py-1 rounded-full text-[11px] font-medium font-sans border transition-colors cursor-pointer ${x.id === id ? "chip-selected" : "bg-transparent border-border text-muted-foreground hover:text-foreground hover:bg-muted/60"}`}
-            >
-              {x.label}
-            </button>
-          ))}
-        </div>
       </div>
       <div className="grid grid-cols-1 lg:grid-cols-[minmax(0,1fr)_15rem]">
         <div className="relative p-3 min-w-0">
@@ -485,7 +466,7 @@ export default function WorldviewMap() {
             viewBox={`${view.x - W / (2 * view.k)} ${view.y - H / (2 * view.k)} ${W / view.k} ${H / view.k}`}
             className={`w-full h-auto block touch-none select-none ${view.k > 1 ? "cursor-grab active:cursor-grabbing" : ""}`}
             role="img"
-            aria-label={`World map shaded by ${m.label.toLowerCase()}, ${m.unit}. Scroll or pinch to zoom, drag to move.`}
+            aria-label="World map, each country in its flag's colour. Scroll or pinch to zoom, drag to move, press a country for its figures."
             onPointerDown={(e) => {
               drag.current = { x: e.clientX, y: e.clientY, moved: false };
               dragged.current = false;
@@ -513,7 +494,6 @@ export default function WorldviewMap() {
             <path d={SPHERE} vectorEffect="non-scaling-stroke" fill={t.isLight ? "rgba(0,0,0,0.02)" : "rgba(255,255,255,0.015)"} stroke={t.gridLine} />
             <path d={GRID} vectorEffect="non-scaling-stroke" fill="none" stroke={t.isLight ? "rgba(0,0,0,0.07)" : "rgba(255,255,255,0.07)"} strokeWidth={0.6} />
             {SHAPES.map((s, i) => {
-              const r = s.code ? shaded.get(s.code) : undefined;
               const on = (hover !== null && hover === s.code) || s.code === picked;
               return (
                 <path
@@ -525,15 +505,15 @@ export default function WorldviewMap() {
                     if (dragged.current) return;
                     if (s.code) pick(s.code);
                   }}
-                  // Translucent inside a bright edge of its own colour, more solid the higher its fifth, and lit when pointed at: as the World Maps page draws.
-                  fill={r ? inkOf(s.code) : t.isLight ? "#e5e7eb" : "#1a1a20"}
-                  fillOpacity={r ? (on ? Math.min(0.92, STEPS[r.step] + 0.2) : STEPS[r.step]) : 1}
-                  stroke={on ? t.headText : r ? inkOf(s.code) : t.isLight ? "#cbd5e1" : "#3a3a44"}
-                  strokeWidth={on ? 1.6 : 0.7}
+                  // Translucent inside a bright edge of its own colour, as the World Maps page draws; a little more solid when picked or pointed at.
+                  fill={s.code ? inkOf(s.code) : t.isLight ? "#e5e7eb" : "#1a1a20"}
+                  fillOpacity={s.code ? (on ? FILL_ON : FILL) : 1}
+                  stroke={s.code ? inkOf(s.code) : t.isLight ? "#cbd5e1" : "#3a3a44"}
+                  strokeWidth={0.7}
                   onMouseEnter={() => s.code && setHover(s.code)}
                   onMouseLeave={() => setHover(null)}
                 >
-                  <title>{r ? `${s.name}: ${m.fmt(r.v)}, ${r.y}` : `${s.name}: no figure held`}</title>
+                  <title>{s.name}</title>
                 </path>
               );
             })}
@@ -585,7 +565,7 @@ export default function WorldviewMap() {
             {shown ? (
               <>
                 <span className="font-sans font-semibold text-foreground truncate">{shown.name}</span>
-                <span>{shownReading ? `${m.fmt(shownReading.v)} · ${shownReading.y}` : "no figure held"}</span>
+                <span>press for its figures</span>
               </>
             ) : (
               <span className="truncate">Scroll to zoom, drag to move · press a country for its figures</span>
@@ -596,30 +576,14 @@ export default function WorldviewMap() {
         <PickedColumn code={picked} name={pickedName} t={t} />
       </div>
       <div className="flex flex-wrap items-center gap-x-4 gap-y-2 px-4 py-3 border-t" style={{ borderColor: t.gridLine }}>
-        <div className="flex items-center gap-1" aria-label="The fifths the map is shaded by">
-          {STEPS.map((o, i) => (
-            <span key={o} className="flex flex-col items-center gap-0.5">
-              <span className="w-10 h-2 rounded-sm" style={{ background: t.headText, opacity: o }} />
-              <span className="text-[9px] font-mono" style={{ color: t.mutedText }}>
-                {i === 0 ? `< ${m.fmt(cuts[0])}` : i === 4 ? `≥ ${m.fmt(cuts[3])}` : `${m.fmt(cuts[i - 1])}+`}
-              </span>
-            </span>
-          ))}
-          <span className="flex flex-col items-center gap-0.5 ml-2">
-            <span className="w-10 h-2 rounded-sm" style={{ background: t.isLight ? "#e5e7eb" : "#1a1a20", border: `1px solid ${t.isLight ? "#cbd5e1" : "#3a3a44"}` }} />
-            <span className="text-[9px] font-mono" style={{ color: t.mutedText }}>
-              none held
-            </span>
-          </span>
-        </div>
         <p className="text-[10px] font-sans flex-1 min-w-[12rem]" style={{ color: t.mutedText }}>
-          Each country in its flag's colour, more solid the higher the fifth its figure falls in; its latest figure, with its year, on pointing at it. The fifth is which fifth of the {held} countries with a figure - of the {DRAWN} the map draws - it falls in, worked out here. The smallest islands are too small to draw at this scale.
+          Each country in its flag's colour; press one for its own figures, beside the map and under it. The {DRAWN} countries the map draws; the smallest islands are too small to draw at this scale.
         </p>
-        <SourceLink sources={[m.source, { label: "Natural Earth, via world-atlas — country outlines (public domain)", url: "https://github.com/topojson/world-atlas" }, { label: "geoBoundaries (gbOpen, each country's under its publisher's open licence) and Natural Earth (public domain) — state, province, county and district borders", url: "https://www.geoboundaries.org/" }, { label: "GeoNames — cities of 100,000 or more (CC BY 4.0)", url: "https://www.geonames.org/" }]} />
+        <SourceLink sources={[{ label: "Natural Earth, via world-atlas — country outlines (public domain)", url: "https://github.com/topojson/world-atlas" }, { label: "geoBoundaries (gbOpen, each country's under its publisher's open licence) and Natural Earth (public domain) — state, province, county and district borders", url: "https://www.geoboundaries.org/" }, { label: "GeoNames — cities of 100,000 or more (CC BY 4.0)", url: "https://www.geonames.org/" }]} />
       </div>
     </section>
     {/* The country picked: its own figures, filled in under the map. */}
-    <CountryDashboard code={picked} name={pickedName} measure={m} ranked={ranked} />
+    <CountryDashboard code={picked} name={pickedName} standings={standings} />
     </>
   );
 }
