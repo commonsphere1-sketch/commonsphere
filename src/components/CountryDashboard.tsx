@@ -19,186 +19,23 @@
  * rates - each with its year and its publisher, as asked: the page is about
  * the place picked on the map.
  */
-import { useId, type ReactNode } from "react";
+import { useId } from "react";
 import { Area, AreaChart, Bar, BarChart, CartesianGrid, Cell, Pie, PieChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
 import { COUNTRY_INDICATORS, COUNTRY_INDICATORS_SOURCE, COUNTRY_INDICATOR_FALLBACKS, type Measured } from "../data/countryIndicators";
 import { GDP_HISTORY, GDP_HISTORY_SOURCE } from "../data/gdpHistory";
 import { TAX_HISTORY, TAX_HISTORY_SOURCES, TAX_REVENUE_WORLD } from "../data/taxHistory";
 import { BUDGET_DIVISIONS, BUDGET_SOURCE, COUNTRY_BUDGET } from "../data/countryBudget";
 import { COUNTRY_PANELS, PANEL_SOURCES, type PanelField } from "../data/countryPanels";
-import { COUNTRY_FIGURES, COUNTRY_FIGURE_SOURCES } from "../data/worldview";
-import { AIR_QUALITY, AIR_QUALITY_SOURCE } from "../data/airQuality";
-import { useTokens, type Tokens } from "./DataExplorer";
+import { useTokens } from "./DataExplorer";
 import { SourceLink } from "./SourceLink";
+import CountryFigures, { INK, None, Panel } from "./CountryFigures";
 
-/** The site's colours for the panels, in turn. */
-const INK = ["#2a78d6", "#10b981", "#f59e0b", "#8b5cf6", "#ef4444", "#06b6d4", "#ec4899", "#84cc16", "#f97316", "#6366f1"];
 const usd = (b: number) => (b >= 1000 ? `$${(b / 1000).toFixed(2)}T` : b >= 1 ? `$${b.toFixed(b >= 100 ? 0 : 1)}B` : `$${Math.round(b * 1000)}M`);
 const people = (v: number) => (v >= 1e9 ? `${(v / 1e9).toFixed(2)}B` : v >= 1e6 ? `${(v / 1e6).toFixed(1)}M` : Math.round(v).toLocaleString("en-US"));
 
 export type Ranked = { name: string; code: string; v: number; y: string };
 
-function Panel({ t, title, meta, children, className = "" }: { t: Tokens; title: string; meta?: string; children: ReactNode; className?: string }) {
-  return (
-    <section className={`rounded-xl flex flex-col min-w-0 ${className}`} style={{ background: t.cardBg, border: t.cardBorder }}>
-      <div className="flex items-baseline gap-2 px-3.5 pt-3 pb-2 border-b" style={{ borderColor: t.gridLine }}>
-        <h3 className="text-[10px] font-mono uppercase tracking-widest flex-1 min-w-0 truncate" style={{ color: t.headText }}>
-          {title}
-        </h3>
-        {meta && (
-          <span className="text-[9px] font-mono shrink-0" style={{ color: t.mutedText }}>
-            {meta}
-          </span>
-        )}
-      </div>
-      <div className="p-3.5 flex flex-col gap-2 flex-1">{children}</div>
-    </section>
-  );
-}
-const None = ({ t, children }: { t: Tokens; children: ReactNode }) => (
-  <p className="text-[11px] font-sans py-6 text-center" style={{ color: t.mutedText }}>
-    {children}
-  </p>
-);
 
-/* ── Every figure, by subject ───────────────────────────────────────────── */
-
-type Src = { label: string; url: string };
-type Row = { label: string; text: string; y: string; /** A share out of 100, drawn as a bar. */ share?: number };
-type Group = { title: string; rows: Row[]; of: number; sources: Src[] };
-const pct = (v: number) => `${v.toFixed(1)}%`;
-const one = (unit: string) => (v: number) => `${v.toFixed(1)} ${unit}`;
-/** A figure of the panels' data: its label, how it is printed, and whether it is a share out of 100. */
-type FieldDef = [PanelField, string, (v: number) => string, boolean?];
-const GROUP_FIELDS: { title: string; fields: FieldDef[] }[] = [
-  {
-    title: "People",
-    fields: [
-      ["femalePct", "Women, of all people", pct, true],
-      ["sexRatioAtBirth", "Boys born for each girl", (v) => v.toFixed(2)],
-      ["birthRate", "Births a year", one("per 1,000")],
-      ["deathRate", "Deaths a year", one("per 1,000")],
-      ["age15to24", "Aged 15 to 24", pct, true],
-      ["age25to54", "Aged 25 to 54", pct, true],
-      ["age55to64", "Aged 55 to 64", pct, true],
-    ],
-  },
-  {
-    title: "Health",
-    fields: [
-      ["lifeExpectancy", "Life expectancy", one("yrs")],
-      ["maternalMortality", "Mothers who die in childbirth", (v) => `${Math.round(v)} per 100,000 births`],
-      ["hospitalBeds", "Hospital beds", one("per 1,000")],
-      ["physicians", "Doctors", one("per 1,000")],
-    ],
-  },
-  {
-    title: "Schooling",
-    fields: [
-      ["literacyMale", "Men who can read", pct, true],
-      ["literacyFemale", "Women who can read", pct, true],
-      ["bachelorsPct", "Adults with a bachelor's degree", pct, true],
-      ["schoolingYears", "Years of schooling, on average", one("yrs")],
-    ],
-  },
-  {
-    title: "Work and money",
-    fields: [
-      ["laborMale", "Men in work or looking for it", pct, true],
-      ["laborFemale", "Women in work or looking for it", pct, true],
-      ["povertyNationalPct", "Below the national poverty line", pct, true],
-      ["gini", "Inequality of income (Gini, 0 to 100)", (v) => v.toFixed(1), true],
-      ["medianDailyIncome", "Median income a day", (v) => `$${v.toFixed(2)}`],
-      ["minimumWageMonthlyUSD", "Minimum wage a month", (v) => `$${Math.round(v).toLocaleString("en-US")}`],
-      ["homeOwnershipPct", "Homes owned by those who live in them", pct, true],
-      ["tradeBalanceUSD", "Trade balance, goods and services", (v) => `${v < 0 ? "−" : ""}$${(Math.abs(v) / 1e9).toFixed(1)}B`],
-    ],
-  },
-  {
-    title: "What it makes",
-    fields: [
-      ["agriculturePct", "Farming, forestry and fishing, of GDP", pct, true],
-      ["industryPct", "Industry, of GDP", pct, true],
-      ["manufacturingPct", "Manufacturing, of GDP", pct, true],
-      ["servicesPct", "Services, of GDP", pct, true],
-    ],
-  },
-  {
-    title: "Connections and transport",
-    fields: [
-      ["mobilePer100", "Mobile subscriptions", one("per 100 people")],
-      ["broadbandPer100", "Fixed broadband", one("per 100 people")],
-      ["logisticsIndex", "Logistics (World Bank index, 1 to 5)", (v) => v.toFixed(2)],
-      ["railKm", "Railway", (v) => `${Math.round(v).toLocaleString("en-US")} km`],
-      ["evSalesShare", "Electric cars, of new car sales", pct, true],
-    ],
-  },
-  {
-    title: "Government and standing",
-    fields: [
-      ["hdi", "Human development (UNDP, 0 to 1)", (v) => v.toFixed(3)],
-      ["cpiScore", "Clean government (Transparency International, 0 to 100)", (v) => String(Math.round(v)), true],
-    ],
-  },
-];
-const FREEDOM_STATUS = { F: "Free", PF: "Partly free", NF: "Not free" } as const;
-
-/** Every figure the site holds for a country beyond the panels above, by subject. */
-function groupsOf(code: string): Group[] {
-  const panels = COUNTRY_PANELS[code.toLowerCase()] ?? {};
-  const ind = COUNTRY_INDICATORS[code] ?? {};
-  const out: Group[] = GROUP_FIELDS.map((g) => {
-    const rows = g.fields.flatMap(([f, label, fmt, share]) => {
-      const p = panels[f];
-      return p ? [{ label, text: fmt(p.v), y: p.y, share: share ? p.v : undefined, s: p.s ?? "wb" }] : [];
-    });
-    return { title: g.title, rows, of: g.fields.length, sources: [...new Set(rows.map((r) => r.s))].map((s) => PANEL_SOURCES[s as keyof typeof PANEL_SOURCES]) };
-  });
-  const add = (title: string, row: Row | null, src: Src, of = 1) => {
-    const g = out.find((x) => x.title === title)!;
-    g.of += of;
-    if (!row) return;
-    g.rows.push(row);
-    if (!g.sources.some((s) => s.url === src.url)) g.sources.push(src);
-  };
-  const cm = COUNTRY_FIGURES.childMortality[code];
-  add("Health", cm ? { label: "Children who die before five", text: `${cm[1].toFixed(1)} per 1,000 births`, y: String(cm[0]) } : null, COUNTRY_FIGURE_SOURCES.childMortality);
-  const air = AIR_QUALITY[code];
-  add("Health", air ? { label: "Fine particles in the air breathed (PM2.5)", text: `${air.pm25} µg/m³`, y: String(air.year) } : null, { label: AIR_QUALITY_SOURCE.label, url: AIR_QUALITY_SOURCE.url });
-  const un = ind.unemploymentRate;
-  add("Work and money", un ? { label: "Unemployed, of the labour force", text: pct(un.v), y: un.y, share: un.v } : null, un?.s ? COUNTRY_INDICATOR_FALLBACKS[un.s] : { label: COUNTRY_INDICATORS_SOURCE.label, url: COUNTRY_INDICATORS_SOURCE.url });
-  const fr = COUNTRY_FIGURES.freedom[code];
-  add(
-    "Government and standing",
-    fr ? { label: `Freedom (Freedom House, 0 to 100) - ${FREEDOM_STATUS[fr[4]]}`, text: String(fr[1]), y: String(fr[0]), share: fr[1] } : null,
-    COUNTRY_FIGURE_SOURCES.freedom,
-  );
-  add("Government and standing", fr ? { label: "Political rights (0 to 40)", text: String(fr[2]), y: String(fr[0]), share: (fr[2] / 40) * 100 } : null, COUNTRY_FIGURE_SOURCES.freedom);
-  add("Government and standing", fr ? { label: "Civil liberties (0 to 60)", text: String(fr[3]), y: String(fr[0]), share: (fr[3] / 60) * 100 } : null, COUNTRY_FIGURE_SOURCES.freedom);
-  // Coming and going.
-  out.push({ title: "Coming and going", rows: [], of: 0, sources: [] });
-  const mg = COUNTRY_FIGURES.migrantShare[code];
-  add("Coming and going", mg ? { label: "Born in another country", text: pct(mg[1]), y: String(mg[0]), share: mg[1] } : null, COUNTRY_FIGURE_SOURCES.migrantShare);
-  const ar = COUNTRY_FIGURES.arrivals[code];
-  add("Coming and going", ar ? { label: "Visitors who stayed the night", text: people(ar[1]), y: String(ar[0]) } : null, COUNTRY_FIGURE_SOURCES.arrivals);
-  const tr = COUNTRY_FIGURES.tripsAbroad[code];
-  add("Coming and going", tr ? { label: "Trips abroad, for each resident", text: tr[1].toFixed(2), y: String(tr[0]) } : null, COUNTRY_FIGURE_SOURCES.tripsAbroad);
-  // Its tax rates, the latest year of each series.
-  out.push({ title: "Tax rates", rows: [], of: 0, sources: [] });
-  const tx = TAX_HISTORY[code] ?? {};
-  const latest = (s?: [number, number][]) => (s && s.length ? s[s.length - 1] : null);
-  const rates: [keyof typeof tx, string, Src][] = [
-    ["central", "Corporate income tax, central government", TAX_HISTORY_SOURCES.corporate],
-    ["combined", "Corporate income tax, all levels combined", TAX_HISTORY_SOURCES.corporate],
-    ["topIncome", "Top rate of personal income tax", TAX_HISTORY_SOURCES.income],
-    ["revenue", "Tax revenue, of GDP", TAX_HISTORY_SOURCES.revenue],
-  ];
-  for (const [k, label, src] of rates) {
-    const l = latest(tx[k]);
-    add("Tax rates", l ? { label, text: pct(l[1]), y: String(l[0]), share: l[1] } : null, src);
-  }
-  return out;
-}
 
 /** A place's headline figures, for the map card's column: each with its year, or not held; and whose they are. */
 export function headlineOf(code: string): { rows: { label: string; text: string; y?: string }[]; sources: { label: string; url: string }[] } {
@@ -222,7 +59,6 @@ export function headlineOf(code: string): { rows: { label: string; text: string;
 export default function CountryDashboard({ code, name, measure, ranked }: { code: string; name: string; measure: { label: string; unit: string; color: string; fmt: (v: number) => string }; ranked: Ranked[] }) {
   const t = useTokens();
   const id = useId().replace(/:/g, "");
-  const groups = groupsOf(code);
   const gdp = (GDP_HISTORY[code] ?? []).map((r) => ({ year: r.year, gdp: r.gdp }));
   const change = gdp.slice(1).map((r, i) => ({ year: r.year, pct: gdp[i].gdp ? ((r.gdp - gdp[i].gdp) / gdp[i].gdp) * 100 : 0 }));
   const tax = TAX_HISTORY[code]?.revenue ?? [];
@@ -263,7 +99,7 @@ export default function CountryDashboard({ code, name, measure, ranked }: { code
       </div>
 
 
-      <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-3">
+      <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-3 items-stretch">
         <Panel t={t} title="GDP, year by year" meta={gdp.length ? `current US$ · ${gdp[0].year}–${gdp[gdp.length - 1].year}` : undefined}>
           {gdp.length > 1 ? (
             <>
@@ -485,47 +321,8 @@ export default function CountryDashboard({ code, name, measure, ranked }: { code
           Each bar a country, {measure.unit}; {name}'s is the bright one. Pick another measure on the map to rank them on it.
         </p>
       </Panel>
-      {/* Every other figure the site holds for the country, by subject: a row each, with its year. */}
-      <div className="flex items-baseline gap-3 px-1 pt-2">
-        <h3 className="text-sm font-bold font-sans" style={{ color: t.headText }}>
-          Every figure held for {name}
-        </h3>
-        <span className="text-[10px] font-sans" style={{ color: t.mutedText }}>
-          {groups.reduce((n, g) => n + g.rows.length, 0)} figures, each its publisher's, with its year
-        </span>
-      </div>
-      <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-3 items-start">
-        {groups.map((g) => (
-          <Panel key={g.title} t={t} title={g.title} meta={`${g.rows.length} of ${g.of}`}>
-            {g.rows.length ? (
-              <ul className="flex flex-col gap-2">
-                {g.rows.map((r, i) => (
-                  <li key={r.label} className="grid grid-cols-[minmax(0,1fr)_auto] gap-x-2 items-baseline">
-                    <span className="text-[11px] font-sans leading-snug" style={{ color: t.bodyText }}>
-                      {r.label}
-                    </span>
-                    <span className="text-[11px] font-mono font-semibold tabular-nums text-right" style={{ color: t.headText }}>
-                      {r.text}
-                      <span className="font-normal" style={{ color: t.mutedText }}>
-                        {" "}
-                        · {r.y}
-                      </span>
-                    </span>
-                    {r.share !== undefined && (
-                      <span className="col-span-2 h-1 rounded-full overflow-hidden mt-0.5" style={{ background: t.gridLine }} aria-hidden>
-                        <span className="block h-full rounded-full" style={{ width: `${Math.max(1, Math.min(100, r.share))}%`, background: INK[i % INK.length] }} />
-                      </span>
-                    )}
-                  </li>
-                ))}
-              </ul>
-            ) : (
-              <None t={t}>None is held for {name}.</None>
-            )}
-            {g.sources.length > 0 && <SourceLink sources={g.sources} />}
-          </Panel>
-        ))}
-      </div>
+      {/* Every subject the site holds official figures on for it, as charts of their own kinds, as asked. */}
+      <CountryFigures code={code} name={name} />
     </div>
   );
 }
