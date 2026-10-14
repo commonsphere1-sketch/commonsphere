@@ -27,7 +27,6 @@ import {
   ClockCounterClockwise,
   Crown,
   CrownSimple,
-  Money,
   ArrowsIn,
   ArrowsOut,
   MagnifyingGlass,
@@ -16847,7 +16846,8 @@ const RICHEST_FAMILIES: RichFamily[] = [
 
 
 // ── RichestFamiliesView ───────────────────────────────────────────────────────
-function RichestFamiliesView() {
+/** The Richest Families tab's view. The tab was taken off the page as asked; the view is kept here, and is not drawn. */
+export function RichestFamiliesView() {
   const [selectedFamily, setSelectedFamily] = useState<RichFamily | null>(null);
   const [familyExpanded, setFamilyExpanded] = useState(false);
   // Reset the expanded state on close, otherwise the next family opened
@@ -17672,7 +17672,7 @@ export function WorldLeadersPage() {
   const [search, setSearch] = useState("");
   const [selected, setSelected] = useState<Leader | null>(null);
   const [viewMode, setViewMode] = useState<
-    "list" | "monarchies" | "richest" | "alliances"
+    "list" | "monarchies" | "alliances"
   >("list");
 
   /* Deep link: ?open=<leader id> opens that leader's window - the link a
@@ -17865,16 +17865,6 @@ export function WorldLeadersPage() {
             Royal Families &amp; Monarchies
           </button>
           <button
-            onClick={() => setViewMode("richest")}
-            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium border transition-colors ${viewMode === "richest" ? "chip-selected" : "bg-card border-border text-muted-foreground hover:text-foreground"}`}
-          >
-            <Money
-              size={13}
-              weight={viewMode === "richest" ? "fill" : "regular"}
-            />
-            Richest Families
-          </button>
-          <button
             onClick={() => setViewMode("alliances")}
             className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium border transition-colors ${viewMode === "alliances" ? "chip-selected" : "bg-card border-border text-muted-foreground hover:text-foreground"}`}
           >
@@ -17888,9 +17878,6 @@ export function WorldLeadersPage() {
 
         {/* ── Alliances & International Agencies View ── */}
         {viewMode === "alliances" && <AlliancesView />}
-
-        {/* ── Richest Families View ── */}
-        {viewMode === "richest" && <RichestFamiliesView />}
 
         {/* Monarchies View */}
         {viewMode === "monarchies" && (

@@ -67,7 +67,6 @@ const SETS = [
   { files: ["stateHealthSafety.ts"], what: "Each US state's life expectancy at birth and its deaths by homicide to 100,000 residents", from: "CDC (National Center for Health Statistics; National Center for Injury Prevention and Control)", page: "/dashboard/maps", where: "World maps" },
   { files: ["statePeople.ts"], what: "A state's people: the languages spoken at home, and how household income is shared", from: "US Census Bureau", page: "/dashboard/states", where: "US States" },
   { files: ["countryPeople.ts"], what: "A country's people: its languages, religions, peoples and ages, how its income is shared, and how many are poor", from: "CIA World Factbook, World Bank", page: "/dashboard/countries", where: "Countries" },
-  { files: ["wealthyFamilies.ts"], what: "The wealthiest families: each with a published estimate of its wealth, its year and the publication cited", from: "Wikipedia (citing Forbes, Bloomberg and others)", page: "/dashboard/world-leaders", where: "World leaders" },
   { files: ["taxHistory.ts"], what: "Taxation over the years: corporate rates of central and sub-central government, the top income tax rate, and tax revenue", from: "OECD, World Bank", page: "/dashboard/economies", where: "Economies" },
   { files: ["countryLaw.ts"], what: "The law a place is under and how its country is governed: what is illegal and legal there, its legal system, constitution, courts, executive, legislature, citizenship and vote", from: "UK Foreign, Commonwealth & Development Office, CIA World Factbook", page: "/dashboard/cities", where: "Cities" },
   { files: ["countryYear.ts"], what: "The year so far in each country: the dated events of Wikipedia's article for the year, each with the report it cites", from: "Wikipedia", page: "/dashboard/countries", where: "Countries" },
@@ -95,7 +94,8 @@ const SETS = [
   { files: ["climateIndicators.ts"], what: "The measured state of the climate", from: "NOAA, NASA GISS, NSIDC", page: "/dashboard/planetary-boundaries", where: "Climate" },
 ];
 /** Generated files that are indexes of the site's own content - names, places, feeds - not readings of figures. */
-const NOT_DATA = new Set(["dataLog.ts", "leaderIndex.ts", "newsSources.ts", "wikiArticles.ts", "admin1Sources.ts", "cityPlaces.ts", "placeIndex.ts"]);
+// wealthyFamilies.ts is held and no page draws it: the Richest Families tab was taken off the World Leaders page, and the log lists what the site shows.
+const NOT_DATA = new Set(["dataLog.ts", "leaderIndex.ts", "newsSources.ts", "wikiArticles.ts", "admin1Sources.ts", "cityPlaces.ts", "placeIndex.ts", "wealthyFamilies.ts"]);
 
 const builtOn = (file) => {
   const head = fs.readFileSync(path.join(DATA, file), "utf8").slice(0, 2500);

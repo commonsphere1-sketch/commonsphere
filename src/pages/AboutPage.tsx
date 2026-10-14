@@ -247,7 +247,7 @@ const SITE_PAGES = [
   { icon: <MapPin size={18} weight="fill" />, label: "Municipalities", desc: "States, provinces, counties, towns and villages", color: "text-cyan-400", bg: "bg-cyan-500/10" },
   { icon: <Buildings size={18} weight="fill" />, label: "Cities", desc: "The world's cities, with each one's laws", color: "text-sky-400", bg: "bg-sky-500/10" },
   { icon: <ChartBar size={18} weight="fill" />, label: "Economies", desc: "Output, tax, inflation, deficits and resources", color: "text-amber-400", bg: "bg-amber-500/10" },
-  { icon: <Flag size={18} weight="fill" />, label: "World Leaders", desc: "Who governs, and the wealthiest families", color: "text-indigo-400", bg: "bg-indigo-500/10" },
+  { icon: <Flag size={18} weight="fill" />, label: "World Leaders", desc: "Who governs, and the royal houses", color: "text-indigo-400", bg: "bg-indigo-500/10" },
   { icon: <Article size={18} weight="fill" />, label: "Policy", desc: "What governments spend, with a calculator", color: "text-violet-400", bg: "bg-violet-500/10" },
   { icon: <Ranking size={18} weight="fill" />, label: "Compare", desc: "Figures and systems of government, side by side", color: "text-secondary", bg: "bg-secondary/10" },
   { icon: <Lightning size={18} weight="fill" />, label: "Trends", desc: "Where the figures are heading", color: "text-yellow-400", bg: "bg-yellow-500/10" },

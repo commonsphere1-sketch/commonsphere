@@ -124,7 +124,7 @@ const PLANS = [
       `${COUNTS.unCities.toLocaleString("en-US")} cities and ${COUNTS.places.toLocaleString("en-US")} towns and villages, each with a window of its own, and ${COUNTS.cities} city profiles`,
       `${COUNTS.economies} economies with figures refreshed from the World Bank, and each one's tax rates and revenue over the years`,
       `Composite rankings across ${COUNTS.ranked} entities and 7 categories`,
-      `World leaders, ${COUNTS.royals} royal family profiles, and the wealthiest families with a published estimate`,
+      `World leaders and ${COUNTS.royals} royal family profiles`,
       "The law of each country: what is illegal and legal there, its courts, its constitution and who may vote",
       "World and regional maps: the G7, the Global North and South, ports, infrastructure and resources, to the county and the district",
       "Climate, crime, policy, trends and worldview pages",

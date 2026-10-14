@@ -354,10 +354,10 @@ export function LegalPage() {
               public sector information licensed under the Open Government
               Licence v3.0, and is advice to travellers, not a statement of the
               law. Travel advisories and health notices of the US Department of
-              State and the CDC are in the public domain. The estimates of the
-              wealthiest families' fortunes, and the year's events in each
-              country, are read from Wikipedia under CC BY-SA 4.0, each with the
-              revision read and the publication it cites. World Bank, OECD and
+              State and the CDC are in the public domain. The year's events in
+              each country, and the opening and the sidebar of each political
+              ideology's article, are read from Wikipedia under CC BY-SA 4.0,
+              each linked to the page it was read from. World Bank, OECD and
               Eurostat figures are used under CC BY 4.0.
             </P>
             <P>

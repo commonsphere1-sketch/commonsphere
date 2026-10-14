@@ -135,8 +135,8 @@ const SEARCH_INDEX = buildSearchIndex();
  *            found inside its country's or its division's window on the Municipalities page.
  *   people   the leaders the World Leaders page profiles, every country's head of state and of government as the
  *            Maps page lists them, each US state's governor and senators, and the royal houses' members.
- *   others   the wealthiest families with a published estimate, the alliances and blocs of the Worldview page, and
- *            the published indexes.
+ *   others   the alliances and blocs of the Worldview page, and the published indexes. The wealthiest families were
+ *            here too, and went with their tab of the World Leaders page.
  *
  * Once they are in, the UN's cities stand for the few profiled ones, which they include, and a town that is one of
  * the UN's cities by the same name in the same country is not listed twice. Each answer goes to the window or the
@@ -152,7 +152,6 @@ const more = () =>
     import("@/data/representatives"),
     import("@/data/stateIndicators"),
     import("@/data/royalFamiliesData"),
-    import("@/data/wealthyFamilies"),
     import("@/data/alliances"),
     import("@/data/countryIndexes"),
     // The towns: a file of its own, and the search goes on without it should it not come.
@@ -160,7 +159,7 @@ const more = () =>
       .then((r) => (r.ok && /json/.test(r.headers.get("content-type") ?? "") ? (r.json() as Promise<{ towns: [name: string, cc: string, id: number, people: number, region: string][] }>) : { towns: [] }))
       .catch(() => ({ towns: [] as [name: string, cc: string, id: number, people: number, region: string][] })),
   ])
-    .then(([sub, un, us, leaders, reps, states, royals, wealthy, groups, indexes, towns]) => {
+    .then(([sub, un, us, leaders, reps, states, royals, groups, indexes, towns]) => {
       const country = new Map(countriesData.map((c) => [c.code, c.name]));
       const countryId = new Map(countriesData.map((c) => [c.code, c.id]));
       /* ── People ── */
@@ -214,7 +213,6 @@ const more = () =>
         ...towns.towns
           .filter((t) => !cityNames.has(`${t[1]}|${fold(t[0])}`))
           .map((t) => entry({ id: `town-${t[2]}`, label: t[0], sublabel: `${[t[4], country.get(t[1]) ?? t[1]].filter(Boolean).join(" · ")} · ${people_(t[3])} people (GeoNames)`, type: "Town", to: `/dashboard/subnations?open=place:${t[1]}:${t[2]}` })),
-        ...wealthy.WEALTHY_FAMILIES.map((f) => entry({ id: `family-${f.name}-${f.from ?? ""}`, label: `${f.name} family`, sublabel: [f.from, f.country].filter(Boolean).join(" · "), type: "Family", to: "/dashboard/world-leaders" })),
         ...groups.ALLIANCES.flatMap((a) => [
           entry({ id: `group-${a.id}`, label: a.name, sublabel: `${a.kind}${a.short && a.short !== a.name ? ` · ${a.short}` : ""}`, type: "Group", to: "/dashboard/worldview" }),
           // By its short name too: "NATO" answers as well as its full name.
@@ -378,7 +376,7 @@ export function HeaderNav({ onMenuToggle, mobileSidebarOpen }: HeaderNavProps) {
           />
           <Input
             type="search"
-            placeholder="Search places, people, families, alliances, pages…"
+            placeholder="Search places, people, alliances, pages…"
             value={searchValue}
             onChange={(e) =>
               setSearchValue(e.target.value.slice(0, LIMITS.SEARCH_QUERY))

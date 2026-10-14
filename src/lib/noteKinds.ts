@@ -21,7 +21,7 @@ export const SITE_SECTIONS: { to: string; label: string; holds: string }[] = [
   { to: "/dashboard/subnations", label: "Municipalities", holds: "states, provinces, counties, towns" },
   { to: "/dashboard/cities", label: "Cities", holds: "the world's cities" },
   { to: "/dashboard/economies", label: "Economies", holds: "output, tax, inflation, resources" },
-  { to: "/dashboard/world-leaders", label: "World Leaders", holds: "who governs, and the wealthiest families" },
+  { to: "/dashboard/world-leaders", label: "World Leaders", holds: "who governs, and the royal houses" },
   { to: "/dashboard/policy", label: "Policy", holds: "what governments spend, by area" },
   { to: "/dashboard/rankings", label: "Compare", holds: "places side by side" },
   { to: "/dashboard/trends", label: "Trends", holds: "where the figures are heading" },
