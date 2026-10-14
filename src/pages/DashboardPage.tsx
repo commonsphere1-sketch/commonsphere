@@ -2241,7 +2241,8 @@ function FocusCarousel({
   return (
     <div
       className="shrink-0 self-center w-full"
-      onMouseEnter={() => setPaused(true)}
+      // A key on it holds it still. The pointer does on the middle card alone (below): the row is the page's width now, and
+      // a pointer anywhere along it stopped the turning on a wide screen. Leaving the row always lets it turn again.
       onMouseLeave={() => setPaused(false)}
       onFocusCapture={() => setPaused(true)}
       onBlurCapture={() => setPaused(false)}
@@ -2369,6 +2370,8 @@ function FocusCarousel({
             <div
               key={entry.id}
               aria-hidden={away === 2}
+              onMouseEnter={o === 0 ? () => setPaused(true) : undefined}
+              onMouseLeave={o === 0 ? () => setPaused(false) : undefined}
               className="absolute transition-[transform,opacity] duration-500 ease-out motion-reduce:transition-none"
               style={{
                 transform: `translateX(${o * 172}px) scale(${o === 0 ? 1 : 0.82})`,
