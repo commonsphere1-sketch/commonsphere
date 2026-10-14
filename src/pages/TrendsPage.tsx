@@ -178,7 +178,7 @@ function decadeBefore(s: Point[]): Point | null {
 function Card({ children, className = "" }: { children: ReactNode; className?: string }) {
   const { card } = useLook();
   return (
-    <div className={`rounded-2xl p-5 min-w-0 ${className}`} style={card}>
+    <div className={`rounded-2xl p-6 sm:p-8 min-w-0 ${className}`} style={card}>
       {children}
     </div>
   );
@@ -187,11 +187,11 @@ function Card({ children, className = "" }: { children: ReactNode; className?: s
 function CardHead({ title, kicker }: { title: string; kicker: string }) {
   const { head, muted } = useLook();
   return (
-    <div className="mb-4">
-      <h3 className="text-sm font-bold font-sans" style={{ color: head }}>
+    <div className="mb-7">
+      <h3 className="text-base font-bold font-sans leading-snug" style={{ color: head }}>
         {title}
       </h3>
-      <p className="text-[10px] font-mono uppercase tracking-widest mt-1" style={{ color: muted }}>
+      <p className="text-[10px] font-mono uppercase tracking-widest leading-relaxed mt-2" style={{ color: muted }}>
         {kicker}
       </p>
     </div>
@@ -201,15 +201,15 @@ function CardHead({ title, kicker }: { title: string; kicker: string }) {
 function SectionHead({ icon, color, title, kicker }: { icon: ReactNode; color: string; title: string; kicker: string }) {
   const { head, muted } = useLook();
   return (
-    <div className="flex items-center gap-3">
-      <span className="w-9 h-9 rounded-xl flex items-center justify-center shrink-0" style={{ background: `${color}18`, color, border: `1px solid ${color}30` }}>
+    <div className="flex items-start gap-4">
+      <span className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0" style={{ background: `${color}18`, color, border: `1px solid ${color}30` }}>
         {icon}
       </span>
       <div>
-        <h2 className="text-lg font-bold font-sans leading-tight" style={{ color: head }}>
+        <h2 className="text-xl sm:text-2xl font-bold font-sans leading-tight" style={{ color: head }}>
           {title}
         </h2>
-        <p className="text-xs font-sans" style={{ color: muted }}>
+        <p className="text-xs font-sans leading-relaxed mt-1.5 max-w-2xl" style={{ color: muted }}>
           {kicker}
         </p>
       </div>
@@ -220,7 +220,7 @@ function SectionHead({ icon, color, title, kicker }: { icon: ReactNode; color: s
 function Note({ children }: { children: ReactNode }) {
   const { muted } = useLook();
   return (
-    <p className="text-[10px] font-sans leading-relaxed mt-3 max-w-4xl" style={{ color: muted }}>
+    <p className="text-[10px] font-sans leading-relaxed mt-6 max-w-2xl" style={{ color: muted }}>
       {children}
     </p>
   );
@@ -229,7 +229,7 @@ function Note({ children }: { children: ReactNode }) {
 function Legend({ items }: { items: { color: string; label: string; value?: string; dashed?: boolean }[] }) {
   const { head, muted } = useLook();
   return (
-    <div className="flex flex-wrap items-center gap-x-5 gap-y-1 mt-3">
+    <div className="flex flex-wrap items-center gap-x-6 gap-y-2 mt-5">
       {items.map((l) => (
         <span key={l.label} className="flex items-center gap-1.5">
           <span className="w-4 h-0 border-t-2" style={{ borderColor: l.color, borderStyle: l.dashed ? "dashed" : "solid" }} aria-hidden />
@@ -712,7 +712,7 @@ function MultiLine({ data, lines, fmt, tick, label, height = 250 }: { data: Reco
 function LeaderList({ label, rows, color }: { label: string; rows: { name: string; code?: string; value: number; text: string; sub?: string }[]; color: string }) {
   const top = Math.max(...rows.map((r) => r.value), 1);
   return (
-    <ul className="flex flex-col gap-2.5" aria-label={label}>
+    <ul className="flex flex-col gap-4" aria-label={label}>
       {rows.map((r) => (
         <RankRow key={r.name} name={r.name} code={r.code ?? null} value={r.value} top={top} text={r.text} sub={r.sub} color={color} />
       ))}
@@ -860,13 +860,13 @@ function RenewablesSection() {
   const funders = whoOf("who-funders");
 
   return (
-    <section id="renewables" className="scroll-mt-36 flex flex-col gap-6" aria-labelledby="renewables-title">
+    <section id="renewables" className="scroll-mt-36 flex flex-col gap-8 sm:gap-10" aria-labelledby="renewables-title">
       <SectionHead icon={<Leaf size={18} weight="fill" />} color="#10b981" title="Renewables" kicker="The kinds of renewable power: what each makes, what it costs, what is invested, what is projected, and who leads" />
       <h2 id="renewables-title" className="sr-only">
         Renewables
       </h2>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 sm:gap-8">
         <Card className="lg:col-span-2">
           <CardHead title="Electricity from each renewable source" kicker={`TWh generated in the world a year · Ember · ${gen[0].year}–${now.year}`} />
           <MultiLine
@@ -888,7 +888,7 @@ function RenewablesSection() {
         </div>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 sm:gap-8">
         <Card>
           <CardHead title="What a kilowatt-hour costs from a new plant" kicker={`Levelised cost, US cents at 2025 prices · IRENA · ${costYears[0]}–${costYears[costYears.length - 1]}`} />
           <MultiLine
@@ -953,7 +953,7 @@ function RenewablesSection() {
           figure, for what is generated and for what is installed, with the lowest and highest of EIA's cases. */}
       <EnergyOutlook id="energy-outlook" />
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 sm:gap-8">
         <Card>
           <CardHead title="What was invested, by technology" kicker={`New investment in renewable power, US$ billions a year · ${inv[0].year}–${invLast.year}`} />
           <div
@@ -1002,7 +1002,7 @@ function RenewablesSection() {
       </div>
 
       {(companies || funders) && (
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 sm:gap-8">
           {[companies, funders].map(
             (t) =>
               t && (
@@ -1189,13 +1189,13 @@ function TechnologySection() {
   const stack = (i: number, n: number): [number, number, number, number] | number => (i === n - 1 ? [4, 4, 0, 0] : 0);
 
   return (
-    <section id="emerging-tech" className="scroll-mt-36 flex flex-col gap-6" aria-labelledby="emerging-tech-title">
+    <section id="emerging-tech" className="scroll-mt-36 flex flex-col gap-8 sm:gap-10" aria-labelledby="emerging-tech-title">
       <SectionHead icon={<Cpu size={18} weight="fill" />} color={TECH_COLOR} title="Technology in charts" kicker="How far it has spread, what computing can do and costs, the emerging kinds, the money, the robots, and who leads" />
       <h2 id="emerging-tech-title" className="sr-only">
         Technology in charts
       </h2>
 
-      <div className="grid grid-cols-1 gap-4">
+      <div className="grid grid-cols-1 gap-6 sm:gap-8">
         <Card>
           <CardHead title="The spread of communication technology" kicker={`For every 100 people in the world · ITU · ${TECH_TAKE_UP[0].year}–${takeUpNow.year}`} />
           <MultiLine
@@ -1212,7 +1212,7 @@ function TechnologySection() {
         </Card>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 sm:gap-8">
         <Card>
           <CardHead title="Where the money for AI goes" kicker={`Private investment in AI, US$ billions at 2021 prices · Quid, via the AI Index · ${inv[0].year}–${invNow.year}`} />
           <MultiLine
@@ -1253,7 +1253,7 @@ function TechnologySection() {
         </Card>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 sm:gap-8">
         <Card>
           <CardHead title="Industrial robots installed, by country" kicker={`Robots installed in the year · International Federation of Robotics · ${ROBOT_INSTALLS[0].year}–${robotsNow.year}`} />
           <MultiLine
@@ -1293,7 +1293,7 @@ function TechnologySection() {
         </Card>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 sm:gap-8">
         <Card>
           <CardHead title="The chips behind AI: NVIDIA's revenue" kicker={`US$ billions a quarter, as the company reports it · ${nvFirst.quarter} to ${nvNow.quarter}`} />
           <div
@@ -1348,7 +1348,7 @@ function TechnologySection() {
         </Card>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 sm:gap-8">
         <Card>
           <CardHead title="Where the largest AI systems are built" kicker={`Systems trained with over 10²³ operations, since 2019 · Epoch AI · to ${large.year}`} />
           <LeaderList label="Large-scale AI systems by country" color={ORDERED[4]} rows={large.rows.map((r) => ({ name: r.n, code: r.c, value: r.v, text: String(r.v), sub: shareText(r.v, large.total) }))} />
@@ -1662,23 +1662,23 @@ export function TrendsPage() {
 
   return (
     <div className="min-h-screen w-full animate-fade-in" style={{ background: "var(--color-background)" }}>
-      <div className="max-w-screen-2xl mx-auto px-4 sm:px-6 py-6 flex flex-col gap-6">
+      <div className="max-w-screen-2xl mx-auto px-5 sm:px-10 py-10 sm:py-14 flex flex-col gap-14 sm:gap-20">
         {/* ── Hero ── */}
         <div className="rounded-2xl relative overflow-hidden" style={{ background: isLight ? "#ffffff" : "#0b0b0d", border: isLight ? "1px solid rgba(0,0,0,0.12)" : "1px solid rgba(255,255,255,0.12)" }}>
           <div className="absolute inset-0 pointer-events-none opacity-[0.05]" style={{ backgroundImage: `radial-gradient(circle, ${isLight ? "#000000" : "#ffffff"} 1px, transparent 1px)`, backgroundSize: "32px 32px" }} />
-          <div className="relative px-5 py-6 flex flex-col lg:flex-row lg:items-center gap-6 justify-between">
+          <div className="relative px-6 sm:px-10 py-10 sm:py-14 flex flex-col lg:flex-row lg:items-center gap-10 justify-between">
             <div className="max-w-xl">
-              <p className="text-[10px] font-mono uppercase tracking-widest mb-1" style={{ color: muted }}>
+              <p className="text-[10px] font-mono uppercase tracking-widest mb-3" style={{ color: muted }}>
                 CommonSphere · Trends &amp; Projections
               </p>
               <h1 className="text-2xl sm:text-3xl font-bold font-sans" style={{ color: head }}>
                 Where the world is heading
               </h1>
-              <p className="text-sm font-sans mt-1.5" style={{ color: muted }}>
+              <p className="text-sm font-sans mt-4 leading-relaxed" style={{ color: muted }}>
                 The world economy to {end} as the IMF projects it, the world's people to 2100 as the UN does, and the trends behind both - each projection from the body
                 that publishes it, with the year its estimates end and its projections begin.
               </p>
-              <p className="text-[11px] font-sans mt-2" style={{ color: muted }}>
+              <p className="text-[11px] font-sans mt-5 leading-relaxed" style={{ color: muted }}>
                 IMF World Economic Outlook, {WEO.edition} · UN World Population Prospects {WPP.revision} · World Bank · retrieved {PROJECTIONS_RETRIEVED}
               </p>
             </div>
@@ -1686,13 +1686,13 @@ export function TrendsPage() {
               <p className="text-[10px] font-mono uppercase tracking-widest" style={{ color: muted }}>
                 World GDP · IMF projection for {end}
               </p>
-              <p className="text-4xl sm:text-5xl font-bold font-mono leading-none mt-1" style={{ color: head }}>
+              <p className="text-4xl sm:text-5xl font-bold font-mono leading-none mt-3" style={{ color: head }}>
                 {usdFromBillions(gdpEnd)}
               </p>
-              <p className="mt-2 text-[11px] font-mono" style={{ color: muted }}>
+              <p className="mt-4 text-[11px] font-mono" style={{ color: muted }}>
                 from <span style={{ color: head }}>{usdFromBillions(gdpBase)}</span> in {first - 1} · {signed(((gdpEnd - gdpBase) / (gdpBase || 1)) * 100, 0)}% in current dollars
               </p>
-              <p className="mt-1 text-[10px] font-sans max-w-sm lg:ml-auto" style={{ color: muted }}>
+              <p className="mt-3 text-[10px] font-sans leading-relaxed max-w-sm lg:ml-auto" style={{ color: muted }}>
                 A projection, not a forecast with a probability: the IMF's central case, revised twice a year.
               </p>
             </div>
@@ -1722,7 +1722,7 @@ export function TrendsPage() {
 
         {/* ══ Overview ══ */}
         {/* ══ World economy ══ */}
-        <section id="economy" className="scroll-mt-36 flex flex-col gap-6" aria-labelledby="economy-title">
+        <section id="economy" className="scroll-mt-36 flex flex-col gap-8 sm:gap-10" aria-labelledby="economy-title">
           <SectionHead icon={<TrendUp size={18} weight="fill" />} color="#6366f1" title="World economy" kicker={`The IMF's outlook to ${end}: output, growth, prices and debt`} />
           <h2 id="economy-title" className="sr-only">
             World economy
@@ -1741,7 +1741,7 @@ export function TrendsPage() {
             </Note>
             <SourceLink sources={[WEO]} className="mt-3" />
           </Card>
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 sm:gap-8">
             {(
               [
                 { key: "growth", title: "Real GDP growth", kicker: "% a year" },
@@ -1767,12 +1767,12 @@ export function TrendsPage() {
         </section>
 
         {/* ══ Countries ══ */}
-        <section id="countries" className="scroll-mt-36 flex flex-col gap-6" aria-labelledby="countries-title">
+        <section id="countries" className="scroll-mt-36 flex flex-col gap-8 sm:gap-10" aria-labelledby="countries-title">
           <SectionHead icon={<Globe size={18} weight="fill" />} color="#3b82f6" title="Countries" kicker={`${WEO_COUNTRIES.length} economies, as the IMF projects each`} />
           <h2 id="countries-title" className="sr-only">
             Countries
           </h2>
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 sm:gap-8">
             <Card>
               <CardHead title={`The fifteen largest economies in ${end}`} kicker={`GDP, current US dollars · IMF projection · with the change on ${first - 1}`} />
               <ul className="flex flex-col gap-2.5" aria-label={`Largest economies projected for ${end}`}>
@@ -1812,12 +1812,12 @@ export function TrendsPage() {
         </section>
 
         {/* ══ Population ══ */}
-        <section id="population" className="scroll-mt-36 flex flex-col gap-6" aria-labelledby="population-title">
+        <section id="population" className="scroll-mt-36 flex flex-col gap-8 sm:gap-10" aria-labelledby="population-title">
           <SectionHead icon={<Users size={18} weight="fill" />} color="#8b5cf6" title="Population" kicker="The UN's medium variant to 2100: how many people, how old, and where" />
           <h2 id="population-title" className="sr-only">
             Population
           </h2>
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 sm:gap-8">
             <Card className="lg:col-span-2">
               <CardHead title="World population, 1950 to 2100" kicker={`People on 1 July · UN World Population Prospects ${WPP.revision}, medium variant`} />
               <SplitArea
@@ -1907,12 +1907,12 @@ export function TrendsPage() {
         </section>
 
         {/* ══ Scenarios ══ */}
-        <section id="scenarios" className="scroll-mt-36 flex flex-col gap-6" aria-labelledby="scenarios-title">
+        <section id="scenarios" className="scroll-mt-36 flex flex-col gap-8 sm:gap-10" aria-labelledby="scenarios-title">
           <SectionHead icon={<Target size={18} weight="fill" />} color="#f97316" title="Scenarios" kicker="The UN's own: what the world's population does if families are a little smaller or larger" />
           <h2 id="scenarios-title" className="sr-only">
             Scenarios
           </h2>
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 sm:gap-8">
             <Card className="lg:col-span-2">
               <CardHead title="Three variants of the world's population" kicker={`People on 1 July · UN World Population Prospects ${WPP.revision} · ${WPP.firstProjected}–2100`} />
               <OutlookLines lines={variantRows.map((v) => ({ key: v.key, label: v.label, color: v.color, series: v.series }))} split={WPP.firstProjected} fmt={(v) => `${(v / 1e9).toFixed(1)}bn`} height={280} />
@@ -1952,13 +1952,13 @@ export function TrendsPage() {
         <TechnologySection />
 
         {/* ══ Trends ══ */}
-        <section id="trends" className="scroll-mt-36 flex flex-col gap-6" aria-labelledby="trends-title">
+        <section id="trends" className="scroll-mt-36 flex flex-col gap-8 sm:gap-10" aria-labelledby="trends-title">
           <SectionHead icon={<Lightning size={18} weight="fill" />} color="#10b981" title="Trends" kicker="What has been moving: the latest reading of each measure, and its change on about ten years before" />
           <h2 id="trends-title" className="sr-only">
             Trends
           </h2>
           {TREND_GROUPS.map((g) => (
-            <div key={g.title} id={g.id} className="scroll-mt-36 flex flex-col gap-3">
+            <div key={g.title} id={g.id} className="scroll-mt-36 flex flex-col gap-6 pt-2">
               <div className="flex items-center gap-2">
                 <span className="w-2 h-2 rounded-full" style={{ background: g.color }} aria-hidden />
                 <span className="text-[10px] font-bold font-sans uppercase tracking-widest" style={{ color: head }}>
@@ -1970,7 +1970,7 @@ export function TrendsPage() {
                 <div className="flex-1 h-px" style={{ background: look.grid }} />
               </div>
               {!NO_CARDS.has(g.id) && (
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
                   {(TREND_CARDS.find((c) => c.title === g.title)?.items ?? []).map((s) => (
                     <StatCard key={`${s.label}·${s.sub}`} s={s} more="Regions, types, names and the full series" />
                   ))}
@@ -1984,7 +1984,7 @@ export function TrendsPage() {
           <Note>These are measured, not projected: each is a published world series to its latest year. The Worldview page has all of them, with what each means.</Note>
         </section>
 
-        <p className="text-[10px] font-sans leading-relaxed max-w-4xl px-1" style={{ color: muted }}>
+        <p className="text-[10px] font-sans leading-relaxed max-w-2xl px-1" style={{ color: muted }}>
           Every projection on this page is its publisher's own: the economy from the IMF's World Economic Outlook ({WEO.edition}; estimates to {first - 1}, projections{" "}
           {first}–{end}) and people from the UN's World Population Prospects {WPP.revision} (projections from {WPP.firstProjected}), retrieved {PROJECTIONS_RETRIEVED}.
           The trends are world series retrieved {WORLDVIEW_RETRIEVED}. The page gives no probabilities, confidence scores or sector forecasts, because no body publishes
