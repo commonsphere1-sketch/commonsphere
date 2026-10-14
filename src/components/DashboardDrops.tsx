@@ -24,6 +24,10 @@
  *                             modules and battery cells - and what the world
  *                             puts into research
  *
+ * The Developments page shows them too, each in its field (`only`): the
+ * industries under Economic, the funding under Technological, the alliances
+ * under Political and research under Breakthroughs.
+ *
  * A growth rate, a share and a multiple are worked out here from two
  * published figures of one series; the cards say so.
  *
@@ -554,52 +558,64 @@ function Research({ t, accent }: { t: Tokens; accent: string }) {
 
 // ── The four, in the column ─────────────────────────────────────────────────
 
-export function DashboardDrops() {
+/** The four cards, by name. */
+export type DropId = "industries" | "funding" | "alliances" | "research";
+
+export function DashboardDrops({ only }: { /** Some of the cards and not the rest: the Developments page sets each in its field. */ only?: DropId[] } = {}) {
   const t = useTokens();
+  const show = (id: DropId) => !only || only.includes(id);
   const places = AI_INVESTMENT_PLACES[AI_INVESTMENT_PLACES.length - 1];
   const usAlliances = ALLIANCES.filter((a) => a.members?.includes("US")).length;
   return (
     <>
-      <ExpandableCard
-        t={t}
-        icon={<Sparkle size={14} weight="fill" style={{ color: "#f97316" }} />}
-        title="Up-and-coming Industries"
-        badge="World · latest year"
-        description="The fastest-growing of the industries and technologies the site follows, by each one's latest year against the year before."
-        accent="#f97316"
-      >
-        <Industries t={t} accent="#f97316" />
-      </ExpandableCard>
-      <ExpandableCard
-        t={t}
-        icon={<Bank size={14} weight="fill" style={{ color: "#6366f1" }} />}
-        title="Funding Raised"
-        badge={`AI · ${places.year}`}
-        description="Private money put into AI companies, by where it was raised and by kind of deal."
-        accent="#6366f1"
-      >
-        <Funding t={t} accent="#6366f1" />
-      </ExpandableCard>
-      <ExpandableCard
-        t={t}
-        icon={<Handshake size={14} weight="fill" style={{ color: "#ef4444" }} />}
-        title="Alliances"
-        badge={`${usAlliances} with the US`}
-        description="The alliances, blocs and agencies the United States belongs to, each from the body's own page."
-        accent="#ef4444"
-      >
-        <Alliances t={t} accent="#ef4444" />
-      </ExpandableCard>
-      <ExpandableCard
-        t={t}
-        icon={<Atom size={14} weight="fill" style={{ color: "#06b6d4" }} />}
-        title="R&D Breakthroughs"
-        badge="Then and now"
-        description="What research has delivered, measured: the cost of a genome, transistors on a chip, the fastest computer - and what the world puts into research."
-        accent="#06b6d4"
-      >
-        <Research t={t} accent="#06b6d4" />
-      </ExpandableCard>
+      {show("industries") && (
+        <ExpandableCard
+          t={t}
+          icon={<Sparkle size={14} weight="fill" style={{ color: "#f97316" }} />}
+          title="Up-and-coming Industries"
+          badge="World · latest year"
+          description="The fastest-growing of the industries and technologies the site follows, by each one's latest year against the year before."
+          accent="#f97316"
+        >
+          <Industries t={t} accent="#f97316" />
+        </ExpandableCard>
+      )}
+      {show("funding") && (
+        <ExpandableCard
+          t={t}
+          icon={<Bank size={14} weight="fill" style={{ color: "#6366f1" }} />}
+          title="Funding Raised"
+          badge={`AI · ${places.year}`}
+          description="Private money put into AI companies, by where it was raised and by kind of deal."
+          accent="#6366f1"
+        >
+          <Funding t={t} accent="#6366f1" />
+        </ExpandableCard>
+      )}
+      {show("alliances") && (
+        <ExpandableCard
+          t={t}
+          icon={<Handshake size={14} weight="fill" style={{ color: "#ef4444" }} />}
+          title="Alliances"
+          badge={`${usAlliances} with the US`}
+          description="The alliances, blocs and agencies the United States belongs to, each from the body's own page."
+          accent="#ef4444"
+        >
+          <Alliances t={t} accent="#ef4444" />
+        </ExpandableCard>
+      )}
+      {show("research") && (
+        <ExpandableCard
+          t={t}
+          icon={<Atom size={14} weight="fill" style={{ color: "#06b6d4" }} />}
+          title="R&D Breakthroughs"
+          badge="Then and now"
+          description="What research has delivered, measured: the cost of a genome, transistors on a chip, the fastest computer - and what the world puts into research."
+          accent="#06b6d4"
+        >
+          <Research t={t} accent="#06b6d4" />
+        </ExpandableCard>
+      )}
     </>
   );
 }

@@ -25,6 +25,7 @@ import { useTheme } from "../contexts/ThemeContext";
 import { SourceLink } from "../components/SourceLink";
 import { ALL_TOPICS, HeadlinesBanner, SUBJECT, pickWhere, useHeadlineRead } from "../components/HeadlinesBanner";
 import AgendaCards, { AGENDAS } from "../components/AgendaCards";
+import { DashboardDrops, type DropId } from "../components/DashboardDrops";
 import { SectionNav, type NavSection } from "../components/SectionNav";
 import { StyledSelect } from "../components/StyledSelect";
 import { StatExplorer, type StatGroup } from "../components/StatExplorer";
@@ -1497,6 +1498,8 @@ const FIELDS: Field[] = [
     ],
   },
 ];
+/** The Dashboard's drop-down cards, placed here as asked, each in the field it belongs to. They stay on the Dashboard too. */
+const FIELD_DROPS: Partial<Record<string, DropId[]>> = { political: ["alliances"], technological: ["funding"], breakthroughs: ["research"], economic: ["industries"] };
 /** The bar's chips: a field each. */
 const SECTIONS: NavSection[] = FIELDS.map((f) => ({ id: f.id, label: f.label }));
 
@@ -2172,6 +2175,8 @@ export function TrendsPage() {
               {/* ── Explorer: every figure of the page, by group, beside its detail - as the
                   Countries and Economies pages have their own ── */}
               {field.id === "overview" && <TrendsExplorer />}
+              {/* The Dashboard's drop-down card for the field, under its headlines and over its figures. */}
+              {FIELD_DROPS[field.id] && <div className="flex flex-col gap-4">{<DashboardDrops only={FIELD_DROPS[field.id]} />}</div>}
               {part && <div className="flex flex-col gap-6">{figures(part)}</div>}
             </section>
           );
