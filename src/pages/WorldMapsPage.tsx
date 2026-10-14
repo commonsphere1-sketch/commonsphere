@@ -3053,6 +3053,15 @@ export function WorldMapsPage() {
     if (band === 0) return null;
     return { band, pm25: reading.pm25, year: reading.year, opacity: POLLUTION_OPACITY[band] };
   }, [focusCode, focusCountry]);
+  /* The same reading in words, for the note under a country's map: also where it is at or below the guideline and nothing
+     is shaded - the United States, at 7 - which looked as though the layer had not come on. */
+  const focusAir = useMemo(() => {
+    const code = focusCode === "US" ? "US" : focusCountry?.code;
+    const name = focusCode === "US" ? "The United States" : focusCountry?.name;
+    if (!code || !name) return null;
+    const reading = AIR_QUALITY[code];
+    return { name, reading: reading ? { pm25: reading.pm25, year: reading.year, shaded: pm25Band(reading.pm25) > 0 } : null };
+  }, [focusCode, focusCountry]);
 
   /* Same wash as pollution, but keyed to the focused country's own zone from
      COUNTRY_CLIMATE rather than a data reading. */
@@ -3310,6 +3319,13 @@ export function WorldMapsPage() {
               Figures are {AIR_QUALITY_SOURCE.years} and population-weighted, so
               they describe the air a country's people breathe rather than where
               within it the pollution sits.
+            </p>
+          )}
+          {layers.pollution && layers === focusLayers && focusAir && (
+            <p className="text-[9px] font-sans text-foreground pl-3">
+              {focusAir.reading
+                ? `${focusAir.name}: ${focusAir.reading.pm25} µg/m³, ${focusAir.reading.year} - ${focusAir.reading.shaded ? "above the guideline, and shaded" : "at or below the guideline, so this map is left unshaded"}.`
+                : `${focusAir.name}: no PM2.5 figure is held, so this map is left unshaded.`}
             </p>
           )}
           {layers.mines && mineSummary && (
