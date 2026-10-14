@@ -11,8 +11,9 @@
  *
  * So that what is illegal and what is legal can be found in it, its
  * sentences are marked by their wording alone: red where a sentence speaks
- * of something illegal, banned or punished, green where of something legal
- * or allowed. The marking is a search for those words (the two lists below)
+ * of something illegal, banned or punished, amber where of something allowed
+ * only under a condition - a permit, a licence, an age, a place - and green
+ * where of something legal or allowed. The marking is a search for those words (the two lists below)
  * and no judgement of the site's; the panel says that too, and the counts on
  * its buttons are counts of the sentences so marked. A list that follows a
  * sentence ending in a colon is read with that sentence.
@@ -24,18 +25,22 @@ import { ChartNote } from "./ModalCharts";
 
 const RED = "#dc2626";
 const GREEN = "#16a34a";
+const AMBER = "#f59e0b";
 const COLOR = "#6366f1";
 /** A sentence that speaks of something illegal, banned or punished. */
 const ILLEGAL =
   /\b(?:illegal(?:ly)?|against the law|unlawful|banned|bans?\b|prohibit(?:ed|s)?|forbidden|not (?:legal|allowed|permitted)|criminal offence|an offence|offence to|criminali[sz]ed|a crime|punishable|death penalty|prison sentences?|imprisonment|imprisoned|jailed|you (?:could|can|may|might|will) (?:also )?be (?:arrested|fined|detained|jailed|imprisoned|deported|prosecuted)|you could face|could be arrested|can be arrested|heavy fines?|on-the-spot fines?)\b/i;
 /** A sentence that speaks of something legal or allowed - and not of its not being so. */
 const LEGAL = /(?<!\b(?:not|never|no longer|nor) )\b(?:(?:is|are) (?:legal|lawful|allowed|permitted)|legal (?:in|for|to)\b|legali[sz]ed|decriminali[sz]ed|legally (?:recogni[sz]ed|allowed|permitted)|not illegal|no longer illegal|no laws? against)\b/i;
-type Mark = "illegal" | "legal" | "both" | null;
+/** A sentence that speaks of something allowed only under a condition: a permit, a licence, an age, a place, a limit. */
+const RESTRICTED =
+  /\b(?:restrict(?:ed|ions?|s)?|permits? (?:is |are )?(?:required|needed)|(?:need|require|requires|required) (?:a |an |prior |written |official )?(?:permit|licen[cs]e|permission|authori[sz]ation|approval)|without (?:a |an |prior |official )?(?:permit|licen[cs]e|permission|authori[sz]ation)|only (?:with|if|in|at|by|on|when)|limited to|limits? on|(?:legal|minimum) age|aged? (?:under|over) \d+|under the age of|over the age of|must (?:register|declare|carry|obtain|apply)|subject to (?:approval|permission|restrictions?))\b/i;
+type Mark = "illegal" | "legal" | "both" | "restricted" | null;
 const markOf = (s: string): Mark => {
   const legal = LEGAL.test(s);
   // "Not illegal" says a thing is legal: the word in it is not counted against it.
   const illegal = ILLEGAL.test(s.replace(/\b(?:not|no longer) illegal\b/gi, ""));
-  return illegal && legal ? "both" : illegal ? "illegal" : legal ? "legal" : null;
+  return illegal && legal ? "both" : illegal ? "illegal" : RESTRICTED.test(s) ? "restricted" : legal ? "legal" : null;
 };
 /** A paragraph as its sentences: cut after a full stop, a question or an exclamation that a capital follows. */
 const sentences = (p: string) => p.split(/(?<=[.!?])\s+(?=[A-Z“"‘'(])/);
@@ -70,8 +75,8 @@ function read(blocks: AdviceBlock[]): Shown[] {
   });
   return out;
 }
-const tint = (m: Mark) => (m === "illegal" ? RED : m === "legal" ? GREEN : m === "both" ? "#d97706" : null);
-const wanted = (m: Mark, f: "illegal" | "legal") => m === f || m === "both";
+const tint = (m: Mark) => (m === "illegal" ? RED : m === "legal" ? GREEN : m === "restricted" ? AMBER : m === "both" ? "#d97706" : null);
+const wanted = (m: Mark, f: "illegal" | "legal" | "restricted") => m === f || (m === "both" && f !== "restricted");
 
 function Sentence({ p, alone = false }: { p: Piece; /** On a row of its own, and not in the run of its paragraph. */ alone?: boolean }) {
   const c = tint(p.mark);
@@ -103,15 +108,16 @@ function Sentence({ p, alone = false }: { p: Piece; /** On a row of its own, and
 }
 
 export function LawAdvice({ advice, country, place }: { advice: CountryLawAdvice; country: string; /** The place whose window this is, where it is not the country itself. */ place?: string }) {
-  const [filter, setFilter] = useState<"all" | "illegal" | "legal">("all");
+  const [filter, setFilter] = useState<"all" | "illegal" | "legal" | "restricted">("all");
   const items = useMemo(() => advice.items.map((it) => ({ h: it.h, shown: read(it.b) })), [advice]);
   const count = useMemo(() => {
     const all = items.flatMap((it) => it.shown.flatMap((s) => (s.kind === "para" ? s.pieces : s.kind === "list" ? s.items : [])));
-    return { illegal: all.filter((p) => wanted(p.mark, "illegal")).length, legal: all.filter((p) => wanted(p.mark, "legal")).length };
+    return { illegal: all.filter((p) => wanted(p.mark, "illegal")).length, restricted: all.filter((p) => wanted(p.mark, "restricted")).length, legal: all.filter((p) => wanted(p.mark, "legal")).length };
   }, [items]);
   const buttons = [
     { key: "all" as const, label: "All of it", n: `${items.length} ${items.length === 1 ? "subject" : "subjects"}`, color: COLOR },
     { key: "illegal" as const, label: "Illegal, banned or punished", n: `${count.illegal} ${count.illegal === 1 ? "sentence" : "sentences"}`, color: RED },
+    { key: "restricted" as const, label: "Restricted", n: `${count.restricted} ${count.restricted === 1 ? "sentence" : "sentences"}`, color: AMBER },
     { key: "legal" as const, label: "Legal or allowed", n: `${count.legal} ${count.legal === 1 ? "sentence" : "sentences"}`, color: GREEN },
   ];
   return (
@@ -129,11 +135,11 @@ export function LawAdvice({ advice, country, place }: { advice: CountryLawAdvice
       </div>
       <ChartNote>
         The “Laws and cultural differences” part of the Office's travel advice for {advice.name}, whole and in its own words{place ? ` - the country's, not ${place}'s own` : ""}. It is written for British travellers and is not the whole of the
-        law; some of it is custom. A sentence is marked <span style={{ color: RED }}>red</span> where its words speak of something illegal, banned or punished and <span style={{ color: GREEN }}>green</span> where of something legal or allowed:
+        law; some of it is custom. A sentence is marked <span style={{ color: RED }}>red</span> where its words speak of something illegal, banned or punished, <span style={{ color: AMBER }}>amber</span> where of something allowed only under a condition - a permit, a licence, an age, a place - and <span style={{ color: GREEN }}>green</span> where of something legal or allowed:
         the marking is a search for those words, counted here, and no judgement of the site's.
       </ChartNote>
 
-      <div className="grid grid-cols-3 gap-2 mt-3" role="group" aria-label="Which of the advice is shown">
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 mt-3" role="group" aria-label="Which of the advice is shown">
         {buttons.map((b) => (
           <button
             key={b.key}
@@ -204,5 +210,63 @@ export function LawAdvice({ advice, country, place }: { advice: CountryLawAdvice
         Read the advice on GOV.UK
       </a>
     </section>
+  );
+}
+
+/**
+ * The same advice as three lists - what is illegal, what is restricted, what is legal - each sentence under its heading, the
+ * first few of each shown and the rest on a press: for a panel that has not the room for the whole of it.
+ */
+export function AdviceLists({ advice, country }: { advice: CountryLawAdvice; country: string }) {
+  const [all, setAll] = useState(false);
+  const lists = useMemo(() => {
+    const pieces = advice.items.flatMap((it) => read(it.b).flatMap((s) => (s.kind === "para" ? s.pieces : s.kind === "list" ? s.items : [])).map((p) => ({ ...p, h: it.h })));
+    return ([
+      ["illegal", "Illegal, banned or punished", RED],
+      ["restricted", "Restricted", AMBER],
+      ["legal", "Legal or allowed", GREEN],
+    ] as const).map(([key, label, color]) => ({ key, label, color, items: pieces.filter((p) => wanted(p.mark, key)) }));
+  }, [advice]);
+  const SHOWN = 4;
+  const more = lists.some((l) => l.items.length > SHOWN);
+  return (
+    <div className="flex flex-col gap-2">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-2">
+        {lists.map((l) => (
+          <div key={l.key} className="rounded-lg p-2.5 flex flex-col gap-1.5 min-w-0" style={{ background: `color-mix(in srgb, ${l.color} 7%, transparent)`, border: `1px solid color-mix(in srgb, ${l.color} 30%, transparent)` }}>
+            <p className="flex items-center gap-1.5 text-[10px] font-mono uppercase tracking-wider text-foreground">
+              <span aria-hidden className="w-2 h-2 rounded-full shrink-0" style={{ background: l.color }} />
+              {l.label}
+              <span className="ml-auto text-muted-foreground normal-case tracking-normal">{l.items.length}</span>
+            </p>
+            {l.items.length ? (
+              <ul className="flex flex-col gap-1.5">
+                {l.items.slice(0, all ? l.items.length : SHOWN).map((p, i) => (
+                  <li key={i} className="pl-2 border-l-2 text-[11px] font-sans text-foreground leading-snug" style={{ borderColor: l.color }}>
+                    {p.h && p.h !== l.items[i - 1]?.h && <span className="block text-[9px] font-mono uppercase tracking-wider text-muted-foreground">{p.h}</span>}
+                    {p.text}
+                    {p.list && <span className="text-muted-foreground"> {p.list.join("; ")}</span>}
+                  </li>
+                ))}
+              </ul>
+            ) : (
+              <p className="text-[10px] font-sans text-muted-foreground">No sentence of the advice uses those words.</p>
+            )}
+          </div>
+        ))}
+      </div>
+      {more && (
+        <button type="button" onClick={() => setAll((x) => !x)} aria-expanded={all} className="self-start px-2.5 h-7 rounded-full border border-border bg-background/70 text-[10px] font-mono uppercase tracking-wider text-muted-foreground hover:text-foreground cursor-pointer transition-colors">
+          {all ? "Fewer" : "All of each"}
+        </button>
+      )}
+      <p className="text-[10px] font-sans text-muted-foreground leading-snug">
+        The UK Foreign Office's travel advice for {country}, its own words, last updated {day(advice.updated)}: written for British travellers, not the whole of the law, and some of it custom. Each sentence is sorted by a search for its
+        wording, not by the site's judgement.{" "}
+        <a href={advice.url} target="_blank" rel="noopener noreferrer" className="underline decoration-dotted underline-offset-2 hover:text-foreground">
+          Read it on GOV.UK
+        </a>
+      </p>
+    </div>
   );
 }
