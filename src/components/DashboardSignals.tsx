@@ -129,17 +129,17 @@ function SignalRow({ t, ind, color, last }: { t: Tokens; ind: WorldIndicator; co
   );
 }
 
-function SignalsCard({ icon, label, badge, color, cta, to, intro, signals, note }: { icon: ReactNode; label: string; badge: string; color: string; cta: string; to: string; intro: string; signals: Signal[]; note: string }) {
+function SignalsCard({ icon, label, badge, color, cta, to, intro, signals, note, wide = false }: { icon: ReactNode; label: string; badge: string; color: string; cta: string; to: string; intro: string; signals: Signal[]; note: string; /** On a wide screen, the whole width of the grid it is in, its rows two across. */ wide?: boolean }) {
   const t = useTokens();
   const rows = signals.flatMap((x) => (WORLD[x.id] && WORLD[x.id].series.length > 1 ? [{ ind: WORLD[x.id], color: x.color }] : []));
   const sources = [...new Map(rows.map((r) => [publisher(r.ind.source.label), { label: publisher(r.ind.source.label), url: r.ind.source.url }])).values()];
   return (
-    <Card t={t}>
+    <Card t={t} className={wide ? "lg:col-span-2" : ""}>
       <Head t={t} icon={icon} label={label} badge={badge} color={color} cta={cta} to={to} />
       <p className="text-[10px] font-sans leading-snug -mt-2 mb-2" style={{ color: t.mutedText }}>
         {intro}
       </p>
-      <ul className="flex flex-col flex-1">
+      <ul className={wide ? "flex flex-col flex-1 lg:grid lg:grid-cols-2 lg:gap-x-10 lg:content-start" : "flex flex-col flex-1"}>
         {rows.map((r, i) => (
           <SignalRow key={r.ind.id} t={t} ind={r.ind} color={r.color} last={i === rows.length - 1} />
         ))}
@@ -159,6 +159,8 @@ export function WorldLiving() {
     <SignalsCard
       icon={<Heartbeat size={16} weight="fill" />}
       label="How the world lives"
+      // The last of the grid's seven cards, alone in its row on a wide screen: it fills the row there, as asked.
+      wide
       badge="world figures"
       color="#0ea5e9"
       cta="Worldview"
