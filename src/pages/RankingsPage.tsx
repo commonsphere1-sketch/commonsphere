@@ -1,5 +1,11 @@
 import { ChipRow } from "../components/ChipRow";
-import React, { useState, useMemo, useCallback, useEffect, useRef } from "react";
+import React, { useState, useMemo, useCallback, useEffect, useRef, lazy, Suspense } from "react";
+import { COUNTRY_LAW_HELD } from "../data/countryLaw";
+
+/** How the pinned countries are governed, side by side: the Compare card's second view. Fetched country by country. */
+const SystemsTable = lazy(() => import("../components/SystemsComparator").then((m) => ({ default: m.SystemsTable })));
+/** A country row's ISO code, by the row's id. */
+const CODE_OF_ROW = new Map(countriesData.map((c) => [`country-${c.id}`, c.code]));
 import { countriesData } from "../data/countriesData";
 import { usStatesData } from "../data/statesData";
 import { PRISON_RATES } from "../data/prisonRates";
@@ -1588,6 +1594,11 @@ function ComparisonPanel({
     ({ m }) => (rankByMetric.get(m.id)?.size ?? 0) > 0 && selected.some((r) => hasMetric(r, m.id)),
   );
   const cols = `clamp(132px, 30%, 220px) repeat(${selected.length}, minmax(6.5rem, 1fr))`;
+  /** What the card compares its pinned places on: their figures, or how they are governed. */
+  const [view, setView] = useState<"figures" | "systems">("figures");
+  /** The pinned countries the systems view holds an account of, by ISO code, and the pinned places it does not: US states, and a country with no account. */
+  const governed = selected.flatMap((r) => (r.type === "country" && CODE_OF_ROW.has(r.id) && COUNTRY_LAW_HELD.has(CODE_OF_ROW.get(r.id)!) ? [CODE_OF_ROW.get(r.id)!] : []));
+  const ungoverned = selected.filter((r) => !(r.type === "country" && CODE_OF_ROW.has(r.id) && COUNTRY_LAW_HELD.has(CODE_OF_ROW.get(r.id)!)));
 
   return (
     /* The card does not clip: the picker's list must spill out of it. */
@@ -1605,9 +1616,30 @@ function ComparisonPanel({
           <span className="text-[10px] font-mono px-2 py-0.5 rounded-full tabular-nums" style={{ background: COMPARE_ACCENT + "14", color: COMPARE_ACCENT }}>
             up to {COMPARE_MAX}
           </span>
+          {/* The toggle between the card's two views: the same pinned places, on their figures or on how they are governed. */}
+          <div className="ml-auto flex items-center gap-1 p-0.5 rounded-full border border-border" role="group" aria-label="What the pinned places are compared on">
+            {(
+              [
+                ["figures", "Figures"],
+                ["systems", "Systems of government"],
+              ] as const
+            ).map(([k, label]) => (
+              <button
+                key={k}
+                type="button"
+                onClick={() => setView(k)}
+                aria-pressed={view === k}
+                className={`px-3 py-1 rounded-full text-[11px] font-medium font-sans transition-colors cursor-pointer ${view === k ? "chip-selected" : "text-muted-foreground hover:text-foreground"}`}
+              >
+                {label}
+              </button>
+            ))}
+          </div>
         </div>
         <p className="text-[11px] text-muted-foreground font-sans mt-1.5">
-          Countries and US states together, each figure with its rank among the {allRows.length} entities that the page ranks.
+          {view === "figures"
+            ? `Countries and US states together, each figure with its rank among the ${allRows.length} entities that the page ranks.`
+            : "The pinned countries side by side on how each is governed: who governs and how they are chosen, who makes law and how they are elected, who judges, and who may vote."}
         </p>
       </div>
 
@@ -1635,7 +1667,16 @@ function ComparisonPanel({
           )}
         </div>
 
-        {selected.length === 0 ? (
+        {view === "systems" ? (
+          <Suspense fallback={<p className="text-xs font-sans text-muted-foreground">Loading how the pinned countries are governed…</p>}>
+            {ungoverned.length > 0 && (
+              <p className="text-[11px] font-sans text-muted-foreground leading-snug">
+                Not in this view: {ungoverned.map((r) => r.name).join(", ")}. It holds an account of countries only - a US state's government is on its own page.
+              </p>
+            )}
+            <SystemsTable codes={governed} empty="No country is pinned. Search above for one, or open any country's row in the table below and add it from there." />
+          </Suspense>
+        ) : selected.length === 0 ? (
           <div className="rounded-xl px-4 py-6 text-center border border-dashed border-border bg-muted/20">
             <p className="text-[12px] font-sans text-muted-foreground">Nothing pinned. Search above, or open any row in the table below and add it from there.</p>
           </div>

@@ -1,6 +1,7 @@
 /**
- * The government and political systems comparator, on the Worldview page:
- * up to four countries side by side on how each is governed - what kind of
+ * The government and political systems comparison - a view of the Rankings
+ * page's Compare card, which draws SystemsTable for the countries pinned
+ * there: countries side by side on how each is governed - what kind of
  * government it has, how its executive is chosen, how its legislature is
  * made up and elected, who judges, how its constitution is changed, who may
  * vote - and how the World Bank scores the way it is governed.
@@ -206,10 +207,70 @@ const ROWS: { group: string; rows: Row[] }[] = [
 ];
 const SCORE_SOURCE = INDEX_DEFS.find((x) => x.id === "voice")?.source;
 
-export default function SystemsComparator({ className = "" }: { className?: string }) {
-  const [codes, setCodes] = useState<string[]>(OPEN.filter((c) => COUNTRY_LAW_HELD.has(c)));
+/**
+ * The comparison itself: the countries given, side by side, with what is said of the comparison and its sources under it.
+ * A page that keeps its own list of places to compare - the Rankings page's Compare card - draws this, and not the card below.
+ */
+export function SystemsTable({ codes, empty = "No country is chosen. Add one above." }: { /** The countries compared, by ISO code, in the order they are drawn. */ codes: string[]; /** What is said where there is none. */ empty?: string }) {
   const files = useFiles(codes);
   const cols = `clamp(120px, 20%, 180px) repeat(${Math.max(codes.length, 1)}, minmax(13rem, 1fr))`;
+  return (
+    <>
+      {codes.length === 0 ? (
+        <div className="rounded-xl px-4 py-6 text-center border border-dashed border-border bg-muted/20">
+          <p className="text-[12px] font-sans text-muted-foreground">{empty}</p>
+        </div>
+      ) : (
+        <div className="rounded-xl overflow-auto max-h-[75vh] border border-border">
+          <div style={{ minWidth: `${130 + codes.length * 210}px` }}>
+            <div className="compare-head grid sticky top-0 z-10 border-b border-border" style={{ gridTemplateColumns: cols }}>
+              <div className="px-3 py-2.5 flex items-center">
+                <span className="text-[9px] font-mono uppercase tracking-widest text-muted-foreground">How it is governed</span>
+              </div>
+              {codes.map((code) => (
+                <div key={code} className="px-3 py-2.5 flex items-center gap-2 min-w-0">
+                  <img src={`https://flagcdn.com/w40/${code.toLowerCase()}.png`} alt="" className="w-7 h-5 rounded-[3px] object-cover border border-border shrink-0" onError={(e) => (e.currentTarget.style.visibility = "hidden")} />
+                  <p className="text-xs font-bold font-sans text-foreground truncate" title={nameOf(code)}>
+                    {nameOf(code)}
+                  </p>
+                </div>
+              ))}
+            </div>
+            {ROWS.map((g) => (
+              <div key={g.group}>
+                <p className="px-3 py-1.5 text-[10px] font-bold font-sans uppercase tracking-widest text-muted-foreground bg-muted/30 border-b border-border">{g.group}</p>
+                {g.rows.map((r) => (
+                  <div key={r.title} className="grid border-b border-border/60 last:border-b-0" style={{ gridTemplateColumns: cols }}>
+                    <div className="px-3 py-3 min-w-0">
+                      <p className="text-xs font-semibold font-sans text-foreground leading-snug">{r.title}</p>
+                      {r.sub && <p className="text-[10px] font-sans text-muted-foreground leading-snug mt-0.5">{r.sub}</p>}
+                    </div>
+                    {codes.map((code) => (
+                      <div key={code} className="px-3 py-3 min-w-0 border-l border-border/40">
+                        {code in files ? r.cell(code, files[code]) : <span className="text-[11px] font-sans text-muted-foreground">Fetching…</span>}
+                      </div>
+                    ))}
+                  </div>
+                ))}
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      <p className="text-[10px] font-sans text-muted-foreground leading-snug">
+        How each country arranges authority, in the CIA World Factbook's own words, with the World Bank's scores of how it is governed; nothing is judged here. The tags under a type of government are words of the Factbook's own line,
+        found by a search for them: a country is tagged federal only where its line says federal, and one whose line does not say unitary is not called so here. Who holds each office is not shown - the Factbook's last edition was
+        January 2026 - and is on the Countries and World Leaders pages. Not held: how far local government has authority and money of its own.
+      </p>
+      <SourceLink sources={[SRC.factbook, ...(SCORE_SOURCE ? [SCORE_SOURCE] : [])]} />
+    </>
+  );
+}
+
+/** The comparison as a card of its own, with its own choice of up to four countries. It stood on the Worldview page and was taken off it; the Rankings page's Compare card draws the table above. */
+export default function SystemsComparator({ className = "" }: { className?: string }) {
+  const [codes, setCodes] = useState<string[]>(OPEN.filter((c) => COUNTRY_LAW_HELD.has(c)));
   const left = COUNTRIES.filter((c) => !codes.includes(c.value));
   return (
     <div className={`bg-card border border-border rounded-2xl ${className}`}>
@@ -223,12 +284,7 @@ export default function SystemsComparator({ className = "" }: { className?: stri
             {COUNTRIES.length} countries · up to {MAX}
           </span>
         </div>
-        <p className="text-[11px] text-muted-foreground font-sans mt-1.5 leading-snug">
-          How each country arranges authority - who governs and how they are chosen, who makes law and how they are elected, who judges, and who may vote - in the CIA World Factbook's own words, with the World Bank's scores of how it is
-          governed. Nothing is judged here.
-        </p>
       </div>
-
       <div className="p-5 flex flex-col gap-4">
         <div className="flex flex-wrap items-center gap-2">
           {codes.map((code) => (
@@ -252,54 +308,7 @@ export default function SystemsComparator({ className = "" }: { className?: stri
             </div>
           )}
         </div>
-
-        {codes.length === 0 ? (
-          <div className="rounded-xl px-4 py-6 text-center border border-dashed border-border bg-muted/20">
-            <p className="text-[12px] font-sans text-muted-foreground">No country is chosen. Add one above.</p>
-          </div>
-        ) : (
-          <div className="rounded-xl overflow-auto max-h-[75vh] border border-border">
-            <div style={{ minWidth: `${130 + codes.length * 210}px` }}>
-              <div className="compare-head grid sticky top-0 z-10 border-b border-border" style={{ gridTemplateColumns: cols }}>
-                <div className="px-3 py-2.5 flex items-center">
-                  <span className="text-[9px] font-mono uppercase tracking-widest text-muted-foreground">How it is governed</span>
-                </div>
-                {codes.map((code) => (
-                  <div key={code} className="px-3 py-2.5 flex items-center gap-2 min-w-0">
-                    <img src={`https://flagcdn.com/w40/${code.toLowerCase()}.png`} alt="" className="w-7 h-5 rounded-[3px] object-cover border border-border shrink-0" onError={(e) => (e.currentTarget.style.visibility = "hidden")} />
-                    <p className="text-xs font-bold font-sans text-foreground truncate" title={nameOf(code)}>
-                      {nameOf(code)}
-                    </p>
-                  </div>
-                ))}
-              </div>
-              {ROWS.map((g) => (
-                <div key={g.group}>
-                  <p className="px-3 py-1.5 text-[10px] font-bold font-sans uppercase tracking-widest text-muted-foreground bg-muted/30 border-b border-border">{g.group}</p>
-                  {g.rows.map((r) => (
-                    <div key={r.title} className="grid border-b border-border/60 last:border-b-0" style={{ gridTemplateColumns: cols }}>
-                      <div className="px-3 py-3 min-w-0">
-                        <p className="text-xs font-semibold font-sans text-foreground leading-snug">{r.title}</p>
-                        {r.sub && <p className="text-[10px] font-sans text-muted-foreground leading-snug mt-0.5">{r.sub}</p>}
-                      </div>
-                      {codes.map((code) => (
-                        <div key={code} className="px-3 py-3 min-w-0 border-l border-border/40">
-                          {code in files ? r.cell(code, files[code]) : <span className="text-[11px] font-sans text-muted-foreground">Fetching…</span>}
-                        </div>
-                      ))}
-                    </div>
-                  ))}
-                </div>
-              ))}
-            </div>
-          </div>
-        )}
-
-        <p className="text-[10px] font-sans text-muted-foreground leading-snug">
-          The tags under a type of government are words of the Factbook's own line, found by a search for them: a country is tagged federal only where its line says federal, and one whose line does not say unitary is not called so here.
-          Who holds each office is not shown - the Factbook's last edition was January 2026 - and is on the Countries and World Leaders pages. Not held: how far local government has authority and money of its own.
-        </p>
-        <SourceLink sources={[SRC.factbook, ...(SCORE_SOURCE ? [SCORE_SOURCE] : [])]} />
+        <SystemsTable codes={codes} />
       </div>
     </div>
   );
