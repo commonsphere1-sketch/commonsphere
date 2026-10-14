@@ -1408,6 +1408,11 @@ type Scope = {
   outsideLabel: string | null;
 };
 
+/** The groups of countries the world map's bar has a button for, as asked: the G7, and the UN's developed and developing regions under the names they go by. */
+const BAR_SCOPES: ScopeId[] = ["g7", "north", "south"];
+/** The layers the world map's bar keeps in sight without opening "More", as asked, and what the button of each says: "Resources" is the layer of mineral sites. */
+const BAR_LAYERS: Partial<Record<OverlayId, string>> = { infrastructure: "Infrastructure", ports: "Ports", mines: "Resources" };
+
 const SCOPES: Scope[] = [
   {
     id: "all",
@@ -1607,7 +1612,8 @@ export function WorldMapsPage() {
     continent?: string;
   } | null>(null);
   const [pickedScope, setScope] = useState<ScopeId>("all");
-  const scope: ScopeId = SHOW_SCOPES ? pickedScope : "all";
+  // The bar of every scope and measure stays off (SHOW_SCOPES); the map's own bar has buttons for three of the scopes, as asked, and they set this.
+  const scope: ScopeId = pickedScope;
   // The second map focuses on one country. The US is the default because it is
   // the only one with subdivision figures behind it.
   /* ?country=NU opens the country map on that country, so a link from its
@@ -3574,8 +3580,23 @@ export function WorldMapsPage() {
             <CaretDown size={10} weight="bold" className={`transition-transform ${showAdditionalLayers ? "rotate-180" : ""}`} />
             More
           </button>
-          {/* The layers themselves, on the same line as asked: they follow "More" when it is open, and the row moves along to reach the rest. */}
-          {showAdditionalLayers && OVERLAYS.map((o) => layerButton(o, layers, set))}
+          {/* Three groups of countries: one pressed is picked out on the map and listed under it; pressed again, every country is back. */}
+          {SCOPES.filter((sc) => BAR_SCOPES.includes(sc.id)).map((sc) => (
+            <button
+              key={sc.id}
+              onClick={() => setScope(scope === sc.id ? "all" : sc.id)}
+              aria-pressed={scope === sc.id}
+              className={`px-3 py-1 rounded-full text-[11px] font-medium font-sans border transition-colors cursor-pointer shrink-0 ${scope === sc.id ? "chip-selected" : "bg-transparent border-border text-muted-foreground hover:text-foreground hover:bg-muted/60"}`}
+              title={sc.id === "g7" ? "Pick out the Group of Seven on the map" : `Pick out the ${sc.title} on the map: the UN's ${sc.id === "north" ? "developed" : "developing"} regions`}
+            >
+              {sc.chip}
+            </button>
+          ))}
+          <div className="w-px h-5 bg-border shrink-0" aria-hidden />
+          {/* Three layers kept in sight: infrastructure, ports, and resources - the mineral sites. */}
+          {OVERLAYS.filter((o) => BAR_LAYERS[o.id]).map((o) => layerButton({ ...o, label: BAR_LAYERS[o.id]! }, layers, set))}
+          {/* The other layers, on the same line as asked: they follow when "More" is open, and the row moves along to reach the rest. */}
+          {showAdditionalLayers && OVERLAYS.filter((o) => !BAR_LAYERS[o.id]).map((o) => layerButton(o, layers, set))}
           {markChip}
         </ChipRow>
         {/* Which place that is: any country, or a US state. Pressing one on a map chooses it too. It stands beside the row of chips and not in it: a row that scrolls sideways cuts off whatever drops below it, and its list of answers was cut off. */}
