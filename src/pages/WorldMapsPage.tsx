@@ -1248,58 +1248,41 @@ function useOverlay<T>(url: string, enabled: boolean) {
 }
 
 /**
- * Zoom buttons for one map. They sit outside the drawing so they stay
- * reachable by keyboard and never cover the map. Each carries the map's name,
- * because the page has more than one set and "Zoom in" alone would not say
- * which map it moves.
+ * Zoom buttons for one map, as the outline maps in the windows have them: round, at the map's top right corner, over
+ * it - further out, closer, and once it is drawn closer a pill that sets it back with how close it is. They stood
+ * in a row above the map, square, and were made like the outline map's as asked. The component takes no room of
+ * its own: it is set just before the map, and its buttons lie over the map's corner. Each carries the map's name,
+ * because the page has more than one set and "Closer" alone would not say which map it moves. The keys and the
+ * wheel still zoom as before.
  */
 function ZoomControls({
   zoom,
   onZoom,
   onReset,
   label,
-  children,
 }: {
   zoom: number;
   onZoom: (k: number) => void;
   onReset: () => void;
   label: string;
+  /** What the row once said beside the buttons; kept for the callers, and not drawn. */
   children?: React.ReactNode;
 }) {
-  const button =
-    "h-7 rounded-lg border border-border text-muted-foreground disabled:opacity-40 disabled:cursor-not-allowed";
   return (
-    <div className="flex items-center gap-2 mb-2">
-      <button
-        type="button"
-        onClick={() => onZoom(zoom / ZOOM_STEP)}
-        disabled={zoom <= ZOOM_MIN}
-        aria-label={`Zoom out of the ${label}`}
-        className={`w-7 ${button}`}
-      >
-        <MagnifyingGlassMinus size={14} className="mx-auto" />
-      </button>
-      <button
-        type="button"
-        onClick={() => onZoom(zoom * ZOOM_STEP)}
-        disabled={zoom >= ZOOM_MAX}
-        aria-label={`Zoom in on the ${label}`}
-        className={`w-7 ${button}`}
-      >
-        <MagnifyingGlassPlus size={14} className="mx-auto" />
-      </button>
-      <button
-        type="button"
-        onClick={onReset}
-        disabled={zoom === 1}
-        aria-label={`Reset the ${label} zoom`}
-        className={`px-2 text-[10px] font-mono uppercase tracking-widest ${button}`}
-      >
-        Reset
-      </button>
-      <span className="text-[10px] font-mono text-muted-foreground" aria-live="polite">
-        {zoom.toFixed(1)}×{children}
-      </span>
+    <div className="relative h-0 z-20">
+      <div className="absolute top-2 right-2 flex items-center gap-1">
+        <button type="button" onClick={() => onZoom(zoom / ZOOM_STEP)} disabled={zoom <= ZOOM_MIN} aria-label={`Draw the ${label} further out`} title="Further out ( - )" className="w-7 h-7 rounded-full border border-border bg-background/70 text-muted-foreground hover:text-foreground flex items-center justify-center cursor-pointer transition-colors disabled:opacity-40 disabled:cursor-default">
+          <MagnifyingGlassMinus size={13} aria-hidden />
+        </button>
+        <button type="button" onClick={() => onZoom(zoom * ZOOM_STEP)} disabled={zoom >= ZOOM_MAX} aria-label={`Draw the ${label} closer`} title="Closer ( + )" className="w-7 h-7 rounded-full border border-border bg-background/70 text-muted-foreground hover:text-foreground flex items-center justify-center cursor-pointer transition-colors disabled:opacity-40 disabled:cursor-default">
+          <MagnifyingGlassPlus size={13} aria-hidden />
+        </button>
+        {zoom > 1 && (
+          <button type="button" onClick={onReset} aria-label={`Reset the ${label} zoom`} title="Back to the whole map" className="px-2.5 h-7 rounded-full border border-border bg-background/70 text-[10px] font-mono uppercase tracking-wider text-muted-foreground hover:text-foreground cursor-pointer transition-colors">
+            Reset · {zoom.toFixed(1)}×
+          </button>
+        )}
+      </div>
     </div>
   );
 }

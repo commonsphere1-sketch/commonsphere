@@ -623,22 +623,21 @@ export default function RepresentativesExplorer() {
         {/* The map and what is picked */}
         <div className="explorer-detail flex-1 overflow-y-auto p-4 flex flex-col gap-3 md:h-full">
           <Block>
-            {/* The page's own zoom buttons, outside the drawing so that they never cover it. */}
-            <div className="flex items-center gap-2">
-              <button type="button" onClick={() => zoomBy(1 / ZOOM_STEP)} disabled={view.k <= ZOOM_MIN} aria-label="Zoom out of the map of places" className="w-7 h-7 rounded-lg border border-border text-muted-foreground disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer">
-                <MagnifyingGlassMinus size={14} className="mx-auto" />
-              </button>
-              <button type="button" onClick={() => zoomBy(ZOOM_STEP)} disabled={view.k >= ZOOM_MAX} aria-label="Zoom in on the map of places" className="w-7 h-7 rounded-lg border border-border text-muted-foreground disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer">
-                <MagnifyingGlassPlus size={14} className="mx-auto" />
-              </button>
-              <button type="button" onClick={() => setView(WHOLE)} disabled={view.k === 1} aria-label="Reset the zoom of the map of places" className="h-7 px-2 text-[10px] font-mono uppercase tracking-widest rounded-lg border border-border text-muted-foreground disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer">
-                Reset
-              </button>
-              <span className="text-[10px] font-mono text-muted-foreground" aria-live="polite">
-                {view.k.toFixed(1)}× · the wheel zooms, a drag moves
-              </span>
-            </div>
             <div className="relative rounded-xl overflow-hidden" style={{ background: t.tile, border: `1px solid ${t.gridLine}` }}>
+              {/* Closer and further, at the map's corner: the outline map's round buttons, as asked. The wheel and a drag still move it. */}
+              <div className="absolute top-2 right-2 z-10 flex items-center gap-1">
+                <button type="button" onClick={() => zoomBy(1 / ZOOM_STEP)} disabled={view.k <= ZOOM_MIN} aria-label="Draw the map of places further out" title="Further out" className="w-7 h-7 rounded-full border border-border bg-background/70 text-muted-foreground hover:text-foreground flex items-center justify-center cursor-pointer transition-colors disabled:opacity-40 disabled:cursor-default">
+                  <MagnifyingGlassMinus size={13} aria-hidden />
+                </button>
+                <button type="button" onClick={() => zoomBy(ZOOM_STEP)} disabled={view.k >= ZOOM_MAX} aria-label="Draw the map of places closer" title="Closer" className="w-7 h-7 rounded-full border border-border bg-background/70 text-muted-foreground hover:text-foreground flex items-center justify-center cursor-pointer transition-colors disabled:opacity-40 disabled:cursor-default">
+                  <MagnifyingGlassPlus size={13} aria-hidden />
+                </button>
+                {view.k > 1 && (
+                  <button type="button" onClick={() => setView(WHOLE)} aria-label="Reset the zoom of the map of places" title="Back to the whole map" className="px-2.5 h-7 rounded-full border border-border bg-background/70 text-[10px] font-mono uppercase tracking-wider text-muted-foreground hover:text-foreground cursor-pointer transition-colors">
+                    Reset · {view.k.toFixed(1)}×
+                  </button>
+                )}
+              </div>
               <svg viewBox={`0 0 ${W} ${H}`} className="block w-full h-auto" aria-hidden>
                 <path d={land} fill={t.isLight ? "rgba(0,0,0,0.06)" : "rgba(255,255,255,0.07)"} stroke={t.isLight ? "rgba(0,0,0,0.3)" : "rgba(255,255,255,0.32)"} strokeWidth={0.5} />
                 {innerPath && <path d={innerPath} fill="none" stroke={t.isLight ? "rgba(0,0,0,0.28)" : "rgba(255,255,255,0.28)"} strokeWidth={0.4} strokeDasharray="2 2" />}
