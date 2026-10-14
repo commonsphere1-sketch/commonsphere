@@ -24,7 +24,9 @@
  *
  * Beside the map, the country picked, as asked: its type of government, its
  * leaders, GDP, life expectancy, inflation and human development, its
- * languages and resources (PickedColumn); the rest opens on a press.
+ * languages and resources (PickedColumn); the rest opens on a press. Drawn
+ * closer, the country picked can be pressed by its states, provinces and
+ * regions, and the column then gives the division's own record first.
  *
  * A country pressed on the map fills the panels
  * under the map with its own figures (CountryDashboard), as asked; the page
@@ -33,7 +35,8 @@
 import { type ReactNode, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { ArrowCounterClockwise, MagnifyingGlassMinus, MagnifyingGlassPlus } from "@phosphor-icons/react";
 import { flagColor } from "../lib/flagColor";
-import { geoEqualEarth, geoGraticule10, geoPath } from "d3-geo";
+import { geoArea, geoEqualEarth, geoGraticule10, geoPath } from "d3-geo";
+import type { Subnation } from "../data/subnations";
 import { feature } from "topojson-client";
 import type { Topology } from "topojson-specification";
 import worldTopo from "world-atlas/countries-110m.json";
@@ -155,6 +158,18 @@ const inkOf = (code: string | null) => (code && flagColor(code)) || "#22d3ee";
 /** Drawn this close, the counties' and districts' borders show; this close, the cities. */
 const COUNTIES_FROM = 2.5;
 const CITIES_FROM = 4;
+/** Drawn this close, the country picked can be pressed by its states, provinces and regions: as close as a press on a country draws it. */
+const REGIONS_FROM = 1.3;
+type Geo = { type: string; properties: { n?: string }; geometry: { type: string; coordinates: unknown } };
+/** A division's rings turned the way d3 reads them, where its file has them the other way round (they would cover the globe). */
+function rewind(f: Geo): Geo {
+  const fix = (rings: number[][][]) => {
+    if (geoArea({ type: "Polygon", coordinates: rings } as never) > 2 * Math.PI) for (const ring of rings) ring.reverse();
+  };
+  if (f.geometry.type === "Polygon") fix(f.geometry.coordinates as number[][][]);
+  else if (f.geometry.type === "MultiPolygon") for (const p of f.geometry.coordinates as number[][][][]) fix(p);
+  return f;
+}
 /** The outline map's round buttons, for its zoom. */
 const TOOL = "w-7 h-7 rounded-full border border-border bg-background/70 text-muted-foreground hover:text-foreground flex items-center justify-center cursor-pointer transition-colors disabled:opacity-40 disabled:cursor-default";
 
@@ -171,7 +186,18 @@ const PRODUCED = Object.entries({ ...RESOURCE_PRODUCERS, ...ENERGY_PRODUCERS });
  * (the page's own leaders explorer reads the same list); the World Bank's and UNDP's figures; the USGS's, the EIA's and
  * OPEC's tables of the largest producers. A line with nothing held is left out.
  */
-function PickedColumn({ code, name, t }: { code: string; name: string; t: Tokens }) {
+function PickedColumn({ code, name, t, region, onClearRegion }: { code: string; name: string; t: Tokens; region: string | null; onClearRegion: () => void }) {
+  // The divisions' records - Natural Earth's divisions, each with its own Wikidata record - read when a division is first pressed.
+  const [subs, setSubs] = useState<{ list: Subnation[]; sources: Record<string, { label: string; url: string }> } | null>(null);
+  useEffect(() => {
+    if (!region || subs) return;
+    let off = false;
+    import("../data/subnations").then((m) => !off && setSubs({ list: m.SUBNATIONS, sources: m.SUBNATIONS_SOURCES }));
+    return () => {
+      off = true;
+    };
+  }, [region, subs]);
+  const rec = region && subs ? subs.list.find((x) => x.cc === code && x.name === region) : undefined;
   // Its type of government: the Factbook's words, from the law file the site keeps for each country.
   const [gov, setGov] = useState<{ code: string; type: string } | null>(null);
   useEffect(() => {
@@ -238,6 +264,63 @@ function PickedColumn({ code, name, t }: { code: string; name: string; t: Tokens
           </p>
         </div>
       </div>
+      {/* The division pressed on the map: its own record, and the country's figures below it. */}
+      {region && (
+        <div className="rounded-lg px-3 py-2.5 flex flex-col gap-1.5" style={{ background: t.tile, border: `1px solid ${t.gridLine}` }}>
+          <div className="flex items-start justify-between gap-2">
+            <div className="min-w-0">
+              <p className="text-[12px] font-sans font-semibold leading-tight" style={{ color: t.headText }}>
+                {region}
+              </p>
+              <p className="text-[10px] font-sans" style={{ color: t.mutedText }}>
+                {rec?.kind ? `${rec.kind}, ${name}` : `a division of ${name}`}
+              </p>
+            </div>
+            <button type="button" onClick={onClearRegion} aria-label={`Back to the whole of ${name}`} title={`Back to ${name}`} className="px-2 h-6 rounded-full border border-border bg-background/70 text-[9px] font-mono uppercase tracking-wider text-muted-foreground hover:text-foreground cursor-pointer transition-colors shrink-0">
+              Back
+            </button>
+          </div>
+          {rec ? (
+            <ul className="flex flex-col">
+              {[
+                ...(rec.capital ? [["Capital", rec.capital]] : []),
+                ...(rec.pop ? [["People", `${rec.pop[1].toLocaleString("en-US")} · ${rec.pop[0]}`]] : []),
+                ...(rec.areaKm2 ? [["Area", `${rec.areaKm2.toLocaleString("en-US")} km²`]] : []),
+                ...(rec.legislature ? [["Legislature", rec.legislature]] : []),
+                ...(rec.founded ? [["Formed", String(rec.founded)]] : []),
+              ].map(([k, v]) => (
+                <li key={k} className="flex items-baseline justify-between gap-2 py-0.5">
+                  <span className="text-[9px] font-mono uppercase tracking-widest shrink-0" style={{ color: t.mutedText }}>
+                    {k}
+                  </span>
+                  <span className="text-[11px] font-sans font-semibold text-right" style={{ color: t.headText }}>
+                    {v}
+                  </span>
+                </li>
+              ))}
+            </ul>
+          ) : (
+            subs && (
+              <p className="text-[10px] font-sans" style={{ color: t.mutedText }}>
+                No record of it is held.
+              </p>
+            )
+          )}
+          {rec && subs && (
+            <SourceLink
+              sources={[
+                subs.sources.naturalEarth,
+                subs.sources.wikidata,
+                ...(rec.capitalBy === "gn" ? [subs.sources.geonames] : []),
+                ...(rec.capitalBy === "wp" || rec.areaBy === "wp" || rec.popBy ? [subs.sources.wikipedia] : []),
+              ]}
+            />
+          )}
+          <p className="text-[10px] font-sans" style={{ color: t.mutedText }}>
+            Below, {name}'s own figures: the site holds them for the country.
+          </p>
+        </div>
+      )}
       <div className="flex flex-col">
         {govType && (
           <Block title="Government">
@@ -326,6 +409,30 @@ export default function WorldviewMap() {
   const [hover, setHover] = useState<string | null>(null);
   /** The country whose figures fill the panels under the map. */
   const [picked, setPicked] = useState("US");
+  /* The divisions of the country picked - its states, provinces, regions - as the World Maps page's files draw them; the one pressed, and the one pointed at. */
+  const [regions, setRegions] = useState<{ code: string; list: { name: string; d: string }[] } | null>(null);
+  const [region, setRegion] = useState<string | null>(null);
+  const [hoverRegion, setHoverRegion] = useState<string | null>(null);
+  useEffect(() => {
+    setRegion(null);
+    setHoverRegion(null);
+    let off = false;
+    fetch(`/geo/admin1/${picked}.json`)
+      .then((r) => (r.ok ? r.json() : Promise.reject()))
+      .then((topo: Topology) => {
+        if (off) return;
+        const key = Object.keys(topo.objects)[0];
+        const list = (feature(topo, topo.objects[key] as never) as unknown as { features: Geo[] }).features.flatMap((f) => {
+          const d = f.properties.n ? PATH(rewind(f) as never) : null;
+          return d ? [{ name: f.properties.n!, d }] : [];
+        });
+        setRegions({ code: picked, list });
+      })
+      .catch(() => {});
+    return () => {
+      off = true;
+    };
+  }, [picked]);
   /* How close the map is drawn and where its middle is, in the map's own units - 1 is the whole of it - as the Dashboard's map does. */
   const [view, setView] = useState({ k: 1, x: W / 2, y: H / 2 });
   const keep = (k: number, x: number, y: number) => {
@@ -523,6 +630,30 @@ export default function WorldviewMap() {
                 <path key={`b1-${i}`} d={l.d} stroke={inkOf(l.c)} strokeOpacity={0.6} strokeWidth={0.5} vectorEffect="non-scaling-stroke" />
               ))}
             </g>
+            {/* The country picked, by its divisions, once drawn closer: each lit when pointed at and pressed. */}
+            {view.k >= REGIONS_FROM && regions?.code === picked && (
+              <g>
+                {regions.list.map((r, i) => (
+                  <path
+                    key={`${r.name}-${i}`}
+                    d={r.d}
+                    vectorEffect="non-scaling-stroke"
+                    className="cursor-pointer"
+                    fill={inkOf(picked)}
+                    fillOpacity={region === r.name ? 0.6 : hoverRegion === r.name ? 0.32 : 0}
+                    stroke={region === r.name ? inkOf(picked) : "none"}
+                    strokeWidth={1.4}
+                    onClick={() => {
+                      if (!dragged.current) setRegion(r.name);
+                    }}
+                    onMouseEnter={() => setHoverRegion(r.name)}
+                    onMouseLeave={() => setHoverRegion(null)}
+                  >
+                    <title>{r.name}</title>
+                  </path>
+                ))}
+              </g>
+            )}
             {/* The cities, as points named on pointing at them, once the map is drawn close enough to tell them apart. */}
             {view.k >= CITIES_FROM &&
               cities.map((c) => {
@@ -553,18 +684,23 @@ export default function WorldviewMap() {
           </div>
           {/* What the pointer is on, in the map's corner: a pill of the same make as the zoom buttons, as asked. */}
           <div className="absolute left-5 bottom-5 max-w-[calc(100%-2.5rem)] h-7 px-3 rounded-full border border-border bg-background/70 flex items-center gap-1.5 text-[10px] font-mono text-muted-foreground truncate">
-            {shown ? (
+            {hoverRegion && view.k >= REGIONS_FROM ? (
+              <>
+                <span className="font-sans font-semibold text-foreground truncate">{hoverRegion}</span>
+                <span>press for its record</span>
+              </>
+            ) : shown ? (
               <>
                 <span className="font-sans font-semibold text-foreground truncate">{shown.name}</span>
                 <span>press for its figures</span>
               </>
             ) : (
-              <span className="truncate">Scroll to zoom, drag to move · press a country for its figures</span>
+              <span className="truncate">Scroll to zoom, drag to move · press a country for its figures, then its states and provinces</span>
             )}
           </div>
         </div>
         {/* The place picked, beside the map: what it is and who leads it, as asked. */}
-        <PickedColumn code={picked} name={pickedName} t={t} />
+        <PickedColumn code={picked} name={pickedName} t={t} region={region} onClearRegion={() => setRegion(null)} />
       </div>
       <div className="flex flex-wrap items-center gap-x-4 gap-y-2 px-4 py-3 border-t" style={{ borderColor: t.gridLine }}>
         <p className="text-[10px] font-sans flex-1 min-w-[12rem]" style={{ color: t.mutedText }}>
