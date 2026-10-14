@@ -24,7 +24,7 @@
  *
  * Beside the map, the country picked, as asked: its type of government, its
  * leaders, GDP, life expectancy, inflation and human development, its
- * languages, resources and energy (PickedColumn).
+ * languages and resources (PickedColumn); the rest opens on a press.
  *
  * A country pressed on the map fills the panels
  * under the map with its own figures (CountryDashboard), as asked; the page
@@ -43,7 +43,6 @@ import { countryForFeature } from "../data/mapJoin";
 import { NATIONAL_HEADS, REPRESENTATIVES_SOURCES } from "../data/representatives";
 import { COUNTRY_LAW_HELD, COUNTRY_LAW_SOURCES, type CountryLawFile } from "../data/countryLaw";
 import { COUNTRY_PEOPLE, COUNTRY_PEOPLE_SOURCES } from "../data/countryPeople";
-import { COUNTRY_ENERGY, ENERGY_SOURCE } from "../data/countryEnergy";
 import { RESOURCE_PRODUCERS, type Share } from "../data/resourceProducers";
 import { ENERGY_PRODUCERS } from "../data/energyProducers";
 import { useTokens, type Tokens } from "./DataExplorer";
@@ -167,10 +166,10 @@ const PRODUCED = Object.entries({ ...RESOURCE_PRODUCERS, ...ENERGY_PRODUCERS });
 /**
  * The place picked, beside the map: what it is and who leads it, as asked - its type of government, its leaders, its GDP,
  * life expectancy, inflation and human development, the languages spoken in it, what it digs and pumps from the ground,
- * and the energy it makes. Every line is its publisher's: the CIA World Factbook's words for its government and its
+ * the rest - any further resources and the sources - opening on a press, as asked. Every line is its publisher's: the CIA World Factbook's words for its government and its
  * languages; Wikipedia's list of current heads of state and government, which the site's World Leaders audit checks
  * (the page's own leaders explorer reads the same list); the World Bank's and UNDP's figures; the USGS's, the EIA's and
- * OPEC's tables of the largest producers; and the EIA's energy figures. A line with nothing held is left out.
+ * OPEC's tables of the largest producers. A line with nothing held is left out.
  */
 function PickedColumn({ code, name, t }: { code: string; name: string; t: Tokens }) {
   // Its type of government: the Factbook's words, from the law file the site keeps for each country.
@@ -206,13 +205,14 @@ function PickedColumn({ code, name, t }: { code: string; name: string; t: Tokens
     const row = table.countries.find((c) => countryForFeature(c.name)?.code === code);
     return row?.productionShare && row.productionShare.pct > 0 ? [{ what, share: row.productionShare, year: table.productionYear, sources: table.sources }] : [];
   }).sort((a, b) => b.share.pct - a.share.pct);
-  const energy = COUNTRY_ENERGY[code.toLowerCase()];
+  // The column ends at its resources; the rest opens on a press.
+  const [more, setMore] = useState(false);
+  const SHOWN = 3;
   const sources = [
     ...(govType ? [COUNTRY_LAW_SOURCES.factbook] : []),
     ...(tongues ? [COUNTRY_PEOPLE_SOURCES.factbook] : []),
     ...head.sources,
     ...resources.flatMap((r) => r.sources),
-    ...(energy ? [{ label: ENERGY_SOURCE.label, url: ENERGY_SOURCE.url }] : []),
     ...(leaders.length ? [REPRESENTATIVES_SOURCES.list] : []),
   ].filter((s, i, a) => a.findIndex((x) => x.label === s.label) === i);
   const label = "text-[9px] font-mono uppercase tracking-widest";
@@ -292,7 +292,7 @@ function PickedColumn({ code, name, t }: { code: string; name: string; t: Tokens
         {resources.length > 0 && (
           <Block title="Resources" meta="share of world output">
             <ul className="flex flex-col gap-0.5">
-              {resources.slice(0, 5).map((r) => (
+              {resources.slice(0, more ? resources.length : SHOWN).map((r) => (
                 <li key={r.what} className="flex items-baseline justify-between gap-2 text-[11px] font-sans" style={{ color: t.headText }}>
                   <span>{r.what}</span>
                   <span className="font-mono font-semibold">
@@ -304,28 +304,19 @@ function PickedColumn({ code, name, t }: { code: string; name: string; t: Tokens
             </ul>
           </Block>
         )}
-        {energy && energy.mix.length > 0 && (
-          <Block title="Energy produced" meta={energy.y}>
-            <div className="flex h-1.5 rounded-full overflow-hidden" role="img" aria-label={`${name}'s energy production by source, ${energy.y}`}>
-              {energy.mix.map((p) => (
-                <span key={p.source} style={{ width: `${p.pct}%`, background: p.color }} />
-              ))}
-            </div>
-            <ul className="flex flex-col gap-0.5">
-              {[...energy.mix].sort((a, b) => b.pct - a.pct).map((p) => (
-                <li key={p.source} className="flex items-center justify-between gap-2 text-[11px] font-sans" style={{ color: t.headText }}>
-                  <span className="flex items-center gap-1.5">
-                    <span className="w-2 h-2 rounded-full shrink-0" style={{ background: p.color }} />
-                    {p.source}
-                  </span>
-                  <span className="font-mono font-semibold">{p.pct}%</span>
-                </li>
-              ))}
-            </ul>
-          </Block>
-        )}
       </div>
-      {sources.length > 0 && <SourceLink sources={sources} />}
+      {/* The rest, on a press: the resources past the first three, and where every line is from. */}
+      {(resources.length > SHOWN || sources.length > 0) && (
+        <button
+          type="button"
+          onClick={() => setMore((m) => !m)}
+          aria-expanded={more}
+          className="self-start px-2.5 h-7 rounded-full border border-border bg-background/70 text-[10px] font-mono uppercase tracking-wider text-muted-foreground hover:text-foreground cursor-pointer transition-colors"
+        >
+          {more ? "Less" : resources.length > SHOWN ? `${resources.length - SHOWN} more · sources` : "Sources"}
+        </button>
+      )}
+      {more && sources.length > 0 && <SourceLink sources={sources} />}
     </div>
   );
 }
