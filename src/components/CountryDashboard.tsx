@@ -100,7 +100,8 @@ export default function CountryDashboard({ code, name, standings }: { code: stri
       </div>
 
 
-      <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-3 items-stretch">
+      {/* Three across on a wide screen, two on a middling one; a panel with nothing held is left out, and a row with fewer widens them to fill it. */}
+      <div className="flex flex-wrap gap-3 items-stretch">
         <Panel t={t} title="GDP, year by year" meta={gdp.length ? `current US$ · ${gdp[0].year}–${gdp[gdp.length - 1].year}` : undefined}>
           {gdp.length > 1 ? (
             <>

@@ -20,8 +20,8 @@
  * how far the government watches, filters, shuts down and arrests for what
  * people say online, and whether the law protects their data.
  */
-import { type ReactNode } from "react";
-import { Bar, BarChart, CartesianGrid, Cell, Pie, PieChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
+import { Children, isValidElement, type ReactElement, type ReactNode } from "react";
+import { Area, AreaChart, Bar, BarChart, CartesianGrid, Cell, Pie, PieChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
 import { COUNTRY_PANELS, PANEL_SOURCES, type PanelField } from "../data/countryPanels";
 import { COUNTRY_INDICATORS, COUNTRY_INDICATORS_SOURCE } from "../data/countryIndicators";
 import { COUNTRY_FIGURES, COUNTRY_FIGURE_SOURCES } from "../data/worldview";
@@ -37,7 +37,13 @@ import { COUNTRY_UN, COUNTRY_UN_SOURCES, UN_GROUPS } from "../data/countryUn";
 import { LAND_USE, LAND_USE_SOURCE } from "../data/landUse";
 import { COUNTRY_TAX, COUNTRY_TAX_SOURCES } from "../data/countryTax";
 import { JUSTICE_PROCESS, JUSTICE_SOURCES, LEGAL_SYSTEMS } from "../data/justice";
-import { COUNTRY_PEOPLE, COUNTRY_PEOPLE_SOURCES } from "../data/countryPeople";
+import { COUNTRY_PEOPLE, COUNTRY_PEOPLE_SOURCES, type Shares as PeopleShares } from "../data/countryPeople";
+import { economyForCountry } from "../data/economiesData";
+import { ECONOMY_MANUFACTURING, ECONOMY_MANUFACTURING_SOURCE, MANUFACTURING_BRANCHES, WORLD_MANUFACTURING_SHARE } from "../data/economyManufacturing";
+import { RESOURCE_PRODUCERS, type Share } from "../data/resourceProducers";
+import { ENERGY_PRODUCERS } from "../data/energyProducers";
+import { CRITICAL_MINERALS, CRITICAL_MINERALS_SOURCE } from "../data/criticalMinerals";
+import { countryForFeature } from "../data/mapJoin";
 import { BASES_ABROAD, BASES_HOSTED, MILITARY_BASES_SOURCE } from "../data/militaryBases";
 import { ALLIANCES, ALLIANCE_KIND_PLURAL } from "../data/alliances";
 import { SURVEILLANCE, SURVEILLANCE_SCALES, SURVEILLANCE_SOURCE, type SurveillanceMeasure } from "../data/surveillance";
@@ -53,11 +59,18 @@ function pick<T>(m: Record<string, T>, cc: string): T | undefined {
 }
 const big = (v: number) => (v >= 1e9 ? `${(v / 1e9).toFixed(2)}B` : v >= 1e6 ? `${(v / 1e6).toFixed(1)}M` : v >= 1e4 ? `${Math.round(v / 1e3)}K` : Math.round(v).toLocaleString("en-US"));
 const pct = (v: number) => `${v.toFixed(1)}%`;
+const usdBn = (bn: number) => (bn >= 1000 ? `$${(bn / 1000).toFixed(2)}T` : bn >= 1 ? `$${bn.toFixed(bn >= 100 ? 0 : 1)}B` : `$${Math.round(bn * 1000)}M`);
+/** A share of world output as its publisher bounds it. */
+const shareOf = (s: Share) => `${s.bound === "atMost" ? "<" : s.bound === "atLeast" ? ">" : ""}${s.pct < 1 ? s.pct.toFixed(1) : s.pct.toFixed(s.pct < 10 ? 1 : 0)}%`;
+/** The tables of the largest producers the site holds - USGS's minerals, and the EIA's and OPEC's fuels - by commodity. */
+const PRODUCED = Object.entries({ ...RESOURCE_PRODUCERS, ...ENERGY_PRODUCERS });
 
 /** A panel: its heading in capitals, a line beside it, and what it holds - as tall as the others in its row. */
 export function Panel({ t, title, meta, children, className = "" }: { t: Tokens; title: string; meta?: string; children: ReactNode; className?: string }) {
+  // Nothing held: the panel is left out rather than left saying so, as asked - no gaps.
+  if (empty(children)) return null;
   return (
-    <section className={`rounded-xl flex flex-col min-w-0 h-full ${className}`} style={{ background: t.cardBg, border: t.cardBorder }}>
+    <section className={`rounded-xl flex flex-col min-w-0 grow basis-full md:basis-[calc(50%-0.375rem)] xl:basis-[calc(33.333%-0.5rem)] ${className}`} style={{ background: t.cardBg, border: t.cardBorder }}>
       <div className="flex items-baseline gap-2 px-3.5 pt-3 pb-2 border-b" style={{ borderColor: t.gridLine }}>
         <h3 className="text-[10px] font-mono uppercase tracking-widest flex-1 min-w-0 truncate" style={{ color: t.headText }}>
           {title}
@@ -72,6 +85,11 @@ export function Panel({ t, title, meta, children, className = "" }: { t: Tokens;
     </section>
   );
 }
+/** Whether a panel's content is the line saying nothing is held - first, with at most its sources after it. */
+const empty = (children: ReactNode) => {
+  const first = Children.toArray(children)[0];
+  return isValidElement(first) && first.type === None;
+};
 export const None = ({ t, children }: { t: Tokens; children: ReactNode }) => (
   <p className="text-[11px] font-sans py-6 text-center my-auto" style={{ color: t.mutedText }}>
     {children}
@@ -101,7 +119,7 @@ function Bars({ t, rows }: { t: Tokens; rows: { label: string; text: string; y?:
             {r.text}
             {r.y !== undefined && <span className="font-normal" style={{ color: t.mutedText }}> · {r.y}</span>}
           </span>
-          <span className="col-span-2 h-1.5 rounded-full overflow-hidden mt-0.5" style={{ background: t.gridLine }} aria-hidden>
+          <span className="col-span-2 h-1 rounded-full overflow-hidden mt-1" style={{ background: t.gridLine }} aria-hidden>
             <span className="block h-full rounded-full" style={{ width: `${Math.max(1, Math.min(100, r.share))}%`, background: r.color ?? INK[i % INK.length] }} />
           </span>
         </li>
@@ -118,7 +136,7 @@ function Ring({ t, slices, unit = "%" }: { t: Tokens; slices: { name: string; v:
       <div className="w-[120px] h-[120px] shrink-0">
         <ResponsiveContainer width="100%" height="100%">
           <PieChart>
-            <Pie data={parts} dataKey="v" nameKey="name" innerRadius={32} outerRadius={56} stroke="none" isAnimationActive={false}>
+            <Pie data={parts} dataKey="v" nameKey="name" innerRadius={38} outerRadius={56} paddingAngle={parts.length > 1 ? 1.5 : 0} stroke="none" cornerRadius={2} isAnimationActive={false}>
               {parts.map((s) => (
                 <Cell key={s.name} fill={s.color} />
               ))}
@@ -150,7 +168,7 @@ function Stack({ t, parts }: { t: Tokens; parts: { name: string; v: number; colo
   const total = shown.reduce((n, p) => n + p.v, 0) || 1;
   return (
     <>
-      <div className="flex h-5 rounded-full overflow-hidden" role="img" aria-label={shown.map((p) => `${p.name} ${p.v.toFixed(1)}%`).join(", ")}>
+      <div className="flex h-3 gap-[2px] rounded-full overflow-hidden" role="img" aria-label={shown.map((p) => `${p.name} ${p.v.toFixed(1)}%`).join(", ")}>
         {shown.map((p) => (
           <span key={p.name} style={{ width: `${(p.v / total) * 100}%`, background: p.color }} title={`${p.name}: ${p.v.toFixed(1)}%`} />
         ))}
@@ -168,6 +186,48 @@ function Stack({ t, parts }: { t: Tokens; parts: { name: string; v: number; colo
           </li>
         ))}
       </ul>
+    </>
+  );
+}
+/**
+ * A line of the Factbook's - a country's religions or languages: a ring where its shares make up a whole, bars where
+ * they overlap (people speak more than one language), and where it gives a sentence rather than shares, the figures
+ * the sentence writes read out of it - never added to - and the rest of it as it stands.
+ */
+function Shares({ t, of }: { t: Tokens; of: PeopleShares }) {
+  let parts = of.parts ?? [];
+  let words: string[] = [];
+  let aside = of.note;
+  if (!parts.length && of.text) {
+    const [head, ...rest] = of.text.split(";");
+    const items = head.split(/,(?![^(]*\))/).map((s) => s.trim()).filter(Boolean);
+    const read = items.map((s) => s.match(/^(.+?)\s+(less than\s+|<\s*)?([\d.]+)%$/));
+    if (read.filter(Boolean).length >= 2) {
+      parts = read.flatMap((m) => (m ? [[m[1], Number(m[3]), ...(m[2] ? [1 as const] : [])] as [string, number, 1?]] : []));
+      words = items.filter((_, i) => !read[i]);
+    } else words = items;
+    const more = rest.join(";").trim();
+    if (more) aside = aside ? `${more}; ${aside}` : more;
+  }
+  const named = parts.filter(([n]) => !/^(other|unspecified|none)\b/i.test(n));
+  return (
+    <>
+      {parts.length > 0 &&
+        (of.whole ? (
+          <Ring t={t} slices={parts.slice(0, 8).map(([n, v]) => ({ name: n, v }))} />
+        ) : (
+          <Bars t={t} rows={named.slice(0, 7).map(([n, v, under]) => ({ label: n, text: `${under ? "<" : ""}${v}%`, share: v }))} />
+        ))}
+      {words.length > 0 && (
+        <ul className="flex flex-wrap gap-1.5">
+          {words.map((w) => (
+            <li key={w} className="text-[10px] font-sans px-2 py-0.5 rounded-full" style={{ color: t.bodyText, background: t.tile, border: `1px solid ${t.gridLine}` }}>
+              {w}
+            </li>
+          ))}
+        </ul>
+      )}
+      {aside && <Note t={t}>{(aside.charAt(0).toUpperCase() + aside.slice(1)).replace(/\.?$/, ".")}</Note>}
     </>
   );
 }
@@ -212,7 +272,11 @@ function Range({ t, label, v, lo, hi, text, color }: { t: Tokens; label: string;
     </div>
   );
 }
+/** Whether a panel holds nothing: its whole content is the line that says so. */
+const holdsNothing = (c: ReactNode) => isValidElement(c) && c.type === Panel && empty((c as ReactElement<{ children: ReactNode }>).props.children);
 function Section({ t, title, kicker, children }: { t: Tokens; title: string; kicker: string; children: ReactNode }) {
+  const held = Children.toArray(children).filter((c) => !holdsNothing(c));
+  if (!held.length) return null;
   return (
     <div className="flex flex-col gap-3">
       <div className="flex items-baseline gap-3 px-1 pt-3">
@@ -224,8 +288,8 @@ function Section({ t, title, kicker, children }: { t: Tokens; title: string; kic
         </span>
         <span className="flex-1 h-px" style={{ background: t.gridLine }} aria-hidden />
       </div>
-      {/* Three across on a wide screen, two on a middling one; every panel in a row as tall as the tallest. */}
-      <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-3 items-stretch">{children}</div>
+      {/* Three across on a wide screen, two on a middling one, every panel in a row as tall as the tallest; a row with fewer panels widens them to fill it, so that none is left with a hole. */}
+      <div className="flex flex-wrap gap-3 items-stretch">{held}</div>
     </div>
   );
 }
@@ -257,6 +321,23 @@ export default function CountryFigures({ code, name }: { code: string; name: str
   const cm = COUNTRY_FIGURES.childMortality[code];
   const air = AIR_QUALITY[code];
   const watch = pick(SURVEILLANCE, code);
+  // Its manufacturing, from the World Bank's figures for its economy.
+  const econ = economyForCountry({ code, name });
+  const mf = econ ? ECONOMY_MANUFACTURING[econ.id] : undefined;
+  const mfValue = mf?.value?.[mf.value.length - 1];
+  const mfShare = mf?.share?.[mf.share.length - 1];
+  const worldShare = mfShare ? WORLD_MANUFACTURING_SHARE.find(([y]) => y === mfShare[0]) : undefined;
+  // What it digs and pumps: its share of world output wherever a table of the largest producers names it; a mineral in two tables once, from the first.
+  const produced = [
+    ...PRODUCED.flatMap(([what, table]) => {
+      const row = table.countries.find((c) => countryForFeature(c.name)?.code === code);
+      return row?.productionShare && row.productionShare.pct > 0 ? [{ what, share: row.productionShare, year: table.productionYear, sources: table.sources }] : [];
+    }),
+    ...(econ ? (CRITICAL_MINERALS[econ.id] ?? []) : []).flatMap((m) => (m.productionShare && m.productionShare.pct > 0 ? [{ what: m.name, share: m.productionShare, year: CRITICAL_MINERALS_SOURCE.year, sources: [CRITICAL_MINERALS_SOURCE] }] : [])),
+  ]
+    .filter((r, i, all) => all.findIndex((x) => x.what.toLowerCase().replace(/s$/, "") === r.what.toLowerCase().replace(/s$/, "")) === i)
+    .sort((x, y) => y.share.pct - x.share.pct);
+  const producedSources = produced.slice(0, 8).flatMap((r) => r.sources);
   const axis = { tick: { fontSize: 9, fill: t.mutedText, fontFamily: "monospace" }, axisLine: false, tickLine: false } as const;
   const tip = { contentStyle: { background: t.tooltipBg, border: t.cardBorder, borderRadius: 8, fontSize: 11 }, labelStyle: { color: t.headText }, itemStyle: { color: t.headText } };
   const crimeRows = crime
@@ -282,26 +363,6 @@ export default function CountryFigures({ code, name }: { code: string; name: str
     <div className="flex flex-col gap-2">
       {/* ── Economics and policy ── */}
       <Section t={t} title="Economics, tax and policy" kicker="what it makes, what it raises, what it pays">
-        <Panel t={t} title="What its economy makes" meta="% of GDP">
-          {has("agriculturePct", "industryPct", "servicesPct") ? (
-            <>
-              <Ring
-                t={t}
-                slices={(
-                  [
-                    ["agriculturePct", "Farming, forestry, fishing"],
-                    ["industryPct", "Industry"],
-                    ["servicesPct", "Services"],
-                  ] as [PanelField, string][]
-                ).flatMap(([f, n]) => (P[f] ? [{ name: n, v: P[f]!.v }] : []))}
-              />
-              {P.manufacturingPct && <Note t={t}>Manufacturing, part of industry, is {pct(P.manufacturingPct.v)} of GDP ({P.manufacturingPct.y}). The three need not sum to 100: taxes on products are counted apart.</Note>}
-              <Foot sources={[wb("industryPct")]} />
-            </>
-          ) : (
-            <None t={t}>No breakdown of output is held for {name}.</None>
-          )}
-        </Panel>
         <Panel t={t} title="What its tax revenue is made of" meta={tax?.mix ? `% of revenue · ${tax.mix.y}` : undefined}>
           {tax?.mix ? (
             <>
@@ -421,6 +482,111 @@ export default function CountryFigures({ code, name }: { code: string; name: str
         </Panel>
       </Section>
 
+      {/* ── Industry ── */}
+      <Section t={t} title="Industry and resources" kicker="what it makes, what its factories turn out, what it digs and pumps">
+        <Panel t={t} title="What its economy makes" meta="% of GDP">
+          {has("agriculturePct", "industryPct", "servicesPct") ? (
+            <>
+              <Ring
+                t={t}
+                slices={(
+                  [
+                    ["agriculturePct", "Farming, forestry, fishing"],
+                    ["industryPct", "Industry"],
+                    ["servicesPct", "Services"],
+                  ] as [PanelField, string][]
+                ).flatMap(([f, n]) => (P[f] ? [{ name: n, v: P[f]!.v }] : []))}
+              />
+              {P.manufacturingPct && <Note t={t}>Manufacturing, part of industry, is {pct(P.manufacturingPct.v)} of GDP ({P.manufacturingPct.y}). The three need not sum to 100: taxes on products are counted apart.</Note>}
+              <Foot sources={[wb("industryPct")]} />
+            </>
+          ) : (
+            <None t={t}>No breakdown of output is held for {name}.</None>
+          )}
+        </Panel>
+        <Panel t={t} title="Manufacturing" meta={mfValue ? `World Bank · ${mfValue[0]}` : undefined}>
+          {mf?.value?.length ? (
+            <>
+              <ResponsiveContainer width="100%" height={130}>
+                <AreaChart data={mf.value.map(([y, v]) => ({ y: String(y), v }))} margin={{ top: 4, right: 6, left: 0, bottom: 0 }}>
+                  <defs>
+                    <linearGradient id={`mf-${code}`} x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="0%" stopColor={INK[0]} stopOpacity={0.35} />
+                      <stop offset="100%" stopColor={INK[0]} stopOpacity={0} />
+                    </linearGradient>
+                  </defs>
+                  <CartesianGrid stroke={t.gridLine} vertical={false} />
+                  <XAxis dataKey="y" {...axis} interval="preserveStartEnd" minTickGap={24} />
+                  <YAxis {...axis} width={44} tickFormatter={(v: number) => usdBn(v)} />
+                  <Tooltip {...tip} formatter={(v: number) => [usdBn(v), "value added"]} />
+                  <Area type="monotone" dataKey="v" stroke={INK[0]} strokeWidth={1.5} fill={`url(#mf-${code})`} isAnimationActive={false} />
+                </AreaChart>
+              </ResponsiveContainer>
+              <Tiles
+                t={t}
+                items={[
+                  ...(mfShare ? [{ label: "Of GDP", text: pct(mfShare[1]), y: worldShare ? `${mfShare[0]} · world ${pct(worldShare[1])}` : mfShare[0] }] : []),
+                  ...(mf.industryJobs ? [{ label: "Jobs in industry", text: pct(mf.industryJobs[1]), y: mf.industryJobs[0] }] : []),
+                  ...(mf.exportsShare ? [{ label: "Manufactures, of exports", text: pct(mf.exportsShare[1]), y: mf.exportsShare[0] }] : []),
+                  ...(mf.highTech ? [{ label: "High-tech, of manufactured exports", text: pct(mf.highTech[1]), y: mf.highTech[0] }] : []),
+                ]}
+              />
+              <Note t={t}>Value added by manufacturing, in billions of current US dollars, each year the World Bank gives. Jobs in industry count mining, building and utilities with the factories.</Note>
+              <Foot sources={[ECONOMY_MANUFACTURING_SOURCE]} />
+            </>
+          ) : (
+            <None t={t}>No figures of manufacturing are held for {name}.</None>
+          )}
+        </Panel>
+        <Panel t={t} title="What its factories make" meta={mf?.branches ? `% of manufacturing · ${mf.branches[0]}` : undefined}>
+          {mf?.branches ? (
+            <>
+              <Ring t={t} slices={MANUFACTURING_BRANCHES.map((b, i) => ({ name: b.name, v: mf.branches![i + 1] as number }))} />
+              <Note t={t}>The World Bank's five branches of manufacturing (UNIDO's figures), each its share of the value manufacturing adds.</Note>
+              <Foot sources={[ECONOMY_MANUFACTURING_SOURCE]} />
+            </>
+          ) : (
+            <None t={t}>No breakdown of manufacturing is held for {name}.</None>
+          )}
+        </Panel>
+        <Panel t={t} title="Factory output, year on year" meta={mf?.growth?.length ? `real growth · ${mf.growth[0][0]}–${mf.growth[mf.growth.length - 1][0]}` : undefined}>
+          {mf?.growth?.length ? (
+            <>
+              <ResponsiveContainer width="100%" height={150}>
+                <BarChart data={mf.growth.map(([y, v]) => ({ y: String(y), v }))} margin={{ top: 4, right: 6, left: 0, bottom: 0 }}>
+                  <CartesianGrid stroke={t.gridLine} vertical={false} />
+                  <XAxis dataKey="y" {...axis} interval="preserveStartEnd" minTickGap={16} />
+                  <YAxis {...axis} width={34} tickFormatter={(v: number) => `${Math.round(v)}%`} />
+                  <Tooltip {...tip} cursor={{ fill: t.gridLine }} formatter={(v: number) => [`${v > 0 ? "+" : ""}${v.toFixed(1)}%`, "real growth"]} />
+                  <Bar dataKey="v" isAnimationActive={false} radius={[2, 2, 2, 2]} maxBarSize={18}>
+                    {mf.growth.map(([y, v]) => (
+                      <Cell key={y} fill={v >= 0 ? INK[1] : INK[4]} />
+                    ))}
+                  </Bar>
+                </BarChart>
+              </ResponsiveContainer>
+              <Note t={t}>How much manufacturing's value added grew or shrank each year, after prices: the World Bank's last ten years held.</Note>
+              <Foot sources={[ECONOMY_MANUFACTURING_SOURCE]} />
+            </>
+          ) : (
+            <None t={t}>No growth of manufacturing is held for {name}.</None>
+          )}
+        </Panel>
+        <Panel t={t} title="Minerals and fuels it produces" meta="share of world output">
+          {produced.length ? (
+            <>
+              <Bars t={t} rows={produced.slice(0, 8).map((r, i) => ({ label: r.what, text: shareOf(r.share), y: r.year, share: Math.max(2, r.share.pct * 2), color: INK[(i + 2) % INK.length] }))} />
+              <Note t={t}>
+                Its share of the world's production of each, as the publisher's tables of the largest producers give it, the largest first; a country outside a table is not listed for it. The bars are drawn twice as long, so that small shares show.
+              </Note>
+              <Foot sources={producedSources} />
+            </>
+          ) : (
+            <None t={t}>{name} is not among the largest producers of any mineral or fuel the site holds.</None>
+          )}
+        </Panel>
+      </Section>
+
       {/* ── People ── */}
       <Section t={t} title="Demographics" kicker="who lives there">
         <Panel t={t} title="Births, deaths and the sexes" meta="a year">
@@ -484,29 +650,24 @@ export default function CountryFigures({ code, name }: { code: string; name: str
             <None t={t}>No age figures are held for {name}.</None>
           )}
         </Panel>
-        <Panel t={t} title="Faiths and languages" meta={people?.religions?.year ?? people?.languages?.year}>
-          {people?.religions?.parts?.length || people?.languages?.parts?.length ? (
+        <Panel t={t} title="Religions" meta={people?.religions?.year ? `Factbook · ${people.religions.year}` : undefined}>
+          {people?.religions && (people.religions.parts?.length || people.religions.text) ? (
             <>
-              {people?.religions?.parts?.length ? (
-                <>
-                  <p className="text-[9px] font-mono uppercase tracking-widest" style={{ color: t.mutedText }}>
-                    Religions
-                  </p>
-                  <Ring t={t} slices={people.religions.parts.slice(0, 8).map(([n, v]) => ({ name: n, v }))} />
-                </>
-              ) : null}
-              {people?.languages?.parts?.length ? (
-                <>
-                  <p className="text-[9px] font-mono uppercase tracking-widest" style={{ color: t.mutedText }}>
-                    Languages
-                  </p>
-                  <Stack t={t} parts={people.languages.parts.slice(0, 6).map(([n, v]) => ({ name: n, v }))} />
-                </>
-              ) : null}
+              <Shares t={t} of={people.religions} />
               <Foot sources={[COUNTRY_PEOPLE_SOURCES.factbook]} />
             </>
           ) : (
-            <None t={t}>No shares of faith or language are held for {name}.</None>
+            <None t={t}>No account of religion is held for {name}.</None>
+          )}
+        </Panel>
+        <Panel t={t} title="Languages" meta={people?.languages?.year ? `Factbook · ${people.languages.year}` : undefined}>
+          {people?.languages && (people.languages.parts?.length || people.languages.text) ? (
+            <>
+              <Shares t={t} of={people.languages} />
+              <Foot sources={[COUNTRY_PEOPLE_SOURCES.factbook]} />
+            </>
+          ) : (
+            <None t={t}>No account of language is held for {name}.</None>
           )}
         </Panel>
       </Section>
