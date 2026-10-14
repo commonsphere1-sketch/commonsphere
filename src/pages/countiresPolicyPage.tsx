@@ -1,4 +1,7 @@
 import React, { useState, useMemo, useEffect } from "react";
+
+/** The policy calculator: a part of a government's spending moved from one area to another. Loaded after the page. */
+const PolicyCalculator = React.lazy(() => import("../components/PolicyCalculator"));
 import { createPortal } from "react-dom";
 import {
   Leaf,
@@ -10894,6 +10897,11 @@ export function PolicyPage() {
       {/* The policies explorer stood here and was taken off the page, as asked. DataExplorer keeps its policies panel (only="policies"), unmounted. */}
 
       {/* A calculator for sharing a budget among the states (components/AllocationCalculator) stood here and was taken off the page, as asked: the component is kept, and is not mounted. */}
+
+      {/* The policy calculator: small, and on the page's own spending figures */}
+      <React.Suspense fallback={null}>
+        <PolicyCalculator />
+      </React.Suspense>
 
       {/* Entity rows */}
       {paginatedGroups.length === 0 ? (
