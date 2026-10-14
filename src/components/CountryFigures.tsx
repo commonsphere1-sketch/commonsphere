@@ -15,6 +15,10 @@
  * worked out here says so. A panel the country has no figures for says so.
  * Disease outbreaks are not given: the WHO's figures are for non-commercial
  * use only, and no other body publishes them for every country.
+ *
+ * Surveillance of the public is the V-Dem Institute's Digital Society Project:
+ * how far the government watches, filters, shuts down and arrests for what
+ * people say online, and whether the law protects their data.
  */
 import { type ReactNode } from "react";
 import { Bar, BarChart, CartesianGrid, Cell, Pie, PieChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
@@ -36,6 +40,7 @@ import { JUSTICE_PROCESS, JUSTICE_SOURCES, LEGAL_SYSTEMS } from "../data/justice
 import { COUNTRY_PEOPLE, COUNTRY_PEOPLE_SOURCES } from "../data/countryPeople";
 import { BASES_ABROAD, BASES_HOSTED, MILITARY_BASES_SOURCE } from "../data/militaryBases";
 import { ALLIANCES, ALLIANCE_KIND_PLURAL } from "../data/alliances";
+import { SURVEILLANCE, SURVEILLANCE_SCALES, SURVEILLANCE_SOURCE, type SurveillanceMeasure } from "../data/surveillance";
 import { useTokens, type Tokens } from "./DataExplorer";
 import { SourceLink } from "./SourceLink";
 
@@ -251,6 +256,7 @@ export default function CountryFigures({ code, name }: { code: string; name: str
   const fr = COUNTRY_FIGURES.freedom[code];
   const cm = COUNTRY_FIGURES.childMortality[code];
   const air = AIR_QUALITY[code];
+  const watch = pick(SURVEILLANCE, code);
   const axis = { tick: { fontSize: 9, fill: t.mutedText, fontFamily: "monospace" }, axisLine: false, tickLine: false } as const;
   const tip = { contentStyle: { background: t.tooltipBg, border: t.cardBorder, borderRadius: 8, fontSize: 11 }, labelStyle: { color: t.headText }, itemStyle: { color: t.headText } };
   const crimeRows = crime
@@ -749,6 +755,30 @@ export default function CountryFigures({ code, name }: { code: string; name: str
             </>
           ) : (
             <None t={t}>No account of its legal system is held for {name}.</None>
+          )}
+        </Panel>
+        <Panel t={t} title="Surveillance of the public" meta={watch ? `V-Dem · ${watch.y}` : undefined}>
+          {watch ? (
+            <>
+              <Bars
+                t={t}
+                rows={(Object.keys(SURVEILLANCE_SCALES) as SurveillanceMeasure[]).flatMap((k) => {
+                  const v = watch[k];
+                  if (v === undefined) return [];
+                  const s = SURVEILLANCE_SCALES[k];
+                  const top = s.points.length - 1;
+                  const word = s.points[Math.max(0, Math.min(top, Math.round(v)))];
+                  return [{ label: `${s.name}: ${word.toLowerCase()}`, text: `${v} of ${top}`, share: (v / top) * 100, color: v / top < 0.4 ? INK[4] : v / top < 0.7 ? INK[2] : INK[1] }];
+                })}
+              />
+              <Note t={t}>
+                Each the estimate of V-Dem's country experts on its question's scale: lower is more surveillance or restriction, and the words are its codebook's for the
+                nearest point. The bar is red in the lowest two fifths of the scale, amber in the next, green above.
+              </Note>
+              <Foot sources={[SURVEILLANCE_SOURCE]} />
+            </>
+          ) : (
+            <None t={t}>V-Dem gives no estimate of surveillance for {name}.</None>
           )}
         </Panel>
         <Panel t={t} title="Freedom" meta={fr ? `Freedom House · ${fr[0]}` : undefined}>

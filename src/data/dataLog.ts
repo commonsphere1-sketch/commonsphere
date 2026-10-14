@@ -22,6 +22,14 @@ export interface DataLogEntry {
 
 export const DATA_LOG: DataLogEntry[] = [
   {
+    "what": "How far each government watches and restricts its people online: social media monitoring, filtering, shutdowns, arrests, privacy law",
+    "from": "V-Dem Institute, Digital Society Project",
+    "page": "/dashboard/worldview",
+    "where": "Worldview",
+    "read": "2026-10-14",
+    "files": 1
+  },
+  {
     "what": "Political theories and forms of governance, each described and with works to read; where each began, its figures, history, countries and parties",
     "from": "Wikidata, CIA World Factbook, Wikipedia; links to Britannica, the Stanford and Internet encyclopedias of philosophy",
     "page": "/dashboard/worldview",
@@ -480,4 +488,4 @@ export const DATA_LOG: DataLogEntry[] = [
 ];
 
 /** How many data files the log covers. */
-export const DATA_LOG_FILES = 77;
+export const DATA_LOG_FILES = 78;
