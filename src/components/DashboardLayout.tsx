@@ -4,6 +4,7 @@ import { Outlet, useLocation, useNavigationType } from "react-router-dom";
 import { HeaderNav } from "./HeaderNav";
 import { SidebarNav } from "./SidebarNav";
 import { NotesPopup } from "./NotesPopup";
+import { CalendarPopup } from "./CalendarPopup";
 
 /** Tablet widths: where the desktop sidebar shows (768px up) but the page is not yet desktop-wide. */
 const TABLET = "(max-width: 1023px)";
@@ -118,6 +119,8 @@ export function DashboardLayout() {
         </main>
       </div>
       <NotesPopup />
+      {/* The calendar and the quarter tracker: a button at the top right of every page, as the notes are at the bottom right. */}
+      <CalendarPopup />
     </div>
   );
 }
