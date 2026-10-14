@@ -2088,6 +2088,8 @@ export function WorldMapsPage() {
     climate: false,
   });
   const [showAdditionalLayers, setShowAdditionalLayers] = useState(false);
+  /** The same for the country and state maps' bar: whether the layers behind "More" are shown. */
+  const [showFocusLayers, setShowFocusLayers] = useState(false);
 
   type LayerSetter = React.Dispatch<React.SetStateAction<Record<OverlayId, boolean>>>;
   const toggleLayer = useCallback(
@@ -3539,23 +3541,32 @@ export function WorldMapsPage() {
 
   const layerToggles = (layers: Record<OverlayId, boolean>, set: LayerSetter, showMore = true) => {
     if (!showMore) {
-      const mainLayers = OVERLAYS.filter(o => !["capitals", "cities", "climate"].includes(o.id));
-      const additionalLayers = OVERLAYS.filter(o => ["capitals", "cities", "climate"].includes(o.id));
+      // The bar of the country and state maps, set out as the world map's above them, as asked: the same three layers kept in
+      // sight under the same names - infrastructure, ports and resources - and the rest behind "More", on the same line. The
+      // world map's three groups of countries are not here: there is one country on this map.
       return (
         <div className={`${mapBar} top-16`}>
           <ChipRow>
             <span className="text-[10px] font-mono uppercase tracking-widest text-secondary mr-1">
               Layers
             </span>
+            <button
+              onClick={() => setShowFocusLayers(!showFocusLayers)}
+              aria-expanded={showFocusLayers}
+              className={`px-3 py-1 rounded-full text-[11px] font-medium font-sans border transition-colors cursor-pointer shrink-0 inline-flex items-center gap-1.5 ${
+                showFocusLayers
+                  ? "border-transparent bg-secondary/20 text-foreground"
+                  : "bg-transparent border-border text-muted-foreground hover:text-foreground hover:bg-muted/60"
+              }`}
+              title="Show layers"
+            >
+              <CaretDown size={10} weight="bold" className={`transition-transform ${showFocusLayers ? "rotate-180" : ""}`} />
+              More
+            </button>
+            {OVERLAYS.filter((o) => BAR_LAYERS[o.id]).map((o) => layerButton({ ...o, label: BAR_LAYERS[o.id]! }, layers, set))}
+            {showFocusLayers && OVERLAYS.filter((o) => !BAR_LAYERS[o.id]).map((o) => layerButton(o, layers, set))}
             {/* On the country map the chip is for a state or a city: a country is not picked out here. */}
             {(markedState || markedCity) && markChip}
-            {mainLayers.map((o) => (
-              layerButton(o, layers, set)
-            ))}
-            {/* One row for every layer, as asked: the capitals, the cities and the climate follow the rest and are reached by moving along the row. */}
-            {additionalLayers.map((o) => (
-              layerButton(o, layers, set)
-            ))}
           </ChipRow>
         </div>
       );
