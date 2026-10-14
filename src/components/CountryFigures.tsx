@@ -21,7 +21,7 @@
  * people say online, and whether the law protects their data.
  */
 import { Children, isValidElement, type ReactElement, type ReactNode } from "react";
-import { Area, AreaChart, Bar, BarChart, CartesianGrid, Cell, Pie, PieChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
+import { Area, AreaChart, CartesianGrid, Cell, Pie, PieChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
 import { COUNTRY_PANELS, PANEL_SOURCES, type PanelField } from "../data/countryPanels";
 import { COUNTRY_INDICATORS, COUNTRY_INDICATORS_SOURCE } from "../data/countryIndicators";
 import { COUNTRY_FIGURES, COUNTRY_FIGURE_SOURCES } from "../data/worldview";
@@ -49,7 +49,7 @@ import { ALLIANCES, ALLIANCE_KIND_PLURAL } from "../data/alliances";
 import { SURVEILLANCE, SURVEILLANCE_SCALES, SURVEILLANCE_SOURCE, type SurveillanceMeasure } from "../data/surveillance";
 import { useTokens, type Tokens } from "./DataExplorer";
 import { SourceLink } from "./SourceLink";
-import SlimBars from "./SlimBars";
+import SlimBars, { SlimColumns } from "./SlimBars";
 
 /** The site's colours for the panels, in turn. */
 export const INK = ["#2a78d6", "#10b981", "#f59e0b", "#8b5cf6", "#ef4444", "#06b6d4", "#ec4899", "#84cc16", "#f97316", "#6366f1"];
@@ -169,9 +169,9 @@ function Stack({ t, parts }: { t: Tokens; parts: { name: string; v: number; colo
   const total = shown.reduce((n, p) => n + p.v, 0) || 1;
   return (
     <>
-      <div className="flex h-3 gap-[2px] rounded-full overflow-hidden" role="img" aria-label={shown.map((p) => `${p.name} ${p.v.toFixed(1)}%`).join(", ")}>
+      <div className="flex h-2.5 gap-[3px]" role="img" aria-label={shown.map((p) => `${p.name} ${p.v.toFixed(1)}%`).join(", ")}>
         {shown.map((p) => (
-          <span key={p.name} style={{ width: `${(p.v / total) * 100}%`, background: p.color }} title={`${p.name}: ${p.v.toFixed(1)}%`} />
+          <span key={p.name} className="rounded-full" style={{ width: `${(p.v / total) * 100}%`, background: `linear-gradient(90deg, color-mix(in srgb, ${p.color} 35%, transparent), ${p.color})` }} title={`${p.name}: ${p.v.toFixed(1)}%`} />
         ))}
       </div>
       <ul className="grid grid-cols-2 gap-x-3 gap-y-1">
@@ -547,19 +547,7 @@ export default function CountryFigures({ code, name }: { code: string; name: str
         <Panel t={t} title="Factory output, year on year" meta={mf?.growth?.length ? `real growth · ${mf.growth[0][0]}–${mf.growth[mf.growth.length - 1][0]}` : undefined}>
           {mf?.growth?.length ? (
             <>
-              <ResponsiveContainer width="100%" height={150}>
-                <BarChart data={mf.growth.map(([y, v]) => ({ y: String(y), v }))} margin={{ top: 4, right: 6, left: 0, bottom: 0 }}>
-                  <CartesianGrid stroke={t.gridLine} vertical={false} />
-                  <XAxis dataKey="y" {...axis} interval="preserveStartEnd" minTickGap={16} />
-                  <YAxis {...axis} width={34} tickFormatter={(v: number) => `${Math.round(v)}%`} />
-                  <Tooltip {...tip} cursor={{ fill: t.gridLine }} formatter={(v: number) => [`${v > 0 ? "+" : ""}${v.toFixed(1)}%`, "real growth"]} />
-                  <Bar dataKey="v" isAnimationActive={false} radius={[2, 2, 2, 2]} maxBarSize={18}>
-                    {mf.growth.map(([y, v]) => (
-                      <Cell key={y} fill={v >= 0 ? INK[1] : INK[4]} />
-                    ))}
-                  </Bar>
-                </BarChart>
-              </ResponsiveContainer>
+              <SlimColumns height={150} label={`Real growth of manufacturing in ${name}, year by year`} rows={mf.growth.map(([y, v]) => ({ key: String(y), label: String(y), v }))} fmt={(v) => `${v > 0 ? "+" : ""}${v.toFixed(1)}`} up={INK[1]} down={INK[4]} />
               <Note t={t}>How much manufacturing's value added grew or shrank each year, after prices: the World Bank's last ten years held.</Note>
               <Foot sources={[ECONOMY_MANUFACTURING_SOURCE]} />
             </>

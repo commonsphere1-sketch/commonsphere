@@ -10,7 +10,8 @@
  * sources beside the chart. The scale runs from nothing to a round number
  * at or above the largest figure, so that bars are measured from zero.
  */
-import type { ReactNode } from "react";
+import { useId, type ReactNode } from "react";
+import { Bar, BarChart, Cell, LabelList, ReferenceLine, ResponsiveContainer, XAxis, YAxis } from "recharts";
 
 export type SlimRow = {
   /** Unique among the rows. */
@@ -84,5 +85,56 @@ export default function SlimBars({
         );
       })}
     </ul>
+  );
+}
+
+/**
+ * The slim bars stood upright, for a figure year by year that can fall as well as rise: each year a slim rounded
+ * column on a faint track, in a gradient of its colour - one colour for a rise, another for a fall - with its figure at
+ * its end and a line at nothing.
+ */
+export function SlimColumns({
+  rows,
+  fmt,
+  up = "#10b981",
+  down = "#ef4444",
+  height = 170,
+  label,
+}: {
+  rows: { key: string; label: string; v: number }[];
+  fmt: (v: number) => string;
+  up?: string;
+  down?: string;
+  height?: number;
+  label?: string;
+}) {
+  const id = useId().replace(/:/g, "");
+  const tick = { fontSize: 9, fontFamily: "monospace", fill: "currentColor", fillOpacity: 0.6 };
+  return (
+    <div className="text-foreground" role="img" aria-label={label ?? rows.map((r) => `${r.label} ${fmt(r.v)}`).join(", ")}>
+      <ResponsiveContainer width="100%" height={height}>
+        <BarChart data={rows} margin={{ top: 16, right: 4, left: 4, bottom: 0 }} barCategoryGap="30%">
+          <defs>
+            <linearGradient id={`${id}-up`} x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0%" stopColor={up} stopOpacity={1} />
+              <stop offset="100%" stopColor={up} stopOpacity={0.35} />
+            </linearGradient>
+            <linearGradient id={`${id}-down`} x1="0" y1="1" x2="0" y2="0">
+              <stop offset="0%" stopColor={down} stopOpacity={1} />
+              <stop offset="100%" stopColor={down} stopOpacity={0.35} />
+            </linearGradient>
+          </defs>
+          <XAxis dataKey="label" tick={tick} axisLine={false} tickLine={false} interval="preserveStartEnd" minTickGap={8} />
+          <YAxis hide domain={[(min: number) => Math.min(0, min), (max: number) => Math.max(0, max)]} />
+          <ReferenceLine y={0} stroke="currentColor" strokeOpacity={0.25} />
+          <Bar dataKey="v" maxBarSize={14} radius={7} background={{ fill: "currentColor", fillOpacity: 0.06, radius: 7 }} isAnimationActive={false}>
+            {rows.map((r) => (
+              <Cell key={r.key} fill={`url(#${id}-${r.v >= 0 ? "up" : "down"})`} />
+            ))}
+            <LabelList dataKey="v" position="top" formatter={(v: number) => fmt(v)} style={{ fontSize: 9, fontFamily: "monospace", fontWeight: 600, fill: "currentColor" }} />
+          </Bar>
+        </BarChart>
+      </ResponsiveContainer>
+    </div>
   );
 }

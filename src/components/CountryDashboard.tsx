@@ -20,7 +20,7 @@
  * the place picked on the map.
  */
 import { useId } from "react";
-import { Area, AreaChart, Bar, BarChart, CartesianGrid, Cell, Pie, PieChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
+import { Area, AreaChart, CartesianGrid, Cell, Pie, PieChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
 import { COUNTRY_INDICATORS, COUNTRY_INDICATORS_SOURCE, COUNTRY_INDICATOR_FALLBACKS, type Measured } from "../data/countryIndicators";
 import { GDP_HISTORY, GDP_HISTORY_SOURCE } from "../data/gdpHistory";
 import { TAX_HISTORY, TAX_HISTORY_SOURCES, TAX_REVENUE_WORLD } from "../data/taxHistory";
@@ -28,6 +28,7 @@ import { BUDGET_DIVISIONS, BUDGET_SOURCE, COUNTRY_BUDGET } from "../data/country
 import { COUNTRY_PANELS, PANEL_SOURCES, type PanelField } from "../data/countryPanels";
 import { useTokens } from "./DataExplorer";
 import { SourceLink } from "./SourceLink";
+import { SlimColumns } from "./SlimBars";
 import CountryFigures, { INK, None, Panel } from "./CountryFigures";
 
 const usd = (b: number) => (b >= 1000 ? `$${(b / 1000).toFixed(2)}T` : b >= 1 ? `$${b.toFixed(b >= 100 ? 0 : 1)}B` : `$${Math.round(b * 1000)}M`);
@@ -130,19 +131,7 @@ export default function CountryDashboard({ code, name, standings }: { code: stri
         <Panel t={t} title="Change on the year before" meta="GDP in current US$, %">
           {change.length ? (
             <>
-              <ResponsiveContainer width="100%" height={170}>
-                <BarChart data={change} margin={{ top: 4, right: 6, left: 0, bottom: 0 }}>
-                  <CartesianGrid stroke={t.gridLine} vertical={false} />
-                  <XAxis dataKey="year" {...axis} />
-                  <YAxis {...axis} width={36} tickFormatter={(v: number) => `${Math.round(v)}%`} />
-                  <Tooltip {...tip} formatter={(v: number) => [`${v > 0 ? "+" : ""}${v.toFixed(1)}%`, "on the year before"]} />
-                  <Bar dataKey="pct" isAnimationActive={false} radius={[2, 2, 0, 0]}>
-                    {change.map((r) => (
-                      <Cell key={r.year} fill={r.pct >= 0 ? INK[1] : INK[4]} />
-                    ))}
-                  </Bar>
-                </BarChart>
-              </ResponsiveContainer>
+              <SlimColumns label={`${name}'s GDP in current dollars, the change on each year before`} rows={change.map((r) => ({ key: String(r.year), label: String(r.year), v: r.pct }))} fmt={(v) => `${v > 0 ? "+" : ""}${v.toFixed(1)}%`} up={INK[1]} down={INK[4]} />
               <p className="text-[10px] font-sans" style={{ color: t.mutedText }}>
                 Worked out here from the World Bank's GDP in current dollars: it moves with prices and the dollar, and is not real growth.
               </p>
@@ -257,8 +246,8 @@ export default function CountryDashboard({ code, name, standings }: { code: stri
         <Panel t={t} title="Who lives there, by age" meta="% of people">
           {ages.some((a) => a.fig) ? (
             <>
-              <div className="flex h-5 rounded-full overflow-hidden" role="img" aria-label={ages.map((a) => `${a.label} ${a.fig ? a.fig.v.toFixed(1) + "%" : "not held"}`).join(", ")}>
-                {ages.map((a) => (a.fig ? <span key={a.f} style={{ width: `${a.fig.v}%`, background: a.color }} /> : null))}
+              <div className="flex h-2.5 gap-[3px]" role="img" aria-label={ages.map((a) => `${a.label} ${a.fig ? a.fig.v.toFixed(1) + "%" : "not held"}`).join(", ")}>
+                {ages.map((a) => (a.fig ? <span key={a.f} className="rounded-full" style={{ width: `${a.fig.v}%`, background: `linear-gradient(90deg, color-mix(in srgb, ${a.color} 35%, transparent), ${a.color})` }} /> : null))}
               </div>
               <ul className="grid grid-cols-3 gap-2">
                 {ages.map((a) => (
