@@ -18,6 +18,12 @@ import { Input } from "@/components/ui/input";
 import { FollowedPlaces } from "@/components/FollowedPlaces";
 import { HeadlinesBanner, ALL_TOPICS, followedFirst, namesPlace, useFollowedTags } from "@/components/HeadlinesBanner";
 import type { EntityType } from "@/lib/watchlist";
+import { useNavigate } from "react-router-dom";
+import { ArrowRight, Plus, Star } from "@phosphor-icons/react";
+import { ChipRow } from "@/components/ChipRow";
+import { useNotes } from "@/contexts/NotesContext";
+import { useFollowedCities } from "@/lib/followedCities";
+import { NOTE_KINDS, SITE_SECTIONS, followedFallback, followedKind, followedLink } from "@/lib/noteKinds";
 
 export function NotesPage() {
   // The banner leads with the places the reader follows.
@@ -32,7 +38,17 @@ export function NotesPage() {
   const [importing, setImporting] = useState(false);
   const [importResult, setImportResult] = useState("");
 
-  const entityTypes = ["All", "Country", "State", "City", "Economy"];
+  // Every kind of thing the site holds that a note can be about: the note popup tags a note with one.
+  const entityTypes = ["All", ...NOTE_KINDS];
+  const navigate = useNavigate();
+  const { openNote } = useNotes();
+  /* The cities and municipalities followed with a star: kept in this browser, each by the name and the path kept with it. */
+  const local = useFollowedCities();
+  const followedLocal = local.ids
+    .map((id) => ({ id, kind: followedKind(id), name: local.about(id)?.name, to: local.about(id)?.to ?? followedLink(id) }))
+    .filter((f) => (filterType === "All" || filterType === f.kind) && (!search || (f.name ?? "").toLowerCase().includes(search.toLowerCase())));
+  /** How many notes are about each page of the site. */
+  const aboutPage = (label: string) => notes.filter((n: Note) => n.entityType === "Page" && n.entityName === label).length;
   const followTypes: EntityType[] =
     filterType === "All" ? ["country", "state"] : filterType === "Country" ? ["country"] : filterType === "State" ? ["state"] : [];
 
@@ -75,7 +91,7 @@ export function NotesPage() {
         <div className="flex items-center gap-3 mb-6">
           <div>
             <h1 className="text-2xl font-bold font-sans text-foreground">My Notes</h1>
-            <p className="text-muted-foreground text-sm font-sans">Notes taken while examining data</p>
+            <p className="text-muted-foreground text-sm font-sans">Notes on anything the site holds: a country, a state, a municipality, a city, an economy, a leader, a policy - or a whole page</p>
           </div>
         </div>
 
@@ -144,19 +160,23 @@ export function NotesPage() {
             <MagnifyingGlass size={16} weight="bold" className="absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground pointer-events-none" />
             <Input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Search notes…" className="pl-10 bg-card border-border text-foreground placeholder:text-muted-foreground h-9 text-sm rounded-full" />
           </div>
-          <div className="flex gap-2 flex-wrap">
-            {entityTypes.map((t) => (
-              <button key={t} onClick={() => setFilterType(t)}
-                className={`px-3 py-1.5 rounded-full text-xs font-sans transition-colors duration-150 ${filterType === t ? "bg-secondary text-secondary-foreground" : "bg-card border border-border text-muted-foreground hover:text-foreground"}`}>
-                {t}
-              </button>
-            ))}
+          <div className="min-w-0 sm:flex-1">
+            <ChipRow>
+              {entityTypes.map((t) => (
+                <button key={t} onClick={() => setFilterType(t)} aria-pressed={filterType === t}
+                  className={`px-3 py-1.5 rounded-full text-xs font-sans transition-colors duration-150 shrink-0 ${filterType === t ? "bg-secondary text-secondary-foreground" : "bg-card border border-border text-muted-foreground hover:text-foreground"}`}>
+                  {t}
+                  {t !== "All" && notes.some((n: Note) => n.entityType === t) ? ` · ${notes.filter((n: Note) => n.entityType === t).length}` : ""}
+                </button>
+              ))}
+            </ChipRow>
           </div>
         </div>
 
         {/* The countries and states you follow, kept here beside your notes.
             The type buttons and the search narrow these too; a city or an
-            economy cannot be followed, so those filters hide this. */}
+            economy cannot be followed, so those filters hide this. The cities
+            and municipalities followed with a star are listed under it. */}
         {followTypes.length > 0 && (
           <FollowedPlaces
             types={followTypes}
@@ -177,6 +197,69 @@ export function NotesPage() {
           />
         )}
 
+        {/* The cities and municipalities followed with a star: kept in this browser. */}
+        {followedLocal.length > 0 && (
+          <section className="mb-6" aria-label="Cities and municipalities you follow">
+            <div className="flex items-center gap-2 mb-2">
+              <h2 className="text-[10px] font-bold font-sans text-muted-foreground uppercase tracking-widest">Cities and municipalities you follow · {followedLocal.length}</h2>
+              <div className="flex-1 h-px bg-border/60" />
+            </div>
+            <div className="flex flex-wrap gap-2">
+              {followedLocal.map((f) => (
+                <span key={f.id} className="inline-flex items-center gap-1.5 pl-2.5 pr-1 py-1 rounded-full border border-border bg-card text-xs font-sans text-foreground">
+                  <Star size={11} weight="fill" className="text-amber-500 shrink-0" aria-hidden />
+                  {f.to ? (
+                    <button type="button" onClick={() => navigate(f.to!)} className="hover:text-secondary transition-colors cursor-pointer" title="Open its window">
+                      {f.name ?? followedFallback(f.id)}
+                    </button>
+                  ) : (
+                    <span>{f.name ?? followedFallback(f.id)}</span>
+                  )}
+                  <span className="text-[10px] font-mono text-muted-foreground">{f.kind}</span>
+                  {f.name && (
+                    <button type="button" onClick={() => openNote({ entityName: f.name, entityType: f.kind })} className="p-1 rounded-full text-muted-foreground hover:text-foreground hover:bg-muted/60 transition-colors cursor-pointer" aria-label={`Write a note about ${f.name}`} title="Write a note about it">
+                      <Plus size={10} weight="bold" />
+                    </button>
+                  )}
+                  <button type="button" onClick={() => local.toggle(f.id)} className="p-1 rounded-full text-muted-foreground hover:text-foreground hover:bg-muted/60 transition-colors cursor-pointer" aria-label={`Stop following ${f.name ?? "it"}`} title="Stop following">
+                    <Trash size={10} weight="bold" />
+                  </button>
+                </span>
+              ))}
+            </div>
+            <p className="text-[10px] font-sans text-muted-foreground leading-snug mt-1.5">Kept in this browser. One with no name was followed before names were kept: open it and press its star twice to name it.</p>
+          </section>
+        )}
+
+        {/* Every page of the site: a note can be about the whole of one, and each says how many are. */}
+        {(filterType === "All" || filterType === "Page") && !search && (
+          <section className="mb-6" aria-label="A note on any page of the site">
+            <div className="flex items-center gap-2 mb-2">
+              <h2 className="text-[10px] font-bold font-sans text-muted-foreground uppercase tracking-widest">A note on any page of the site</h2>
+              <div className="flex-1 h-px bg-border/60" />
+            </div>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-2">
+              {SITE_SECTIONS.map((s) => {
+                const n = aboutPage(s.label);
+                return (
+                  <div key={s.to} className="flex items-center gap-2 rounded-xl border border-border bg-card px-3 py-2 min-w-0">
+                    <button type="button" onClick={() => navigate(s.to)} className="flex-1 min-w-0 text-left cursor-pointer group" title={`Open ${s.label}`}>
+                      <span className="flex items-center gap-1 text-xs font-semibold font-sans text-foreground group-hover:text-secondary transition-colors">
+                        <span className="truncate">{s.label}</span>
+                        <ArrowRight size={10} weight="bold" className="shrink-0 text-muted-foreground" aria-hidden />
+                      </span>
+                      <span className="block text-[10px] font-sans text-muted-foreground truncate">{n ? `${n} ${n === 1 ? "note" : "notes"} · ` : ""}{s.holds}</span>
+                    </button>
+                    <button type="button" onClick={() => openNote({ entityName: s.label, entityType: "Page" })} className="p-1.5 rounded-full border border-border text-muted-foreground hover:text-foreground hover:bg-muted/60 transition-colors cursor-pointer shrink-0" aria-label={`Write a note about ${s.label}`} title="Write a note about this page">
+                      <Plus size={11} weight="bold" />
+                    </button>
+                  </div>
+                );
+              })}
+            </div>
+          </section>
+        )}
+
         {isPending && (
           <div className="flex items-center justify-center py-20 text-muted-foreground gap-2">
             <Spinner size={22} className="animate-spin" />
@@ -195,7 +278,7 @@ export function NotesPage() {
             {filtered.length === 0 ? (
               <div className="text-center py-20 text-muted-foreground font-sans">
                 <NotePencil size={48} weight="thin" className="mx-auto mb-3 text-muted-foreground" />
-                <p className="text-sm">No notes yet. Use the popup button to write your first note.</p>
+                <p className="text-sm">{notes.length === 0 ? "No notes yet. Use the popup button in the corner of any page, or a + above, to write your first." : "No note matches."}</p>
               </div>
             ) : (
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 items-start">

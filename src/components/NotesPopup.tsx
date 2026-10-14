@@ -10,6 +10,8 @@ import {
 } from "../lib/security";
 import { countriesData } from "../data/countriesData";
 import { usStatesData } from "../data/statesData";
+import { followedNow } from "../lib/followedCities";
+import { NOTE_KINDS, followedKind, sectionOf, type NoteKind } from "../lib/noteKinds";
 import {
   NotePencil,
   X,
@@ -66,8 +68,22 @@ export function NotesPopup() {
       push(countriesData.find((c) => c.id === id)?.name, "Country", false);
     for (const id of read("cs_pinned_states"))
       push(usStatesData.find((s) => s.id === id)?.name, "State", false);
-    return out.slice(0, 8);
+    // The cities and municipalities followed with a star, by the names kept with them.
+    for (const f of followedNow()) if (f.about) push(f.about.name, followedKind(f.id), false);
+    return out.slice(0, 10);
   }, [open]);
+  /** The page the popup was opened on: a note can be about the whole of it. */
+  const here = useMemo(() => (open ? sectionOf(window.location.pathname) : null), [open]);
+  /** What a note is about, named by hand, with its kind: for an economy, a leader, a policy - anything the chips do not offer. */
+  const [aboutName, setAboutName] = useState("");
+  const [aboutKind, setAboutKind] = useState<NoteKind>("Country");
+  const setAbout = () => {
+    const name = sanitizeText(aboutName).slice(0, 120);
+    if (!name) return;
+    setEntityName(name);
+    setEntityType(aboutKind);
+    setAboutName("");
+  };
   const [linkInput, setLinkInput] = useState("");
   const [links, setLinks] = useState<string[]>([]);
   const [saving, setSaving] = useState(false);
@@ -318,6 +334,47 @@ export function NotesPopup() {
               be attached to one without typing it. Opened from a country
               page the entity is already set, but the popup is also opened
               from the corner of any page, where it is not. */}
+          {/* What the note is about, where no chip offers it: the page it is taken on, or anything named with its kind. */}
+          {!entityName && (
+            <div className="flex flex-wrap items-center gap-1">
+              {here && (
+                <button
+                  onClick={() => {
+                    setEntityName(here.label);
+                    setEntityType("Page");
+                  }}
+                  className="px-2 py-0.5 rounded-full border border-border/60 text-[10px] font-sans text-muted-foreground hover:text-foreground hover:border-secondary/40 transition-colors"
+                >
+                  About this page · {here.label}
+                </button>
+              )}
+              <span className="flex items-center gap-1 flex-1 min-w-[10rem]">
+                <select
+                  value={aboutKind}
+                  onChange={(e) => setAboutKind(e.target.value as NoteKind)}
+                  aria-label="What kind of thing the note is about"
+                  className="bg-transparent border border-border/60 rounded px-1 py-0.5 text-[10px] font-sans text-muted-foreground focus:outline-none cursor-pointer"
+                >
+                  {NOTE_KINDS.map((k) => (
+                    <option key={k} value={k}>
+                      {k}
+                    </option>
+                  ))}
+                </select>
+                <input
+                  type="text"
+                  value={aboutName}
+                  onChange={(e) => setAboutName(e.target.value)}
+                  onKeyDown={(e) => e.key === "Enter" && (e.preventDefault(), setAbout())}
+                  onBlur={setAbout}
+                  placeholder="…or name what it is about"
+                  aria-label="What the note is about"
+                  maxLength={120}
+                  className="flex-1 min-w-0 bg-transparent border border-border/60 rounded px-1.5 py-0.5 text-[10px] font-sans text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-secondary/50"
+                />
+              </span>
+            </div>
+          )}
           {!entityName && savedPlaces.length > 0 && (
             <div>
               <p className="text-[10px] font-sans text-muted-foreground mb-1">

@@ -267,7 +267,7 @@ export function DivisionPlaces({
       {/* A card for each place: its name and what it is, its county, its people, and its head where one is confirmed. Each opens a window of its own. */}
       <div className="grid gap-3 [grid-template-columns:repeat(auto-fill,minmax(min(100%,15rem),1fr))]">
         {rows.slice(0, shown).map((p) => (
-          <PlaceCard key={p[6]} p={p} file={file!} flag={cardFlag(s)} saved={savedFlag(s)} district={file!.districts[p[7]]} onOpen={() => setOpen(p)} />
+          <PlaceCard key={p[6]} p={p} file={file!} flag={cardFlag(s)} saved={savedFlag(s)} district={file!.districts[p[7]]} cc={s.cc} onOpen={() => setOpen(p)} />
         ))}
       </div>
       {rows.length === 0 && <p className="text-[11px] font-sans text-muted-foreground py-2">None by that name.</p>}
@@ -336,7 +336,7 @@ const cardFlag = (s: Subnation) =>
 /** The small copy of that flag saved with the site, where there is one: what the card falls back to if the larger image does not come. */
 const savedFlag = (s: Subnation) => (s.flag && SUBNATION_FLAG_FILE[s.id] ? `/flags/divisions/${SUBNATION_FLAG_FILE[s.id]}` : undefined);
 
-function PlaceCard({ p, file, flag, saved, district, onOpen }: { p: PlaceRow; file: PlacesFile; /** The flag behind the card: its division's, or its country's. */ flag?: string; /** The copy of it saved with the site, drawn if the larger image does not come. */ saved?: string; /** The county or district GeoNames files it under. */ district?: string; onOpen: () => void }) {
+function PlaceCard({ p, file, flag, saved, district, cc, onOpen }: { p: PlaceRow; file: PlacesFile; /** Its country's code: where its window opens is kept with it when it is followed. */ cc?: string; /** The flag behind the card: its division's, or its country's. */ flag?: string; /** The copy of it saved with the site, drawn if the larger image does not come. */ saved?: string; /** The county or district GeoNames files it under. */ district?: string; onOpen: () => void }) {
   const facts: [string, string | undefined][] = [
     ["People", p[3] > 0 ? whole(p[3]) : undefined],
     ["County or district", district || undefined],
@@ -353,7 +353,7 @@ function PlaceCard({ p, file, flag, saved, district, onOpen }: { p: PlaceRow; fi
           </span>
         </span>
         {/* Follow, as on a country's card. */}
-        <FollowStar id={placeFollowId(p[6])} name={p[0]} />
+        <FollowStar id={placeFollowId(p[6])} name={p[0]} to={cc ? `/dashboard/subnations?open=place:${cc}:${p[6]}` : undefined} />
       </span>
       <span className="flex flex-col border-t border-border/40 pt-1.5">
         {facts
@@ -477,7 +477,7 @@ export function PlacesInside({
       )}
       <div className="grid gap-3 [grid-template-columns:repeat(auto-fill,minmax(min(100%,15rem),1fr))]">
         {found.slice(0, shown).map((p) => (
-          <PlaceCard key={p[6]} p={p} file={file} flag={cardFlag(division(p))} saved={savedFlag(division(p))} district={file.districts[p[7]]} onOpen={() => setOpen(p)} />
+          <PlaceCard key={p[6]} p={p} file={file} flag={cardFlag(division(p))} saved={savedFlag(division(p))} district={file.districts[p[7]]} cc={division(p).cc} onOpen={() => setOpen(p)} />
         ))}
       </div>
       {found.length === 0 && rows.length > 0 && <p className="text-[11px] font-sans text-muted-foreground py-2">None by that name.</p>}
@@ -802,7 +802,7 @@ function PlaceWindow({
           {/* Its name, where it is and the window's buttons: one bar above the flag, in sight as the window is scrolled - the same in every place's window. */}
           <WindowTitle title={name} where={[district, s.name, country].filter(Boolean).join(" · ")}>
             {/* Follow, as in a country's and a state's window. */}
-            <FollowStar where="window" id={placeFollowId(id)} name={name} />
+            <FollowStar where="window" id={placeFollowId(id)} name={name} to={`/dashboard/subnations?open=place:${s.cc}:${id}`} />
             {/* The buttons a country's window has at its head: the place on the map, and the window opened to the whole screen. */}
             <button onClick={() => navigate(`/dashboard/maps?country=${s.cc}`)} className="p-2 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted/60 transition-colors cursor-pointer" aria-label={`Show ${country} on the map`} title="Show on map">
               <MapTrifold size={18} />

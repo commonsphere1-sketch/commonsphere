@@ -453,7 +453,7 @@ function CityModal({ city, onClose }: { city: City; onClose: () => void }) {
           <WindowTitle title={city.name} where={city.country}>
             {/* Follow, as in a country's and a state's window: the city is kept at the top of the page. */}
             <button
-              onClick={() => follow.toggle(city.id)}
+              onClick={() => follow.toggle(city.id, { name: city.name })}
               className="p-2 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted/60 transition-colors cursor-pointer"
               aria-pressed={followed}
               aria-label={followed ? `Unfollow ${city.name}` : `Follow ${city.name}`}
