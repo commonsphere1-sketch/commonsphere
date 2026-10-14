@@ -10,6 +10,10 @@
  * age five and migrants' share of people, UN Tourism's arrivals, and the World
  * Bank's PM2.5 exposure. The fifths are worked out here from those figures.
  * A country with no figure is left grey and counted.
+ *
+ * A country pressed on the map, or in the lists beside it, fills the panels
+ * under the map with its own figures (CountryDashboard), as asked; the page
+ * opens on the United States.
  */
 import { useMemo, useState } from "react";
 import { geoEqualEarth, geoGraticule10, geoPath } from "d3-geo";
@@ -21,6 +25,7 @@ import { AIR_QUALITY, AIR_QUALITY_SOURCE } from "../data/airQuality";
 import { countryForFeature } from "../data/mapJoin";
 import { useTokens } from "./DataExplorer";
 import { SourceLink } from "./SourceLink";
+import CountryDashboard from "./CountryDashboard";
 
 type Reading = { v: number; y: string };
 type Measure = {
@@ -125,6 +130,8 @@ export default function WorldviewMap() {
   const t = useTokens();
   const [id, setId] = useState(MEASURES[0].id);
   const [hover, setHover] = useState<string | null>(null);
+  /** The country whose figures fill the panels under the map. */
+  const [picked, setPicked] = useState("US");
   const m = MEASURES.find((x) => x.id === id)!;
   const { shaded, cuts, ranked, held } = useMemo(() => {
     const read = new Map<string, Reading>();
@@ -153,7 +160,14 @@ export default function WorldviewMap() {
       </p>
       <ul className="flex flex-col gap-1.5">
         {rows.map((r) => (
-          <li key={r.code} className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-x-2" onMouseEnter={() => setHover(r.code)} onMouseLeave={() => setHover(null)}>
+          <li
+            key={r.code}
+            className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-x-2 cursor-pointer rounded px-1 -mx-1"
+            style={{ background: r.code === picked ? t.tile : undefined }}
+            onMouseEnter={() => setHover(r.code)}
+            onMouseLeave={() => setHover(null)}
+            onClick={() => setPicked(r.code)}
+          >
             <span className="text-[11px] font-sans truncate" style={{ color: t.headText }}>
               {r.name}
             </span>
@@ -168,7 +182,9 @@ export default function WorldviewMap() {
       </ul>
     </div>
   );
+  const pickedName = SHAPES.find((s) => s.code === picked)?.name ?? picked;
   return (
+    <>
     <section className="rounded-2xl overflow-hidden" style={{ background: t.cardBg, border: t.cardBorder, boxShadow: t.cardShadow }} aria-label="The world, country by country">
       <div className="flex flex-wrap items-center gap-x-4 gap-y-2 px-4 py-3 border-b" style={{ borderColor: t.gridLine }}>
         <p className="text-[10px] font-mono uppercase tracking-widest" style={{ color: t.mutedText }}>
@@ -195,11 +211,13 @@ export default function WorldviewMap() {
             <path d={GRID} fill="none" stroke={t.isLight ? "rgba(0,0,0,0.07)" : "rgba(255,255,255,0.07)"} strokeWidth={0.6} />
             {SHAPES.map((s, i) => {
               const r = s.code ? shaded.get(s.code) : undefined;
-              const on = hover !== null && hover === s.code;
+              const on = (hover !== null && hover === s.code) || s.code === picked;
               return (
                 <path
                   key={`${s.name}-${i}`}
                   d={s.d}
+                  className={s.code ? "cursor-pointer" : undefined}
+                  onClick={() => s.code && setPicked(s.code)}
                   fill={r ? m.color : t.isLight ? "#e5e7eb" : "#2a2a33"}
                   fillOpacity={r ? STEPS[r.step] : 1}
                   stroke={on ? t.headText : t.isLight ? "#ffffff" : "#0b0b0d"}
@@ -220,7 +238,7 @@ export default function WorldviewMap() {
                 <span className="font-mono">{shownReading ? `${m.fmt(shownReading.v)} · ${shownReading.y}` : "no figure held"}</span>
               </>
             ) : (
-              <span style={{ color: t.mutedText }}>Point at a country</span>
+              <span style={{ color: t.mutedText }}>Point at a country · press it to fill the panels below</span>
             )}
           </div>
         </div>
@@ -260,5 +278,8 @@ export default function WorldviewMap() {
         <SourceLink sources={[m.source, { label: "Natural Earth, via world-atlas — country outlines (public domain)", url: "https://github.com/topojson/world-atlas" }]} />
       </div>
     </section>
+    {/* The country picked: its own figures, filled in under the map. */}
+    <CountryDashboard code={picked} name={pickedName} measure={m} ranked={ranked} />
+    </>
   );
 }
