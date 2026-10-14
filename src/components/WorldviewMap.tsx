@@ -11,6 +11,13 @@
  * Bank's PM2.5 exposure. The fifths are worked out here from those figures.
  * A country with no figure is left grey and counted.
  *
+ * It is drawn as the World Maps page draws its maps: each country in its
+ * flag's colour, translucent inside a bright edge of the same colour, and the
+ * more solid the higher the fifth its figure falls in; with its states' and
+ * provinces' borders, its counties' and districts' once the map is drawn
+ * closer, and the cities - every one of 100,000 or more, GeoNames' - as
+ * named points closer still.
+ *
  * It zooms as the Dashboard's map does: the wheel or a pinch draws it closer
  * about the pointer (a turn that would change nothing scrolls the page), a
  * drag moves it, the buttons step it in and out and back to the whole, and
@@ -25,7 +32,8 @@
  * opens on the United States.
  */
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { ArrowCounterClockwise, Minus, Plus } from "@phosphor-icons/react";
+import { ArrowCounterClockwise, MagnifyingGlassMinus, MagnifyingGlassPlus } from "@phosphor-icons/react";
+import { flagColor } from "../lib/flagColor";
 import { geoEqualEarth, geoGraticule10, geoPath } from "d3-geo";
 import { feature } from "topojson-client";
 import type { Topology } from "topojson-specification";
@@ -135,8 +143,15 @@ const SHAPES = WORLD.features.flatMap((f) => {
 const DRAWN = new Set(SHAPES.flatMap((s) => (s.code ? [s.code] : []))).size;
 /** As close as the map is drawn: twelve times the whole. */
 const MAX_K = 12;
-/** How strongly each fifth is shaded, the lowest figures first. */
-const STEPS = [0.18, 0.34, 0.52, 0.72, 0.95];
+/** How solid each fifth is drawn, the lowest figures first: the World Maps page's neon steps. */
+const STEPS = [0.14, 0.27, 0.42, 0.6, 0.82];
+/** A country's ink: its flag's colour, or the page's accent where none is held. */
+const inkOf = (code: string | null) => (code && flagColor(code)) || "#22d3ee";
+/** Drawn this close, the counties' and districts' borders show; this close, the cities. */
+const COUNTIES_FROM = 2.5;
+const CITIES_FROM = 4;
+/** The outline map's round buttons, for its zoom. */
+const TOOL = "w-7 h-7 rounded-full border border-border bg-background/70 text-muted-foreground hover:text-foreground flex items-center justify-center cursor-pointer transition-colors disabled:opacity-40 disabled:cursor-default";
 
 export default function WorldviewMap() {
   const t = useTokens();
@@ -175,6 +190,42 @@ export default function WorldviewMap() {
   }, []);
   useEffect(() => () => void (gliding.current !== null && cancelAnimationFrame(gliding.current)), []);
   const svgRef = useRef<SVGSVGElement | null>(null);
+  /* The borders inside the countries - states and provinces, then counties and districts - and the cities: the World Maps
+     page's own files, fetched after the map is drawn. A file that does not come leaves the map without that layer. */
+  const [inner, setInner] = useState<{ one: { c: string; d: string }[]; two: { c: string; d: string }[] }>({ one: [], two: [] });
+  const [cities, setCities] = useState<{ name: string; country: string; people: number; x: number; y: number }[]>([]);
+  useEffect(() => {
+    let off = false;
+    const lines = (url: string) =>
+      fetch(url)
+        .then((r) => (r.ok ? r.json() : Promise.reject()))
+        .then((topo: Topology) =>
+          (feature(topo, topo.objects.b as never) as unknown as { features: { properties: { c: string; o?: number } }[] }).features.flatMap((f) => {
+            const d = PATH(f as never);
+            return d ? [{ c: f.properties.c, o: f.properties.o ?? 1, d }] : [];
+          }),
+        )
+        .catch(() => [] as { c: string; o: number; d: string }[]);
+    Promise.all([lines("/geo/admin1-borders.json"), lines("/geo/admin2-borders.json")]).then(([a, b]) => {
+      // The counties' file carries its states' borders too (o 1): the Natural Earth ones stand for every country it does not.
+      if (!off) setInner({ one: a, two: b.filter((l) => l.o === 2) });
+    });
+    fetch("/geo/cities.json")
+      .then((r) => (r.ok ? r.json() : Promise.reject()))
+      .then((j: { rows: [string, string, number, number, number][] }) => {
+        if (off) return;
+        setCities(
+          j.rows.flatMap(([name, country, people, lon, lat]) => {
+            const p = PROJECTION([lon, lat]);
+            return p ? [{ name, country, people, x: p[0], y: p[1] }] : [];
+          }),
+        );
+      })
+      .catch(() => {});
+    return () => {
+      off = true;
+    };
+  }, []);
   /* The wheel and a pinch draw it closer or further about the pointer; a turn that would change nothing scrolls the page. */
   useEffect(() => {
     const svg = svgRef.current;
@@ -300,10 +351,11 @@ export default function WorldviewMap() {
                     if (dragged.current) return;
                     if (s.code) pick(s.code);
                   }}
-                  fill={r ? m.color : t.isLight ? "#e5e7eb" : "#2a2a33"}
-                  fillOpacity={r ? STEPS[r.step] : 1}
-                  stroke={on ? t.headText : t.isLight ? "#ffffff" : "#0b0b0d"}
-                  strokeWidth={on ? 1.2 : 0.4}
+                  // Translucent inside a bright edge of its own colour, more solid the higher its fifth, and lit when pointed at: as the World Maps page draws.
+                  fill={r ? inkOf(s.code) : t.isLight ? "#e5e7eb" : "#1a1a20"}
+                  fillOpacity={r ? (on ? Math.min(0.92, STEPS[r.step] + 0.2) : STEPS[r.step]) : 1}
+                  stroke={on ? t.headText : r ? inkOf(s.code) : t.isLight ? "#cbd5e1" : "#3a3a44"}
+                  strokeWidth={on ? 1.6 : 0.7}
                   onMouseEnter={() => s.code && setHover(s.code)}
                   onMouseLeave={() => setHover(null)}
                 >
@@ -311,28 +363,48 @@ export default function WorldviewMap() {
                 </path>
               );
             })}
+            {/* The borders inside each country, in its own colour and dimmer than its edge, kept inside the land as drawn here. */}
+            <defs>
+              <clipPath id="worldview-land">
+                {SHAPES.map((s, i) => (
+                  <path key={i} d={s.d} />
+                ))}
+              </clipPath>
+            </defs>
+            <g clipPath="url(#worldview-land)" fill="none" strokeLinejoin="round" pointerEvents="none">
+              {view.k >= COUNTIES_FROM &&
+                inner.two.map((l, i) => <path key={`b2-${i}`} d={l.d} stroke={inkOf(l.c)} strokeOpacity={Math.min(0.75, 0.3 + 0.05 * view.k)} strokeWidth={0.35} vectorEffect="non-scaling-stroke" />)}
+              {inner.one.map((l, i) => (
+                <path key={`b1-${i}`} d={l.d} stroke={inkOf(l.c)} strokeOpacity={0.6} strokeWidth={0.5} vectorEffect="non-scaling-stroke" />
+              ))}
+            </g>
+            {/* The cities, as points named on pointing at them, once the map is drawn close enough to tell them apart. */}
+            {view.k >= CITIES_FROM &&
+              cities.map((c) => {
+                // Only those in view, so that a close map draws few.
+                const hw = W / (2 * view.k);
+                const hh = H / (2 * view.k);
+                if (Math.abs(c.x - view.x) > hw || Math.abs(c.y - view.y) > hh) return null;
+                return (
+                  <circle key={`${c.name}-${c.country}-${c.x}`} cx={c.x} cy={c.y} r={(c.people >= 1e6 ? 2.6 : 1.6) / view.k} fill={t.headText} fillOpacity={0.85} stroke={t.cardBg} strokeWidth={0.6} vectorEffect="non-scaling-stroke">
+                    <title>{`${c.name}, ${c.country}: ${c.people.toLocaleString("en-US")} people (GeoNames)`}</title>
+                  </circle>
+                );
+              })}
           </svg>
-          {/* Closer, further, and the whole map again - as the Dashboard's map has them. */}
-          <div className="absolute right-4 top-4 flex flex-col gap-1">
-            {(
-              [
-                ["Zoom in", <Plus key="p" size={13} weight="bold" />, () => glideTo({ ...viewRef.current, k: viewRef.current.k * 1.6 })],
-                ["Zoom out", <Minus key="m" size={13} weight="bold" />, () => glideTo({ ...viewRef.current, k: viewRef.current.k / 1.6 })],
-                ["The whole map", <ArrowCounterClockwise key="h" size={13} weight="bold" />, () => glideTo({ k: 1, x: W / 2, y: H / 2 })],
-              ] as const
-            ).map(([label, icon, act]) => (
-              <button
-                key={label}
-                type="button"
-                onClick={act}
-                aria-label={label}
-                title={label}
-                className="w-8 h-8 rounded-lg flex items-center justify-center cursor-pointer transition-opacity hover:opacity-80"
-                style={{ background: t.tooltipBg, border: t.cardBorder, color: t.headText }}
-              >
-                {icon}
+          {/* Closer and further, and the whole map again: the outline map's round buttons, at the map's corner. */}
+          <div className="absolute top-5 right-5 flex items-center gap-1">
+            <button type="button" onClick={() => glideTo({ ...viewRef.current, k: viewRef.current.k / 1.6 })} disabled={view.k <= 1} aria-label="Draw the map further out" title="Further out" className={TOOL}>
+              <MagnifyingGlassMinus size={13} aria-hidden />
+            </button>
+            <button type="button" onClick={() => glideTo({ ...viewRef.current, k: viewRef.current.k * 1.6 })} disabled={view.k >= MAX_K} aria-label="Draw the map closer" title="Closer" className={TOOL}>
+              <MagnifyingGlassPlus size={13} aria-hidden />
+            </button>
+            {view.k > 1 && (
+              <button type="button" onClick={() => glideTo({ k: 1, x: W / 2, y: H / 2 })} aria-label="The whole map again" title="The whole map" className={TOOL}>
+                <ArrowCounterClockwise size={13} aria-hidden />
               </button>
-            ))}
+            )}
           </div>
           {/* What the pointer is on, in the map's corner. */}
           <div className="absolute left-4 bottom-4 rounded-lg px-3 py-2 text-[11px] font-sans" style={{ background: t.tooltipBg, border: t.cardBorder, color: t.headText }}>
@@ -390,23 +462,23 @@ export default function WorldviewMap() {
         <div className="flex items-center gap-1" aria-label="The fifths the map is shaded by">
           {STEPS.map((o, i) => (
             <span key={o} className="flex flex-col items-center gap-0.5">
-              <span className="w-10 h-2 rounded-sm" style={{ background: m.color, opacity: o }} />
+              <span className="w-10 h-2 rounded-sm" style={{ background: t.headText, opacity: o }} />
               <span className="text-[9px] font-mono" style={{ color: t.mutedText }}>
                 {i === 0 ? `< ${m.fmt(cuts[0])}` : i === 4 ? `≥ ${m.fmt(cuts[3])}` : `${m.fmt(cuts[i - 1])}+`}
               </span>
             </span>
           ))}
           <span className="flex flex-col items-center gap-0.5 ml-2">
-            <span className="w-10 h-2 rounded-sm" style={{ background: t.isLight ? "#e5e7eb" : "#2a2a33" }} />
+            <span className="w-10 h-2 rounded-sm" style={{ background: t.isLight ? "#e5e7eb" : "#1a1a20", border: `1px solid ${t.isLight ? "#cbd5e1" : "#3a3a44"}` }} />
             <span className="text-[9px] font-mono" style={{ color: t.mutedText }}>
               none held
             </span>
           </span>
         </div>
         <p className="text-[10px] font-sans flex-1 min-w-[12rem]" style={{ color: t.mutedText }}>
-          Each country's latest figure, with its year on pointing at it; the shading is which fifth of the {held} countries with a figure - of the {DRAWN} the map draws - it falls in, worked out here. The smallest islands are too small to draw at this scale.
+          Each country in its flag's colour, more solid the higher the fifth its figure falls in; its latest figure, with its year, on pointing at it. The fifth is which fifth of the {held} countries with a figure - of the {DRAWN} the map draws - it falls in, worked out here. The smallest islands are too small to draw at this scale.
         </p>
-        <SourceLink sources={[m.source, { label: "Natural Earth, via world-atlas — country outlines (public domain)", url: "https://github.com/topojson/world-atlas" }]} />
+        <SourceLink sources={[m.source, { label: "Natural Earth, via world-atlas — country outlines (public domain)", url: "https://github.com/topojson/world-atlas" }, { label: "geoBoundaries (gbOpen, each country's under its publisher's open licence) and Natural Earth (public domain) — state, province, county and district borders", url: "https://www.geoboundaries.org/" }, { label: "GeoNames — cities of 100,000 or more (CC BY 4.0)", url: "https://www.geonames.org/" }]} />
       </div>
     </section>
     {/* The country picked: its own figures, filled in under the map. */}
