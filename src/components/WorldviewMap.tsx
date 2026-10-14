@@ -406,15 +406,15 @@ export default function WorldviewMap() {
               </button>
             )}
           </div>
-          {/* What the pointer is on, in the map's corner. */}
-          <div className="absolute left-4 bottom-4 rounded-lg px-3 py-2 text-[11px] font-sans" style={{ background: t.tooltipBg, border: t.cardBorder, color: t.headText }}>
+          {/* What the pointer is on, in the map's corner: a pill of the same make as the zoom buttons, as asked. */}
+          <div className="absolute left-5 bottom-5 max-w-[calc(100%-2.5rem)] h-7 px-3 rounded-full border border-border bg-background/70 flex items-center gap-1.5 text-[10px] font-mono text-muted-foreground truncate">
             {shown ? (
               <>
-                <span className="font-semibold">{shown.name}</span>{" "}
-                <span className="font-mono">{shownReading ? `${m.fmt(shownReading.v)} · ${shownReading.y}` : "no figure held"}</span>
+                <span className="font-sans font-semibold text-foreground truncate">{shown.name}</span>
+                <span>{shownReading ? `${m.fmt(shownReading.v)} · ${shownReading.y}` : "no figure held"}</span>
               </>
             ) : (
-              <span style={{ color: t.mutedText }}>Scroll to zoom, drag to move · press a country for its figures</span>
+              <span className="truncate">Scroll to zoom, drag to move · press a country for its figures</span>
             )}
           </div>
         </div>
