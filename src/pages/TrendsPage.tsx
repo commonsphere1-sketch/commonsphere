@@ -18,13 +18,13 @@
  * the UN's low and high variants - with no likelihood put on either.
  */
 import { PageHeader } from "../components/PageHeader";
-import { useMemo, useRef, useState, type ReactNode } from "react";
+import { useEffect, useMemo, useState, type ReactNode } from "react";
 import { Area, AreaChart, Bar, BarChart, CartesianGrid, Line, LineChart, ReferenceArea, ReferenceLine, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
 import { ChartLineUp, Cpu, Factory, Globe, Leaf, Lightning, Target, TrendUp, Users } from "@phosphor-icons/react";
 import { useTheme } from "../contexts/ThemeContext";
 import { SourceLink } from "../components/SourceLink";
-import { ALL_TOPICS, HeadlinesBanner, SUBJECT, pickWhere } from "../components/HeadlinesBanner";
-import { ALLIANCES, ALLIANCES_CHECKED, HUMAN_RIGHTS_CHECKED } from "../data/alliances";
+import { ALL_TOPICS, HeadlinesBanner, SUBJECT, pickWhere, useHeadlineRead } from "../components/HeadlinesBanner";
+import AgendaCards, { AGENDAS } from "../components/AgendaCards";
 import { SectionNav, type NavSection } from "../components/SectionNav";
 import { StyledSelect } from "../components/StyledSelect";
 import { StatExplorer, type StatGroup } from "../components/StatExplorer";
@@ -180,7 +180,7 @@ function decadeBefore(s: Point[]): Point | null {
 function Card({ children, className = "" }: { children: ReactNode; className?: string }) {
   const { card } = useLook();
   return (
-    <div className={`rounded-2xl p-6 sm:p-8 min-w-0 ${className}`} style={card}>
+    <div className={`rounded-2xl p-5 min-w-0 ${className}`} style={card}>
       {children}
     </div>
   );
@@ -189,11 +189,11 @@ function Card({ children, className = "" }: { children: ReactNode; className?: s
 function CardHead({ title, kicker }: { title: string; kicker: string }) {
   const { head, muted } = useLook();
   return (
-    <div className="mb-7">
-      <h3 className="text-base font-bold font-sans leading-snug" style={{ color: head }}>
+    <div className="mb-4">
+      <h3 className="text-sm font-bold font-sans" style={{ color: head }}>
         {title}
       </h3>
-      <p className="text-[10px] font-mono uppercase tracking-widest leading-relaxed mt-2" style={{ color: muted }}>
+      <p className="text-[10px] font-mono uppercase tracking-widest mt-1" style={{ color: muted }}>
         {kicker}
       </p>
     </div>
@@ -203,15 +203,15 @@ function CardHead({ title, kicker }: { title: string; kicker: string }) {
 function SectionHead({ icon, color, title, kicker }: { icon: ReactNode; color: string; title: string; kicker: string }) {
   const { head, muted } = useLook();
   return (
-    <div className="flex items-start gap-4">
-      <span className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0" style={{ background: `${color}18`, color, border: `1px solid ${color}30` }}>
+    <div className="flex items-center gap-3">
+      <span className="w-9 h-9 rounded-xl flex items-center justify-center shrink-0" style={{ background: `${color}18`, color, border: `1px solid ${color}30` }}>
         {icon}
       </span>
       <div>
-        <h2 className="text-xl sm:text-2xl font-bold font-sans leading-tight" style={{ color: head }}>
+        <h2 className="text-lg font-bold font-sans leading-tight" style={{ color: head }}>
           {title}
         </h2>
-        <p className="text-xs font-sans leading-relaxed mt-1.5 max-w-2xl" style={{ color: muted }}>
+        <p className="text-xs font-sans" style={{ color: muted }}>
           {kicker}
         </p>
       </div>
@@ -222,7 +222,7 @@ function SectionHead({ icon, color, title, kicker }: { icon: ReactNode; color: s
 function Note({ children }: { children: ReactNode }) {
   const { muted } = useLook();
   return (
-    <p className="text-[10px] font-sans leading-relaxed mt-6 max-w-2xl" style={{ color: muted }}>
+    <p className="text-[10px] font-sans leading-relaxed mt-3 max-w-4xl" style={{ color: muted }}>
       {children}
     </p>
   );
@@ -231,7 +231,7 @@ function Note({ children }: { children: ReactNode }) {
 function Legend({ items }: { items: { color: string; label: string; value?: string; dashed?: boolean }[] }) {
   const { head, muted } = useLook();
   return (
-    <div className="flex flex-wrap items-center gap-x-6 gap-y-2 mt-5">
+    <div className="flex flex-wrap items-center gap-x-5 gap-y-1 mt-3">
       {items.map((l) => (
         <span key={l.label} className="flex items-center gap-1.5">
           <span className="w-4 h-0 border-t-2" style={{ borderColor: l.color, borderStyle: l.dashed ? "dashed" : "solid" }} aria-hidden />
@@ -714,7 +714,7 @@ function MultiLine({ data, lines, fmt, tick, label, height = 250 }: { data: Reco
 function LeaderList({ label, rows, color }: { label: string; rows: { name: string; code?: string; value: number; text: string; sub?: string }[]; color: string }) {
   const top = Math.max(...rows.map((r) => r.value), 1);
   return (
-    <ul className="flex flex-col gap-4" aria-label={label}>
+    <ul className="flex flex-col gap-2.5" aria-label={label}>
       {rows.map((r) => (
         <RankRow key={r.name} name={r.name} code={r.code ?? null} value={r.value} top={top} text={r.text} sub={r.sub} color={color} />
       ))}
@@ -862,13 +862,13 @@ function RenewablesSection() {
   const funders = whoOf("who-funders");
 
   return (
-    <section id="renewables" className="scroll-mt-36 flex flex-col gap-8 sm:gap-10" aria-labelledby="renewables-title">
+    <section id="renewables" className="scroll-mt-36 flex flex-col gap-6" aria-labelledby="renewables-title">
       <SectionHead icon={<Leaf size={18} weight="fill" />} color="#10b981" title="Renewables" kicker="The kinds of renewable power: what each makes, what it costs, what is invested, what is projected, and who leads" />
       <h2 id="renewables-title" className="sr-only">
         Renewables
       </h2>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 sm:gap-8">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
         <Card className="lg:col-span-2">
           <CardHead title="Electricity from each renewable source" kicker={`TWh generated in the world a year · Ember · ${gen[0].year}–${now.year}`} />
           <MultiLine
@@ -890,7 +890,7 @@ function RenewablesSection() {
         </div>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 sm:gap-8">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
         <Card>
           <CardHead title="What a kilowatt-hour costs from a new plant" kicker={`Levelised cost, US cents at 2025 prices · IRENA · ${costYears[0]}–${costYears[costYears.length - 1]}`} />
           <MultiLine
@@ -955,7 +955,7 @@ function RenewablesSection() {
           figure, for what is generated and for what is installed, with the lowest and highest of EIA's cases. */}
       <EnergyOutlook id="energy-outlook" />
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 sm:gap-8">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
         <Card>
           <CardHead title="What was invested, by technology" kicker={`New investment in renewable power, US$ billions a year · ${inv[0].year}–${invLast.year}`} />
           <div
@@ -1004,7 +1004,7 @@ function RenewablesSection() {
       </div>
 
       {(companies || funders) && (
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 sm:gap-8">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
           {[companies, funders].map(
             (t) =>
               t && (
@@ -1191,13 +1191,13 @@ function TechnologySection() {
   const stack = (i: number, n: number): [number, number, number, number] | number => (i === n - 1 ? [4, 4, 0, 0] : 0);
 
   return (
-    <section id="emerging-tech" className="scroll-mt-36 flex flex-col gap-8 sm:gap-10" aria-labelledby="emerging-tech-title">
+    <section id="emerging-tech" className="scroll-mt-36 flex flex-col gap-6" aria-labelledby="emerging-tech-title">
       <SectionHead icon={<Cpu size={18} weight="fill" />} color={TECH_COLOR} title="Technology in charts" kicker="How far it has spread, what computing can do and costs, the emerging kinds, the money, the robots, and who leads" />
       <h2 id="emerging-tech-title" className="sr-only">
         Technology in charts
       </h2>
 
-      <div className="grid grid-cols-1 gap-6 sm:gap-8">
+      <div className="grid grid-cols-1 gap-4">
         <Card>
           <CardHead title="The spread of communication technology" kicker={`For every 100 people in the world · ITU · ${TECH_TAKE_UP[0].year}–${takeUpNow.year}`} />
           <MultiLine
@@ -1214,7 +1214,7 @@ function TechnologySection() {
         </Card>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 sm:gap-8">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
         <Card>
           <CardHead title="Where the money for AI goes" kicker={`Private investment in AI, US$ billions at 2021 prices · Quid, via the AI Index · ${inv[0].year}–${invNow.year}`} />
           <MultiLine
@@ -1255,7 +1255,7 @@ function TechnologySection() {
         </Card>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 sm:gap-8">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
         <Card>
           <CardHead title="Industrial robots installed, by country" kicker={`Robots installed in the year · International Federation of Robotics · ${ROBOT_INSTALLS[0].year}–${robotsNow.year}`} />
           <MultiLine
@@ -1295,7 +1295,7 @@ function TechnologySection() {
         </Card>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 sm:gap-8">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
         <Card>
           <CardHead title="The chips behind AI: NVIDIA's revenue" kicker={`US$ billions a quarter, as the company reports it · ${nvFirst.quarter} to ${nvNow.quarter}`} />
           <div
@@ -1350,7 +1350,7 @@ function TechnologySection() {
         </Card>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 sm:gap-8">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
         <Card>
           <CardHead title="Where the largest AI systems are built" kicker={`Systems trained with over 10²³ operations, since 2019 · Epoch AI · to ${large.year}`} />
           <LeaderList label="Large-scale AI systems by country" color={ORDERED[4]} rows={large.rows.map((r) => ({ name: r.n, code: r.c, value: r.v, text: String(r.v), sub: shareText(r.v, large.total) }))} />
@@ -1387,8 +1387,6 @@ function TechnologySection() {
 /** How regimes are counted and which way countries are moving: V-Dem's world series, as cards, for the Political field. */
 const REGIME_IDS = ["democracies", "democracyShare", "liberalDemocracyShare", "electoralAutocracyShare", "closedAutocracyShare", "autocratizing", "democratizing"];
 const REGIME_CARDS: StatCardData[] = REGIME_IDS.flatMap((id) => trendCard(id, "#8b5cf6", "Regimes", REGIME_IDS) ?? []);
-/** The bodies that say what they are working on: each one's agenda, as its own page gives it (alliances.ts). */
-const AGENDAS = ALLIANCES.filter((a) => a.agenda?.length);
 
 /** Headlines whose own words name a field. Whole words, any case; picked by the words alone, which the banner says. */
 const named = (re: RegExp) => pickWhere((h) => re.test(h.title));
@@ -1442,6 +1440,18 @@ const FIELDS: Field[] = [
     parts: [
       { id: "trend-technology", label: "Take-up" },
       { id: "emerging-tech", label: "Tech in charts" },
+    ],
+  },
+  // Energy had a chip of its own on the bar, was folded into Technological, and was asked back.
+  {
+    id: "energy",
+    label: "Energy",
+    news: {
+      label: "Energy developments",
+      pick: named(/\b(energy|oil|crude|gas|LNG|electricity|power (plants?|grid|cuts?|outages?)|blackouts?|nuclear|reactors?|renewables?|solar|wind (farms?|power|turbines?)|hydropower|coal|fuel|OPEC|pipelines?|refiner(y|ies))\b/i),
+      note: "The last week's headlines whose words name energy - oil, gas, electricity, nuclear, coal, the sun and the wind.",
+    },
+    parts: [
       { id: "trend-energy", label: "Energy" },
       { id: "renewables", label: "Renewables" },
     ],
@@ -1724,27 +1734,22 @@ export function IndustriesExplorer({ embedded = false, action }: { embedded?: bo
 
 export function TrendsPage() {
   const look = useLook();
-  /* The field shown, picked from the bar, and the part of it shown, picked from the chips under its headlines: one at a
-     time. The page was every part one under another - some thirty screens - and is now the Developments page, as asked:
-     social, political, technological, research, breakthroughs and agendas, with the economy after them. A link to a
-     field or to a part of one (#renewables) opens on it. */
-  const [where, setWhere] = useState(() => {
+  /* The Developments page, as asked: social, political, technological, research, breakthroughs and agendas, with the
+     economy after them - every field on the one page, one under another, and the bar goes to each. A field's figures are
+     still a part at a time, picked from the chips under its headlines: set out in full they ran to thirty screens. A
+     link to a field or to a part of one (#renewables) opens on it. */
+  const [parts, setParts] = useState<Record<string, string>>(() => {
     const asked = typeof window === "undefined" ? "" : window.location.hash.slice(1);
-    const field = FIELDS.find((f) => f.id === asked) ?? FIELDS.find((f) => f.parts.some((p) => p.id === asked)) ?? FIELDS[0];
-    return { tab: field.id, parts: field.parts.some((p) => p.id === asked) ? { [field.id]: asked } : ({} as Record<string, string>) };
+    const field = FIELDS.find((f) => f.parts.some((p) => p.id === asked));
+    return field ? { [field.id]: asked } : {};
   });
-  const tab = where.tab;
-  const field = FIELDS.find((f) => f.id === tab) ?? FIELDS[0];
-  /** The part of the field shown: the one picked, or its first. */
-  const part = where.parts[tab] ?? field.parts[0]?.id ?? "";
-  const partRef = useRef<HTMLDivElement | null>(null);
-  const pick = (id: string) => {
-    setWhere((w) => ({ ...w, tab: id }));
-    // Where the reader has scrolled down into a field, the next one starts at its top, under the bar.
-    const el = partRef.current;
-    if (el && el.getBoundingClientRect().top < 120) requestAnimationFrame(() => el.scrollIntoView({ block: "start" }));
-  };
-  const onTrends = TREND_GROUPS.some((g) => g.id === part);
+  useEffect(() => {
+    const asked = window.location.hash.slice(1);
+    const field = FIELDS.find((f) => f.id === asked) ?? FIELDS.find((f) => f.parts.some((p) => p.id === asked));
+    if (field && field !== FIELDS[0]) document.getElementById(field.id)?.scrollIntoView({ block: "start" });
+  }, []);
+  // The week's headlines are read once, here; every field's banner then finds them already in the store.
+  const news = useHeadlineRead(ALL_TOPICS, 7, 400, true);
   const { head, muted } = look;
   const first = WEO.firstProjected;
   const end = WEO.lastYear;
@@ -1780,82 +1785,19 @@ export function TrendsPage() {
     { key: "high", label: "High variant", color: SERIES.high, series: POPULATION_VARIANTS.high },
   ];
 
-  return (
-    <div className="min-h-screen w-full animate-fade-in" style={{ background: "var(--color-background)" }}>
-      <div className="max-w-screen-2xl mx-auto px-5 sm:px-10 py-10 sm:py-14 flex flex-col gap-14 sm:gap-20">
-        {/* ── Header: the plain one every page has (PageHeader). ── */}
-        <PageHeader
-          title="Developments"
-          aside={
-            <>
-              IMF World Economic Outlook, {WEO.edition} · UN World Population Prospects {WPP.revision} · World Bank · V-Dem
-              <br />
-              figures retrieved {PROJECTIONS_RETRIEVED} · headlines refreshed every half hour
-            </>
-          }
-        >
-          What is changing in the world, field by field — social, political, technological, research, breakthroughs and agendas, and the economy: the week's
-          headlines in each, and under them the published figures and projections behind it
-        </PageHeader>
-
-        <SectionNav label="Fields of development" sections={SECTIONS} picked={tab} onPick={pick} />
-        {/* Where a newly picked field starts: under the bar. It takes no room, and the gap after it is given back. */}
-        <div ref={partRef} className="scroll-mt-36 -mb-14 sm:-mb-20" aria-hidden />
-
-        {/* The field picked: the week's headlines that name it, then its parts - one at a time, from the chips under the
-            headlines. A field with no figures of its own (breakthroughs) opens its headlines as a list. */}
-        <div className="flex flex-col gap-6">
-          <HeadlinesBanner
-            key={field.id}
-            label={field.news.label}
-            topics={ALL_TOPICS}
-            days={7}
-            read={400}
-            untagged
-            pick={field.news.pick}
-            open={field.parts.length === 0 && field.id !== "overview"}
-            note={(outlets) => (
-              <>
-                {field.news.note}
-                {field.news.pick ? " They are picked by the words in the headline alone, so a few will be off the subject." : ""} From {outlets}, refreshed every half hour;
-                the tag is the place a story is about. Each links to its source.
-              </>
-            )}
-          />
-          {field.parts.length > 1 && (
-            <div role="tablist" aria-label={`${field.label}: the figures behind it`} className="flex flex-wrap items-center gap-1.5">
-              <span className="text-[10px] font-mono uppercase tracking-widest mr-1" style={{ color: muted }}>
-                The figures
-              </span>
-              {field.parts.map((p) => (
-                <button
-                  key={p.id}
-                  type="button"
-                  role="tab"
-                  aria-selected={part === p.id}
-                  onClick={() => setWhere((w) => ({ ...w, parts: { ...w.parts, [tab]: p.id } }))}
-                  className={`px-3 py-1 rounded-full text-[11px] font-medium font-sans border transition-colors cursor-pointer ${
-                    part === p.id ? "chip-selected" : "bg-transparent border-border text-muted-foreground hover:text-foreground hover:bg-muted/60"
-                  }`}
-                >
-                  {p.label}
-                </button>
-              ))}
-            </div>
-          )}
-          {/* ── Explorer: every figure of the page, by group, beside its detail - as the
-              Countries and Economies pages have their own ── */}
-          {tab === "overview" && <TrendsExplorer />}
-        </div>
-
+  /** The figures of one part, by its id: the charts and cards that were a section of the page. */
+  const figures = (part: string) => {
+    const onTrends = TREND_GROUPS.some((g) => g.id === part);
+    return (
+      <>
         {/* ══ Political: how the world is ruled ══ */}
         {part === "regimes" && (
-          <section id="regimes" className="scroll-mt-36 flex flex-col gap-8 sm:gap-10" aria-labelledby="regimes-title">
+          <section id="regimes" className="scroll-mt-36 flex flex-col gap-6" aria-labelledby="regimes-title">
             <SectionHead icon={<Globe size={18} weight="fill" />} color="#8b5cf6" title="Regimes" kicker="How many countries are democracies, who lives under which kind of rule, and which way countries are moving" />
             <h2 id="regimes-title" className="sr-only">
               Regimes
             </h2>
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
               {REGIME_CARDS.map((s) => (
                 <StatCard key={`${s.label}·${s.sub}`} s={s} more="Regions, types, names and the full series" />
               ))}
@@ -1866,34 +1808,21 @@ export function TrendsPage() {
 
         {/* ══ Agendas: what each body says it is working on ══ */}
         {part === "agendas-bodies" && (
-          <section id="agendas-bodies" className="scroll-mt-36 flex flex-col gap-8 sm:gap-10" aria-labelledby="agendas-title">
+          <section id="agendas-bodies" className="scroll-mt-36 flex flex-col gap-6" aria-labelledby="agendas-title">
             <SectionHead icon={<Target size={18} weight="fill" />} color="#0ea5e9" title="What the world's bodies are working on" kicker={`The agenda of each alliance, bloc and agency, as its own page gives it · ${AGENDAS.length} bodies`} />
             <h2 id="agendas-title" className="sr-only">
               Agendas
             </h2>
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 sm:gap-8">
-              {AGENDAS.map((a) => (
-                <Card key={a.id}>
-                  <CardHead title={a.name} kicker={`${a.kind} · ${a.memberCount} members · checked ${a.kind === "Human rights body" ? HUMAN_RIGHTS_CHECKED : ALLIANCES_CHECKED}`} />
-                  <ul className="flex flex-col gap-2.5 list-disc pl-4">
-                    {(a.agenda ?? []).map((x) => (
-                      <li key={x} className="text-[12px] font-sans leading-relaxed" style={{ color: head }}>
-                        {x}
-                      </li>
-                    ))}
-                  </ul>
-                  <SourceLink sources={[a.source]} className="mt-4" />
-                </Card>
-              ))}
-            </div>
-            <Note>Each body's agenda is what its own page says it is working on, checked on the day shown; a body that states none is not listed.</Note>
+            {/* A card for each body, three across, opening a window with its agenda in full: as the site's other cards do. */}
+            <AgendaCards />
+            <Note>Each body's agenda is what its own page says it is working on, checked on the day its window gives; a body that states none is not listed.</Note>
           </section>
         )}
 
         {/* ══ Overview ══ */}
         {/* ══ World economy ══ */}
         {part === "economy" && (
-          <section id="economy" className="scroll-mt-36 flex flex-col gap-8 sm:gap-10" aria-labelledby="economy-title">
+          <section id="economy" className="scroll-mt-36 flex flex-col gap-6" aria-labelledby="economy-title">
             <SectionHead icon={<TrendUp size={18} weight="fill" />} color="#6366f1" title="World economy" kicker={`The IMF's outlook to ${end}: output, growth, prices and debt`} />
             <h2 id="economy-title" className="sr-only">
               World economy
@@ -1912,7 +1841,7 @@ export function TrendsPage() {
               </Note>
               <SourceLink sources={[WEO]} className="mt-3" />
             </Card>
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 sm:gap-8">
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
               {(
                 [
                   { key: "growth", title: "Real GDP growth", kicker: "% a year" },
@@ -1940,12 +1869,12 @@ export function TrendsPage() {
 
         {/* ══ Countries ══ */}
         {part === "countries" && (
-          <section id="countries" className="scroll-mt-36 flex flex-col gap-8 sm:gap-10" aria-labelledby="countries-title">
+          <section id="countries" className="scroll-mt-36 flex flex-col gap-6" aria-labelledby="countries-title">
             <SectionHead icon={<Globe size={18} weight="fill" />} color="#3b82f6" title="Countries" kicker={`${WEO_COUNTRIES.length} economies, as the IMF projects each`} />
             <h2 id="countries-title" className="sr-only">
               Countries
             </h2>
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 sm:gap-8">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
               <Card>
                 <CardHead title={`The fifteen largest economies in ${end}`} kicker={`GDP, current US dollars · IMF projection · with the change on ${first - 1}`} />
                 <ul className="flex flex-col gap-2.5" aria-label={`Largest economies projected for ${end}`}>
@@ -1987,12 +1916,12 @@ export function TrendsPage() {
 
         {/* ══ Population ══ */}
         {part === "population" && (
-          <section id="population" className="scroll-mt-36 flex flex-col gap-8 sm:gap-10" aria-labelledby="population-title">
+          <section id="population" className="scroll-mt-36 flex flex-col gap-6" aria-labelledby="population-title">
             <SectionHead icon={<Users size={18} weight="fill" />} color="#8b5cf6" title="Population" kicker="The UN's medium variant to 2100: how many people, how old, and where" />
             <h2 id="population-title" className="sr-only">
               Population
             </h2>
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 sm:gap-8">
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
               <Card className="lg:col-span-2">
                 <CardHead title="World population, 1950 to 2100" kicker={`People on 1 July · UN World Population Prospects ${WPP.revision}, medium variant`} />
                 <SplitArea
@@ -2084,12 +2013,12 @@ export function TrendsPage() {
 
         {/* ══ Scenarios ══ */}
         {part === "scenarios" && (
-          <section id="scenarios" className="scroll-mt-36 flex flex-col gap-8 sm:gap-10" aria-labelledby="scenarios-title">
+          <section id="scenarios" className="scroll-mt-36 flex flex-col gap-6" aria-labelledby="scenarios-title">
             <SectionHead icon={<Target size={18} weight="fill" />} color="#f97316" title="Scenarios" kicker="The UN's own: what the world's population does if families are a little smaller or larger" />
             <h2 id="scenarios-title" className="sr-only">
               Scenarios
             </h2>
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 sm:gap-8">
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
               <Card className="lg:col-span-2">
                 <CardHead title="Three variants of the world's population" kicker={`People on 1 July · UN World Population Prospects ${WPP.revision} · ${WPP.firstProjected}–2100`} />
                 <OutlookLines lines={variantRows.map((v) => ({ key: v.key, label: v.label, color: v.color, series: v.series }))} split={WPP.firstProjected} fmt={(v) => `${(v / 1e9).toFixed(1)}bn`} height={280} />
@@ -2131,13 +2060,13 @@ export function TrendsPage() {
 
         {/* ══ Trends ══ */}
         {onTrends && (
-          <section id="trends" className="scroll-mt-36 flex flex-col gap-8 sm:gap-10" aria-labelledby="trends-title">
+          <section id={`figures-${part}`} className="scroll-mt-36 flex flex-col gap-6" aria-labelledby={`${part}-title`}>
             <SectionHead icon={<Lightning size={18} weight="fill" />} color="#10b981" title="Trends" kicker="What has been moving: the latest reading of each measure, and its change on about ten years before" />
-            <h2 id="trends-title" className="sr-only">
+            <h2 id={`${part}-title`} className="sr-only">
               Trends
             </h2>
             {TREND_GROUPS.filter((g) => g.id === part).map((g) => (
-              <div key={g.title} id={g.id} className="scroll-mt-36 flex flex-col gap-6 pt-2">
+              <div key={g.title} id={g.id} className="scroll-mt-36 flex flex-col gap-3">
                 <div className="flex items-center gap-2">
                   <span className="w-2 h-2 rounded-full" style={{ background: g.color }} aria-hidden />
                   <span className="text-[10px] font-bold font-sans uppercase tracking-widest" style={{ color: head }}>
@@ -2149,7 +2078,7 @@ export function TrendsPage() {
                   <div className="flex-1 h-px" style={{ background: look.grid }} />
                 </div>
                 {!NO_CARDS.has(g.id) && (
-                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
                     {(TREND_CARDS.find((c) => c.title === g.title)?.items ?? []).map((s) => (
                       <StatCard key={`${s.label}·${s.sub}`} s={s} more="Regions, types, names and the full series" />
                     ))}
@@ -2163,8 +2092,92 @@ export function TrendsPage() {
             <Note>These are measured, not projected: each is a published world series to its latest year. The Worldview page has all of them, with what each means.</Note>
           </section>
         )}
+      </>
+    );
+  };
 
-        <p className="text-[10px] font-sans leading-relaxed max-w-2xl px-1" style={{ color: muted }}>
+  return (
+    <div className="min-h-screen w-full animate-fade-in" style={{ background: "var(--color-background)" }}>
+      <div className="max-w-screen-2xl mx-auto px-6 py-8 flex flex-col gap-6">
+        {/* ── Header: the plain one every page has (PageHeader). ── */}
+        <PageHeader
+          title="Developments"
+          aside={
+            <>
+              IMF World Economic Outlook, {WEO.edition} · UN World Population Prospects {WPP.revision} · World Bank · V-Dem
+              <br />
+              figures retrieved {PROJECTIONS_RETRIEVED} · headlines refreshed every half hour
+            </>
+          }
+        >
+          What is changing in the world, field by field — social, political, technological, research, breakthroughs and agendas, and the economy: the week's
+          headlines in each, and under them the published figures and projections behind it
+        </PageHeader>
+
+        <SectionNav label="Fields of development" sections={SECTIONS} />
+
+        {/* Every field, one under another: its name, the week's headlines that name it, then its figures - a part at a time,
+            from the chips under the headlines. A field with no figures of its own (breakthroughs) opens its headlines as a
+            list. */}
+        {FIELDS.map((field) => {
+          const part = parts[field.id] ?? field.parts[0]?.id ?? "";
+          return (
+            <section key={field.id} id={field.id} aria-label={field.label} className="scroll-mt-36 flex flex-col gap-4 pt-4">
+              <div className="flex items-center gap-4">
+                <h2 className="text-xl sm:text-2xl font-bold font-sans leading-tight" style={{ color: head }}>
+                  {field.label}
+                </h2>
+                <div className="flex-1 h-px" style={{ background: look.grid }} />
+              </div>
+              {/* Shown once the page's one read of the week's headlines is in, so that eight banners do not each ask for it. */}
+              {news.done && (
+                <HeadlinesBanner
+                  label={field.news.label}
+                  topics={ALL_TOPICS}
+                  days={7}
+                  read={400}
+                  untagged
+                  pick={field.news.pick}
+                  open={field.parts.length === 0 && field.id !== "overview"}
+                  note={(outlets) => (
+                    <>
+                      {field.news.note}
+                      {field.news.pick ? " They are picked by the words in the headline alone, so a few will be off the subject." : ""} From {outlets}, refreshed every half
+                      hour; the tag is the place a story is about. Each links to its source.
+                    </>
+                  )}
+                />
+              )}
+              {field.parts.length > 1 && (
+                <div role="tablist" aria-label={`${field.label}: the figures behind it`} className="flex flex-wrap items-center gap-1.5">
+                  <span className="text-[10px] font-mono uppercase tracking-widest mr-1" style={{ color: muted }}>
+                    The figures
+                  </span>
+                  {field.parts.map((p) => (
+                    <button
+                      key={p.id}
+                      type="button"
+                      role="tab"
+                      aria-selected={part === p.id}
+                      onClick={() => setParts((w) => ({ ...w, [field.id]: p.id }))}
+                      className={`px-3 py-1 rounded-full text-[11px] font-medium font-sans border transition-colors cursor-pointer ${
+                        part === p.id ? "chip-selected" : "bg-transparent border-border text-muted-foreground hover:text-foreground hover:bg-muted/60"
+                      }`}
+                    >
+                      {p.label}
+                    </button>
+                  ))}
+                </div>
+              )}
+              {/* ── Explorer: every figure of the page, by group, beside its detail - as the
+                  Countries and Economies pages have their own ── */}
+              {field.id === "overview" && <TrendsExplorer />}
+              {part && <div className="flex flex-col gap-6">{figures(part)}</div>}
+            </section>
+          );
+        })}
+
+        <p className="text-[10px] font-sans leading-relaxed max-w-4xl px-1" style={{ color: muted }}>
           Every projection on this page is its publisher's own: the economy from the IMF's World Economic Outlook ({WEO.edition}; estimates to {first - 1}, projections{" "}
           {first}–{end}) and people from the UN's World Population Prospects {WPP.revision} (projections from {WPP.firstProjected}), retrieved {PROJECTIONS_RETRIEVED}.
           The trends are world series retrieved {WORLDVIEW_RETRIEVED}. The page gives no probabilities, confidence scores or sector forecasts, because no body publishes
