@@ -16,6 +16,8 @@ import {
   X,
   CheckCircle,
   ChartDonut,
+  CaretLeft,
+  CaretRight,
 } from "@phosphor-icons/react";
 import { countriesData } from "../data/countriesData";
 import { useLiveCountries } from "../contexts/LiveDataContext";
@@ -56,10 +58,14 @@ import {
  * hidden tab. For readers who ask for reduced motion it does not move at
  * all, and the strip scrolls by hand instead.
  */
+/** A push given the marquee by hand, in pixels: `ease` is spread over the next frames (an arrow), `now` is taken at once (a drag). */
+export type MarqueePush = { ease: number; now: number };
+
 function useMarquee(
   trackRef: React.RefObject<HTMLDivElement | null>,
   pausedRef: React.MutableRefObject<boolean>,
   pxPerSecond: number,
+  pushRef?: React.MutableRefObject<MarqueePush>,
 ) {
   useEffect(() => {
     const track = trackRef.current;
@@ -85,8 +91,21 @@ function useMarquee(
       // A long gap - a hidden tab, a stalled frame - is not made up in one jump.
       const dt = last ? Math.min(100, now - last) : 0;
       last = now;
+      let moved = false;
+      // A push by hand moves it even while it is paused under the pointer: an arrow's a fifth a frame, a drag's at once.
+      const push = pushRef?.current;
+      if (push && half > 0 && (push.now || Math.abs(push.ease) > 0.5)) {
+        const take = push.now + (Math.abs(push.ease) > 0.5 ? push.ease * 0.2 : push.ease);
+        push.ease -= Math.abs(push.ease) > 0.5 ? push.ease * 0.2 : push.ease;
+        push.now = 0;
+        pos = (((pos + take) % half) + half) % half;
+        moved = true;
+      }
       if (!pausedRef.current && onScreen && !document.hidden && half > 0) {
         pos = (pos + (pxPerSecond * dt) / 1000) % half;
+        moved = true;
+      }
+      if (moved) {
         const dpr = window.devicePixelRatio || 1;
         track.style.transform = `translate3d(${-Math.round(pos * dpr) / dpr}px,0,0)`;
       }
@@ -98,7 +117,7 @@ function useMarquee(
       io.disconnect();
       ro.disconnect();
     };
-  }, [trackRef, pausedRef, pxPerSecond]);
+  }, [trackRef, pausedRef, pxPerSecond, pushRef]);
 }
 
 /* ─── Country Carousel ──────────────────────────────────────────────────── */
@@ -133,7 +152,12 @@ function CountryCarousel({
   const [cardWidth, setCardWidth] = useState(0);
   const GAP = 12; // gap-3 = 12px
   const VISIBLE = 5;
-  useMarquee(trackRef, pausedRef, 54);
+  /* Moved by hand as well as by itself, as asked: its arrows, a drag, or a sideways scroll. */
+  const pushRef = useRef<MarqueePush>({ ease: 0, now: 0 });
+  const drag = useRef<{ x: number; moved: number } | null>(null);
+  /** Whether the last press was a drag, so that letting go does not open the card under the pointer. */
+  const dragged = useRef(false);
+  useMarquee(trackRef, pausedRef, 54, pushRef);
 
   // Measure actual rendered card width
   useEffect(() => {
@@ -218,17 +242,71 @@ function CountryCarousel({
         {/* Fixed viewport: clips to exactly 5 cards wide */}
         <div
           className="relative overflow-hidden"
-          style={{
-            width: viewportWidth !== null ? viewportWidth : "100%",
-            maxWidth: "100%",
-          }}
           onMouseEnter={() => {
             pausedRef.current = true;
           }}
           onMouseLeave={() => {
             pausedRef.current = false;
+            drag.current = null;
+          }}
+          // A sideways scroll moves it; an up-and-down one is left to the page.
+          onWheel={(e) => {
+            if (Math.abs(e.deltaX) > Math.abs(e.deltaY)) pushRef.current.now += e.deltaX;
+          }}
+          onPointerDown={(e) => {
+            drag.current = { x: e.clientX, moved: 0 };
+            dragged.current = false;
+          }}
+          onPointerMove={(e) => {
+            const d = drag.current;
+            if (!d) return;
+            const dx = e.clientX - d.x;
+            d.x = e.clientX;
+            d.moved += Math.abs(dx);
+            if (d.moved > 5) dragged.current = true;
+            pushRef.current.now -= dx;
+          }}
+          onPointerUp={() => {
+            drag.current = null;
+          }}
+          onClickCapture={(e) => {
+            if (dragged.current) {
+              e.stopPropagation();
+              dragged.current = false;
+            }
+          }}
+          style={{
+            width: viewportWidth !== null ? viewportWidth : "100%",
+            maxWidth: "100%",
+            touchAction: "pan-y",
+            userSelect: "none",
           }}
         >
+          {/* Its arrows, over the fades at either end: a card's width each press. */}
+          {([
+            ["left", -1, "Move the countries left"],
+            ["right", 1, "Move the countries right"],
+          ] as const).map(([side, dir, label]) => (
+            <button
+              key={side}
+              type="button"
+              aria-label={label}
+              title={label}
+              onClick={(e) => {
+                e.stopPropagation();
+                pushRef.current.ease += dir * (cardWidth || 200);
+              }}
+              className={`absolute top-1/2 -translate-y-1/2 z-20 w-8 h-8 rounded-full flex items-center justify-center cursor-pointer transition-opacity hover:opacity-80 ${side === "left" ? "left-1" : "right-1"}`}
+              style={{
+                background: isLight ? "rgba(255,255,255,0.92)" : "rgba(20,20,26,0.88)",
+                border: `1px solid ${gridLine}`,
+                color: headText,
+                boxShadow: "0 2px 10px rgba(0,0,0,0.25)",
+              }}
+            >
+              {side === "left" ? <CaretLeft size={14} weight="bold" /> : <CaretRight size={14} weight="bold" />}
+            </button>
+          ))}
           {/* Left fade mask */}
           <div
             className="absolute inset-y-0 left-0 pointer-events-none z-10"
@@ -2292,7 +2370,7 @@ function FocusCarousel({
 
   return (
     <div
-      className="shrink-0 self-center w-full lg:w-[400px]"
+      className="shrink-0 self-center w-full"
       onMouseEnter={() => setPaused(true)}
       onMouseLeave={() => setPaused(false)}
       onFocusCapture={() => setPaused(true)}
@@ -2888,14 +2966,16 @@ export function DashboardPage() {
         {/* ── HERO ──────────────────────────────────────────────────────── */}
         {/* The plain header every page has (PageHeader), where a card stood. What is in the site is counted from the data
             rather than claimed, so the welcome cannot drift from it. The flags that circle the site's globe are kept
-            beside it: they open the pages they stand for. */}
-        <div className="flex flex-col lg:flex-row lg:items-center gap-5 justify-between">
-          <PageHeader title="Welcome to CommonSphere" className="flex-1">
+            under it, centred on a wide screen as on a narrow one, as asked: they open the pages they stand for. */}
+        <div className="flex flex-col gap-5">
+          <PageHeader title="Welcome to CommonSphere">
             An atlas of the world as it stands: nations, economies, climate and conflict, drawn from primary sources and set side by side —{" "}
             {countriesData.filter((c) => !c.territory).length} countries, {countriesData.filter((c) => c.territory).length} territories &amp; regions,{" "}
             {usStatesData.length} US states and {economiesData.length} economies, every figure cited to its source and the year it describes
           </PageHeader>
-          <FocusCarousel mutedText={mutedText} headText={headText} isLight={isLight} onOpen={(p) => navigate(p)} />
+          <div className="w-full flex justify-center">
+            <FocusCarousel mutedText={mutedText} headText={headText} isLight={isLight} onOpen={(p) => navigate(p)} />
+          </div>
         </div>
 
         {/* ── QUARTER TRACKER ────────────────────────────────────────────── */}
