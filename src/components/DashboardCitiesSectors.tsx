@@ -33,7 +33,7 @@
  */
 import { lazy, Suspense, useMemo, useState, type ReactNode } from "react";
 import { useNavigate } from "react-router-dom";
-import { Area, AreaChart, Bar, BarChart, CartesianGrid, Cell, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
+import { Area, AreaChart, ResponsiveContainer } from "recharts";
 import { ArrowRight, Buildings, CaretDown, ChartLineUp, TrendDown, TrendUp } from "@phosphor-icons/react";
 import { citiesData } from "../data/citiesData";
 import { CITY_FIGURES, CITY_FIGURES_SOURCE } from "../data/cityFigures";
@@ -41,8 +41,9 @@ import { RENEWABLE_GENERATION, RENEWABLE_GENERATION_SOURCE } from "../data/renew
 import { TSMC_REVENUE } from "../data/technology";
 import { WORLD } from "../data/worldview";
 import { cityGrowth, cityYear } from "../lib/cityFigures";
-import { tooltipStyle, useTokens, type Tokens } from "./DataExplorer";
+import { useTokens, type Tokens } from "./DataExplorer";
 import { SourceLink } from "./SourceLink";
+import SlimBars from "./SlimBars";
 
 type Source = { label: string; url: string };
 type Point = [year: number, value: number];
@@ -131,26 +132,13 @@ export function CitiesContainer() {
   const [open, setOpen] = useState(top[0]?.c.id);
   const fastest = useMemo(() => [...CITY_ROWS].filter((r) => r.growth).sort((a, b) => b.growth!.pct - a.growth!.pct)[0], []);
   const chart = top.map((r, i) => ({ name: r.c.name.length > 9 ? `${r.c.name.slice(0, 8)}…` : r.c.name, full: r.c.name, pop: Number((r.pop / 1e6).toFixed(1)), color: CITY_COLORS[i % CITY_COLORS.length] }));
-  const axis = { tick: { fontSize: 9, fill: t.mutedText, fontFamily: "monospace" }, axisLine: false, tickLine: false };
   return (
     <Card t={t} className="flex-1">
       <Head t={t} icon={<Buildings size={16} weight="fill" />} label="Cities" badge={`${CITY_ROWS.length} profiled`} color={color} cta="All Cities" to="/dashboard/cities" />
 
       <Kicker t={t}>Population · millions · {BASE}</Kicker>
       <div role="img" aria-label={`The ten largest cities on the site by population, ${BASE}: ${top.map((r) => `${r.c.name} ${millions(r.pop)}`).join(", ")}.`}>
-        <ResponsiveContainer width="100%" height={120}>
-          <BarChart data={chart} margin={{ top: 2, right: 4, left: -18, bottom: 0 }}>
-            <CartesianGrid stroke={t.gridLine} vertical={false} />
-            <XAxis dataKey="name" {...axis} interval={0} tick={{ ...axis.tick, fontSize: 8 }} />
-            <YAxis {...axis} />
-            <Tooltip {...tooltipStyle(t)} cursor={{ fill: t.tile }} formatter={(v: number) => [`${v}M people`, "Population"]} labelFormatter={(_, p) => (p?.[0]?.payload as { full?: string } | undefined)?.full ?? ""} />
-            <Bar dataKey="pop" radius={[3, 3, 0, 0]} maxBarSize={26} isAnimationActive={false}>
-              {chart.map((d) => (
-                <Cell key={d.full} fill={d.color} />
-              ))}
-            </Bar>
-          </BarChart>
-        </ResponsiveContainer>
+        <SlimBars dense labelWidth="6.5rem" rows={chart.map((d) => ({ key: d.full, label: d.full, v: d.pop, color: d.color, tip: `${d.full}: ${d.pop}M people` }))} fmt={(v) => `${v}M`} />
       </div>
       <SourceLink sources={[{ label: "United Nations, World Urbanization Prospects: The 2025 Revision", url: CITY_FIGURES_SOURCE.url }]} className="mt-1 mb-1" />
 

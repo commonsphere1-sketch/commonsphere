@@ -2,6 +2,7 @@ import { PageHeader } from "../components/PageHeader";
 import { lazy, Suspense, useState } from "react";
 import { useTheme } from "../contexts/ThemeContext";
 import { SourceLink } from "../components/SourceLink";
+import SlimBars from "../components/SlimBars";
 import { HeadlinesBanner } from "../components/HeadlinesBanner";
 
 // The explorer of revolutions, protests, boycotts and internal conflicts, with its accounts: loaded when the page reaches it.
@@ -28,8 +29,6 @@ import {
   Heart,
 } from "@phosphor-icons/react";
 import {
-  BarChart,
-  Bar,
   XAxis,
   YAxis,
   Tooltip,
@@ -862,81 +861,18 @@ export function CrimeStatsPage() {
                 ))}
               </div>
             </div>
-            <ResponsiveContainer width="100%" height={280}>
-              <BarChart
-                data={homicideData}
-                layout="vertical"
-                margin={{ top: 0, right: 20, left: 10, bottom: 0 }}
-                barSize={10}
-              >
-                <CartesianGrid
-                  stroke={gridLine}
-                  strokeDasharray="3 3"
-                  horizontal={false}
-                />
-                <XAxis
-                  type="number"
-                  tick={{
-                    fontSize: 9,
-                    fill: mutedText,
-                    fontFamily: "monospace",
-                  }}
-                  axisLine={false}
-                  tickLine={false}
-                  tickFormatter={(v) => `${v}`}
-                />
-                <YAxis
-                  type="category"
-                  dataKey="country"
-                  tick={{
-                    fontSize: 9,
-                    fill: headText,
-                    fontFamily: "sans-serif",
-                  }}
-                  axisLine={false}
-                  tickLine={false}
-                  width={90}
-                  tickFormatter={(v) => {
-                    const item = HOMICIDE_RATES.find((r) => r.country === v);
-                    return item ? `${item.flag} ${v}` : v;
-                  }}
-                />
-                <Tooltip
-                  contentStyle={{
-                    background: isLight ? "#fff" : "#1a1730",
-                    border: isLight
-                      ? "1px solid rgba(0,0,0,0.1)"
-                      : "1px solid rgba(255,255,255,0.1)",
-                    borderRadius: 10,
-                    fontSize: 11,
-                    fontFamily: "monospace",
-                    color: headText,
-                  }}
-                  formatter={(v: number, _name: string, entry: any) => [
-                    `${v} per 100k`,
-                    entry.payload.country,
-                  ]}
-                  labelFormatter={() => "Homicide Rate"}
-                  cursor={{
-                    fill: isLight
-                      ? "rgba(0,0,0,0.03)"
-                      : "rgba(255,255,255,0.04)",
-                  }}
-                />
-                <Bar dataKey="rate" radius={[0, 4, 4, 0]}>
-                  {homicideData.map((entry, idx) => (
-                    <Cell
-                      key={entry.country}
-                      fill={
-                        homicideView === "highest"
-                          ? `hsl(${Math.max(0, 10 - idx * 1.2)}, 85%, 52%)`
-                          : `hsl(${142 + idx * 4}, 70%, 42%)`
-                      }
-                    />
-                  ))}
-                </Bar>
-              </BarChart>
-            </ResponsiveContainer>
+            <SlimBars
+              label="Homicides per 100,000 people, by country"
+              labelWidth="7.5rem"
+              rows={homicideData.map((entry, idx) => ({
+                key: entry.country,
+                label: `${HOMICIDE_RATES.find((r) => r.country === entry.country)?.flag ?? ""} ${entry.country}`.trim(),
+                v: entry.rate,
+                color: homicideView === "highest" ? `hsl(${Math.max(0, 10 - idx * 1.2)}, 85%, 52%)` : `hsl(${142 + idx * 4}, 70%, 42%)`,
+                tip: `${entry.country}: ${entry.rate} per 100k`,
+              }))}
+              fmt={(v) => `${v}`}
+            />
             <SourceLink
               sources={[
                 {
@@ -1762,76 +1698,14 @@ export function CrimeStatsPage() {
                 Regional Terrorism Impact
               </h3>
             </div>
-            <ResponsiveContainer width="100%" height={260}>
-              <BarChart
-                data={[...TERRORISM_BY_REGION].sort(
-                  (a, b) => b.deaths - a.deaths,
-                )}
-                layout="vertical"
-                margin={{ top: 0, right: 50, left: 10, bottom: 0 }}
-                barSize={12}
-              >
-                <CartesianGrid
-                  stroke={gridLine}
-                  strokeDasharray="3 3"
-                  horizontal={false}
-                />
-                <XAxis
-                  type="number"
-                  tick={{
-                    fontSize: 9,
-                    fill: mutedText,
-                    fontFamily: "monospace",
-                  }}
-                  axisLine={false}
-                  tickLine={false}
-                  tickFormatter={(v) =>
-                    v >= 1000 ? `${(v / 1000).toFixed(1)}k` : `${v}`
-                  }
-                />
-                <YAxis
-                  type="category"
-                  dataKey="region"
-                  tick={{
-                    fontSize: 9,
-                    fill: headText,
-                    fontFamily: "sans-serif",
-                  }}
-                  axisLine={false}
-                  tickLine={false}
-                  width={130}
-                />
-                <Tooltip
-                  contentStyle={{
-                    background: isLight ? "#fff" : "#1a1730",
-                    border: isLight
-                      ? "1px solid rgba(0,0,0,0.1)"
-                      : "1px solid rgba(255,255,255,0.1)",
-                    borderRadius: 10,
-                    fontSize: 11,
-                    fontFamily: "monospace",
-                    color: headText,
-                  }}
-                  formatter={(v: number, _name: string, entry: any) => [
-                    `${v.toLocaleString()} deaths · ${entry.payload.incidents.toLocaleString()} incidents`,
-                    entry.payload.region,
-                  ]}
-                  labelFormatter={() => "Terrorism 2023"}
-                  cursor={{
-                    fill: isLight
-                      ? "rgba(0,0,0,0.03)"
-                      : "rgba(255,255,255,0.04)",
-                  }}
-                />
-                <Bar dataKey="deaths" radius={[0, 4, 4, 0]}>
-                  {[...TERRORISM_BY_REGION]
-                    .sort((a, b) => b.deaths - a.deaths)
-                    .map((entry) => (
-                      <Cell key={entry.region} fill={entry.color} />
-                    ))}
-                </Bar>
-              </BarChart>
-            </ResponsiveContainer>
+            <SlimBars
+              label="Deaths from terrorism by region, 2023"
+              labelWidth="8.5rem"
+              rows={[...TERRORISM_BY_REGION]
+                .sort((a, b) => b.deaths - a.deaths)
+                .map((entry) => ({ key: entry.region, label: entry.region, v: entry.deaths, color: entry.color, tip: `${entry.region}: ${entry.deaths.toLocaleString()} deaths · ${entry.incidents.toLocaleString()} incidents` }))}
+              fmt={(v) => (v >= 1000 ? `${(v / 1000).toFixed(1)}k` : `${v}`)}
+            />
             <SourceLink
               sources={{
                 label: "IEP Global Terrorism Index 2024",
@@ -1867,74 +1741,14 @@ export function CrimeStatsPage() {
                 Most Deadly Terrorist Groups
               </h3>
             </div>
-            <ResponsiveContainer width="100%" height={240}>
-              <BarChart
-                data={[...TOP_TERROR_GROUPS].sort(
-                  (a, b) => b.deaths - a.deaths,
-                )}
-                layout="vertical"
-                margin={{ top: 0, right: 40, left: 10, bottom: 0 }}
-                barSize={11}
-              >
-                <CartesianGrid
-                  stroke={gridLine}
-                  strokeDasharray="3 3"
-                  horizontal={false}
-                />
-                <XAxis
-                  type="number"
-                  tick={{
-                    fontSize: 9,
-                    fill: mutedText,
-                    fontFamily: "monospace",
-                  }}
-                  axisLine={false}
-                  tickLine={false}
-                  tickFormatter={(v) => `${(v / 1000).toFixed(0)}k`}
-                />
-                <YAxis
-                  type="category"
-                  dataKey="group"
-                  tick={{
-                    fontSize: 9,
-                    fill: headText,
-                    fontFamily: "sans-serif",
-                  }}
-                  axisLine={false}
-                  tickLine={false}
-                  width={110}
-                />
-                <Tooltip
-                  contentStyle={{
-                    background: isLight ? "#fff" : "#1a1730",
-                    border: isLight
-                      ? "1px solid rgba(0,0,0,0.1)"
-                      : "1px solid rgba(255,255,255,0.1)",
-                    borderRadius: 10,
-                    fontSize: 11,
-                    fontFamily: "monospace",
-                    color: headText,
-                  }}
-                  formatter={(v: number, _name: string, entry: any) => [
-                    `${v.toLocaleString()} total deaths`,
-                    `${entry.payload.group} · ${entry.payload.region}`,
-                  ]}
-                  labelFormatter={() => "Cumulative deaths caused"}
-                  cursor={{
-                    fill: isLight
-                      ? "rgba(0,0,0,0.03)"
-                      : "rgba(255,255,255,0.04)",
-                  }}
-                />
-                <Bar dataKey="deaths" radius={[0, 4, 4, 0]}>
-                  {[...TOP_TERROR_GROUPS]
-                    .sort((a, b) => b.deaths - a.deaths)
-                    .map((entry) => (
-                      <Cell key={entry.group} fill={entry.color} />
-                    ))}
-                </Bar>
-              </BarChart>
-            </ResponsiveContainer>
+            <SlimBars
+              label="Cumulative deaths caused, by group"
+              labelWidth="7.5rem"
+              rows={[...TOP_TERROR_GROUPS]
+                .sort((a, b) => b.deaths - a.deaths)
+                .map((entry) => ({ key: entry.group, label: entry.group, v: entry.deaths, color: entry.color, tip: `${entry.group} · ${entry.region}: ${entry.deaths.toLocaleString()} total deaths` }))}
+              fmt={(v) => `${(v / 1000).toFixed(0)}k`}
+            />
             <SourceLink
               sources={{
                 label: "START Global Terrorism Database",
@@ -2415,73 +2229,12 @@ export function CrimeStatsPage() {
                 Regional Distribution
               </h3>
             </div>
-            <ResponsiveContainer width="100%" height={220}>
-              <BarChart
-                data={SLAVERY_BY_REGION}
-                layout="vertical"
-                margin={{ top: 0, right: 50, left: 10, bottom: 0 }}
-                barSize={14}
-              >
-                <CartesianGrid
-                  stroke={gridLine}
-                  strokeDasharray="3 3"
-                  horizontal={false}
-                />
-                <XAxis
-                  type="number"
-                  tick={{
-                    fontSize: 9,
-                    fill: mutedText,
-                    fontFamily: "monospace",
-                  }}
-                  axisLine={false}
-                  tickLine={false}
-                  tickFormatter={(v) => `${v}M`}
-                />
-                <YAxis
-                  type="category"
-                  dataKey="region"
-                  tick={{
-                    fontSize: 9,
-                    fill: headText,
-                    fontFamily: "sans-serif",
-                  }}
-                  axisLine={false}
-                  tickLine={false}
-                  width={130}
-                />
-                <Tooltip
-                  contentStyle={{
-                    background: isLight ? "#fff" : "#1a1730",
-                    border: isLight
-                      ? "1px solid rgba(0,0,0,0.1)"
-                      : "1px solid rgba(255,255,255,0.1)",
-                    borderRadius: 10,
-                    fontSize: 11,
-                    fontFamily: "monospace",
-                    color: headText,
-                  }}
-                  formatter={(v: number, _name: string, entry: any) => [
-                    `${v}M victims · ${entry.payload.prevalence} per 1,000`,
-                    entry.payload.region,
-                  ]}
-                  labelFormatter={() => "Modern Slavery"}
-                  cursor={{
-                    fill: isLight
-                      ? "rgba(0,0,0,0.03)"
-                      : "rgba(255,255,255,0.04)",
-                  }}
-                />
-                <Bar dataKey="victims" radius={[0, 4, 4, 0]}>
-                  {SLAVERY_BY_REGION.map((entry) => (
-                    <Cell
-                      key={entry.region}
-                      fill={isLight ? entry.color : entry.colorDark}
-                    />
-                  ))}
-                </Bar>
-              </BarChart>
-            </ResponsiveContainer>
+            <SlimBars
+              label="People in modern slavery by region, millions"
+              labelWidth="8.5rem"
+              rows={SLAVERY_BY_REGION.map((entry) => ({ key: entry.region, label: entry.region, v: entry.victims, color: isLight ? entry.color : entry.colorDark, tip: `${entry.region}: ${entry.victims}M victims · ${entry.prevalence} per 1,000` }))}
+              fmt={(v) => `${v}M`}
+            />
             {/* Region cards */}
             <div className="grid grid-cols-5 gap-2 mt-3">
               {SLAVERY_BY_REGION.map((r) => {

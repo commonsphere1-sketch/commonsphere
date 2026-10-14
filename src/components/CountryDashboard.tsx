@@ -243,8 +243,8 @@ export default function CountryDashboard({ code, name, standings }: { code: stri
                   <span className="text-[11px] font-mono font-semibold" style={{ color: t.headText }}>
                     {r.v.toFixed(1)}%<span className="font-normal" style={{ color: t.mutedText }}> · {r.y}</span>
                   </span>
-                  <span className="col-span-2 h-1.5 rounded-full overflow-hidden" style={{ background: t.gridLine }} aria-hidden>
-                    <span className="block h-full rounded-full" style={{ width: `${Math.min(100, r.v)}%`, background: INK[i % INK.length] }} />
+                  <span className="col-span-2 h-2 rounded-full overflow-hidden" style={{ background: t.gridLine }} aria-hidden>
+                    <span className="block h-full rounded-full" style={{ width: `${Math.min(100, r.v)}%`, background: `linear-gradient(90deg, color-mix(in srgb, ${INK[i % INK.length]} 35%, transparent), ${INK[i % INK.length]})` }} />
                   </span>
                 </li>
               ))}

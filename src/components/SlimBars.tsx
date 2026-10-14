@@ -40,6 +40,7 @@ export default function SlimBars({
   max,
   className = "",
   label,
+  dense = false,
 }: {
   rows: SlimRow[];
   /** How a figure is written at the end of its bar. */
@@ -51,18 +52,20 @@ export default function SlimBars({
   className?: string;
   /** What the chart is, for a screen reader. */
   label?: string;
+  /** Set closer, for a long list in a small card. */
+  dense?: boolean;
 }) {
   const top = max ?? roundUp(Math.max(0, ...rows.map((r) => r.v)));
   return (
-    <ul className={`flex flex-col gap-3 py-1 text-foreground ${className}`} aria-label={label}>
+    <ul className={`flex flex-col ${dense ? "gap-1.5" : "gap-3"} py-1 text-foreground ${className}`} aria-label={label}>
       {rows.map((r) => {
         const w = Math.max(0, Math.min(100, (r.v / top) * 100));
         return (
           <li key={r.key} className="grid items-center gap-x-3" style={{ gridTemplateColumns: `${labelWidth} minmax(0,1fr)` }} title={r.tip ?? `${typeof r.label === "string" ? r.label : ""}: ${fmt(r.v)}`.replace(/^: /, "")}>
-            <span className="text-[11px] font-sans leading-tight text-right truncate opacity-80">{r.label}</span>
+            <span className={`${dense ? "text-[10px]" : "text-[11px]"} font-sans leading-tight text-right truncate opacity-80`}>{r.label}</span>
             {/* The track leaves room at its right for the figure at the end of the longest bar. */}
             <span className="relative flex items-center h-4 pr-12">
-              <span className="relative block w-full h-2.5 rounded-full" style={{ background: "color-mix(in srgb, currentColor 7%, transparent)" }}>
+              <span className={`relative block w-full ${dense ? "h-2" : "h-2.5"} rounded-full`} style={{ background: "color-mix(in srgb, currentColor 7%, transparent)" }}>
                 <span
                   className="absolute inset-y-0 left-0 rounded-full"
                   style={{

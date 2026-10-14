@@ -15,13 +15,13 @@
  */
 import { useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Bar, BarChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
 import { MapTrifold } from "@phosphor-icons/react";
 import { STATE_INDICATORS, STATE_SOURCES, type StateIndicators } from "../data/stateIndicators";
 import { usStatesData } from "../data/statesData";
 import { Card, Caret, Go, Head, Kicker } from "./DashboardCitiesSectors";
-import { tooltipStyle, useTokens } from "./DataExplorer";
+import { useTokens } from "./DataExplorer";
 import { SourceLink } from "./SourceLink";
+import SlimBars from "./SlimBars";
 
 const COLOR = "#3b82f6";
 const SHOWN = 10;
@@ -73,22 +73,13 @@ export function StatesContainer() {
   const track = t.isLight ? "rgba(0,0,0,0.07)" : "rgba(255,255,255,0.08)";
   const years = top[0].figureYears;
   const chart = top.map((s) => ({ name: s.abbreviation, full: s.name, gdp: Number((s.gdp / 1000).toFixed(2)) }));
-  const axis = { tick: { fontSize: 9, fill: t.mutedText, fontFamily: "monospace" }, axisLine: false, tickLine: false };
   return (
     <Card t={t}>
       <Head t={t} icon={<MapTrifold size={16} weight="fill" />} label="US States" badge={`${usStatesData.length} states`} color={COLOR} cta="All States" to="/dashboard/states" />
 
       <Kicker t={t}>Output · $ trillions · {years?.gdp}</Kicker>
       <div role="img" aria-label={`The ten largest state economies by GDP, ${years?.gdp}: ${top.map((s) => `${s.name} ${output(s.gdp)}`).join(", ")}.`}>
-        <ResponsiveContainer width="100%" height={120}>
-          <BarChart data={chart} margin={{ top: 2, right: 4, left: -18, bottom: 0 }}>
-            <CartesianGrid stroke={t.gridLine} vertical={false} />
-            <XAxis dataKey="name" {...axis} interval={0} />
-            <YAxis {...axis} />
-            <Tooltip {...tooltipStyle(t)} cursor={{ fill: t.tile }} formatter={(v: number) => [`$${v}T`, "GDP"]} labelFormatter={(_, p) => (p?.[0]?.payload as { full?: string } | undefined)?.full ?? ""} />
-            <Bar dataKey="gdp" fill={COLOR} radius={[3, 3, 0, 0]} maxBarSize={26} isAnimationActive={false} />
-          </BarChart>
-        </ResponsiveContainer>
+        <SlimBars dense labelWidth="6.5rem" rows={chart.map((d) => ({ key: d.full, label: d.full, v: d.gdp, color: COLOR, tip: `${d.full}: $${d.gdp}T` }))} fmt={(v) => `$${v}T`} />
       </div>
       <SourceLink sources={[{ label: STATE_SOURCES.bea.label, url: STATE_SOURCES.bea.url }]} className="mt-1 mb-1" />
 

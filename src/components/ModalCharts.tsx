@@ -115,8 +115,16 @@ export function MeasureBars({ rows, max, color = ACCENT, label }: { rows: Measur
             </span>
           </span>
           {r.value != null && (
-            <span className="relative block h-1.5 rounded-full bg-muted mt-1" aria-hidden>
-              <span className="absolute inset-y-0 left-0 rounded-full" style={{ width: at(r.value), minWidth: r.value > 0 ? 2 : 0, background: r.color ?? semanticColor(r.label) ?? color }} />
+            // The site's slim bar (SlimBars): a faint track, and the bar in a gradient of its colour.
+            <span className="relative block h-2.5 rounded-full mt-1 text-foreground" style={{ background: "color-mix(in srgb, currentColor 7%, transparent)" }} aria-hidden>
+              <span
+                className="absolute inset-y-0 left-0 rounded-full"
+                style={{
+                  width: at(r.value),
+                  minWidth: r.value > 0 ? "0.625rem" : 0,
+                  background: `linear-gradient(90deg, color-mix(in srgb, ${r.color ?? semanticColor(r.label) ?? color} 35%, transparent), ${r.color ?? semanticColor(r.label) ?? color})`,
+                }}
+              />
               {r.world && <span className="absolute -top-0.5 -bottom-0.5 w-0.5 -ml-px rounded-full bg-foreground" style={{ left: at(r.world.value) }} title={`World: ${r.world.text}`} />}
             </span>
           )}
