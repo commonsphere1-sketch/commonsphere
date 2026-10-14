@@ -23,15 +23,15 @@
  * drag moves it, the buttons step it in and out and back to the whole, and
  * pressing a country glides to it.
  *
- * Beside the map, the headline figures of the country picked, as asked -
- * where the measure's highest and lowest stood; the bars under the map's
- * panels still rank every country on the measure.
+ * Beside the map, the country picked, as asked: its type of government, its
+ * leaders, GDP, life expectancy, inflation and human development, its
+ * languages, resources and energy (PickedColumn).
  *
  * A country pressed on the map fills the panels
  * under the map with its own figures (CountryDashboard), as asked; the page
  * opens on the United States.
  */
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { type ReactNode, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { ArrowCounterClockwise, MagnifyingGlassMinus, MagnifyingGlassPlus } from "@phosphor-icons/react";
 import { flagColor } from "../lib/flagColor";
 import { geoEqualEarth, geoGraticule10, geoPath } from "d3-geo";
@@ -41,7 +41,13 @@ import worldTopo from "world-atlas/countries-110m.json";
 import { COUNTRY_FIGURES, COUNTRY_FIGURE_SOURCES } from "../data/worldview";
 import { AIR_QUALITY, AIR_QUALITY_SOURCE } from "../data/airQuality";
 import { countryForFeature } from "../data/mapJoin";
-import { useTokens } from "./DataExplorer";
+import { NATIONAL_HEADS, REPRESENTATIVES_SOURCES } from "../data/representatives";
+import { COUNTRY_LAW_HELD, COUNTRY_LAW_SOURCES, type CountryLawFile } from "../data/countryLaw";
+import { COUNTRY_PEOPLE, COUNTRY_PEOPLE_SOURCES } from "../data/countryPeople";
+import { COUNTRY_ENERGY, ENERGY_SOURCE } from "../data/countryEnergy";
+import { RESOURCE_PRODUCERS, type Share } from "../data/resourceProducers";
+import { ENERGY_PRODUCERS } from "../data/energyProducers";
+import { useTokens, type Tokens } from "./DataExplorer";
 import { SourceLink } from "./SourceLink";
 import CountryDashboard, { headlineOf } from "./CountryDashboard";
 
@@ -152,6 +158,177 @@ const COUNTIES_FROM = 2.5;
 const CITIES_FROM = 4;
 /** The outline map's round buttons, for its zoom. */
 const TOOL = "w-7 h-7 rounded-full border border-border bg-background/70 text-muted-foreground hover:text-foreground flex items-center justify-center cursor-pointer transition-colors disabled:opacity-40 disabled:cursor-default";
+
+/** A share of world output as its publisher bounds it. */
+const shareText = (s: Share) => `${s.bound === "atMost" ? "<" : s.bound === "atLeast" ? ">" : ""}${s.pct < 1 ? s.pct.toFixed(1) : Math.round(s.pct)}%`;
+/** The commodities whose producers the site holds - USGS's minerals and the EIA's and OPEC's fuels - by name. */
+const PRODUCED = Object.entries({ ...RESOURCE_PRODUCERS, ...ENERGY_PRODUCERS });
+
+/**
+ * The place picked, beside the map: what it is and who leads it, as asked - its type of government, its leaders, its GDP,
+ * life expectancy, inflation and human development, the languages spoken in it, what it digs and pumps from the ground,
+ * and the energy it makes. Every line is its publisher's: the CIA World Factbook's words for its government and its
+ * languages; Wikipedia's list of current heads of state and government, which the site's World Leaders audit checks
+ * (the page's own leaders explorer reads the same list); the World Bank's and UNDP's figures; the USGS's, the EIA's and
+ * OPEC's tables of the largest producers; and the EIA's energy figures. A line with nothing held is left out.
+ */
+function PickedColumn({ code, name, t }: { code: string; name: string; t: Tokens }) {
+  // Its type of government: the Factbook's words, from the law file the site keeps for each country.
+  const [gov, setGov] = useState<{ code: string; type: string } | null>(null);
+  useEffect(() => {
+    let off = false;
+    if (!COUNTRY_LAW_HELD.has(code)) return;
+    fetch(`/law/${code}.json`)
+      .then((r) => (r.ok ? r.json() : Promise.reject()))
+      .then((j: CountryLawFile) => {
+        if (!off && j.gov?.type) setGov({ code, type: j.gov.type });
+      })
+      .catch(() => {});
+    return () => {
+      off = true;
+    };
+  }, [code]);
+  const govType = gov?.code === code ? gov.type : null;
+  // Each person once, with every office the list gives them (Saudi Arabia's crown prince is its prime minister too).
+  const leaders = (NATIONAL_HEADS.find((r) => r[0] === code)?.[4] ?? []).reduce<{ who: string; titles: string[] }[]>((all, [, said]) => {
+    const at = said.indexOf(" – ");
+    const who = at < 0 ? said : said.slice(at + 3);
+    const title = at < 0 ? "" : said.slice(0, at);
+    const had = all.find((l) => l.who === who);
+    if (had) had.titles.push(title);
+    else all.push({ who, titles: [title] });
+    return all;
+  }, []);
+  const head = headlineOf(code);
+  const figures = head.rows.filter((r) => ["GDP", "Life expectancy", "Inflation", "Human development"].includes(r.label));
+  const tongues = COUNTRY_PEOPLE[code]?.languages;
+  const resources = PRODUCED.flatMap(([what, table]) => {
+    const row = table.countries.find((c) => countryForFeature(c.name)?.code === code);
+    return row?.productionShare && row.productionShare.pct > 0 ? [{ what, share: row.productionShare, year: table.productionYear, sources: table.sources }] : [];
+  }).sort((a, b) => b.share.pct - a.share.pct);
+  const energy = COUNTRY_ENERGY[code.toLowerCase()];
+  const sources = [
+    ...(govType ? [COUNTRY_LAW_SOURCES.factbook] : []),
+    ...(tongues ? [COUNTRY_PEOPLE_SOURCES.factbook] : []),
+    ...head.sources,
+    ...resources.flatMap((r) => r.sources),
+    ...(energy ? [{ label: ENERGY_SOURCE.label, url: ENERGY_SOURCE.url }] : []),
+    ...(leaders.length ? [REPRESENTATIVES_SOURCES.list] : []),
+  ].filter((s, i, a) => a.findIndex((x) => x.label === s.label) === i);
+  const label = "text-[9px] font-mono uppercase tracking-widest";
+  const Block = ({ title, meta, children }: { title: string; meta?: string; children: ReactNode }) => (
+    <div className="flex flex-col gap-1 py-2 border-b last:border-b-0" style={{ borderColor: t.gridLine }}>
+      <p className={label} style={{ color: t.mutedText }}>
+        {title}
+        {meta && <span className="normal-case tracking-normal ml-1.5">{meta}</span>}
+      </p>
+      {children}
+    </div>
+  );
+  return (
+    <div className="flex flex-col gap-2 p-4 border-t lg:border-t-0 lg:border-l" style={{ borderColor: t.gridLine }}>
+      <div className="flex items-center gap-2.5">
+        <img src={`https://flagcdn.com/w80/${code.toLowerCase()}.png`} alt="" className="w-9 h-6 rounded object-cover shrink-0" style={{ border: t.cardBorder }} />
+        <div className="min-w-0">
+          <p className="text-sm font-bold font-sans leading-tight truncate" style={{ color: t.headText }}>
+            {name}
+          </p>
+          <p className="text-[10px] font-sans" style={{ color: t.mutedText }}>
+            picked on the map
+          </p>
+        </div>
+      </div>
+      <div className="flex flex-col">
+        {govType && (
+          <Block title="Government">
+            <p className="text-[12px] font-sans font-semibold leading-snug first-letter:uppercase" style={{ color: t.headText }}>
+              {govType}
+            </p>
+          </Block>
+        )}
+        {leaders.length > 0 && (
+          <Block title="Leadership">
+            {leaders.map((l) => (
+              <p key={l.who} className="text-[12px] font-sans leading-snug">
+                <span className="font-semibold" style={{ color: t.headText }}>
+                  {l.who}
+                </span>
+                {l.titles.some(Boolean) && <span className="block text-[10px]" style={{ color: t.mutedText }}>{l.titles.filter(Boolean).join(" · ")}</span>}
+              </p>
+            ))}
+          </Block>
+        )}
+        {figures.length > 0 && (
+          <ul className="flex flex-col py-1 border-b" style={{ borderColor: t.gridLine }}>
+            {figures.map((r) => (
+              <li key={r.label} className="flex items-baseline justify-between gap-2 py-1">
+                <span className={label} style={{ color: t.mutedText }}>
+                  {r.label}
+                </span>
+                <span className="text-[12px] font-mono font-semibold text-right" style={{ color: t.headText }}>
+                  {r.text}
+                  {r.y && <span className="text-[9px] font-normal ml-1" style={{ color: t.mutedText }}>{r.y}</span>}
+                </span>
+              </li>
+            ))}
+          </ul>
+        )}
+        {tongues && (tongues.parts?.length || tongues.text) && (
+          <Block title="Languages" meta={tongues.year}>
+            <p className="text-[11px] font-sans leading-snug" style={{ color: t.headText }}>
+              {tongues.parts?.length
+                ? tongues.parts
+                    .filter(([n]) => !/^(other|unspecified)/i.test(n))
+                    .slice(0, 5)
+                    .map(([n, pct, under]) => `${n} ${under ? "<" : ""}${pct}%`)
+                    .join(" · ")
+                : (() => {
+                    const items = (tongues.text ?? "").split(";")[0].split(/,(?![^(]*\))/).map((s) => s.trim()).filter(Boolean);
+                    return items.slice(0, 5).join(" · ") + (items.length > 5 ? " …" : "");
+                  })()}
+            </p>
+          </Block>
+        )}
+        {resources.length > 0 && (
+          <Block title="Resources" meta="share of world output">
+            <ul className="flex flex-col gap-0.5">
+              {resources.slice(0, 5).map((r) => (
+                <li key={r.what} className="flex items-baseline justify-between gap-2 text-[11px] font-sans" style={{ color: t.headText }}>
+                  <span>{r.what}</span>
+                  <span className="font-mono font-semibold">
+                    {shareText(r.share)}
+                    <span className="text-[9px] font-normal ml-1" style={{ color: t.mutedText }}>{r.year}</span>
+                  </span>
+                </li>
+              ))}
+            </ul>
+          </Block>
+        )}
+        {energy && energy.mix.length > 0 && (
+          <Block title="Energy produced" meta={energy.y}>
+            <div className="flex h-1.5 rounded-full overflow-hidden" role="img" aria-label={`${name}'s energy production by source, ${energy.y}`}>
+              {energy.mix.map((p) => (
+                <span key={p.source} style={{ width: `${p.pct}%`, background: p.color }} />
+              ))}
+            </div>
+            <ul className="flex flex-col gap-0.5">
+              {[...energy.mix].sort((a, b) => b.pct - a.pct).map((p) => (
+                <li key={p.source} className="flex items-center justify-between gap-2 text-[11px] font-sans" style={{ color: t.headText }}>
+                  <span className="flex items-center gap-1.5">
+                    <span className="w-2 h-2 rounded-full shrink-0" style={{ background: p.color }} />
+                    {p.source}
+                  </span>
+                  <span className="font-mono font-semibold">{p.pct}%</span>
+                </li>
+              ))}
+            </ul>
+          </Block>
+        )}
+      </div>
+      {sources.length > 0 && <SourceLink sources={sources} />}
+    </div>
+  );
+}
 
 export default function WorldviewMap() {
   const t = useTokens();
@@ -280,9 +457,6 @@ export default function WorldviewMap() {
   const shown = hover ? SHAPES.find((s) => s.code === hover) : null;
   const shownReading = hover ? shaded.get(hover) : undefined;
   const pickedName = SHAPES.find((s) => s.code === picked)?.name ?? picked;
-  const pickedReading = shaded.get(picked);
-  const pickedRank = ranked.findIndex((r) => r.code === picked);
-  const headline = headlineOf(picked);
   return (
     <>
     <section id="world-map" className="scroll-mt-36 rounded-2xl overflow-hidden" style={{ background: t.cardBg, border: t.cardBorder, boxShadow: t.cardShadow }} aria-label="The world, country by country">
@@ -418,45 +592,8 @@ export default function WorldviewMap() {
             )}
           </div>
         </div>
-        {/* The place picked, beside the map: its headline figures and where it stands on the measure. */}
-        <div className="flex flex-col gap-3 p-4 border-t lg:border-t-0 lg:border-l" style={{ borderColor: t.gridLine }}>
-          <div className="flex items-center gap-2.5">
-            <img src={`https://flagcdn.com/w80/${picked.toLowerCase()}.png`} alt="" className="w-9 h-6 rounded object-cover shrink-0" style={{ border: t.cardBorder }} />
-            <div className="min-w-0">
-              <p className="text-sm font-bold font-sans leading-tight truncate" style={{ color: t.headText }}>
-                {pickedName}
-              </p>
-              <p className="text-[10px] font-sans" style={{ color: t.mutedText }}>
-                picked on the map
-              </p>
-            </div>
-          </div>
-          <div className="rounded-lg px-3 py-2" style={{ background: t.tile, border: `1px solid ${t.gridLine}` }}>
-            <p className="text-[9px] font-mono uppercase tracking-widest" style={{ color: t.mutedText }}>
-              {m.label}
-            </p>
-            <p className="text-lg font-bold font-mono leading-tight" style={{ color: m.color }}>
-              {pickedReading ? m.fmt(pickedReading.v) : "Not held"}
-            </p>
-            <p className="text-[9px] font-mono" style={{ color: t.mutedText }}>
-              {pickedReading ? `${pickedReading.y} · ${pickedRank + 1} of ${held}, highest first` : m.unit}
-            </p>
-          </div>
-          <ul className="flex flex-col">
-            {headline.rows.map((r) => (
-              <li key={r.label} className="flex items-baseline justify-between gap-2 py-1.5 border-b last:border-b-0" style={{ borderColor: t.gridLine }}>
-                <span className="text-[10px] font-mono uppercase tracking-wider" style={{ color: t.mutedText }}>
-                  {r.label}
-                </span>
-                <span className="text-[12px] font-mono font-semibold text-right" style={{ color: t.headText }}>
-                  {r.text}
-                  {r.y && <span className="text-[9px] font-normal ml-1" style={{ color: t.mutedText }}>{r.y}</span>}
-                </span>
-              </li>
-            ))}
-          </ul>
-          {headline.sources.length > 0 && <SourceLink sources={headline.sources} />}
-        </div>
+        {/* The place picked, beside the map: what it is and who leads it, as asked. */}
+        <PickedColumn code={picked} name={pickedName} t={t} />
       </div>
       <div className="flex flex-wrap items-center gap-x-4 gap-y-2 px-4 py-3 border-t" style={{ borderColor: t.gridLine }}>
         <div className="flex items-center gap-1" aria-label="The fifths the map is shaded by">
