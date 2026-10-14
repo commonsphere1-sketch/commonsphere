@@ -5,7 +5,6 @@ import {
   Newspaper,
   Scales,
   ArrowRight,
-  Database,
   Bank,
   ChartBar,
   Buildings,
@@ -23,178 +22,242 @@ import {
   Article,
 } from "@phosphor-icons/react";
 import { useNavigate } from "react-router-dom";
+import { countriesData } from "../data/countriesData";
+import { usStatesData } from "../data/statesData";
+import { CITY_FIGURES_SOURCE } from "../data/cityFigures";
+import { PLACES_TOTAL } from "../data/placesIndex";
 
+/* What the site holds, counted from its own data and not typed: the figures once here - "195+", "300+", "100K+" - were not counts of anything. */
 const STATS = [
-  { val: "195+", lbl: "Countries Indexed" },
-  { val: "50", lbl: "US States Tracked" },
-  { val: "300+", lbl: "Global Cities" },
-  { val: "100K+", lbl: "Data Points" },
+  { val: countriesData.length.toLocaleString("en-US"), lbl: "Countries and territories" },
+  { val: String(usStatesData.length), lbl: "US states" },
+  { val: CITY_FIGURES_SOURCE.cities.toLocaleString("en-US"), lbl: "Cities, as the UN counts them" },
+  { val: PLACES_TOTAL.toLocaleString("en-US"), lbl: "Towns and villages" },
 ];
 
 const VALUES = [
   {
     icon: <Globe size={24} weight="fill" />,
-    title: "Global Coverage",
-    desc: "We track every sovereign nation, major territory, all 50 US states, hundreds of global cities, and major economies — giving you one unified view of the world's political landscape.",
+    title: "From the world to the village",
+    desc: `Every country and territory, the states, provinces and regions they are made of, the counties of the United States, ${CITY_FIGURES_SOURCE.cities.toLocaleString("en-US")} cities and ${PLACES_TOTAL.toLocaleString("en-US")} towns and villages - each with a window of its own - and the economies, the leaders and the laws over them.`,
     color: "text-emerald-400",
     bg: "bg-emerald-500/10",
   },
   {
     icon: <Lightning size={24} weight="fill" />,
-    title: "Kept Current",
-    desc: "Country and state indicators are pulled from the World Bank and refreshed while you have the app open. Written entries — policy notes, conflict and leadership records — are curated and carry their own dates.",
+    title: "Dated, and kept current",
+    desc: "Every figure carries the year it is for. Country and state indicators are refreshed from the World Bank while you have the app open; headlines every half hour. Travel advice, disaster alerts and the year's events are snapshots, each with its day.",
     color: "text-secondary",
     bg: "bg-secondary/10",
   },
   {
     icon: <Scales size={24} weight="fill" />,
-    title: "Non-partisan Integrity",
-    desc: "We present facts, not opinions. Every data point is sourced from verified government records, official statistics, and reputable institutions — from Freedom House to the UN.",
+    title: "Sourced, not estimated",
+    desc: "Each figure is its publisher's, named beside it with a link. What the site works out itself - a ratio, a rank, a count - says so. Where nothing is published, the site says \"Not held\" and leaves the gap.",
     color: "text-blue-400",
     bg: "bg-blue-500/10",
   },
   {
     icon: <Newspaper size={24} weight="fill" />,
-    title: "Research-first",
-    desc: "Built for analysts, journalists, policy researchers, and the simply curious. Every feature — from the Research Notes hub to Comparisons — is designed to accelerate deep, rigorous research.",
+    title: "Made to work with",
+    desc: "Follow a country, a state, a city or a municipality. Compare up to six countries and states side by side, on their figures or on how they are governed. Take a note on any place, or on any page.",
     color: "text-purple-400",
     bg: "bg-purple-500/10",
   },
 ];
 
+/* The publishers the site's figures are in fact drawn from (see the data log, src/data/dataLog.ts): the list once here named some that were never used. */
 const DATA_SOURCES = [
   {
     icon: <Bank size={22} weight="fill" />,
     name: "World Bank Open Data",
-    category: "Economics & Development",
-    desc: "GDP, poverty rates, debt-to-GDP ratios, trade balances, and 1,400+ development indicators across 217 economies.",
+    category: "Development & governance",
+    desc: "Development indicators, shares of income and poverty, the Worldwide Governance Indicators, tax revenue and tariffs.",
     url: "https://data.worldbank.org",
     color: "text-emerald-400",
     bg: "bg-emerald-500/10",
     badge: "bg-emerald-500/10 text-emerald-400",
   },
   {
-    icon: <Globe size={22} weight="fill" />,
-    name: "UN Statistics Division",
-    category: "Demographics & Social",
-    desc: "Population, migration flows, gender equality indices, education metrics, and sustainable development goals data.",
-    url: "https://unstats.un.org",
+    icon: <ChartBar size={22} weight="fill" />,
+    name: "OECD",
+    category: "Tax & wages",
+    desc: "Statutory rates of corporate and personal income tax, year by year, and average wages.",
+    url: "https://data.oecd.org",
     color: "text-blue-400",
     bg: "bg-blue-500/10",
     badge: "bg-blue-500/10 text-blue-400",
   },
   {
-    icon: <ChartBar size={22} weight="fill" />,
-    name: "IMF Data Warehouse",
-    category: "Fiscal & Monetary",
-    desc: "Government finance statistics, currency reserves, inflation indices, balance of payments, and fiscal monitor reports.",
-    url: "https://data.imf.org",
-    color: "text-purple-400",
-    bg: "bg-purple-500/10",
-    badge: "bg-purple-500/10 text-purple-400",
-  },
-  {
-    icon: <Flag size={22} weight="fill" />,
-    name: "Freedom House",
-    category: "Political Rights & Civil Liberties",
-    desc: "Annual Freedom in the World and Freedom on the Net scores, tracking political rights and civil liberties globally.",
-    url: "https://freedomhouse.org",
-    color: "text-orange-400",
-    bg: "bg-orange-500/10",
-    badge: "bg-orange-500/10 text-orange-400",
+    icon: <Globe size={22} weight="fill" />,
+    name: "United Nations",
+    category: "Population & cities",
+    desc: "The world's cities and their populations, population prospects, the human development indices, and the classification of what governments spend on.",
+    url: "https://unstats.un.org",
+    color: "text-sky-400",
+    bg: "bg-sky-500/10",
+    badge: "bg-sky-500/10 text-sky-400",
   },
   {
     icon: <Buildings size={22} weight="fill" />,
     name: "US Census Bureau",
-    category: "US States & Demographics",
-    desc: "State-level population estimates, economic census, American Community Survey, and Congressional apportionment data.",
+    category: "US states, counties & cities",
+    desc: "Population, income and its shares, poverty, languages spoken at home, commuting, and what each state government spends.",
     url: "https://data.census.gov",
     color: "text-cyan-400",
     bg: "bg-cyan-500/10",
     badge: "bg-cyan-500/10 text-cyan-400",
   },
   {
-    icon: <Newspaper size={22} weight="fill" />,
-    name: "Varieties of Democracy (V-Dem)",
-    category: "Governance & Democracy",
-    desc: "Disaggregated democracy indices covering electoral, liberal, participatory, deliberative, and egalitarian dimensions.",
-    url: "https://v-dem.net",
+    icon: <Briefcase size={22} weight="fill" />,
+    name: "US Bureau of Labor Statistics",
+    category: "Employment",
+    desc: "Unemployment in each state, and with the Bureau of Economic Analysis what each state produces and earns.",
+    url: "https://www.bls.gov/data/",
+    color: "text-teal-400",
+    bg: "bg-teal-500/10",
+    badge: "bg-teal-500/10 text-teal-400",
+  },
+  {
+    icon: <Bank size={22} weight="fill" />,
+    name: "International Monetary Fund",
+    category: "Economies & budgets",
+    desc: "The World Economic Outlook's figures and projections, and government spending by function.",
+    url: "https://www.imf.org/en/Data",
+    color: "text-indigo-400",
+    bg: "bg-indigo-500/10",
+    badge: "bg-indigo-500/10 text-indigo-400",
+  },
+  {
+    icon: <BookOpen size={22} weight="fill" />,
+    name: "CIA World Factbook",
+    category: "People, law & government",
+    desc: "Languages, religions and peoples; legal systems, constitutions, courts, executives and legislatures. Its final edition, of January 2026, in the public domain.",
+    url: "https://github.com/factbook/factbook.json",
+    color: "text-violet-400",
+    bg: "bg-violet-500/10",
+    badge: "bg-violet-500/10 text-violet-400",
+  },
+  {
+    icon: <ShieldCheck size={22} weight="fill" />,
+    name: "UK Foreign, Commonwealth & Development Office",
+    category: "Travel advice & local laws",
+    desc: "Where travel is advised against, and what is illegal and legal in each country. Contains public sector information licensed under the Open Government Licence v3.0.",
+    url: "https://www.gov.uk/foreign-travel-advice",
     color: "text-rose-400",
     bg: "bg-rose-500/10",
     badge: "bg-rose-500/10 text-rose-400",
   },
   {
     icon: <ShieldCheck size={22} weight="fill" />,
-    name: "SIPRI Military Expenditure",
-    category: "Defense & Security",
-    desc: "Consistent time-series data on military spending, arms transfers, peacekeeping operations, and conflict casualties.",
-    url: "https://sipri.org",
-    color: "text-amber-400",
-    bg: "bg-amber-500/10",
-    badge: "bg-amber-500/10 text-amber-400",
+    name: "US Department of State and CDC",
+    category: "Advisories & health notices",
+    desc: "Travel advisories and travel health notices, in the public domain.",
+    url: "https://travel.state.gov",
+    color: "text-red-400",
+    bg: "bg-red-500/10",
+    badge: "bg-red-500/10 text-red-400",
   },
   {
-    icon: <Database size={22} weight="fill" />,
-    name: "US Bureau of Labor Statistics",
-    category: "Employment & Labor",
-    desc: "State and national unemployment figures, consumer price indices, productivity data, and labor force participation rates.",
-    url: "https://bls.gov",
-    color: "text-indigo-400",
-    bg: "bg-indigo-500/10",
-    badge: "bg-indigo-500/10 text-indigo-400",
+    icon: <Scales size={22} weight="fill" />,
+    name: "Varieties of Democracy (V-Dem) and Freedom House",
+    category: "Rights & liberties",
+    desc: "V-Dem's indices of liberties and of who lives under which kind of government; Freedom House's scores of political rights and civil liberties.",
+    url: "https://v-dem.net",
+    color: "text-purple-400",
+    bg: "bg-purple-500/10",
+    badge: "bg-purple-500/10 text-purple-400",
   },
   {
     icon: <Sword size={22} weight="fill" />,
-    name: "ACLED Conflict Data",
-    category: "Conflicts & Security",
-    desc: "Disaggregated data on political violence and protest events worldwide, covering fatalities, actors, and event types.",
-    url: "https://acleddata.com",
-    color: "text-rose-400",
-    bg: "bg-rose-500/10",
-    badge: "bg-rose-500/10 text-rose-400",
-  },
-  {
-    icon: <Leaf size={22} weight="fill" />,
-    name: "NASA Earth Observations",
-    category: "Planetary & Environment",
-    desc: "Environmental boundary data including CO₂ levels, ocean acidification, land use change, and biodiversity loss indicators.",
-    url: "https://earthdata.nasa.gov",
-    color: "text-green-400",
-    bg: "bg-green-500/10",
-    badge: "bg-green-500/10 text-green-400",
-  },
-  {
-    icon: <MapPin size={22} weight="fill" />,
-    name: "UN Habitat Urban Data",
-    category: "Cities & Urban",
-    desc: "City-level data on population density, urban inequality, housing affordability, municipal governance, and infrastructure.",
-    url: "https://unhabitat.org",
-    color: "text-cyan-400",
-    bg: "bg-cyan-500/10",
-    badge: "bg-cyan-500/10 text-cyan-400",
-  },
-  {
-    icon: <Briefcase size={22} weight="fill" />,
-    name: "ILO Forced Labour Data",
-    category: "Humanitarian & Crime",
-    desc: "Global estimates of forced labour, modern slavery prevalence, child labour, and human trafficking by region and sector.",
-    url: "https://ilo.org",
+    name: "UCDP and SIPRI",
+    category: "Conflict & defence",
+    desc: "Deaths in armed conflict from the Uppsala Conflict Data Program, and military spending from SIPRI.",
+    url: "https://ucdp.uu.se",
     color: "text-orange-400",
     bg: "bg-orange-500/10",
     badge: "bg-orange-500/10 text-orange-400",
   },
   {
     icon: <Gavel size={22} weight="fill" />,
-    name: "UNODC Crime & Justice",
-    category: "Crime & Justice",
-    desc: "Homicide rates, prison populations, drug seizures, corruption indices, and justice system metrics across 200+ countries.",
-    url: "https://unodc.org",
+    name: "UNODC",
+    category: "Crime & justice",
+    desc: "Homicide and other recorded crime, people at each stage of a justice system, and those who staff it.",
+    url: "https://dataunodc.un.org",
     color: "text-amber-400",
     bg: "bg-amber-500/10",
     badge: "bg-amber-500/10 text-amber-400",
   },
+  {
+    icon: <Users size={22} weight="fill" />,
+    name: "ILO and Eurostat",
+    category: "Work across countries",
+    desc: "Earnings and minimum wages from ILOSTAT, and Europe's journeys to work and city statistics from Eurostat.",
+    url: "https://ilostat.ilo.org",
+    color: "text-yellow-400",
+    bg: "bg-yellow-500/10",
+    badge: "bg-yellow-500/10 text-yellow-400",
+  },
+  {
+    icon: <Leaf size={22} weight="fill" />,
+    name: "NOAA, NASA and NSIDC",
+    category: "Climate",
+    desc: "The Oceanic Niño Index, global temperature, carbon dioxide, sea ice and coral reef watch.",
+    url: "https://www.noaa.gov",
+    color: "text-green-400",
+    bg: "bg-green-500/10",
+    badge: "bg-green-500/10 text-green-400",
+  },
+  {
+    icon: <Lightning size={22} weight="fill" />,
+    name: "GDACS",
+    category: "Disasters now",
+    desc: "The Global Disaster Alert and Coordination System's orange and red alerts, with each event's own account.",
+    url: "https://www.gdacs.org",
+    color: "text-lime-400",
+    bg: "bg-lime-500/10",
+    badge: "bg-lime-500/10 text-lime-400",
+  },
+  {
+    icon: <MapPin size={22} weight="fill" />,
+    name: "Natural Earth and GeoNames",
+    category: "Maps & places",
+    desc: "The outlines of countries and their divisions, rivers, ports and roads; and the world's towns and villages.",
+    url: "https://www.naturalearthdata.com",
+    color: "text-fuchsia-400",
+    bg: "bg-fuchsia-500/10",
+    badge: "bg-fuchsia-500/10 text-fuchsia-400",
+  },
+  {
+    icon: <Article size={22} weight="fill" />,
+    name: "Wikidata and Wikipedia",
+    category: "Records & history",
+    desc: "Office-holders, a place's history and the year's events - used beside other sources, each linked at the revision read.",
+    url: "https://www.wikidata.org",
+    color: "text-slate-400",
+    bg: "bg-slate-500/10",
+    badge: "bg-slate-500/10 text-slate-400",
+  },
 ];
 
+/* The pages of the site, as the sidebar names them. */
+const SITE_PAGES = [
+  { icon: <Globe size={18} weight="fill" />, label: "Countries", desc: `${countriesData.length} countries and territories`, color: "text-emerald-400", bg: "bg-emerald-500/10" },
+  { icon: <Buildings size={18} weight="fill" />, label: "US States", desc: "All fifty, with their counties", color: "text-blue-400", bg: "bg-blue-500/10" },
+  { icon: <MapPin size={18} weight="fill" />, label: "Municipalities", desc: "States, provinces, counties, towns and villages", color: "text-cyan-400", bg: "bg-cyan-500/10" },
+  { icon: <Buildings size={18} weight="fill" />, label: "Cities", desc: "The world's cities, with each one's laws", color: "text-sky-400", bg: "bg-sky-500/10" },
+  { icon: <ChartBar size={18} weight="fill" />, label: "Economies", desc: "Output, tax, inflation, deficits and resources", color: "text-amber-400", bg: "bg-amber-500/10" },
+  { icon: <Flag size={18} weight="fill" />, label: "World Leaders", desc: "Who governs, and the wealthiest families", color: "text-indigo-400", bg: "bg-indigo-500/10" },
+  { icon: <Article size={18} weight="fill" />, label: "Policy", desc: "What governments spend, with a calculator", color: "text-violet-400", bg: "bg-violet-500/10" },
+  { icon: <Ranking size={18} weight="fill" />, label: "Compare", desc: "Figures and systems of government, side by side", color: "text-secondary", bg: "bg-secondary/10" },
+  { icon: <Lightning size={18} weight="fill" />, label: "Trends", desc: "Where the figures are heading", color: "text-yellow-400", bg: "bg-yellow-500/10" },
+  { icon: <Globe size={18} weight="fill" />, label: "Worldview", desc: "The world as a whole", color: "text-teal-400", bg: "bg-teal-500/10" },
+  { icon: <Users size={18} weight="fill" />, label: "Human Rights", desc: "Liberties, and humanitarian need and aid", color: "text-orange-400", bg: "bg-orange-500/10" },
+  { icon: <Leaf size={18} weight="fill" />, label: "Climate", desc: "Disasters now, and the state of the living world", color: "text-green-400", bg: "bg-green-500/10" },
+  { icon: <Gavel size={18} weight="fill" />, label: "Crime Statistics", desc: "Crime and justice", color: "text-rose-400", bg: "bg-rose-500/10" },
+  { icon: <MapPin size={18} weight="fill" />, label: "World Maps", desc: "Maps to the county and the district", color: "text-lime-400", bg: "bg-lime-500/10" },
+  { icon: <BookOpen size={18} weight="fill" />, label: "My Notes", desc: "A note on any place or page", color: "text-purple-400", bg: "bg-purple-500/10" },
+];
 export function AboutPage() {
   const navigate = useNavigate();
 
@@ -220,11 +283,11 @@ export function AboutPage() {
               <span className="text-secondary">political data legible</span>
             </h1>
             <p className="text-base text-muted-foreground font-sans leading-relaxed max-w-xl">
-              CommonSphere is a political intelligence platform built for
-              researchers, analysts, journalists, and citizens who want to
-              understand how the world is governed — covering countries, US
-              states, global cities, economies, conflicts, humanitarian crises,
-              crime statistics, planetary boundaries, and more.
+              CommonSphere is built for researchers, analysts, journalists and
+              citizens who want to understand how the world is governed - from
+              countries and US states down to counties, cities, towns and
+              villages, with their economies, leaders, laws, rights, climate and
+              crime, each figure from the body that publishes it.
             </p>
             <button
               onClick={() => navigate("/dashboard")}
@@ -327,9 +390,9 @@ export function AboutPage() {
                 Data sources
               </h2>
               <p className="text-sm text-muted-foreground font-sans mt-2 max-w-2xl">
-                Every data point on CommonSphere is sourced from authoritative,
-                publicly accessible institutions. We cross-reference multiple
-                sources to ensure accuracy and consistency.
+                The publishers the site's figures are drawn from. Each figure names
+                its own beside it, with its year and a link; the Terms &amp; Policies
+                page says under what licence each is used.
               </p>
             </div>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
@@ -381,90 +444,12 @@ export function AboutPage() {
                 Everything in one place
               </h2>
               <p className="text-sm text-muted-foreground font-sans mt-2 max-w-2xl">
-                CommonSphere spans a growing set of intelligence domains — each
-                with dedicated analysis tools, charts, and searchable data.
+                The pages of the site, as the sidebar names them. Each opens on
+                its own figures, and every place on it has a window of its own.
               </p>
             </div>
             <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
-              {[
-                {
-                  icon: <Globe size={18} weight="fill" />,
-                  label: "Countries",
-                  desc: "195+ sovereign nations",
-                  color: "text-emerald-400",
-                  bg: "bg-emerald-500/10",
-                },
-                {
-                  icon: <Buildings size={18} weight="fill" />,
-                  label: "US States",
-                  desc: "All 50 states tracked",
-                  color: "text-blue-400",
-                  bg: "bg-blue-500/10",
-                },
-                {
-                  icon: <MapPin size={18} weight="fill" />,
-                  label: "Global Cities",
-                  desc: "Major urban centres",
-                  color: "text-cyan-400",
-                  bg: "bg-cyan-500/10",
-                },
-                {
-                  icon: <Sword size={18} weight="fill" />,
-                  label: "Conflicts",
-                  desc: "Active & historical wars",
-                  color: "text-rose-400",
-                  bg: "bg-rose-500/10",
-                },
-                {
-                  icon: <Users size={18} weight="fill" />,
-                  label: "Humanitarian",
-                  desc: "Aid, human rights, displacement, food & health",
-                  color: "text-orange-400",
-                  bg: "bg-orange-500/10",
-                },
-                {
-                  icon: <Gavel size={18} weight="fill" />,
-                  label: "Crime & Justice",
-                  desc: "Global crime statistics",
-                  color: "text-amber-400",
-                  bg: "bg-amber-500/10",
-                },
-                {
-                  icon: <Leaf size={18} weight="fill" />,
-                  label: "Planetary Boundaries",
-                  desc: "Environmental limits",
-                  color: "text-green-400",
-                  bg: "bg-green-500/10",
-                },
-                {
-                  icon: <Flag size={18} weight="fill" />,
-                  label: "Political Ideologies",
-                  desc: "Party & movement tracking",
-                  color: "text-indigo-400",
-                  bg: "bg-indigo-500/10",
-                },
-                {
-                  icon: <Ranking size={18} weight="fill" />,
-                  label: "Global Rankings",
-                  desc: "Cross-country indices",
-                  color: "text-secondary",
-                  bg: "bg-secondary/10",
-                },
-                {
-                  icon: <Article size={18} weight="fill" />,
-                  label: "Public Policy Hub",
-                  desc: "Policy positions & analysis",
-                  color: "text-violet-400",
-                  bg: "bg-violet-500/10",
-                },
-                {
-                  icon: <BookOpen size={18} weight="fill" />,
-                  label: "Research Notes",
-                  desc: "Save & organise insights",
-                  color: "text-teal-400",
-                  bg: "bg-teal-500/10",
-                },
-              ].map((item) => (
+              {SITE_PAGES.map((item) => (
                 <div
                   key={item.label}
                   className="bg-card border border-border rounded-xl p-4 flex flex-col gap-3 hover:border-secondary/30 transition-colors"

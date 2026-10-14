@@ -8,6 +8,8 @@ import { usStatesData } from "@/data/statesData";
 import { citiesData } from "@/data/citiesData";
 import { economiesData } from "@/data/economiesData";
 import { ROYAL_FAMILIES } from "@/data/royalFamiliesData";
+import { CITY_FIGURES_SOURCE } from "@/data/cityFigures";
+import { PLACES_TOTAL } from "@/data/placesIndex";
 import {
   CheckCircle,
   Star,
@@ -59,6 +61,9 @@ const COUNTS = {
   economies: economiesData.length,
   royals: ROYAL_FAMILIES.length,
   ranked: countriesData.length + usStatesData.length,
+  /** The cities the United Nations counts, each with a window; and the towns and villages GeoNames lists. */
+  unCities: CITY_FIGURES_SOURCE.cities,
+  places: PLACES_TOTAL,
 };
 
 type PlanId = "free" | "supporter" | "professional" | "team";
@@ -116,13 +121,16 @@ const PLANS = [
     audience: "Anyone · Curious readers · Classroom use",
     note: "Students and educators: verify with an .edu address for Pro features at no cost.",
     features: [
-      `All ${COUNTS.countries} countries and territories, ${COUNTS.states} US states and ${COUNTS.cities} city profiles`,
-      `${COUNTS.economies} economies with figures refreshed from the World Bank`,
+      `All ${COUNTS.countries} countries and territories and ${COUNTS.states} US states, with their provinces, regions and counties`,
+      `${COUNTS.unCities.toLocaleString("en-US")} cities and ${COUNTS.places.toLocaleString("en-US")} towns and villages, each with a window of its own, and ${COUNTS.cities} city profiles`,
+      `${COUNTS.economies} economies with figures refreshed from the World Bank, and each one's tax rates and revenue over the years`,
       `Composite rankings across ${COUNTS.ranked} entities and 7 categories`,
-      `World leaders and ${COUNTS.royals} royal family profiles`,
-      "World and regional maps: G7, G20, BRICS, Global North and South",
-      "Planetary boundaries, crime, humanitarian and policy modules",
-      "Compare entities side by side, with no cap",
+      `World leaders, ${COUNTS.royals} royal family profiles, and the wealthiest families with a published estimate`,
+      "The law of each country: what is illegal and legal there, its courts, its constitution and who may vote",
+      "World and regional maps: the G7, the Global North and South, ports, infrastructure and resources, to the county and the district",
+      "Climate, crime, human rights, policy, trends and worldview pages",
+      "Compare up to six countries and states side by side, on their figures or on how they are governed",
+      "Follow any country, state, city or municipality, and take a note on any place or page",
       "Light and dark themes",
     ],
     roadmap: [],
@@ -145,8 +153,8 @@ const PLANS = [
     features: [
       "Everything in Free",
       "Export country and city tables to CSV",
-      "Research notes and clippings, kept on your device",
-      "Pin the countries and states you follow",
+      "Research notes on any place or page, kept on your device or in your account",
+      "Pin the countries and states you follow to the dashboard",
       "Supports the running costs of an open civic dataset",
     ],
     roadmap: [

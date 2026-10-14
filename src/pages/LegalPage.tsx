@@ -63,6 +63,9 @@ const STORED_KEYS = [
   ["cs_pinned_states", "States pinned to the dashboard strip"],
   ["cs_focus", "The country or state you follow on the dashboard"],
   ["cs-notes", "Notes written while signed out"],
+  ["cs-followed-cities", "The cities and municipalities you follow with a star"],
+  ["cs-followed-names", "Their names, and the page each opens on"],
+  ["cs-live-refresh-v1", "The World Bank figures last fetched, so they need not be fetched on every visit"],
   ["cs-watchlist", "Places watched while signed out, and their figures as last seen"],
   ["cs-plan-interest", "A plan you registered interest in"],
   ["cs_pins_synced_for", "Which account this browser last synced pins with"],
@@ -279,13 +282,25 @@ export function LegalPage() {
               manager and no tracking pixel. No cookies are set for tracking.
             </P>
 
-            <H>The one outbound request</H>
+            <H>What your browser fetches from others</H>
             <P>
               To keep indicators current, the site calls the World Bank's public
               API (api.worldbank.org) from your browser. That request carries no
               account details and no identifier — only the indicator being
               fetched. As with any web request, the World Bank will see your IP
               address, as its own privacy policy describes.
+            </P>
+            <P>
+              The same is true of the other things your browser fetches from
+              outside this site, none of which is sent anything about you beyond
+              the request itself: flag images from flagcdn.com and Wikimedia
+              Commons; a place's history, and the record of who holds an office,
+              from Wikipedia and Wikidata when a window that shows them is opened;
+              the typefaces from Google Fonts; the site's own images from its image
+              host; a disaster's map from the Global Disaster Alert and
+              Coordination System when its entry is opened; and an embedded Google
+              map when the Map tab of a city's or a town's window is opened. Each
+              of them will see your IP address, as its own privacy policy describes.
             </P>
 
             <H>Signing in</H>
@@ -323,10 +338,27 @@ export function LegalPage() {
           >
             <H>Where the figures come from</H>
             <P>
-              Indicators are drawn from public sources — the World Bank, IMF,
-              UN agencies, USGS, national statistical offices and comparable
-              publishers — together with curated datasets compiled for this
-              site. Panels name their source where one applies.
+              Indicators are drawn from public sources — the World Bank, the IMF,
+              the OECD, UN agencies, Eurostat, the US Census Bureau and other
+              national statistical offices, USGS and comparable publishers —
+              together with curated datasets compiled for this site. Panels name
+              their source where one applies, and the About page lists the
+              publishers.
+            </P>
+            <P>
+              A country's legal system, constitution, courts, executive and
+              legislature are the CIA World Factbook's, from its final edition of
+              January 2026 (public domain). What is illegal and legal in a
+              country, and where travel is advised against, is the UK Foreign,
+              Commonwealth &amp; Development Office's travel advice: it contains
+              public sector information licensed under the Open Government
+              Licence v3.0, and is advice to travellers, not a statement of the
+              law. Travel advisories and health notices of the US Department of
+              State and the CDC are in the public domain. The estimates of the
+              wealthiest families' fortunes, and the year's events in each
+              country, are read from Wikipedia under CC BY-SA 4.0, each with the
+              revision read and the publication it cites. World Bank, OECD and
+              Eurostat figures are used under CC BY 4.0.
             </P>
             <P>
               Where a country's entry had no breakdown of religions or
@@ -334,7 +366,10 @@ export function LegalPage() {
               domain), labelled with the year of the figures it cites. Where it
               had no landmarks, the site lists properties on UNESCO's World
               Heritage List, used under CC BY-SA 4.0. Map boundaries are from
-              Natural Earth (public domain) and the US Census Bureau.
+              Natural Earth (public domain) and the US Census Bureau; the towns
+              and villages are GeoNames', under CC BY 4.0; the flags of divisions
+              and of six states with no ISO code are from Wikimedia Commons, each
+              under the licence Commons states for it.
             </P>
 
             <H>What "current" means here</H>

@@ -33,6 +33,8 @@ import { passwordProblem } from "@/components/AuthModal";
 import { exportAccountData } from "@/lib/supabaseData";
 import { useWatchlist, type WatchItem } from "@/contexts/WatchlistContext";
 import { TOPICS } from "@/lib/watchlist";
+import { useFollowedCities } from "@/lib/followedCities";
+import { followedFallback, followedKind, followedLink } from "@/lib/noteKinds";
 
 /** A search result: "country-ke" / "state-ca" plus what to show. */
 interface WatchedEntity {
@@ -278,6 +280,9 @@ export function SettingsPage() {
   const [profileError, setProfileError] = useState("");
   const [profileSaved, setProfileSaved] = useState(false);
   const watch = useWatchlist();
+  /* The cities and municipalities followed with a star: kept in this browser, and not part of the watch list. */
+  const followedLocal = useFollowedCities();
+  const navigate = useNavigate();
   /* Arriving from the header bell (#alert-subscriptions) or the reset page
      (#security-settings): go to that section. After a tick, because the
      layout scrolls every newly opened page to the top first. */
@@ -689,6 +694,35 @@ export function SettingsPage() {
               <WatchedRow key={w.key} item={w} />
             ))}
           </div>
+
+          {/* The cities and municipalities followed with a star: listed here, and unfollowed here. */}
+          {followedLocal.ids.length > 0 && (
+            <div className="mb-3 pt-3 border-t border-border/60">
+              <p className="text-xs font-semibold text-foreground mb-2">Cities and municipalities you follow · {followedLocal.ids.length}</p>
+              <div className="flex flex-wrap gap-2">
+                {followedLocal.ids.map((id) => {
+                  const about = followedLocal.about(id);
+                  const to = about?.to ?? followedLink(id);
+                  return (
+                    <span key={id} className="inline-flex items-center gap-1.5 pl-2.5 pr-1 py-1 rounded-full border border-border text-xs font-sans text-foreground">
+                      {to ? (
+                        <button type="button" onClick={() => navigate(to)} className="hover:text-secondary transition-colors cursor-pointer">
+                          {about?.name ?? followedFallback(id)}
+                        </button>
+                      ) : (
+                        <span>{about?.name ?? followedFallback(id)}</span>
+                      )}
+                      <span className="text-[10px] font-mono text-muted-foreground">{followedKind(id)}</span>
+                      <button type="button" onClick={() => followedLocal.toggle(id)} className="p-1 rounded-full text-muted-foreground hover:text-foreground hover:bg-muted/60 transition-colors cursor-pointer" aria-label={`Stop following ${about?.name ?? "it"}`} title="Stop following">
+                        ×
+                      </button>
+                    </span>
+                  );
+                })}
+              </div>
+              <p className="text-[11px] text-muted-foreground mt-2 leading-snug">Followed with the ☆ on a city's or a municipality's card. Kept in this browser only: their figures change when the site's data is rebuilt, so there is nothing to alert on.</p>
+            </div>
+          )}
 
           {/* Search to add */}
           <EntitySearch onAdd={addEntity} existingIds={existingIds} />
