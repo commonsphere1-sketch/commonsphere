@@ -26,7 +26,6 @@ export const SITE_SECTIONS: { to: string; label: string; holds: string }[] = [
   { to: "/dashboard/rankings", label: "Compare", holds: "places side by side" },
   { to: "/dashboard/trends", label: "Trends", holds: "where the figures are heading" },
   { to: "/dashboard/worldview", label: "Worldview", holds: "the world as a whole" },
-  { to: "/dashboard/humanitarian", label: "Human Rights", holds: "liberties, and need and aid" },
   { to: "/dashboard/planetary-boundaries", label: "Climate", holds: "the climate and the living world" },
   { to: "/dashboard/crime", label: "Crime Statistics", holds: "crime and justice" },
   { to: "/dashboard/maps", label: "World Maps", holds: "the maps" },

@@ -102,7 +102,6 @@ const PAGES: [label: string, to: string, about: string][] = [
   ["Compare", "/dashboard/rankings", "Places side by side"],
   ["Trends", "/dashboard/trends", "Figures over time"],
   ["Worldview", "/dashboard/worldview", "The world's news and views"],
-  ["Human Rights", "/dashboard/humanitarian", "Rights, liberties and humanitarian need"],
   ["Climate", "/dashboard/planetary-boundaries", "The measured state of the climate"],
   ["Crime Statistics", "/dashboard/crime", "Crime and justice figures"],
   ["World Maps", "/dashboard/maps", "The world, mapped by measure"],

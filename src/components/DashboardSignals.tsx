@@ -1,7 +1,8 @@
 /**
- * Four Dashboard cards for the parts of the site the Dashboard did not yet
- * show: the countries set against each other, the climate, aid and human
- * rights, and how the world's people live.
+ * Three Dashboard cards for the parts of the site the Dashboard did not yet
+ * show: the countries set against each other, the climate, and how the
+ * world's people live. A fourth, on human rights and aid, was the Human Rights
+ * page's and went when that page was deleted.
  *
  *   Countries         the ten highest or the ten lowest countries on a
  *                     measure the reader picks - output a person, life
@@ -17,8 +18,6 @@
  *                     NOAA, NASA, NSIDC), and where each of the nine
  *                     planetary boundaries stands (planetaryBoundaries.ts:
  *                     the Planetary Health Check).
- *   Human rights      world series from worldview.ts: V-Dem's measures of
- *     & aid           liberty first, then the people displaced, hungry and poor.
  *   How the world     world series from worldview.ts: life, schooling and
  *     lives           the services people have.
  *
@@ -29,7 +28,7 @@
  */
 import { useMemo, useState, type ReactNode } from "react";
 import { useNavigate } from "react-router-dom";
-import { ArrowDown, ArrowUp, ArrowsLeftRight, Globe, HandHeart, Heartbeat, Leaf } from "@phosphor-icons/react";
+import { ArrowDown, ArrowUp, ArrowsLeftRight, Globe, Heartbeat, Leaf } from "@phosphor-icons/react";
 import { CLIMATE_INDICATORS, CLIMATE_RETRIEVED } from "../data/climateIndicators";
 import { countriesData } from "../data/countriesData";
 import { COUNTRY_INDICATOR_FALLBACKS, COUNTRY_INDICATORS, COUNTRY_INDICATORS_SOURCE, type CountryIndicators } from "../data/countryIndicators";
@@ -153,32 +152,6 @@ function SignalsCard({ icon, label, badge, color, cta, to, intro, signals, note 
 
 const CHANGE_NOTE =
   "The figure is the world's for its latest year; the change is on the year before - a rate in points, anything else as a percentage - and is green where the series moved the way that is better, red where it moved the other. The line is the whole series between its own lowest and highest: its shape, not its size.";
-
-/** The liberties the world's people have, and the people in need: the Human Rights page's subjects, in its order. */
-export function AidAndRights() {
-  return (
-    <SignalsCard
-      icon={<HandHeart size={16} weight="fill" />}
-      label="Human rights & aid"
-      badge="world figures"
-      color="#f43f5e"
-      cta="Human Rights"
-      to="/dashboard/humanitarian"
-      intro="How free the world's people are, and the people displaced, hungry and poor - each as its publisher counts it."
-      signals={[
-        { id: "civilLiberties", color: "#14b8a6" },
-        { id: "freeExpression", color: "#6366f1" },
-        { id: "womenParliament", color: "#ec4899" },
-        { id: "displaced", color: "#7c3aed" },
-        { id: "disasterDisplacement", color: "#0ea5e9" },
-        { id: "undernourished", color: "#f59e0b" },
-        { id: "foodInsecure", color: "#f97316" },
-        { id: "extremePoverty", color: "#ef4444" },
-      ]}
-      note={`${CHANGE_NOTE} The two liberty measures are V-Dem's indices, from 0 to 1, weighted by where people live.`}
-    />
-  );
-}
 
 /** How long people live, what they learn and the services they have: the Worldview page's subjects. */
 export function WorldLiving() {

@@ -12,7 +12,6 @@ import {
   CurrencyDollar,
   NotePencil,
   Lectern,
-  HandHeart,
   Crown,
   GlobeHemisphereWest,
   Scroll,
@@ -80,12 +79,6 @@ const analysisNav = [
   { to: "/dashboard/trends", label: "Trends", icon: ChartLine, end: false },
   // The world as a whole: peace, debt, climate, development, food, technology.
   { to: "/dashboard/worldview", label: "Worldview", icon: GlobeStand, end: false },
-  {
-    to: "/dashboard/humanitarian",
-    label: "Human Rights",
-    icon: HandHeart,
-    end: false,
-  },
   {
     to: "/dashboard/planetary-boundaries",
     label: "Climate",

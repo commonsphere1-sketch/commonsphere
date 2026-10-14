@@ -9,8 +9,7 @@
  * publishes, under the names of two bodies that publish others. These are
  * the bodies' own counts, with what each counts said beside it.
  */
-import { useNavigate } from "react-router-dom";
-import { ArrowRight, Crosshair } from "@phosphor-icons/react";
+import { Crosshair } from "@phosphor-icons/react";
 import { WORLD, type WorldIndicator } from "../data/worldview";
 import { StatCard, type StatCardData } from "./StatCard";
 import { useTokens } from "./DataExplorer";
@@ -49,7 +48,6 @@ function cardOf(id: string): StatCardData | null {
 
 export function ConflictFigures() {
   const t = useTokens();
-  const navigate = useNavigate();
   const cards = ["conflicts", "conflictDeaths", "displaced"].map(cardOf).filter((c): c is StatCardData => !!c);
   if (!cards.length) return null;
   return (
@@ -61,9 +59,6 @@ export function ConflictFigures() {
             Conflict and displacement
           </h2>
         </div>
-        <button type="button" onClick={() => navigate("/dashboard/humanitarian")} className="flex items-center gap-1 text-[10px] font-semibold transition-opacity hover:opacity-70 cursor-pointer shrink-0" style={{ color: COLOR }}>
-          Humanitarian <ArrowRight size={10} weight="bold" aria-hidden />
-        </button>
       </div>
       <p className="text-[11px] font-sans leading-snug mb-3" style={{ color: t.mutedText }}>
         The world's counts as the bodies that keep them publish them, each for its latest year. A card opens to its full series.

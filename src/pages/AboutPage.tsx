@@ -252,7 +252,6 @@ const SITE_PAGES = [
   { icon: <Ranking size={18} weight="fill" />, label: "Compare", desc: "Figures and systems of government, side by side", color: "text-secondary", bg: "bg-secondary/10" },
   { icon: <Lightning size={18} weight="fill" />, label: "Trends", desc: "Where the figures are heading", color: "text-yellow-400", bg: "bg-yellow-500/10" },
   { icon: <Globe size={18} weight="fill" />, label: "Worldview", desc: "The world as a whole", color: "text-teal-400", bg: "bg-teal-500/10" },
-  { icon: <Users size={18} weight="fill" />, label: "Human Rights", desc: "Liberties, and humanitarian need and aid", color: "text-orange-400", bg: "bg-orange-500/10" },
   { icon: <Leaf size={18} weight="fill" />, label: "Climate", desc: "Disasters now, and the state of the living world", color: "text-green-400", bg: "bg-green-500/10" },
   { icon: <Gavel size={18} weight="fill" />, label: "Crime Statistics", desc: "Crime and justice", color: "text-rose-400", bg: "bg-rose-500/10" },
   { icon: <MapPin size={18} weight="fill" />, label: "World Maps", desc: "Maps to the county and the district", color: "text-lime-400", bg: "bg-lime-500/10" },
@@ -340,8 +339,8 @@ export function AboutPage() {
                 Our goal is a single, authoritative, always-current window into
                 how every country, state, city, and economy on Earth is governed
                 — economically, politically, and socially — alongside deep
-                tracking of conflicts, humanitarian emergencies, crime
-                statistics, planetary boundaries, political ideologies, and
+                tracking of conflicts, crime statistics, planetary
+                boundaries, political ideologies, and
                 global wealth.
               </p>
             </div>

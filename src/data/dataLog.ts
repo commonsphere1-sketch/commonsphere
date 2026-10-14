@@ -270,14 +270,6 @@ export const DATA_LOG: DataLogEntry[] = [
     "files": 1
   },
   {
-    "what": "The deadliest natural disaster of each year by name, and where most died in armed conflict",
-    "from": "Wikipedia, NOAA, UCDP",
-    "page": "/dashboard/humanitarian",
-    "where": "Humanitarian",
-    "read": "2026-10-07",
-    "files": 1
-  },
-  {
     "what": "The heads of regions and municipalities that three records agree on, with where each place is",
     "from": "Wikidata, Wikipedia",
     "page": "/dashboard/maps",
@@ -478,12 +470,12 @@ export const DATA_LOG: DataLogEntry[] = [
     "files": 4
   },
   {
-    "what": "What governments spend, by function, and what they give in aid",
-    "from": "IMF, OECD",
+    "what": "What governments spend, by function",
+    "from": "IMF",
     "page": "/dashboard/economies",
     "where": "Economies",
     "read": "2026-09-21",
-    "files": 2
+    "files": 1
   },
   {
     "what": "The air people breathe: PM2.5 exposure by country",
@@ -496,4 +488,4 @@ export const DATA_LOG: DataLogEntry[] = [
 ];
 
 /** How many data files the log covers. */
-export const DATA_LOG_FILES = 80;
+export const DATA_LOG_FILES = 78;

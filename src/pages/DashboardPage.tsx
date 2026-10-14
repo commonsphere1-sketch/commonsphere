@@ -29,7 +29,7 @@ import { CommodityMovers } from "../components/CommodityMovers";
 import { GlobalAnalytics } from "../components/DashboardGlobal";
 import { CitiesContainer, SectorOutlook } from "../components/DashboardCitiesSectors";
 import { StatesContainer } from "../components/DashboardStates";
-import { AidAndRights, CountryLeaders, PlanetNow, WorldLiving } from "../components/DashboardSignals";
+import { CountryLeaders, PlanetNow, WorldLiving } from "../components/DashboardSignals";
 
 /** Energy to 2050, the panel kept of the Trends & Projections desk, with the projections it draws on: loaded after the page. */
 const EnergyOutlook = lazy(() => import("../components/EnergyOutlook"));
@@ -3095,11 +3095,10 @@ export function DashboardPage() {
           <SectorOutlook />
           <CommodityMovers />
 
-          {/* The parts of the site the Dashboard did not show: the countries set against each other and the climate;
-              aid and human rights, and how the world lives. */}
+          {/* The parts of the site the Dashboard did not show: the countries set against each other, the climate, and
+              how the world lives. The card for the Human Rights page went with that page. */}
           <CountryLeaders />
           <PlanetNow />
-          <AidAndRights />
           <WorldLiving />
         </div>
 
