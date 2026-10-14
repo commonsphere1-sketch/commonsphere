@@ -30,7 +30,7 @@
  * sun, a forest, a party - is drawn in that colour wherever it appears
  * (lib/semanticColors); the chart's own colours are for what has none.
  */
-import { useState, type ReactNode } from "react";
+import { useId, useState, type ReactNode } from "react";
 import { WORLD } from "../data/worldview";
 import { semanticColor } from "../lib/semanticColors";
 
@@ -156,12 +156,13 @@ export function PartsBar({ parts, colors = PART_COLORS, label, columns = 2 }: { 
   const fill = (p: Part, i: number) => p.color ?? semanticColor(p.label) ?? colors[i % colors.length];
   return (
     <div>
-      <div className="flex h-2.5 gap-0.5" role="img" aria-label={`${label}: ${shown.map((p) => `${p.label} ${p.text}`).join(", ")}.`}>
+      {/* The slim style (SlimBars): each part a rounded segment in a gradient of its colour, a hairline apart. */}
+      <div className="flex h-2.5 gap-[3px]" role="img" aria-label={`${label}: ${shown.map((p) => `${p.label} ${p.text}`).join(", ")}.`}>
         {shown.map((p, i) => (
           <span
             key={p.label}
-            className={`h-full min-w-[2px] ${i === 0 ? "rounded-l-full" : ""} ${i === shown.length - 1 ? "rounded-r-full" : ""}`}
-            style={{ flexGrow: p.value, flexBasis: 0, background: fill(p, i) }}
+            className="h-full min-w-[4px] rounded-full"
+            style={{ flexGrow: p.value, flexBasis: 0, background: `linear-gradient(90deg, color-mix(in srgb, ${fill(p, i)} 35%, transparent), ${fill(p, i)})` }}
             title={`${p.label}: ${p.text}`}
           />
         ))}
@@ -170,7 +171,7 @@ export function PartsBar({ parts, colors = PART_COLORS, label, columns = 2 }: { 
       <ul className="grid gap-x-4 gap-y-1 mt-2" style={{ gridTemplateColumns: columns === 1 ? "1fr" : `repeat(auto-fit, minmax(${columns === 3 ? "7.5rem" : "9rem"}, 1fr))` }}>
         {shown.map((p, i) => (
           <li key={p.label} className="flex items-baseline gap-1.5 min-w-0">
-            <span className="w-2 h-2 rounded-sm shrink-0 translate-y-px" style={{ background: fill(p, i) }} aria-hidden />
+            <span className="w-2 h-2 rounded-full shrink-0 translate-y-px" style={{ background: fill(p, i) }} aria-hidden />
             <span className="text-[11px] font-sans text-foreground min-w-0 leading-snug">{p.label}</span>
             <span className="text-[11px] font-mono font-semibold text-foreground ml-auto shrink-0">{p.text}</span>
           </li>
@@ -189,17 +190,20 @@ export function PartsBar({ parts, colors = PART_COLORS, label, columns = 2 }: { 
  */
 export function PartsDonut({ parts, colors = PART_COLORS, label }: { parts: Part[]; colors?: string[]; /** What the ring shows, for a screen reader. */ label: string }) {
   const [on, setOn] = useState<string | null>(null);
+  const gid = useId().replace(/:/g, "");
   const shown = parts.filter((p) => p.value > 0);
   const total = shown.reduce((a, p) => a + p.value, 0);
   if (!shown.length || total <= 0) return null;
   const fill = (p: Part, i: number) => p.color ?? semanticColor(p.label) ?? colors[i % colors.length];
   const R = 40;
   const C = 2 * Math.PI * R;
-  const gap = shown.length > 1 ? 2.5 : 0;
+  // The slim style: a thinner ring with rounded ends, so the gap between arcs allows for the caps.
+  const W = 9;
+  const gap = shown.length > 1 ? 2.5 + W : 0;
   let run = 0;
   const arcs = shown.map((p, i) => {
     const len = (p.value / total) * C;
-    const arc = { p, i, start: run, len: Math.max(1.5, len - gap) };
+    const arc = { p, i, start: run, len: Math.max(0.5, len - gap) };
     run += len;
     return arc;
   });
@@ -211,6 +215,16 @@ export function PartsDonut({ parts, colors = PART_COLORS, label }: { parts: Part
   return (
     <div className="flex flex-wrap items-center gap-x-5 gap-y-3">
       <svg viewBox="0 0 100 100" className="w-28 h-28 shrink-0" role="img" aria-label={`${label}: ${shown.map((p) => `${p.label} ${p.text}`).join(", ")}.`}>
+        <defs>
+          {arcs.map(({ p, i }) => (
+            <linearGradient key={p.label} id={`${gid}-${i}`} x1="0" y1="0" x2="1" y2="1">
+              <stop offset="0%" stopColor={fill(p, i)} stopOpacity={0.45} />
+              <stop offset="100%" stopColor={fill(p, i)} stopOpacity={1} />
+            </linearGradient>
+          ))}
+        </defs>
+        {/* The faint track the arcs lie on. */}
+        <circle cx={50} cy={50} r={R} fill="none" stroke="currentColor" strokeOpacity={0.07} strokeWidth={W} className="text-foreground" />
         <g transform="rotate(-90 50 50)">
           {arcs.map(({ p, i, start, len }) => (
             <circle
@@ -219,10 +233,11 @@ export function PartsDonut({ parts, colors = PART_COLORS, label }: { parts: Part
               cy={50}
               r={R}
               fill="none"
-              stroke={fill(p, i)}
-              strokeWidth={13}
+              stroke={shown.length > 1 ? `url(#${gid}-${i})` : fill(p, i)}
+              strokeWidth={W}
+              strokeLinecap={shown.length > 1 ? "round" : "butt"}
               strokeDasharray={`${len} ${C - len}`}
-              strokeDashoffset={-start}
+              strokeDashoffset={-start - (shown.length > 1 ? W / 2 : 0)}
               opacity={on && on !== p.label ? 0.3 : 1}
               onMouseEnter={() => setOn(p.label)}
               onMouseLeave={() => setOn(null)}
@@ -307,8 +322,8 @@ export function HdiScale({ value, year, world }: { value: number; year?: string;
           </span>
         </span>
       </div>
-      <div className="relative h-1.5 rounded-full bg-muted mt-1" role="img" aria-label={`Human Development Index ${value.toFixed(3)} on a scale of 0 to 1: ${hdiTier(value).toLowerCase()} human development.`}>
-        <span className="absolute inset-y-0 left-0 rounded-full" style={{ width: at(value), background: ACCENT }} />
+      <div className="relative h-2.5 rounded-full mt-1 text-foreground" style={{ background: "color-mix(in srgb, currentColor 7%, transparent)" }} role="img" aria-label={`Human Development Index ${value.toFixed(3)} on a scale of 0 to 1: ${hdiTier(value).toLowerCase()} human development.`}>
+        <span className="absolute inset-y-0 left-0 rounded-full" style={{ width: at(value), background: `linear-gradient(90deg, color-mix(in srgb, ${ACCENT} 35%, transparent), ${ACCENT})` }} />
         {[0.55, 0.7, 0.8].map((b) => (
           <span key={b} className="absolute -top-0.5 -bottom-0.5 w-px bg-muted-foreground opacity-70" style={{ left: at(b) }} aria-hidden />
         ))}
