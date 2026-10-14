@@ -12,6 +12,10 @@
  * score is the weighted mean of its measures, over the measures it has.
  * With the weights it opens on, the score is the page's composite score.
  *
+ * A page may leave the list of weights out (adjustable), as the Rankings page
+ * does: the reader then chooses between the opening weights and every
+ * measure alike, and the scores and what each is made of are as before.
+ *
  * A score is arithmetic on published figures, not a published figure: the
  * tool says so, and says how many of the weighted measures each place has,
  * since a place scored on two measures and a place scored on nine are not
@@ -64,6 +68,7 @@ export default function IndexBuilder({
   defaultsLabel = "The page's weights",
   defaultsNote = "These are the weights of the page's own composite score, and the rule is the same.",
   otherNote = "The page's own composite score uses the weights the first button restores.",
+  adjustable = true,
   className = "",
 }: {
   entities: IndexEntity[];
@@ -77,6 +82,8 @@ export default function IndexBuilder({
   defaultsLabel?: string;
   defaultsNote?: string;
   otherNote?: string;
+  /** Whether each measure's weight can be set, from a list of them. Without it the reader chooses between the opening weights and every measure alike. */
+  adjustable?: boolean;
   className?: string;
 }) {
   const grouped = useMemo(() => {
@@ -134,6 +141,7 @@ export default function IndexBuilder({
   const open = scored.find((s) => s.e.id === picked) ?? null;
   const rankOf = (s: Scored) => scored.indexOf(s) + 1;
   const same = measures.every((m) => (weights[m.id] ?? 0) === (defaults[m.id] ?? 0));
+  const allEqual = measures.every((m) => (weights[m.id] ?? 0) === 1);
   const chip = (on: boolean) => `px-3 py-1 rounded-full text-[11px] font-medium font-sans border transition-colors cursor-pointer shrink-0 ${on ? "chip-selected" : "bg-transparent border-border text-muted-foreground hover:text-foreground hover:bg-muted/60"}`;
 
   const row = (s: Scored) => (
@@ -182,19 +190,22 @@ export default function IndexBuilder({
         {/* Weights */}
         <div>
           <div className="flex items-center gap-2 flex-wrap mb-3">
-            <span className="text-[10px] font-bold font-sans text-muted-foreground uppercase tracking-widest">Weights · 0 leaves a measure out</span>
+            <span className="text-[10px] font-bold font-sans text-muted-foreground uppercase tracking-widest">{adjustable ? "Weights · 0 leaves a measure out" : "Weights"}</span>
             <span className="flex-1" />
             <button type="button" className={chip(same)} onClick={() => setWeights(defaults)}>
               <ArrowCounterClockwise size={11} className="inline -mt-0.5 mr-1" aria-hidden />
               {defaultsLabel}
             </button>
-            <button type="button" className={chip(false)} onClick={() => setWeights(Object.fromEntries(measures.map((m) => [m.id, 1])))}>
+            <button type="button" className={chip(allEqual)} onClick={() => setWeights(Object.fromEntries(measures.map((m) => [m.id, 1])))} aria-pressed={allEqual}>
               All equal
             </button>
-            <button type="button" className={chip(false)} onClick={() => setWeights({})}>
-              Clear
-            </button>
+            {adjustable && (
+              <button type="button" className={chip(false)} onClick={() => setWeights({})}>
+                Clear
+              </button>
+            )}
           </div>
+          {adjustable && (
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-x-6 gap-y-4">
             {grouped.map((g) => (
               <div key={g.title} className="min-w-0">
@@ -239,7 +250,8 @@ export default function IndexBuilder({
               </div>
             ))}
           </div>
-          <p className="text-[10px] font-sans text-muted-foreground leading-snug mt-3">
+          )}
+          <p className={`text-[10px] font-sans text-muted-foreground leading-snug ${adjustable ? "mt-3" : ""}`}>
             The rule: each measure is set on a scale of 0 to 100 between the lowest and the highest value any place has{measures.some((m) => m.scale) ? " - or, where it has a scale of its own, an index of 0 to 1 or a share of 0 to 100, on that scale" : ""},
             turned over where lower is better; a place's score is the mean of its measures, each counted by its weight, over the measures it has. {same ? defaultsNote : otherNote} The figures are each measure's latest - no earlier years are held
             to compare a place with itself.

@@ -2033,7 +2033,15 @@ export function RankingsPage() {
       />
 
       {/* ── A reader's own index: the page's measures, weighed as they choose ── */}
-      <IndexBuilder entities={indexEntities} measures={INDEX_MEASURES} defaults={INDEX_DEFAULTS} />
+      {/* Its list of weights, measure by measure, was taken off this page as asked; the Human Rights page's index keeps its own. */}
+      <IndexBuilder
+        entities={indexEntities}
+        measures={INDEX_MEASURES}
+        defaults={INDEX_DEFAULTS}
+        adjustable={false}
+        title="The page's measures as one score"
+        lead="Every country and US state scored on the page's measures - by the weights of the page's own composite, or with every measure counted alike. A score is worked out here from published figures - it is not a published figure - and the rule is given in full below."
+      />
 
       {/* ── Filters ─────────────────────────────────────────────────────── */}
       {/* Search and filters: the same one-row sticky bar as the countries and
