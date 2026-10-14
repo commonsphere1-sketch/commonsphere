@@ -28,7 +28,8 @@ import { FigureTile } from "./ModalCharts";
 import { SourceLink } from "./SourceLink";
 import { StyledSelect } from "./StyledSelect";
 
-const ACCENT = "#6366f1";
+/** The green of the Economies page's currency converter, as asked: the two tools are cards of one make. */
+const ACCENT = "#10b981";
 const COUNTRIES = Object.keys(COUNTRY_BUDGET)
   .map((code) => ({ value: code, label: PLACE_COUNTRIES[code]?.[0] ?? code }))
   .sort((a, b) => a.label.localeCompare(b.label));
@@ -58,14 +59,15 @@ export default function PolicyCalculator({ className = "" }: { className?: strin
   const indSources = [ind?.gdp, ind?.population].flatMap((f) => (f ? [f.s ? COUNTRY_INDICATOR_FALLBACKS[f.s] : { label: COUNTRY_INDICATORS_SOURCE.label, url: COUNTRY_INDICATORS_SOURCE.url }] : []));
 
   return (
-    <div className={`bg-card border border-border rounded-2xl ${className}`}>
-      <div className="px-5 py-3.5 border-b border-border">
+    <div className={`border rounded-2xl ${className}`} style={{ background: `color-mix(in srgb, ${ACCENT} 12%, var(--color-card))`, borderColor: `color-mix(in srgb, ${ACCENT} 30%, var(--color-border))` }}>
+      <div className="px-5 py-3.5 border-b" style={{ borderColor: `color-mix(in srgb, ${ACCENT} 22%, var(--color-border))` }}>
         <div className="flex items-center gap-2.5 flex-wrap">
-          <div className="w-7 h-7 rounded-lg flex items-center justify-center shrink-0" style={{ background: ACCENT + "12", border: `1px solid ${ACCENT}22` }}>
+          <div className="w-7 h-7 rounded-lg flex items-center justify-center shrink-0" style={{ background: `color-mix(in srgb, ${ACCENT} 12%, transparent)` }}>
             <Calculator size={13} weight="fill" style={{ color: ACCENT }} />
           </div>
           <span className="text-sm font-bold font-sans text-foreground">Policy calculator</span>
-          <span className="text-[10px] font-bold font-mono px-2.5 py-1 rounded-lg" style={{ background: ACCENT + "18", color: ACCENT }}>
+          {/* A darker green on a light page: the hue itself is too pale to read there at this size. */}
+          <span className="text-[10px] font-bold font-mono px-2.5 py-1 rounded-lg text-emerald-700 dark:text-emerald-400" style={{ background: `color-mix(in srgb, ${ACCENT} 22%, transparent)` }}>
             {COUNTRIES.length} countries
           </span>
         </div>

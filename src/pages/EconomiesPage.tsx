@@ -491,7 +491,8 @@ function CurrencyConverter() {
     label: `${c} — ${CURRENCY_NAMES[c] ?? c}`,
   }));
 
-  const ACCENT = "#3fa9b5";
+  // Green, as asked: it was a teal. The Policy page's calculator is a card of the same make.
+  const ACCENT = "#10b981";
   return (
     <div className="border rounded-2xl p-5 mb-6" style={{ background: `color-mix(in srgb, ${ACCENT} 12%, var(--color-card))`, borderColor: `color-mix(in srgb, ${ACCENT} 30%, var(--color-border))` }}>
       <div className="flex items-center gap-2 mb-4">
