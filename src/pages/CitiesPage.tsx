@@ -27,6 +27,7 @@ import {
   ArrowsIn,
   ArrowsOut,
   ClockCounterClockwise,
+  Scales,
   Star,
   X,
 } from "@phosphor-icons/react";
@@ -62,6 +63,8 @@ import { TONE, CHIP_TEXT } from "@/lib/chipTone";
 const ProfileQuality = lazy(() => import("../components/ProfileQuality"));
 /** A country's people, income and poverty, given in a city's window as its country's. */
 const PeoplePanel = lazy(() => import("../components/PeoplePanel"));
+/** The law a city is under, its country's: fetched when its Laws tab is opened. */
+const PlaceLaws = lazy(() => import("../components/PlaceLaws"));
 const Universities = lazy(() => import("../components/Universities"));
 /** Every city the United Nations counts, under the profiled ones: loaded when the page reaches it, with its list of some twelve thousand. */
 const AllCities = lazy(() => import("../components/AllCities"));
@@ -406,7 +409,7 @@ function CityStandings({ row }: { row: Row }) {
 }
 
 function CityModal({ city, onClose }: { city: City; onClose: () => void }) {
-  const [activeTab, setActiveTab] = useState<"overview" | "map" | "history">("overview");
+  const [activeTab, setActiveTab] = useState<"overview" | "laws" | "map" | "history">("overview");
   /* The city's article and where it is. */
   const place = CITY_PLACES[city.id];
   const row = rowOf(city.id);
@@ -517,6 +520,7 @@ function CityModal({ city, onClose }: { city: City; onClose: () => void }) {
             {(
               [
                 { key: "overview", label: "Overview", icon: <ListBullets size={14} /> },
+                { key: "laws", label: "Laws", icon: <Scales size={14} /> },
                 { key: "history", label: "History", icon: <ClockCounterClockwise size={14} /> },
                 { key: "map", label: "Map", icon: <MapTrifold size={14} /> },
               ] as const
@@ -718,6 +722,13 @@ function CityModal({ city, onClose }: { city: City; onClose: () => void }) {
           )}
 
           {/* History Tab: the city's story from its Wikipedia article. */}
+          {/* Laws: the law the place is under - its country's, said to be so - with what is illegal and legal there first. */}
+          {activeTab === "laws" && (
+            <Suspense fallback={<p className="text-xs font-sans text-muted-foreground py-6 text-center">Fetching the law of {city.country}…</p>}>
+              <PlaceLaws code={city.countryCode} country={city.country} place={city.name} />
+            </Suspense>
+          )}
+
           {activeTab === "history" &&
             (place ? (
               <ArticlePanel title={place.wiki} name={city.name} mode="history" />

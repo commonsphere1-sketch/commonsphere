@@ -91,6 +91,28 @@ function Answer({ label, text }: { label: string; text: string }) {
   );
 }
 
+/**
+ * What is illegal and what is legal in a country, by itself: for a window whose own law tab holds the rest - a
+ * country's, a state's - and opens on this.
+ */
+export function LegalAndIllegal({ code, country, place, className = "" }: { code: string; country: string; /** The place whose window this is, where it is not the country itself. */ place?: string; className?: string }) {
+  const law = useLaw(code);
+  const land = inSentence(country);
+  if (law === undefined) return <p className={`text-xs font-sans text-muted-foreground py-4 text-center ${className}`}>Fetching what is illegal and legal in {land}…</p>;
+  if (!law?.local)
+    return (
+      <p className={`modal-tile rounded-xl p-4 text-xs font-sans text-muted-foreground leading-relaxed ${className}`}>
+        What is illegal and legal in {land}: not held. The account the site gives is the UK Foreign Office's travel advice, and it publishes none with a part on laws for {land}.
+      </p>
+    );
+  return (
+    <div className={className}>
+      <LawAdvice advice={law.local} country={land} place={place} />
+      <SourceLink sources={[SRC.advice, SRC.state]} className="mt-2" />
+    </div>
+  );
+}
+
 export default function PlaceLaws({ code, country, place }: { /** The country's ISO 3166-1 code. */ code: string; country: string; /** The place whose window this is, where it is not the country itself. */ place?: string }) {
   const law = useLaw(code);
   const land = inSentence(country);

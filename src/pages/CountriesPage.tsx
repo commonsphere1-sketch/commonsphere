@@ -23,6 +23,8 @@ const PoliticalClimate = lazy(() => import("../components/PoliticalClimate"));
 const GovernmentFacts = lazy(() => import("../components/GovernmentFacts"));
 /** How the country's income is shared among its people, and how many are poor: the World Bank's shares by fifth and tenth and its poverty rates. */
 const PeoplePanel = lazy(() => import("../components/PeoplePanel"));
+/** What is illegal and legal in the country, as the UK Foreign Office's travel advice tells it: the head of its Law tab. */
+const LegalAndIllegal = lazy(() => import("../components/PlaceLaws").then((m) => ({ default: m.LegalAndIllegal })));
 const Universities = lazy(() => import("../components/Universities"));
 /** The Sovereignty report: a panel with its own data, loaded when the Politics tab opens. */
 const SovereigntyReport = lazy(() => import("../components/CountryReports").then((m) => ({ default: m.SovereigntyReport })));
@@ -12602,6 +12604,12 @@ function ConstitutionTab({ country }: { country: Country }) {
 
   return (
     <div className="animate-fade-in space-y-4">
+      {/* What is illegal and what is legal, at the head of the tab as asked: first the full account, in the words of the UK Foreign Office's travel advice, and under it the site's own short list. */}
+      <Suspense fallback={null}>
+        <LegalAndIllegal code={country.code} country={country.name} />
+      </Suspense>
+      <CountryLegalStatusSection country={country} />
+
       {/* ── 1. GOVERNANCE TYPE ── */}
       <div className="modal-tile rounded-xl p-4">
         <PanelHead icon={<Scales size={14} weight="fill" />} title="Type of Governance" sub="System of government and how free it is" />
@@ -12808,8 +12816,7 @@ function ConstitutionTab({ country }: { country: Country }) {
         </div>
       )}
 
-      {/* ── 5. LEGAL STATUS SECTION ── */}
-      <CountryLegalStatusSection country={country} />
+      {/* The legal status section stood here, fifth: it is at the head of the tab now, as asked. */}
 
       {/* ── 6. KEY CONSTITUTIONAL ARTICLES (collapsed under disclosure) ── */}
       {constitution && (

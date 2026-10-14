@@ -69,12 +69,15 @@
  * ?country=<code>&name=<name> the division a map names - the Dashboard's map
  * sends its presses here that way.
  */
-import { useCallback, useEffect, useMemo, useState, type ReactNode } from "react";
+import { lazy, Suspense, useCallback, useEffect, useMemo, useState, type ReactNode } from "react";
+
+/** The law a place is under, its country's: fetched when a window's Laws tab is opened. */
+const PlaceLaws = lazy(() => import("../components/PlaceLaws"));
 
 import { useLocation, useNavigate } from "react-router-dom";
 
 import { Area, AreaChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
-import { ArrowLeft, ArrowRight, ArrowsIn, ArrowsOut, Buildings, ClockCounterClockwise, ListBullets, MagnifyingGlass, MapPin, MapTrifold, TreeStructure, X } from "@phosphor-icons/react";
+import { ArrowLeft, ArrowRight, ArrowsIn, ArrowsOut, Buildings, ClockCounterClockwise, ListBullets, MagnifyingGlass, MapPin, MapTrifold, Scales, TreeStructure, X } from "@phosphor-icons/react";
 import { TONE } from "@/lib/chipTone";
 import { ADMIN2_SOURCE, useAdmin2, useAdmin2Manifest } from "../lib/admin2";
 import { DIVISION_DETAILS_SOURCES, useDivisionDetails, type DivisionDetails, type Money } from "../lib/divisionDetails";
@@ -405,12 +408,13 @@ const LinkButton = ({ onClick, children }: { onClick: () => void; children: Reac
   </button>
 );
 
-/** The parts a place's window is read in: the place itself, its history, and the towns inside it. */
-type WinTab = "overview" | "history" | "municipalities";
+/** The parts a place's window is read in: the place itself, the law it is under, its history, and the towns inside it. */
+type WinTab = "overview" | "laws" | "history" | "municipalities";
 /** The bar at the head of a place's window, drawn as a town's and a city's windows draw theirs. */
 function TabBar({ tab, onTab, count }: { tab: WinTab; onTab: (t: WinTab) => void; /** How many places the Municipalities part lists, where that is known. */ count?: number }) {
   const tabs = [
     { key: "overview", label: "Overview", icon: <ListBullets size={14} /> },
+    { key: "laws", label: "Laws", icon: <Scales size={14} /> },
     { key: "history", label: "History", icon: <ClockCounterClockwise size={14} /> },
     { key: "municipalities", label: count != null ? `Municipalities · ${whole(count)}` : "Municipalities", icon: <Buildings size={14} /> },
   ] as const;
@@ -877,6 +881,13 @@ function SubnationWindow({ s, onBack, onClose, onCounties }: { s: Subnation; /**
           </div>
         </>
       )}
+      {/* Laws: the law the place is under - its country's, said to be so - with what is illegal and legal there first. */}
+      {tab === "laws" && (
+        <Suspense fallback={<p className="text-xs font-sans text-muted-foreground py-6 text-center">Fetching the law of {c?.name ?? s.cc}…</p>}>
+          <PlaceLaws code={s.cc} country={c?.name ?? s.cc} place={s.name} />
+        </Suspense>
+      )}
+
       {/* History: its article's, as the other pages' windows tell a place's. */}
       {tab === "history" && (
         <>
@@ -1065,6 +1076,13 @@ function CountyWindow({ county, data, onBack, onClose }: { county: UsCounty; dat
           <PlaceIndexes code="US" country="United States" place={name} />
         </>
       )}
+      {/* Laws: the law the place is under - its country's, said to be so - with what is illegal and legal there first. */}
+      {tab === "laws" && (
+        <Suspense fallback={<p className="text-xs font-sans text-muted-foreground py-6 text-center">Fetching the law of the United States…</p>}>
+          <PlaceLaws code="US" country="United States" place={name} />
+        </Suspense>
+      )}
+
       {/* History: the article of its name and its state's - "Pulaski County, Arkansas" - as Wikipedia titles a county's. */}
       {tab === "history" && (state ? <ArticlePanel title={`${name}, ${state.name}`} name={name} mode="history" /> : noHistory(name))}
       <section className={tab === "municipalities" ? "" : "hidden"}>
@@ -1304,6 +1322,13 @@ function DistrictWindow({
       </div>
 
       {tab === "overview" && <Section part={record} />}
+      {/* Laws: the law the place is under - its country's, said to be so - with what is illegal and legal there first. */}
+      {tab === "laws" && (
+        <Suspense fallback={<p className="text-xs font-sans text-muted-foreground py-6 text-center">Fetching the law of {country}…</p>}>
+          <PlaceLaws code={cc} country={country} place={name} />
+        </Suspense>
+      )}
+
       {/* History: the article its record was found by - the one of its name whose point lies inside its outline and whose area agrees with it. */}
       {tab === "history" &&
         (live === undefined ? (

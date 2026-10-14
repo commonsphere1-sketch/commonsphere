@@ -5788,6 +5788,18 @@ const DEFAULT_LEGAL_STATUS: LegalStatusItem[] = [
 ];
 
 
+/** What a status says of a topic, as a sentence: the list's own status and no more - "listed as", since the list is a compiled summary not yet checked against statute. */
+const STATUS_SAID: Record<LegalStatusValue, string> = {
+  Legal: "is listed as legal",
+  Illegal: "is listed as illegal",
+  Decriminalized: "is listed as decriminalized: not legal, but not prosecuted as a crime",
+  "Medical Only": "is listed as legal for medical use only",
+  Restricted: "is listed as legal with restrictions",
+  Varies: "is listed as depending on the place or the circumstance",
+};
+/** The dot beside each row: the hue of its status badge. */
+const STATUS_DOT: Record<LegalStatusValue, string> = { Legal: "#34d399", Illegal: "#f87171", Decriminalized: "#facc15", "Medical Only": "#22d3ee", Restricted: "#fb923c", Varies: "#a78bfa" };
+
 function LegalStatusGrid({ state }: { state: USState }) {
   const items = STATE_LEGAL_STATUS[state.id] ?? DEFAULT_LEGAL_STATUS;
   const legalCount = items.filter((i) => i.status === "Legal").length;
@@ -5824,19 +5836,20 @@ function LegalStatusGrid({ state }: { state: USState }) {
         </div>
       </div>
 
-      {/* Grid of items */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+      {/* Each topic as a sentence, with what the list notes of it under it: a row a topic, as a country's list has them. */}
+      <div className="flex flex-col gap-2">
         {items.map((item, i) => (
           <div
             key={i}
-            className="flex items-start gap-2.5 p-2.5 rounded-lg bg-background/40 border border-border/30"
+            className="flex items-start gap-2.5 p-3 rounded-lg bg-background/40 border border-border/30"
           >
+            <span aria-hidden className="w-2 h-2 rounded-full shrink-0 mt-1.5" style={{ background: STATUS_DOT[item.status] }} />
             <div className="flex-1 min-w-0">
-              <p className="text-xs font-semibold font-sans text-foreground leading-tight">
-                {item.topic}
+              <p className="text-xs font-sans text-foreground leading-snug">
+                <span className="font-semibold">{item.topic}</span> {STATUS_SAID[item.status]} in {state.name}.
               </p>
               {item.note && (
-                <p className="text-[10px] font-sans text-muted-foreground mt-0.5 leading-snug">
+                <p className="text-[11px] font-sans text-muted-foreground mt-1 leading-snug">
                   {item.note}
                 </p>
               )}
@@ -5882,6 +5895,11 @@ function StateLawsTab({ state }: { state: USState }) {
 
       {/* Legal Status Grid — full focus */}
       <LegalStatusGrid state={state} />
+
+      {/* The fuller account, which is the country's: what is illegal and legal in the United States as the UK Foreign Office's travel advice tells it, where much is said to differ from state to state. */}
+      <Suspense fallback={null}>
+        <LegalAndIllegal code="US" country="United States" place={state.name} />
+      </Suspense>
     </div>
   );
 }
@@ -6011,6 +6029,8 @@ type Holder = { kind: "governor" | "senator" | "representative"; name: string; d
 
 /** The country's religions, in a state's window: no survey of religion by state is held, and the panel says whose they are. */
 const PeoplePanel = lazy(() => import("../components/PeoplePanel"));
+/** What is illegal and legal in the United States, as the UK Foreign Office's travel advice tells it: under a state's own list. */
+const LegalAndIllegal = lazy(() => import("../components/PlaceLaws").then((m) => ({ default: m.LegalAndIllegal })));
 
 function StateModal({
   state,
