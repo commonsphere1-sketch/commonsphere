@@ -1,3 +1,4 @@
+import { PageHeader } from "../components/PageHeader";
 import { readPins, writePins } from "../lib/pins";
 import { na, has, sortKey } from "../lib/na";
 import { usdFromBillions } from "../lib/money";
@@ -2885,77 +2886,16 @@ export function DashboardPage() {
     >
       <div className="w-full px-4 sm:px-5 py-4 flex flex-col gap-4">
         {/* ── HERO ──────────────────────────────────────────────────────── */}
-        <div
-          className="rounded-2xl relative overflow-hidden"
-          /* Black and white in both themes: the flags are the only colour
-             here, and a tinted card was competing with them. */
-          style={{
-            background: isLight ? "#ffffff" : "#0b0b0d",
-            border: isLight
-              ? "1px solid rgba(0,0,0,0.12)"
-              : "1px solid rgba(255,255,255,0.12)",
-          }}
-        >
-          {/* dot-grid background */}
-          <div
-            className="absolute inset-0 pointer-events-none opacity-[0.05]"
-            style={{
-              backgroundImage: `radial-gradient(circle, ${isLight ? "#000000" : "#ffffff"} 1px, transparent 1px)`,
-              backgroundSize: "32px 32px",
-            }}
-          />
-
-          {/* Text row. The flags sit beside it on a wide screen and wrap
-              under it on a narrow one. */}
-          <div className="relative px-5 py-6 flex flex-col lg:flex-row lg:items-center gap-5 justify-between">
-            <div>
-            <p
-              className="text-[10px] font-mono uppercase tracking-widest mb-1"
-              style={{ color: mutedText }}
-            >
-              CommonSphere · The World in Evidence
-            </p>
-            <h1
-              className="text-2xl sm:text-3xl font-bold font-sans"
-              style={{ color: headText }}
-            >
-              Welcome to CommonSphere
-            </h1>
-            <p
-              className="text-sm font-sans mt-1.5 max-w-xl"
-              style={{ color: mutedText }}
-            >
-              An atlas of the world as it stands. Nations, economies, climate
-              and conflict, drawn from primary sources and set side by side,
-              so the whole picture reads at a glance.
-            </p>
-
-            {/* What is actually in here, counted from the data rather than
-                claimed, so the welcome cannot drift from the site. */}
-            <p
-              className="text-[11px] font-sans mt-3"
-              style={{ color: mutedText }}
-            >
-              {countriesData.filter((c) => !c.territory).length} countries ·{" "}
-              {countriesData.filter((c) => c.territory).length} territories &amp; regions ·{" "}
-              {usStatesData.length} US states ·{" "}
-              {economiesData.length} economies · every figure cited to its source
-              and the year it describes
-            </p>
-
-            </div>
-
-            {/* A face for the catalogue: flags from every inhabited
-                continent, circling the site's own globe, so the welcome shows
-                the community it covers rather than only naming a count.
-                Images from flagcdn, which the rest of the site already uses -
-                the regional-indicator emoji render as bare letters on
-                Windows. The ring turns once a minute and each flag turns back
-                the other way at the same rate, so they orbit without ever
-                tipping over; it holds still for a reader who has asked for
-                reduced motion. */}
-            <FocusCarousel mutedText={mutedText} headText={headText} isLight={isLight} onOpen={(p) => navigate(p)} />
-          </div>
+        {/* The plain header every page has (PageHeader), where a card stood. What is in the site is counted from the data
+            rather than claimed, so the welcome cannot drift from it. The flags that circle the site's globe are kept
+            beside it: they open the pages they stand for. */}
+        <div className="flex flex-col lg:flex-row lg:items-center gap-5 justify-between">
+          <PageHeader title="Welcome to CommonSphere" className="flex-1">
+            An atlas of the world as it stands: nations, economies, climate and conflict, drawn from primary sources and set side by side —{" "}
+            {countriesData.filter((c) => !c.territory).length} countries, {countriesData.filter((c) => c.territory).length} territories &amp; regions,{" "}
+            {usStatesData.length} US states and {economiesData.length} economies, every figure cited to its source and the year it describes
+          </PageHeader>
+          <FocusCarousel mutedText={mutedText} headText={headText} isLight={isLight} onOpen={(p) => navigate(p)} />
         </div>
 
         {/* ── QUARTER TRACKER ────────────────────────────────────────────── */}

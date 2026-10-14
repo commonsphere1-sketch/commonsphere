@@ -2043,11 +2043,11 @@ export function RankingsPage() {
       <div className="flex items-start justify-between gap-4 flex-wrap">
         <div>
           <div className="flex items-center gap-2 mb-1">
-            <h1 className="text-xl sm:text-2xl font-bold text-foreground">
+            <h1 className="text-2xl font-bold font-sans text-foreground">
               Compare
             </h1>
           </div>
-          <p className="text-xs sm:text-sm text-muted-foreground max-w-xl">
+          <p className="text-muted-foreground text-sm font-sans max-w-3xl">
             Pin any countries and US states together and read them against each
             other across every measure the site holds — the full form of the
             dashboard's compare card, with each figure placed among all{" "}

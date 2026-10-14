@@ -1,3 +1,4 @@
+import { PageHeader } from "../components/PageHeader";
 import { lazy, Suspense, useState } from "react";
 import { useTheme } from "../contexts/ThemeContext";
 import { SourceLink } from "../components/SourceLink";
@@ -683,89 +684,11 @@ export function CrimeStatsPage() {
     >
       <div className="w-full px-4 sm:px-6 lg:px-8 xl:px-10 py-4 flex flex-col gap-4">
         {/* ── HERO ─────────────────────────────────────────────────── */}
-        <div
-          className="rounded-2xl px-6 py-5 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 overflow-hidden relative"
-          style={{
-            background: isLight
-              ? "linear-gradient(130deg, #fee2e2 0%, #fef3c7 60%, #fde8d8 100%)"
-              : "linear-gradient(130deg, #3b0a0a 0%, #1c0e00 50%, #1a0a1e 100%)",
-            border: isLight
-              ? "1px solid rgba(239,68,68,0.2)"
-              : "1px solid rgba(239,68,68,0.2)",
-          }}
-        >
-          <div
-            className="absolute inset-0 pointer-events-none opacity-[0.04]"
-            style={{
-              backgroundImage: `radial-gradient(circle, ${isLight ? "#dc2626" : "#ef4444"} 1px, transparent 1px)`,
-              backgroundSize: "28px 28px",
-            }}
-          />
-          <div className="relative">
-            <div className="flex items-center gap-2 mb-1">
-              <ShieldCheck
-                size={12}
-                weight="fill"
-                style={{ color: isLight ? "#dc2626" : "#f87171" }}
-              />
-              <span
-                className="text-[10px] font-mono uppercase tracking-widest"
-                style={{ color: isLight ? "#dc2626" : "#f87171" }}
-              >
-                UNODC · Numbeo · World Prison Brief
-              </span>
-            </div>
-            <h1
-              className="text-xl sm:text-2xl font-bold font-sans leading-tight"
-              style={{ color: headText }}
-            >
-              International Crime Statistics
-            </h1>
-            <p
-              className="text-xs font-sans mt-1 max-w-lg"
-              style={{ color: mutedText }}
-            >
-              Homicide rates, safety indices, incarceration, cybercrime, and
-              crime category breakdowns across 190+ countries. Data from UNODC,
-              Numbeo, and World Prison Brief. Homicide figures are the latest
-              reported year per country, 2020 to 2023.
-            </p>
-          </div>
-          <div className="relative flex flex-wrap gap-2 shrink-0">
-            {[
-              { v: "190+", l: "Countries" },
-              { v: "6", l: "Categories" },
-              { v: "2023", l: "Latest Data" },
-              { v: "UNODC", l: "Primary Source" },
-            ].map((s) => (
-              <div
-                key={s.l}
-                className="rounded-xl px-3 py-1.5 text-center"
-                style={{
-                  background: isLight
-                    ? "rgba(255,255,255,0.7)"
-                    : "rgba(255,255,255,0.08)",
-                  border: isLight
-                    ? "1px solid rgba(239,68,68,0.18)"
-                    : "1px solid rgba(255,255,255,0.1)",
-                }}
-              >
-                <p
-                  className="text-sm font-bold font-mono"
-                  style={{ color: headText }}
-                >
-                  {s.v}
-                </p>
-                <p
-                  className="text-[10px] font-sans"
-                  style={{ color: mutedText }}
-                >
-                  {s.l}
-                </p>
-              </div>
-            ))}
-          </div>
-        </div>
+        {/* The plain header every page has (PageHeader). It was a red card with four tiles that repeated its sentence. */}
+        <PageHeader title="International Crime Statistics" aside="UNODC · Numbeo · World Prison Brief">
+          Homicide rates, safety indices, incarceration, cybercrime, and crime category breakdowns across 190+ countries. Homicide figures are the latest reported year per
+          country, 2020 to 2023.
+        </PageHeader>
 
         {/* ── CRIME AND JUSTICE HEADLINES ── */}
         <HeadlinesBanner

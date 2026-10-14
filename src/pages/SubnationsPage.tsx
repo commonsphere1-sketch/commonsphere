@@ -69,6 +69,7 @@
  * ?country=<code>&name=<name> the division a map names - the Dashboard's map
  * sends its presses here that way.
  */
+import { PageHeader } from "../components/PageHeader";
 import { lazy, Suspense, useCallback, useEffect, useMemo, useState, type ReactNode } from "react";
 
 /** The law a place is under, its country's: fetched when a window's Laws tab is opened. */
@@ -77,7 +78,7 @@ const PlaceLaws = lazy(() => import("../components/PlaceLaws"));
 import { useLocation, useNavigate } from "react-router-dom";
 
 import { Area, AreaChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
-import { ArrowLeft, ArrowRight, ArrowsIn, ArrowsOut, Buildings, ClockCounterClockwise, ListBullets, MagnifyingGlass, MapPin, MapTrifold, Scales, TreeStructure, X } from "@phosphor-icons/react";
+import { ArrowLeft, ArrowRight, ArrowsIn, ArrowsOut, Buildings, ClockCounterClockwise, ListBullets, MagnifyingGlass, MapPin, MapTrifold, Scales, X } from "@phosphor-icons/react";
 import { TONE } from "@/lib/chipTone";
 import { ADMIN2_SOURCE, useAdmin2, useAdmin2Manifest } from "../lib/admin2";
 import { DIVISION_DETAILS_SOURCES, useDivisionDetails, type DivisionDetails, type Money } from "../lib/divisionDetails";
@@ -1869,28 +1870,21 @@ export function SubnationsPage() {
   return (
     <div className="min-h-screen w-full animate-fade-in" style={{ background: "var(--color-background)" }}>
       <div className="max-w-screen-2xl mx-auto px-4 sm:px-6 py-6 flex flex-col gap-5">
-        {/* ── Hero ── */}
-        <div className="rounded-2xl border border-border bg-card px-5 py-6 flex flex-col lg:flex-row lg:items-center gap-5 justify-between">
-          <div className="max-w-2xl">
-            <p className="text-[10px] font-mono uppercase tracking-widest text-muted-foreground mb-1">CommonSphere · Municipalities</p>
-            <h1 className="text-2xl sm:text-3xl font-bold font-sans text-foreground flex items-center gap-2.5">
-              <TreeStructure size={24} weight="fill" style={{ color: COLOR }} aria-hidden /> Municipalities
-            </h1>
-            <p className="text-sm font-sans text-muted-foreground mt-1.5">
-              Every country, and inside each the states, provinces, regions or departments it is divided into - with the counties of the United States under its states. Open a
-              country for its divisions; open a division for its own window, in eight parts: identity, geography, government, demographics, economy, society, political data and
-              historical trends. Each part says what is held for it and what is not.
-            </p>
-            <p className="text-[11px] font-sans text-muted-foreground mt-2">Natural Earth · Wikidata · US Census Bureau · figures read {SUBNATIONS_RETRIEVED}</p>
-          </div>
-          <div className="lg:text-right shrink-0">
-            <p className="text-[10px] font-mono uppercase tracking-widest text-muted-foreground">Divisions held</p>
-            <p className="text-4xl sm:text-5xl font-bold font-mono leading-none mt-1 text-foreground">{SUBNATIONS.length.toLocaleString("en-US")}</p>
-            <p className="text-[11px] font-sans text-muted-foreground mt-2">
-              in {ROWS.length} countries and territories, {SUBNATIONS.filter((s) => s.pop).length.toLocaleString("en-US")} of them with a dated, referenced population
-            </p>
-          </div>
-        </div>
+        {/* ── Header: the page's name and a line under it, as every page has (PageHeader). It was a card with a paragraph on
+            how to use the page and the count of divisions in very large figures; the count is in the line now. ── */}
+        <PageHeader
+          title="Municipalities"
+          aside={
+            <>
+              Natural Earth · Wikidata · US Census Bureau
+              <br />
+              figures read {SUBNATIONS_RETRIEVED}
+            </>
+          }
+        >
+          Every country, and the states, provinces, regions or departments it is divided into — {SUBNATIONS.length.toLocaleString("en-US")} divisions in {ROWS.length}{" "}
+          countries and territories, {SUBNATIONS.filter((s) => s.pop).length.toLocaleString("en-US")} with a dated, referenced population
+        </PageHeader>
 
         {/* ── Which countries are listed: the sticky bar every other page has, continents as its chips ── */}
         <FilterBar label="Subnation filters" search={{ value: query, onChange: setQuery, placeholder: "Search a country, a division or a capital…" }} status={`${rows.length} countries`}>

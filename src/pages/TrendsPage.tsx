@@ -17,6 +17,7 @@
  * publishes them, so the scenarios shown are the ones a body does publish -
  * the UN's low and high variants - with no likelihood put on either.
  */
+import { PageHeader } from "../components/PageHeader";
 import { useMemo, useState, type ReactNode } from "react";
 import { Area, AreaChart, Bar, BarChart, CartesianGrid, Line, LineChart, ReferenceArea, ReferenceLine, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
 import { ChartLineUp, Cpu, Factory, Globe, Leaf, Lightning, Target, TrendUp, Users } from "@phosphor-icons/react";
@@ -1625,7 +1626,7 @@ export function IndustriesExplorer({ embedded = false, action }: { embedded?: bo
 
 export function TrendsPage() {
   const look = useLook();
-  const { isLight, head, muted } = look;
+  const { head, muted } = look;
   const first = WEO.firstProjected;
   const end = WEO.lastYear;
   const { world, advanced, emerging } = WEO_GROUPS;
@@ -1663,41 +1664,22 @@ export function TrendsPage() {
   return (
     <div className="min-h-screen w-full animate-fade-in" style={{ background: "var(--color-background)" }}>
       <div className="max-w-screen-2xl mx-auto px-5 sm:px-10 py-10 sm:py-14 flex flex-col gap-14 sm:gap-20">
-        {/* ── Hero ── */}
-        <div className="rounded-2xl relative overflow-hidden" style={{ background: isLight ? "#ffffff" : "#0b0b0d", border: isLight ? "1px solid rgba(0,0,0,0.12)" : "1px solid rgba(255,255,255,0.12)" }}>
-          <div className="absolute inset-0 pointer-events-none opacity-[0.05]" style={{ backgroundImage: `radial-gradient(circle, ${isLight ? "#000000" : "#ffffff"} 1px, transparent 1px)`, backgroundSize: "32px 32px" }} />
-          <div className="relative px-6 sm:px-10 py-10 sm:py-14 flex flex-col lg:flex-row lg:items-center gap-10 justify-between">
-            <div className="max-w-xl">
-              <p className="text-[10px] font-mono uppercase tracking-widest mb-3" style={{ color: muted }}>
-                CommonSphere · Trends &amp; Projections
-              </p>
-              <h1 className="text-2xl sm:text-3xl font-bold font-sans" style={{ color: head }}>
-                Where the world is heading
-              </h1>
-              <p className="text-sm font-sans mt-4 leading-relaxed" style={{ color: muted }}>
-                The world economy to {end} as the IMF projects it, the world's people to 2100 as the UN does, and the trends behind both - each projection from the body
-                that publishes it, with the year its estimates end and its projections begin.
-              </p>
-              <p className="text-[11px] font-sans mt-5 leading-relaxed" style={{ color: muted }}>
-                IMF World Economic Outlook, {WEO.edition} · UN World Population Prospects {WPP.revision} · World Bank · retrieved {PROJECTIONS_RETRIEVED}
-              </p>
-            </div>
-            <div className="lg:text-right">
-              <p className="text-[10px] font-mono uppercase tracking-widest" style={{ color: muted }}>
-                World GDP · IMF projection for {end}
-              </p>
-              <p className="text-4xl sm:text-5xl font-bold font-mono leading-none mt-3" style={{ color: head }}>
-                {usdFromBillions(gdpEnd)}
-              </p>
-              <p className="mt-4 text-[11px] font-mono" style={{ color: muted }}>
-                from <span style={{ color: head }}>{usdFromBillions(gdpBase)}</span> in {first - 1} · {signed(((gdpEnd - gdpBase) / (gdpBase || 1)) * 100, 0)}% in current dollars
-              </p>
-              <p className="mt-3 text-[10px] font-sans leading-relaxed max-w-sm lg:ml-auto" style={{ color: muted }}>
-                A projection, not a forecast with a probability: the IMF's central case, revised twice a year.
-              </p>
-            </div>
-          </div>
-        </div>
+        {/* ── Header: the plain one every page has (PageHeader). It was a card with the IMF's projection of world GDP in
+            very large figures; the projection is in the line now, still said to be one. ── */}
+        <PageHeader
+          title="Where the world is heading"
+          aside={
+            <>
+              IMF World Economic Outlook, {WEO.edition} · UN World Population Prospects {WPP.revision} · World Bank
+              <br />
+              retrieved {PROJECTIONS_RETRIEVED}
+            </>
+          }
+        >
+          The world economy to {end} as the IMF projects it, the world's people to 2100 as the UN does, and the trends behind both — world GDP of{" "}
+          <span className="font-mono font-semibold text-foreground">{usdFromBillions(gdpEnd)}</span> in {end} on the IMF's central projection, from{" "}
+          {usdFromBillions(gdpBase)} in {first - 1} ({signed(((gdpEnd - gdpBase) / (gdpBase || 1)) * 100, 0)}% in current dollars)
+        </PageHeader>
 
         <SectionNav label="Trends and projections sections" sections={SECTIONS} />
 

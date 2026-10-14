@@ -1,3 +1,4 @@
+import { PageHeader } from "../components/PageHeader";
 import { WindowTitle } from "../components/WindowTitle";
 import { ChipRow } from "../components/ChipRow";
 import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
@@ -507,7 +508,7 @@ function Sparkline({ ind, tall = false }: { ind: WorldIndicator; tall?: boolean 
           <path d={area} fill="currentColor" opacity={0.08} />
           <path d={line} fill="none" stroke="currentColor" strokeWidth={2} vectorEffect="non-scaling-stroke" strokeLinejoin="round" strokeLinecap="round" />
         </svg>
-        {shown && <span className="absolute top-0 bottom-0 w-px bg-foreground/40" style={{ left: pct(shown[0]) }} aria-hidden />}
+        {shown && <span className="absolute top-0 bottom-0 w-px bg-foreground opacity-40" style={{ left: pct(shown[0]) }} aria-hidden />}
         <span
           className={`absolute h-2.5 w-2.5 -translate-x-1/2 -translate-y-1/2 rounded-full ring-2 ring-background ${ACCENT_BG}`}
           style={{ left: pct(mark[0]), top: topPct(mark[1]) }}
@@ -574,7 +575,6 @@ function projectedPopulation(now: number): { people: number; year: number; onJan
 }
 
 function Hero() {
-  const { isLight, muted, head } = useLook();
   const [now, setNow] = useState(() => Date.now());
   useEffect(() => {
     const id = window.setInterval(() => setNow(Date.now()), 500);
@@ -585,75 +585,49 @@ function Hero() {
   const midnight = new Date(now);
   midnight.setHours(0, 0, 0, 0);
   const todayMs = now - midnight.getTime();
-  // The year's births and deaths, spread evenly over it: so many by this time of day, so many a day.
+  // The year's births and deaths, spread evenly over it: so many by this time of day.
   const soFarToday = (n: number) => (clock ? Math.floor((n * todayMs) / clock.yearMs).toLocaleString("en-US") : "");
-  const perDay = (n: number) => (clock ? Math.round((n * 86_400_000) / clock.yearMs).toLocaleString("en-US") : "");
   const all = PILLARS.map(pillarDirection).reduce(
     (t, d) => ({ better: t.better + d.better, worse: t.worse + d.worse, none: t.none + d.none }),
     { better: 0, worse: 0, none: 0 },
   );
 
+  // The plain header every page has (PageHeader). It was a card with the population clock in very large figures; the
+  // clock still runs, small and at the right, and is still said to be a projection and whose.
   return (
-    <div
-      className="rounded-2xl relative overflow-hidden"
-      style={{ background: isLight ? "#ffffff" : "#0b0b0d", border: isLight ? "1px solid rgba(0,0,0,0.12)" : "1px solid rgba(255,255,255,0.12)" }}
+    <PageHeader
+      title="Where the world stands"
+      aside={
+        <>
+          {clock && pop !== null && (
+            <>
+              <span className="text-[10px] font-mono uppercase tracking-widest">People alive now · UN projection</span>
+              <br />
+              <span
+                className="text-base font-bold font-mono text-foreground"
+                title={`The UN's figure for 1 January ${clock.year}, ${clock.onJan1.toLocaleString("en-US")}, and since then the year's projected births less its deaths`}
+                aria-hidden
+              >
+                {Math.round(pop).toLocaleString("en-US")}
+              </span>
+              <span className="sr-only">About {compact(pop)} people, on the UN's medium-variant projection.</span>
+              <br />
+              <span className="font-mono">
+                {soFarToday(clock.births)} born today · {soFarToday(clock.deaths)} died today
+              </span>
+              <br />
+              A projection, not a count: <SourceLink source={POPULATION_PROJECTION.source} label={`World Population Prospects ${POPULATION_PROJECTION.revision}`} />
+              <br />
+            </>
+          )}
+          {Object.keys(WORLD).length + CLIMATE_INDICATORS.length} world figures · retrieved {WORLDVIEW_RETRIEVED}
+        </>
+      }
     >
-      <div
-        className="absolute inset-0 pointer-events-none opacity-[0.05]"
-        style={{ backgroundImage: `radial-gradient(circle, ${isLight ? "#000000" : "#ffffff"} 1px, transparent 1px)`, backgroundSize: "32px 32px" }}
-      />
-      <div className="relative px-5 py-6 flex flex-col lg:flex-row lg:items-center gap-6 justify-between">
-        <div className="max-w-xl">
-          <p className="text-[10px] font-mono uppercase tracking-widest mb-1" style={{ color: muted }}>
-            CommonSphere · Worldview
-          </p>
-          <h1 className="text-2xl sm:text-3xl font-bold font-sans" style={{ color: head }}>
-            Where the world stands
-          </h1>
-          <p className="text-sm font-sans mt-1.5" style={{ color: muted }}>
-            A dashboard of the whole world in {inWords(PILLARS.length)} pillars - the human condition and quality of life, what the economy is doing, how far the
-            world has developed, what it makes and how it is powered, technology, how democratic it is, the rights and freedoms people have
-            and how far they take part, how well it is governed, whether democracy or autocracy is gaining and what people believe, war and
-            peace, and the state of the planet - each figure with what it measures, its trend and its source.
-          </p>
-          <p className="text-sm font-sans mt-3" style={{ color: head }}>
-            Of the {all.better + all.worse} measures here where one way is plainly better,{" "}
-            <span className={`font-semibold ${BETTER}`}>{all.better} improved</span> over about ten years and{" "}
-            <span className={`font-semibold ${WORSE}`}>{all.worse} worsened</span>.
-          </p>
-          <p className="text-[11px] font-sans mt-2" style={{ color: muted }}>
-            {Object.keys(WORLD).length + CLIMATE_INDICATORS.length} world figures · {INCOME_GROUPS.reduce((t, g) => t + g.economies, 0)} economies by
-            income group · figures retrieved {WORLDVIEW_RETRIEVED}, each cited to its source and year
-          </p>
-        </div>
-
-        {clock && pop !== null && (
-          <div className="lg:text-right">
-            <p className="text-[10px] font-mono uppercase tracking-widest" style={{ color: muted }}>
-              People alive now · UN projection
-            </p>
-            <p className="text-4xl sm:text-5xl font-bold font-mono leading-none mt-1" style={{ color: head }} aria-hidden>
-              {Math.round(pop).toLocaleString("en-US")}
-            </p>
-            <p className="sr-only">About {compact(pop)} people, on the UN's medium-variant projection.</p>
-            <div className="mt-3 flex flex-wrap lg:justify-end gap-x-5 gap-y-1 text-[11px] font-mono" style={{ color: muted }}>
-              <span>
-                <span style={{ color: head }}>{soFarToday(clock.births)}</span> born today · {perDay(clock.births)} a day
-              </span>
-              <span>
-                <span style={{ color: head }}>{soFarToday(clock.deaths)}</span> died today · {perDay(clock.deaths)} a day
-              </span>
-            </div>
-            <p className="mt-2 text-[10px] font-sans max-w-sm lg:ml-auto" style={{ color: muted }}>
-              A projection, not a count: the UN's figure for 1 January {clock.year}, {clock.onJan1.toLocaleString("en-US")}, and since then the
-              year's projected births less its deaths, as the UN itself carries one year to the next (
-              <SourceLink source={POPULATION_PROJECTION.source} label={`World Population Prospects ${POPULATION_PROJECTION.revision}`} />, its latest
-              revision). The World Bank counted {compact(lastOf("population")[1])} in mid-{lastOf("population")[0]}.
-            </p>
-          </div>
-        )}
-      </div>
-    </div>
+      The whole world in {inWords(PILLARS.length)} pillars, each figure with what it measures, its trend and its source. Of the {all.better + all.worse} measures where one
+      way is plainly better, <span className={`font-semibold ${BETTER}`}>{all.better} improved</span> over about ten years and{" "}
+      <span className={`font-semibold ${WORSE}`}>{all.worse} worsened</span>.
+    </PageHeader>
   );
 }
 

@@ -10814,12 +10814,12 @@ export function PolicyPage() {
       {/* Page header */}
       <div className="flex flex-col gap-1">
         <div className="flex items-center gap-2">
-          <h1 className="text-lg font-semibold text-foreground">
+          <h1 className="text-2xl font-bold font-sans text-foreground">
             Public Policy
           </h1>
         </div>
         {/* pl-8 dropped with the icon — it existed to clear the badge. */}
-        <p className="text-xs text-muted-foreground">
+        <p className="text-muted-foreground text-sm font-sans">
           What governments spend on each policy area, across US states and
           countries: published figures, each with its year and source
         </p>
