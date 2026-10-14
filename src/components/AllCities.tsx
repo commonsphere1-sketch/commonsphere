@@ -740,18 +740,14 @@ export default function AllCities({
   const carried = openRow && rows.find((r) => r.row.cc === openRow.cc)?.matching ? query.trim() : "";
   return (
     <section id="all-cities" aria-label="Every city the United Nations counts" className="mt-10 scroll-mt-32">
-      <h2 className="text-lg font-bold font-sans text-foreground">Every city the United Nations counts</h2>
-      <p className="text-[12px] font-sans text-muted-foreground mt-1 max-w-3xl">
-        {UN_CITIES.length.toLocaleString("en-US")} cities in {ROWS.length} countries. Open a country for its cities, and a city for its own window. A city here is what the UN's method draws
-        - built-up land of at least 1,500 people to a km² holding 50,000 or more - not the administrative city, so its figure can differ from the one its own council gives.
-      </p>
-      <p className="text-[11px] font-mono text-muted-foreground mt-2 mb-4">
-        {rows.length} countries{query.trim() ? ` answer "${query.trim()}"` : ""}
-        {continent ? ` in ${continent}` : ""} ·{" "}
-        {{ populous: "the most populated countries first, down to the least", largest: "the countries of the largest cities first", people: "those with the most people in their cities first", rich: "the richest countries first, by GDP per person - the country's, not its cities'", cities: "those with the most cities first", name: "by name" }[order]} ·
-        searched, filtered and ordered from the bar above
-
-      </p>
+      {/* The heading and the paragraph over the list were taken off as asked: the page's own header says what a city here is.
+          What a search or a continent has left is still said, and only then. */}
+      {(query.trim() || continent) && (
+        <p className="text-[11px] font-mono text-muted-foreground mb-4">
+          {rows.length} countries{query.trim() ? ` answer "${query.trim()}"` : ""}
+          {continent ? ` in ${continent}` : ""}
+        </p>
+      )}
 
       {/* COUNTRY CARDS GRID: as the Countries page and the Subnations page lay theirs out */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">

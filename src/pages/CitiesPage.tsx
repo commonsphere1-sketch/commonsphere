@@ -15,6 +15,7 @@
  * referenced figure, the population inside the city's own boundary. What no
  * body publishes for every city alike is not shown.
  */
+import { PageHeader } from "../components/PageHeader";
 import React, { useState, useEffect, useMemo, lazy, Suspense } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { CITY_PLACES } from "../data/cityPlaces";
@@ -23,7 +24,6 @@ import { ECONOMY_INDICATORS, ECONOMY_INDICATORS_SOURCE } from "../data/economyIn
 import {
   ListBullets,
   MapTrifold,
-  DownloadSimple,
   ArrowsIn,
   ArrowsOut,
   ClockCounterClockwise,
@@ -742,7 +742,8 @@ function CityModal({ city, onClose }: { city: City; onClose: () => void }) {
 }
 
 /** The cities shown, as a file: every figure the page holds for each, with whose it is and for when in the column's name. */
-function exportCitiesToCSV(rows: Row[]) {
+/** The profiled cities as a CSV file. Its button was taken off the page as asked; the export is kept, and nothing calls it. */
+export function exportCitiesToCSV(rows: Row[]) {
   const headers = [
     "Name",
     "Country",
@@ -891,35 +892,13 @@ export function CitiesPage() {
   return (
     <div className="min-h-screen bg-background text-foreground animate-fade-in">
       <div className="px-6 py-8 max-w-screen-2xl mx-auto">
-        {/* Header */}
-        <div className="flex flex-wrap items-start justify-between gap-3 mb-4">
-          <div>
-            <h1 className="text-2xl font-bold font-sans text-foreground">Cities</h1>
-            <p className="text-muted-foreground text-sm font-sans">
-              Every city the United Nations counts, country by country — people, land and built-up area, {SRC.firstYear} to {LAST}, as it measures them;{" "}
-              {ROWS.length} of them profiled in full
-            </p>
-          </div>
-          <button
-            onClick={() => exportCitiesToCSV(ROWS)}
-            className="flex items-center gap-1.5 px-3 py-1.5 rounded-full border border-border bg-card text-muted-foreground hover:text-foreground hover:bg-muted transition-colors text-[11px] font-medium font-sans cursor-pointer"
-            title="Export the profiled cities, with every figure, to CSV"
-          >
-            <DownloadSimple size={13} weight="bold" />
-            Export CSV
-          </button>
-        </div>
-
-        {/* What a figure here is: said once, before any is read. */}
-        <div className="bg-card border border-border rounded-lg px-4 py-3 mb-6">
-          <p className="text-xs font-sans text-muted-foreground leading-relaxed">
-            <span className="font-semibold text-foreground">How to read this page.</span> Every figure is the United Nations', from World Urbanization
-            Prospects: The 2025 Revision. It draws every city by one rule - contiguous 1 km² cells of at least 1,500 people each, together holding
-            50,000 or more - so the cities can be set side by side, and a figure here is not the one a city government reports for the area inside its
-            own boundary. Years to {BASE} are estimates; later years are the UN's projections.
-          </p>
-          <SourceLink sources={SRC_UN} className="mt-1.5" />
-        </div>
+        {/* The page's name and a line under it (PageHeader). The Export CSV button and the "How to read this page" box stood
+            here and were taken off as asked: what the UN counts as a city is in the line, and its source beside it. */}
+        <PageHeader title="Cities" className="mb-6" aside={<SourceLink sources={SRC_UN} />}>
+          Every city the United Nations counts, country by country — people, land and built-up area, {SRC.firstYear} to {LAST}, as it measures them: built-up
+          land holding 50,000 people or more, not the administrative city. Figures to {BASE} are estimates and later ones its projections; {ROWS.length} cities
+          are profiled in full
+        </PageHeader>
 
         {/* Summary Strip */}
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-6">
