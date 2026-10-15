@@ -1,4 +1,3 @@
-import { PageHeader } from "../components/PageHeader";
 import { readPins, writePins } from "../lib/pins";
 import { na, has, sortKey } from "../lib/na";
 import { usdFromBillions } from "../lib/money";
@@ -23,7 +22,6 @@ import { countriesData } from "../data/countriesData";
 import { useLiveCountries } from "../contexts/LiveDataContext";
 import { usStatesData } from "../data/statesData";
 import { STATE_INDICATORS as STATE_FIGURES } from "../data/stateIndicators";
-import { economiesData } from "../data/economiesData";
 import { SourceLink } from "../components/SourceLink";
 import { DataExplorer } from "../components/DataExplorer";
 import { DashboardDrops } from "../components/DashboardDrops";
@@ -2428,15 +2426,16 @@ export function DashboardPage() {
     >
       <div className="w-full px-4 sm:px-5 py-4 flex flex-col gap-4">
         {/* ── HERO ──────────────────────────────────────────────────────── */}
-        {/* The plain header every page has (PageHeader), where a card stood. What is in the site is counted from the data
-            rather than claimed, so the welcome cannot drift from it. The flags that circle the site's globe are kept
+        {/* The site's logo, centred, where a welcome heading stood. The flags that circle the site's globe are kept
             under it, centred on a wide screen as on a narrow one, as asked: they open the pages they stand for. */}
         <div className="flex flex-col gap-5">
-          <PageHeader title="Welcome to CommonSphere">
-            An atlas of the world as it stands: nations, economies, climate and conflict, drawn from primary sources and set side by side —{" "}
-            {countriesData.filter((c) => !c.territory).length} countries, {countriesData.filter((c) => c.territory).length} territories &amp; regions,{" "}
-            {usStatesData.length} US states and {economiesData.length} economies, every figure cited to its source and the year it describes
-          </PageHeader>
+          {/* The logo, centred, where the welcome heading and its line stood, as asked: the header's globe alone, larger, in the theme's own version - without the name. */}
+          <h1 className="flex items-center justify-center pt-2" aria-label="CommonSphere">
+            <span className="w-20 h-20 sm:w-24 sm:h-24 shrink-0 relative overflow-hidden" aria-hidden>
+              <img src="https://c.animaapp.com/mnv7exnwOzX3vX/img/uploaded-asset-1776467236633-0.jpeg" alt="" className="logo-light absolute inset-0 w-full h-full object-contain scale-[1.28]" />
+              <img src="https://c.animaapp.com/mnv7exnwOzX3vX/img/uploaded-asset-1776467236635-1.jpeg" alt="" className="logo-dark absolute inset-0 w-full h-full object-contain scale-[1.28]" />
+            </span>
+          </h1>
           <div className="w-full flex justify-center">
             <FocusCarousel mutedText={mutedText} headText={headText} isLight={isLight} onOpen={(p) => navigate(p)} />
           </div>
