@@ -39,6 +39,7 @@ import { COUNTRY_TAX, COUNTRY_TAX_SOURCES } from "../data/countryTax";
 import { JUSTICE_PROCESS, JUSTICE_SOURCES, LEGAL_SYSTEMS } from "../data/justice";
 import { COUNTRY_PEOPLE, COUNTRY_PEOPLE_SOURCES, type Shares as PeopleShares } from "../data/countryPeople";
 import { economyForCountry } from "../data/economiesData";
+import { COUNTRY_REFERENCE } from "../data/countryReference";
 import { ECONOMY_MANUFACTURING, ECONOMY_MANUFACTURING_SOURCE, MANUFACTURING_BRANCHES, WORLD_MANUFACTURING_SHARE } from "../data/economyManufacturing";
 import { RESOURCE_PRODUCERS, type Share } from "../data/resourceProducers";
 import { ENERGY_PRODUCERS } from "../data/energyProducers";
@@ -313,6 +314,8 @@ export default function CountryFigures({ code, name }: { code: string; name: str
   const ind = COUNTRY_INDICATORS[code] ?? {};
   const tax = pick(COUNTRY_TAX, code);
   const people = pick(COUNTRY_PEOPLE, code);
+  // UNESCO's World Heritage sites, where the site has read them for the country.
+  const heritage = COUNTRY_REFERENCE[code];
   const services = pick(PUBLIC_SERVICES, code);
   const crime = pick(COUNTRY_CRIME, code);
   const prison = pick(PRISON_RATES, code);
@@ -647,14 +650,53 @@ export default function CountryFigures({ code, name }: { code: string; name: str
             <None t={t}>No account of religion is held for {name}.</None>
           )}
         </Panel>
-        <Panel t={t} title="Languages" meta={people?.languages?.year ? `Factbook · ${people.languages.year}` : undefined}>
-          {people?.languages && (people.languages.parts?.length || people.languages.text) ? (
+        <Panel t={t} title="Languages and culture" meta={people?.languages?.year ? `Factbook · ${people.languages.year}` : undefined}>
+          {(people?.languages && (people.languages.parts?.length || people.languages.text)) || people?.ethnic || heritage?.heritageSites?.length ? (
             <>
-              <Shares t={t} of={people.languages} />
-              <Foot sources={[COUNTRY_PEOPLE_SOURCES.factbook]} />
+              {people?.languages && (people.languages.parts?.length || people.languages.text) ? (
+                <>
+                  <p className="text-[9px] font-mono uppercase tracking-widest" style={{ color: t.mutedText }}>
+                    Languages
+                  </p>
+                  <Shares t={t} of={people.languages} />
+                </>
+              ) : null}
+              {people?.ethnic && (people.ethnic.parts?.length || people.ethnic.text) ? (
+                <>
+                  <p className="text-[9px] font-mono uppercase tracking-widest mt-1" style={{ color: t.mutedText }}>
+                    Its peoples{people.ethnic.year ? ` · ${people.ethnic.year}` : ""}
+                  </p>
+                  <Shares t={t} of={people.ethnic} />
+                </>
+              ) : null}
+              {heritage?.heritageSites?.length ? (
+                <>
+                  <p className="text-[9px] font-mono uppercase tracking-widest mt-1" style={{ color: t.mutedText }}>
+                    World Heritage sites · {heritage.heritageSiteCount ?? heritage.heritageSites.length}
+                  </p>
+                  <ul className="flex flex-col gap-1">
+                    {heritage.heritageSites.map((s) => (
+                      <li key={s} className="text-[11px] font-sans leading-snug pl-2 border-l-2" style={{ color: t.bodyText, borderColor: INK[2] }}>
+                        {s}
+                      </li>
+                    ))}
+                  </ul>
+                  {(heritage.heritageSiteCount ?? 0) > heritage.heritageSites.length && (
+                    <Note t={t}>
+                      The first {heritage.heritageSites.length} of its {heritage.heritageSiteCount}: those of {name} alone first, then by the year UNESCO inscribed them.
+                    </Note>
+                  )}
+                </>
+              ) : null}
+              <Foot
+                sources={[
+                  people?.languages || people?.ethnic ? COUNTRY_PEOPLE_SOURCES.factbook : undefined,
+                  heritage?.heritageSites?.length ? { label: "UNESCO World Heritage List (CC BY-SA 4.0)", url: "https://data.unesco.org/explore/dataset/whc001/" } : undefined,
+                ]}
+              />
             </>
           ) : (
-            <None t={t}>No account of language is held for {name}.</None>
+            <None t={t}>No account of its languages or culture is held for {name}.</None>
           )}
         </Panel>
       </Section>
