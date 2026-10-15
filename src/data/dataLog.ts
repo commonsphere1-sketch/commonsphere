@@ -30,6 +30,14 @@ export const DATA_LOG: DataLogEntry[] = [
     "files": 1
   },
   {
+    "what": "How the people of every US county work and live: unemployment since 2000, median household income, poverty, schooling, rural or urban",
+    "from": "USDA Economic Research Service (BLS, Census Bureau)",
+    "page": "/dashboard/worldview",
+    "where": "Worldview",
+    "read": "2026-10-15",
+    "files": 1
+  },
+  {
     "what": "Recorded crime and prison populations",
     "from": "UNODC, World Prison Brief",
     "page": "/dashboard/crime",
@@ -504,4 +512,4 @@ export const DATA_LOG: DataLogEntry[] = [
 ];
 
 /** How many data files the log covers. */
-export const DATA_LOG_FILES = 80;
+export const DATA_LOG_FILES = 81;

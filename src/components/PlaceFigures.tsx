@@ -400,10 +400,12 @@ function RegionFigures({ t, cc, name, country, cities = [], geo }: { t: Tokens; 
 /** A county: the Census Bureau's figures in the United States; elsewhere nothing but its outline is held. */
 function CountyFigures({ t, cc, id, name, parent, country, sub, cities = [], areaKm2, geo }: { t: Tokens; cc: string; id: string; name: string; parent?: string; country: string; sub?: string; cities?: InCity[]; areaKm2?: number; geo?: unknown }) {
   const [data, setData] = useState<typeof import("../data/usCounties") | null>(null);
+  const [econ, setEcon] = useState<typeof import("../data/usCountyEcon") | null>(null);
   useEffect(() => {
     if (cc !== "US") return;
     let off = false;
     import("../data/usCounties").then((m) => !off && setData(m));
+    import("../data/usCountyEcon").then((m) => !off && setEcon(m));
     return () => {
       off = true;
     };
@@ -439,6 +441,20 @@ function CountyFigures({ t, cc, id, name, parent, country, sub, cities = [], are
   if (!r) return <Head t={t} name={name} sub={`no record of it is held · ${where}`} />;
   const people = r[7];
   const last = people[people.length - 1];
+  // Its place among its state's counties by people, and its share of them: worked out here from the same estimates.
+  const sameState = data.US_COUNTIES.filter((x) => x[0].slice(0, 2) === r[0].slice(0, 2));
+  const rank = [...sameState].sort((a, b) => b[7][b[7].length - 1] - a[7][a[7].length - 1]).findIndex((x) => x[0] === r[0]) + 1;
+  const statePeople = sameState.reduce((n, x) => n + x[7][x[7].length - 1], 0);
+  const ec = econ?.COUNTY_ECON_ROWS[r[0]];
+  const st = econ?.STATE_ECON[r[0].slice(0, 2)];
+  const us = econ?.NATION_ECON;
+  const lastOf = (a?: (number | null)[]) => (a ? [...a].reverse().find((v) => v !== null) ?? null : null);
+  const cmp = (label: string, i: 3 | 4) =>
+    [
+      { key: `c${i}`, label: r[1].replace(/ (County|Parish|Borough|Census Area|Municipality|city)$/i, ""), v: ec?.[i] ?? null, color: INK[0] },
+      { key: `s${i}`, label: `${r[2]} (state)`, v: st?.[i] ?? null, color: INK[3] },
+      { key: `n${i}`, label: "United States", v: us?.[i] ?? null, color: INK[5] },
+    ].flatMap((x) => (x.v === null ? [] : [{ ...x, v: x.v as number, tip: `${x.label}: ${x.v}% ${label}` }]));
   return (
     <>
       <Head t={t} name={r[1]} sub={`${where} · its own figures, pressed on the map · the country's figures are below`} />
@@ -467,6 +483,30 @@ function CountyFigures({ t, cc, id, name, parent, country, sub, cities = [], are
           <Foot sources={[data.US_COUNTY_SOURCES.estimates]} />
         </Panel>
         {cities.length > 0 && <CitiesIn t={t} cities={cities} where={r[1]} />}
+        <Panel t={t} title="Change, year by year" meta={`people · ${years[1]}–${years[years.length - 1]}`}>
+          <SlimColumns
+            height={150}
+            label={`The change in the population of ${r[1]} on each year before`}
+            rows={people.slice(1).map((v, i) => ({ key: String(years[i + 1]), label: String(years[i + 1]), v: v - people[i] }))}
+            fmt={(v) => `${v > 0 ? "+" : ""}${whole(v)}`}
+          />
+          <Note t={t}>Each year's estimate less the year before's, worked out here.</Note>
+          <Foot sources={[data.US_COUNTY_SOURCES.estimates]} />
+        </Panel>
+        <Panel t={t} title="Its place in its state" meta={r[2]}>
+          <Tiles
+            t={t}
+            items={[
+              { label: "By people", text: `${rank} of ${sameState.length}`, y: `counties of ${r[2]}` },
+              { label: "Of the state's people", text: `${((last / statePeople) * 100).toFixed(1)}%`, y: `${years[years.length - 1]} · worked out here` },
+              { label: "Births per 1,000", text: ((r[8] / last) * 1000).toFixed(1), y: "the year · worked out here" },
+              { label: "Deaths per 1,000", text: ((r[9] / last) * 1000).toFixed(1), y: "the year · worked out here" },
+              ...(ec?.[6] ? [{ label: "Rural-urban code", text: String(ec[6]), y: "USDA, 2023" }] : []),
+            ]}
+          />
+          {ec?.[6] && econ ? <Note t={t}>{econ.RUCC[ec[6]]}.</Note> : null}
+          <Foot sources={[data.US_COUNTY_SOURCES.estimates, ec?.[6] && econ ? econ.COUNTY_ECON_SOURCES.rucc : undefined]} />
+        </Panel>
         <Panel t={t} title="Its land" meta="Gazetteer">
           <Tiles
             t={t}
@@ -479,6 +519,54 @@ function CountyFigures({ t, cc, id, name, parent, country, sub, cities = [], are
           <Foot sources={[data.US_COUNTY_SOURCES.gazetteer]} />
         </Panel>
       </Section>
+      {ec && econ && (
+        <Section t={t} title="Work, income and schooling" kicker="each beside its state's and the nation's">
+          <Panel t={t} title="Unemployment, year by year" meta={`% of the labour force · ${econ.COUNTY_ECON.years[0]}–${econ.COUNTY_ECON.laborYear}`}>
+            <Series t={t} rows={ec[0].flatMap((v, i) => (v === null ? [] : [{ y: String(econ.COUNTY_ECON.years[i]), v }]))} fmt={(v) => `${v.toFixed(1)}%`} color={INK[4]} />
+            <Note t={t}>
+              {lastOf(ec[0])}% in {econ.COUNTY_ECON.laborYear}; {r[2]} {lastOf(st?.[0])}%, the United States {lastOf(us?.[0])}%.{ec[1] ? ` A labour force of ${whole(ec[1])}.` : ""}
+            </Note>
+            <Foot sources={[econ.COUNTY_ECON_SOURCES.unemployment]} />
+          </Panel>
+          <Panel t={t} title="Income" meta={`median household · ${econ.COUNTY_ECON.povertyYear}`}>
+            <SlimBars
+              labelWidth="7rem"
+              rows={[
+                { key: "c", label: r[1].replace(/ (County|Parish|Borough|Census Area|Municipality|city)$/i, ""), v: ec[2], color: INK[1] },
+                { key: "s", label: `${r[2]} (state)`, v: st?.[2] ?? null, color: INK[3] },
+                { key: "n", label: "United States", v: us?.[2] ?? null, color: INK[5] },
+              ].flatMap((x) => (x.v === null ? [] : [{ ...x, v: x.v as number }]))}
+              fmt={(v) => `$${whole(v)}`}
+            />
+            <Foot sources={[econ.COUNTY_ECON_SOURCES.poverty]} />
+          </Panel>
+          <Panel t={t} title="Poverty" meta={`% below the poverty line · ${econ.COUNTY_ECON.povertyYear}`}>
+            <p className="text-[9px] font-mono uppercase tracking-widest" style={{ color: t.mutedText }}>All people</p>
+            <SlimBars labelWidth="7rem" rows={cmp("of all people", 3)} fmt={(v) => `${v.toFixed(1)}%`} />
+            <p className="text-[9px] font-mono uppercase tracking-widest" style={{ color: t.mutedText }}>Children under 18</p>
+            <SlimBars labelWidth="7rem" rows={cmp("of children", 4)} fmt={(v) => `${v.toFixed(1)}%`} />
+            <Foot sources={[econ.COUNTY_ECON_SOURCES.poverty]} />
+          </Panel>
+          <Panel t={t} title="How far its adults went in school" meta={`adults 25 and over · ${econ.COUNTY_ECON.schooling}`}>
+            <Stack
+              t={t}
+              parts={["No high school diploma", "High school only", "Some college", "A bachelor's degree or more"].flatMap((n, i) => (ec[5][i] === null ? [] : [{ name: n, v: ec[5][i] as number }]))}
+            />
+            <SlimBars
+              labelWidth="7rem"
+              max={100}
+              rows={[
+                { key: "c", label: r[1].replace(/ (County|Parish|Borough|Census Area|Municipality|city)$/i, ""), v: ec[5][3], color: INK[6] },
+                { key: "s", label: `${r[2]} (state)`, v: st?.[5][3] ?? null, color: INK[3] },
+                { key: "n", label: "United States", v: us?.[5][3] ?? null, color: INK[5] },
+              ].flatMap((x) => (x.v === null ? [] : [{ ...x, v: x.v as number }]))}
+              fmt={(v) => `${v.toFixed(1)}%`}
+            />
+            <Note t={t}>The bars are the share with a bachelor's degree or more.</Note>
+            <Foot sources={[econ.COUNTY_ECON_SOURCES.education]} />
+          </Panel>
+        </Section>
+      )}
       {geo ? <Inside t={t} cc={cc} geo={geo} name={r[1]} /> : null}
     </>
   );
