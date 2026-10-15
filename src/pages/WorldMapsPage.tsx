@@ -1,4 +1,5 @@
 import { SourceLink } from "../components/SourceLink";
+import { SiteMark } from "../components/SiteMark";
 import { ChipRow } from "../components/ChipRow";
 import { na, has, orZero } from "../lib/na";
 import { LAND_USE, LAND_USE_SOURCE } from "@/data/landUse";
@@ -2002,18 +2003,6 @@ export function WorldMapsPage() {
   const worldDrawn: { features: { properties: { name: string } }[] } =
     detailWorld ?? world;
 
-  /* Countries the drawn atlas has a shape for — what the caption may claim.
-     1:50m has one for every country in the dataset except Tuvalu. */
-  const drawnCountryCount = useMemo(
-    () =>
-      new Set(
-        worldDrawn.features
-          .map((f) => countryForFeature(f.properties.name)?.code)
-          .filter(Boolean),
-      ).size,
-    [worldDrawn],
-  );
-
   /* Path strings, computed once per geometry rather than on every render.
      Hovering sets page state and re-renders the page, so building 241 country
      outlines at 1:50m, every state and the graticule inside the render put
@@ -3667,14 +3656,10 @@ export function WorldMapsPage() {
       <div className="px-6 py-8 max-w-[2000px] mx-auto">
         {/* ── Header ── */}
         <div className="mb-6">
-          <h1 className="text-2xl font-bold font-sans text-foreground">
-            World &amp; Regional Maps
+          <h1 className="text-2xl font-bold font-sans text-foreground flex items-center gap-3">
+            <SiteMark />
+            World Maps
           </h1>
-          <p className="text-muted-foreground text-sm font-sans">
-            Equal-area maps of {drawnCountryCount} countries and{" "}
-            {usStatesData.length} US states, shaded by development, health,
-            economy and society indicators
-          </p>
         </div>
 
         {/* ── Headlines by place ── */}

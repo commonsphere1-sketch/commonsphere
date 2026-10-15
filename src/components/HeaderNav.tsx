@@ -103,7 +103,7 @@ const PAGES: [label: string, to: string, about: string][] = [
   ["Developments", "/dashboard/trends", "Space, science and breakthroughs, technology, medicine, fusion and the great projects"],
   ["Worldview", "/dashboard/worldview", "The world's news and views"],
   ["Climate", "/dashboard/planetary-boundaries", "The measured state of the climate"],
-  ["Crime Statistics", "/dashboard/crime", "Crime and justice figures"],
+  ["Crime", "/dashboard/crime", "Crime and justice figures"],
   ["World Maps", "/dashboard/maps", "The world, mapped by measure"],
 ];
 

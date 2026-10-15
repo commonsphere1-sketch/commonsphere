@@ -1,4 +1,5 @@
 import React from "react";
+import { SiteMark } from "../components/SiteMark";
 import {
   Scroll,
   ShieldCheck,
@@ -127,13 +128,10 @@ export function LegalPage() {
       <div className="px-6 py-8 max-w-4xl mx-auto">
         {/* ── Header ── */}
         <div className="mb-6">
-          <h1 className="text-2xl font-bold font-sans text-foreground">
+          <h1 className="text-2xl font-bold font-sans text-foreground flex items-center gap-3">
+            <SiteMark />
             Terms &amp; Policies
           </h1>
-          <p className="text-muted-foreground text-sm font-sans">
-            How CommonSphere may be used, what happens to your data, and where
-            the numbers come from
-          </p>
           <p className="text-[11px] font-mono text-muted-foreground mt-2">
             Effective {EFFECTIVE}
           </p>

@@ -91,7 +91,7 @@ const analysisNav = [
   },
   {
     to: "/dashboard/crime",
-    label: "Crime Statistics",
+    label: "Crime",
     icon: ShieldCheck,
     end: false,
   },

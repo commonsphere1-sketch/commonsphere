@@ -1,4 +1,5 @@
 import { useMemo, useState, useRef, useLayoutEffect } from "react";
+import { SiteMark } from "../components/SiteMark";
 import { useAuth } from "@/contexts/AuthContext";
 import { useNotesStore, type Note } from "@/lib/notesStore";
 import { voiceNoteUrl } from "@/lib/supabaseData";
@@ -90,8 +91,9 @@ export function NotesPage() {
         {/* Header */}
         <div className="flex items-center gap-3 mb-6">
           <div>
-            <h1 className="text-2xl font-bold font-sans text-foreground">My Notes</h1>
-            <p className="text-muted-foreground text-sm font-sans">Notes on anything the site holds: a country, a state, a municipality, a city, an economy, a leader, a policy - or a whole page</p>
+            <h1 className="text-2xl font-bold font-sans text-foreground flex items-center gap-3">
+              <SiteMark />
+              My Notes</h1>
           </div>
         </div>
 

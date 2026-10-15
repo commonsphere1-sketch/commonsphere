@@ -1,4 +1,5 @@
 import React, { useState, useRef, useEffect } from "react";
+import { SiteMark } from "../components/SiteMark";
 import {
   User,
   Bell,
@@ -352,12 +353,10 @@ export function SettingsPage() {
       <div className="px-6 py-8 max-w-2xl mx-auto">
         <div className="flex items-center gap-3 mb-8">
           <div>
-            <h1 className="text-2xl font-bold font-sans text-foreground">
+            <h1 className="text-2xl font-bold font-sans text-foreground flex items-center gap-3">
+              <SiteMark />
               Settings
             </h1>
-            <p className="text-muted-foreground text-sm font-sans">
-              Manage your account and preferences
-            </p>
           </div>
         </div>
 

@@ -1,4 +1,5 @@
 import React, { useState, useMemo, useEffect } from "react";
+import { SiteMark } from "../components/SiteMark";
 
 /** The policy calculator: a part of a government's spending moved from one area to another. Loaded after the page. */
 const PolicyCalculator = React.lazy(() => import("../components/PolicyCalculator"));
@@ -10877,15 +10878,12 @@ export function PolicyPage() {
       {/* Page header */}
       <div className="flex flex-col gap-1">
         <div className="flex items-center gap-2">
-          <h1 className="text-2xl font-bold font-sans text-foreground">
-            Public Policy
+          <h1 className="text-2xl font-bold font-sans text-foreground flex items-center gap-3">
+            <SiteMark />
+            Policy
           </h1>
         </div>
         {/* pl-8 dropped with the icon — it existed to clear the badge. */}
-        <p className="text-muted-foreground text-sm font-sans">
-          What governments spend on each policy area, across US states and
-          countries: published figures, each with its year and source
-        </p>
       </div>
 
       {/* Controls — unified filter bar (EconomiesPage style) */}

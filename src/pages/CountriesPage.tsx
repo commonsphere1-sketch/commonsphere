@@ -1,4 +1,5 @@
 import { na, has, orZero, sortKey } from "../lib/na";
+import { SiteMark } from "../components/SiteMark";
 import { PublicServicesSection, ServiceBadges } from "../components/PublicServices";
 import { ACCENT, ChartNote, ChartTitle, FigureRow, FigureTile, HdiScale, MeasureBars, PartsBar, PartsDonut, worldFor, type MeasureRow } from "../components/ModalCharts";
 import { COUNTRY_FIGURES, COUNTRY_FIGURE_SOURCES } from "../data/worldview";
@@ -15748,13 +15749,10 @@ export function CountriesPage() {
         {/* ── PAGE HEADER ── */}
         <div className="flex items-center gap-3 mb-6">
           <div className="flex-1">
-            <h1 className="text-2xl font-bold font-sans text-foreground">
-              World Countries
+            <h1 className="text-2xl font-bold font-sans text-foreground flex items-center gap-3">
+              <SiteMark />
+              Countries
             </h1>
-            <p className="text-muted-foreground text-sm font-sans">
-              Demographics, economics, military, governance &amp; infrastructure
-              data for countries worldwide
-            </p>
           </div>
           <button
             onClick={() => exportCountriesToCSV(filtered)}

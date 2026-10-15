@@ -1,4 +1,5 @@
 import { SourceLink } from "../components/SourceLink";
+import { SiteMark } from "../components/SiteMark";
 import React, { useState, useMemo } from "react";
 import {
   DOMAINS,
@@ -443,15 +444,11 @@ export function GlobalIndexesPage() {
       <div className="flex items-start justify-between gap-4 flex-wrap">
         <div>
           <div className="flex items-center gap-2 mb-1">
-            <h1 className="text-2xl font-bold text-foreground">
+            <h1 className="text-2xl font-bold text-foreground flex items-center gap-3">
+              <SiteMark />
               Global Indexes & Indicators
             </h1>
           </div>
-          <p className="text-sm text-muted-foreground max-w-2xl">
-            Comprehensive reference of every societal, economic, political, and
-            environmental index used across CommonSphere — organized by domain,
-            with source links and methodology notes.
-          </p>
         </div>
       </div>
 

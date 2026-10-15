@@ -1,4 +1,5 @@
 import { WindowTitle } from "../components/WindowTitle";
+import { SiteMark } from "../components/SiteMark";
 import { na, has, sortKey } from "../lib/na";
 import { usdFromBillions } from "../lib/money";
 import React, { useState, useCallback } from "react";
@@ -2287,13 +2288,10 @@ export function EconomiesPage() {
         {/* Header */}
         <div className="flex items-center gap-3 mb-4">
           <div>
-            <h1 className="text-2xl font-bold font-sans text-foreground">
-              Global Economies
+            <h1 className="text-2xl font-bold font-sans text-foreground flex items-center gap-3">
+              <SiteMark />
+              Economies
             </h1>
-            <p className="text-muted-foreground text-sm font-sans">
-              GDP, growth, trade, inflation, credit ratings, and sector
-              breakdowns
-            </p>
           </div>
         </div>
 

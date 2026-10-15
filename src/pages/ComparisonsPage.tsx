@@ -1,4 +1,5 @@
 import { ComparisonModule } from "../components/ComparisonModule";
+import { SiteMark } from "../components/SiteMark";
 import { HeadlinesBanner, ALL_TOPICS, namesTwo, pickWhere } from "../components/HeadlinesBanner";
 
 /** Stories naming two places or more: the news that sets them side by side. */
@@ -10,10 +11,9 @@ export function ComparisonsPage() {
       <div className="px-6 py-8 max-w-screen-2xl mx-auto">
         <div className="flex items-center gap-3 mb-6">
           <div>
-            <h1 className="text-2xl font-bold font-sans text-foreground">Compare Countries &amp; States</h1>
-            <p className="text-muted-foreground text-sm font-sans">
-              Select any mix of countries and US states to compare statistics side by side
-            </p>
+            <h1 className="text-2xl font-bold font-sans text-foreground flex items-center gap-3">
+              <SiteMark />
+              Compare</h1>
           </div>
         </div>
         <HeadlinesBanner

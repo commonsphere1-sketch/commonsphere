@@ -9,27 +9,28 @@
  * quiet way. A figure a card showed large is kept, in the line or beside it.
  */
 import type { ReactNode } from "react";
+import { SiteMark } from "./SiteMark";
 
 export function PageHeader({
   title,
-  children,
-  aside,
   className = "",
 }: {
   title: ReactNode;
-  /** The line under the name: what the page holds. */
+  /** The line that stood under the name: no longer drawn, as asked, and kept only so that the pages' calls need not change. */
   children?: ReactNode;
-  /** At the right, small: the sources, the day they were read, or a figure the page leads with. */
+  /** What stood at the right, small - sources, the day they were read, a figure: no longer drawn, as asked, only the name is left at the top. */
   aside?: ReactNode;
   className?: string;
 }) {
   return (
     <div className={`flex flex-wrap items-start justify-between gap-x-6 gap-y-3 ${className}`}>
       <div className="min-w-0">
-        <h1 className="text-2xl font-bold font-sans text-foreground">{title}</h1>
-        {children && <p className="text-muted-foreground text-sm font-sans max-w-3xl">{children}</p>}
+        {/* The site's globe on the left of the name, and only the name, as asked: the line of writing that stood under it is no longer drawn. */}
+        <h1 className="text-2xl font-bold font-sans text-foreground flex items-center gap-3">
+          <SiteMark />
+          {title}
+        </h1>
       </div>
-      {aside && <div className="text-[11px] font-sans text-muted-foreground sm:text-right shrink-0 leading-relaxed">{aside}</div>}
     </div>
   );
 }

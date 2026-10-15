@@ -596,7 +596,7 @@ function Hero() {
   // clock still runs, small and at the right, and is still said to be a projection and whose.
   return (
     <PageHeader
-      title="Where the world stands"
+      title="Worldview"
       aside={
         <>
           {clock && pop !== null && (

@@ -1,4 +1,5 @@
 import { SourceLink } from "../components/SourceLink";
+import { SiteMark } from "../components/SiteMark";
 import React, { useState } from "react";
 import { useTheme } from "../contexts/ThemeContext";
 import { HeadlinesBanner, SUBJECT } from "../components/HeadlinesBanner";
@@ -508,13 +509,10 @@ export function PlanetaryBoundariesPage() {
         {/* ── HERO HEADER ───────────────────────────────────────────────── */}
         <div className="flex items-center gap-3 mb-6">
           <div>
-            <h1 className="text-2xl font-bold font-sans text-foreground">
-              Climate &amp; Planetary Boundaries
+            <h1 className="text-2xl font-bold font-sans text-foreground flex items-center gap-3">
+              <SiteMark />
+              Climate
             </h1>
-            <p className="text-muted-foreground text-sm font-sans">
-              What the climate is measured at today, and the nine Earth-system
-              processes that define the safe operating space for humanity
-            </p>
           </div>
         </div>
 

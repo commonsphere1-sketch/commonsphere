@@ -1,4 +1,5 @@
 import { ChipRow } from "../components/ChipRow";
+import { SiteMark } from "../components/SiteMark";
 import React, { useState, useMemo, useCallback, useEffect, useRef, lazy, Suspense } from "react";
 import { COUNTRY_LAW_HELD } from "../data/countryLaw";
 
@@ -2043,20 +2044,11 @@ export function RankingsPage() {
       <div className="flex items-start justify-between gap-4 flex-wrap">
         <div>
           <div className="flex items-center gap-2 mb-1">
-            <h1 className="text-2xl font-bold font-sans text-foreground">
+            <h1 className="text-2xl font-bold font-sans text-foreground flex items-center gap-3">
+              <SiteMark />
               Compare
             </h1>
           </div>
-          <p className="text-muted-foreground text-sm font-sans max-w-3xl">
-            Pin any countries and US states together and read them against each
-            other across every measure the site holds — the full form of the
-            dashboard's compare card, with each figure placed among all{" "}
-            {allRows.length} entities. The table below is the pool you pick
-            from, ordered by a composite scored over whatever an entity
-            actually has, up to 9 indicators for countries and 5 for states,
-            with the weights renormalised across those so a missing one neither
-            helps nor hurts.
-          </p>
         </div>
         <span className="text-xs text-muted-foreground font-mono bg-muted/50 border border-border rounded-lg px-2.5 py-1 shrink-0 self-start">
           {filteredRows.length} entities

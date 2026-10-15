@@ -684,7 +684,7 @@ export function CrimeStatsPage() {
       <div className="w-full px-4 sm:px-6 lg:px-8 xl:px-10 py-4 flex flex-col gap-4">
         {/* ── HERO ─────────────────────────────────────────────────── */}
         {/* The plain header every page has (PageHeader). It was a red card with four tiles that repeated its sentence. */}
-        <PageHeader title="International Crime Statistics" aside="UNODC · Numbeo · World Prison Brief">
+        <PageHeader title="Crime" aside="UNODC · Numbeo · World Prison Brief">
           Homicide rates, safety indices, incarceration, cybercrime, and crime category breakdowns across 190+ countries. Homicide figures are the latest reported year per
           country, 2020 to 2023.
         </PageHeader>

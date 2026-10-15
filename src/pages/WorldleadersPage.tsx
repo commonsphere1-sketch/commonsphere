@@ -1,4 +1,5 @@
 import { WindowTitle } from "../components/WindowTitle";
+import { SiteMark } from "../components/SiteMark";
 import { ChipRow } from "../components/ChipRow";
 import { decodeEntities } from "../lib/security";
 import React, { useState, useMemo } from "react";
@@ -17733,13 +17734,10 @@ export function WorldLeadersPage() {
         {/* Header */}
         <div className="flex items-center gap-3 mb-6">
           <div>
-            <h1 className="text-2xl font-bold font-sans text-foreground">
+            <h1 className="text-2xl font-bold font-sans text-foreground flex items-center gap-3">
+              <SiteMark />
               World Leaders
             </h1>
-            <p className="text-muted-foreground text-sm font-sans">
-              In-depth profiles: background, education, political views and
-              achievements
-            </p>
           </div>
         </div>
 
