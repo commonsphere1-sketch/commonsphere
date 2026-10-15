@@ -90,7 +90,7 @@ import { feature, mesh } from "topojson-client";
 import type { Topology } from "topojson-specification";
 import worldTopo from "world-atlas/countries-110m.json";
 import statesTopo from "us-atlas/states-10m.json";
-import { CaretRight, MagnifyingGlass, MagnifyingGlassMinus, MagnifyingGlassPlus, MapTrifold } from "@phosphor-icons/react";
+import { CaretRight, MagnifyingGlassMinus, MagnifyingGlassPlus, MapTrifold } from "@phosphor-icons/react";
 import { countriesData } from "../data/countriesData";
 import { COUNTRY_INDICATORS } from "../data/countryIndicators";
 import { STATE_INDICATORS } from "../data/stateIndicators";
@@ -311,7 +311,6 @@ export default function PlaceAtlas() {
   };
   /* Dragging moves a map that is drawn closer. A drag is not a press: the press that ends one is dropped. */
   const drag = useRef<{ x: number; y: number; moved: boolean } | null>(null);
-  const [find, setFind] = useState("");
   /* What a press selects follows how close the map is drawn: a country from far out, then a state, a county, a city and
      a town as it closes in. A reader can still choose for themselves; the choice holds until the map is drawn to another
      step, and across a move from the world to a country's own map. */
@@ -757,11 +756,6 @@ export default function PlaceAtlas() {
     : level.kind === "world"
       ? COUNTRIES.map((c) => ({ key: c.code, name: c.name, ref: { kind: "country", code: c.code } as Ref, go: () => (pick === "country" ? navigate(`/dashboard/countries?open=${c.id}`) : setLevel({ kind: "country", code: c.code })) }))
       : [...new Map(shapes.map((s) => [s.name, s])).values()].sort((a, b) => a.name.localeCompare(b.name));
-  const listLabel = onTowns
-    ? `${listed.length.toLocaleString("en-US")} towns and villages in view · largest first`
-    : onCities
-    ? `${listed.length.toLocaleString("en-US")} cities · largest first`
-    : `${level.kind === "world" ? `${listed.length} countries` : onSecond ? `${listed.length.toLocaleString("en-US")} ${level.code === "US" ? "counties" : "counties or districts"}` : level.code === "US" ? `${listed.length} states` : `${listed.length} divisions`} · by name`;
 
   const abroad = level.kind === "country" && level.code !== "US";
   const loading = abroad ? (fine && second === undefined) || (!second && divisions === null) : level.kind === "country" && fine && !counties;
@@ -972,7 +966,6 @@ export default function PlaceAtlas() {
   const dotsDrawn = [...dotsInView].sort((a, b) => b.r - a.r);
   const chip = (on: boolean) =>
     `px-3 py-1 rounded-full text-[11px] font-medium font-sans border transition-colors cursor-pointer shrink-0 whitespace-nowrap ${on ? "chip-selected" : "bg-transparent border-border text-muted-foreground hover:text-foreground hover:bg-muted/60"}`;
-  const shownList = find.trim() ? listed.filter((x) => x.name.toLowerCase().includes(find.trim().toLowerCase())) : listed;
   const tool = "w-8 h-8 rounded-full inline-flex items-center justify-center border border-border bg-background/80 backdrop-blur-sm text-foreground hover:bg-muted transition-colors cursor-pointer shadow-sm disabled:opacity-40 disabled:cursor-default";
   const crumb = "text-[11px] font-semibold font-sans px-2.5 py-1 rounded-full transition-opacity hover:opacity-80 cursor-pointer";
 
@@ -1043,9 +1036,9 @@ export default function PlaceAtlas() {
         <PlaceSearch />
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-[minmax(0,1fr)_14rem] xl:grid-cols-[14rem_minmax(0,1fr)_14rem] gap-3">
-        {/* The map in the middle, the place picked on its left and the list on its right, as the Worldview page sets its column beside its map. */}
-        <div className="min-w-0 relative order-1 xl:order-2">
+      <div className="grid grid-cols-1 lg:grid-cols-[minmax(0,1fr)_15rem] gap-3">
+        {/* The map, and the place picked on its right where the list of places stood, as the Worldview page sets its column beside its map. */}
+        <div className="min-w-0 relative">
           <svg
             ref={svgRef}
             viewBox={`${view.x - W / (2 * view.k)} ${view.y - H / (2 * view.k)} ${W / view.k} ${H / view.k}`}
@@ -1277,36 +1270,8 @@ export default function PlaceAtlas() {
           )}
         </div>
 
-        {/* The same places by name: for one too small to press, and for a keyboard. */}
-        {/* Beside the map, on its right, as tall as it is and scrolled within; under it on a phone. */}
-        <div className="min-w-0 order-2 xl:order-3 lg:relative">
-         <div className="flex flex-col lg:absolute lg:inset-0">
-          <p className="text-[10px] font-mono uppercase tracking-widest mb-1.5" style={{ color: t.mutedText }}>
-            {listLabel}
-          </p>
-          <label className="flex items-center gap-1.5 rounded-full border border-border px-3 py-1 mb-1.5 transition-colors focus-within:border-foreground/40">
-            <MagnifyingGlass size={12} className="text-muted-foreground shrink-0" aria-hidden />
-            <input type="search" value={find} onChange={(e) => setFind(e.target.value)} placeholder="Find one by name" aria-label="Find a place in the list by name" className="flex-1 min-w-0 bg-transparent text-[11px] font-medium font-sans text-foreground placeholder:text-muted-foreground focus:outline-none" />
-          </label>
-          <ul className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-1 content-start overflow-y-auto rounded-xl max-h-44 lg:max-h-none lg:flex-1 lg:min-h-0" style={{ border: `1px solid ${t.gridLine}` }}>
-            {shownList.map((x) => (
-              <li key={x.key} style={{ borderBottom: `1px solid ${t.gridLine}` }}>
-                <button type="button" onClick={x.go} onFocus={() => setHover(x.name)} onBlur={() => setHover(null)} onMouseEnter={() => setHover(x.name)} onMouseLeave={() => setHover(null)} className="w-full text-left text-[11px] font-sans px-3 py-1.5 truncate hover:opacity-70 cursor-pointer" style={{ color: t.bodyText }}>
-                  {x.name}
-                </button>
-              </li>
-            ))}
-            {shownList.length === 0 && (
-              <li className="text-[11px] font-sans px-3 py-2" style={{ color: t.mutedText }}>
-                {loading ? "Loading…" : listed.length ? "None by that name." : "None drawn."}
-              </li>
-            )}
-          </ul>
-         </div>
-        </div>
-
-          {/* The place last pointed at, on the map or in the list, set out: on the map's left on a wide screen, as asked, and under the map and the list on a smaller one. */}
-        <div className="rounded-xl p-4 order-3 lg:col-span-2 xl:col-span-1 xl:order-1 self-start" style={{ background: t.tile, border: `1px solid ${t.gridLine}` }} aria-live="polite">
+        {/* The place last pointed at on the map, set out: on the map's right where the list stood, as asked, and under the map on a narrow screen. */}
+        <div className="rounded-xl p-4 self-start" style={{ background: t.tile, border: `1px solid ${t.gridLine}` }} aria-live="polite">
           {item && about ? (
             <>
               <div className="flex flex-wrap items-center gap-3">
@@ -1327,7 +1292,7 @@ export default function PlaceAtlas() {
                   Open
                 </Go>
               </div>
-              <div className="grid grid-cols-2 sm:grid-cols-4 xl:grid-cols-2 gap-x-4 gap-y-2 mt-3">
+              <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-2 gap-x-4 gap-y-2 mt-3">
                 {about.facts
                   .filter(([, value], i) => value !== null || i < 4)
                   .map(([label, value, sub]) => (
@@ -1349,7 +1314,7 @@ export default function PlaceAtlas() {
             </>
           ) : (
             <p className="text-[12px] font-sans" style={{ color: t.mutedText }}>
-              Select or hover over any area - on the map or in the list - and what the site holds of it is set out here.
+              Select or hover over any area on the map, or search for one above it, and what the site holds of it is set out here.
             </p>
           )}
         </div>
@@ -1372,8 +1337,8 @@ export default function PlaceAtlas() {
         Census Bureau's counties for the United States, and for other countries the boundaries geoBoundaries gathers from each country's own publisher, kept only under a licence
         the site can use and named under the map. Which first-order division a district lies in is worked out here, from where most of its outline falls. A country with no
         second-order boundaries held shows its first order instead, and says so. A division, a county or a district goes to its record on the Municipalities page; the country
-        the map is on can be opened from above it. The world here is drawn at 1:110 million and has no shape for some small countries: they are in the list, as are a country's
-        far-off divisions - France's overseas departments, Spain's Canaries - which the map leaves out of its frame so that the rest can be seen.
+        the map is on can be opened from above it. The world here is drawn at 1:110 million and has no shape for some small countries, and leaves a country's far-off divisions -
+        France's overseas departments, Spain's Canaries - out of its frame so that the rest can be seen: the search above the map finds a place by its name.
       </p>
       </details>
 
