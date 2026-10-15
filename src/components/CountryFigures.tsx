@@ -40,6 +40,7 @@ import { JUSTICE_PROCESS, JUSTICE_SOURCES, LEGAL_SYSTEMS } from "../data/justice
 import { COUNTRY_PEOPLE, COUNTRY_PEOPLE_SOURCES, type Shares as PeopleShares } from "../data/countryPeople";
 import { economyForCountry } from "../data/economiesData";
 import { COUNTRY_REFERENCE } from "../data/countryReference";
+import { TOP_EXPORTS, TOP_EXPORTS_SOURCE } from "../data/topExports";
 import { RIGHTS, RIGHTS_INDICES, RIGHTS_SOURCE, type RightsIndex } from "../data/rights";
 import { ECONOMY_MANUFACTURING, ECONOMY_MANUFACTURING_SOURCE, MANUFACTURING_BRANCHES, WORLD_MANUFACTURING_SHARE } from "../data/economyManufacturing";
 import { RESOURCE_PRODUCERS, type Share } from "../data/resourceProducers";
@@ -335,6 +336,7 @@ export default function CountryFigures({ code, name }: { code: string; name: str
   const air = AIR_QUALITY[code];
   const watch = pick(SURVEILLANCE, code);
   const rights = pick(RIGHTS, code);
+  const exportsOf = TOP_EXPORTS[code];
   // What is illegal, restricted and legal there: the UK Foreign Office's advice, from the law file the site keeps for each country.
   const [advice, setAdvice] = useState<{ code: string; local: CountryLawAdvice } | null>(null);
   useEffect(() => {
@@ -559,15 +561,34 @@ export default function CountryFigures({ code, name }: { code: string; name: str
             <None t={t}>No figures of manufacturing are held for {name}.</None>
           )}
         </Panel>
-        <Panel t={t} title="What its factories make" meta={mf?.branches ? `% of manufacturing · ${mf.branches[0]}` : undefined}>
-          {mf?.branches ? (
+        <Panel t={t} title={exportsOf ? "What it makes and sells" : "What its factories make"} meta={mf?.branches ? `% of manufacturing · ${mf.branches[0]}` : exportsOf ? `Comtrade · ${exportsOf.y}` : undefined}>
+          {mf?.branches || exportsOf ? (
             <>
-              <Ring t={t} slices={MANUFACTURING_BRANCHES.map((b, i) => ({ name: b.name, v: mf.branches![i + 1] as number }))} />
-              <Note t={t}>The World Bank's five branches of manufacturing (UNIDO's figures), each its share of the value manufacturing adds.</Note>
-              <Foot sources={[ECONOMY_MANUFACTURING_SOURCE]} />
+              {mf?.branches && (
+                <>
+                  <Ring t={t} slices={MANUFACTURING_BRANCHES.map((b, i) => ({ name: b.name, v: mf.branches![i + 1] as number }))} />
+                  <Note t={t}>The World Bank's five branches of manufacturing (UNIDO's figures), each its share of the value manufacturing adds.</Note>
+                </>
+              )}
+              {/* Its largest goods exports, by HS chapter: what it sells abroad, as asked. */}
+              {exportsOf && (
+                <>
+                  <p className="text-[9px] font-mono uppercase tracking-widest mt-1" style={{ color: t.mutedText }}>
+                    Its top exports · {exportsOf.y} · {exportsOf.total >= 1e12 ? `$${(exportsOf.total / 1e12).toFixed(2)}T` : `$${big(exportsOf.total)}`} in all
+                  </p>
+                  <SlimBars
+                    label={`The largest goods exports of ${name}, ${exportsOf.y}`}
+                    labelWidth="8rem"
+                    rows={exportsOf.rows.slice(0, 6).map(([n, usd, pct], i) => ({ key: n, label: n, v: pct, color: INK[(i + 1) % INK.length], tip: `${n}: $${big(usd)}, ${pct}% of its goods exports` }))}
+                    fmt={(v) => `${v.toFixed(1)}%`}
+                  />
+                  <Note t={t}>Each chapter's share of all its goods exports, worked out here from UN Comtrade's figures for the same year.</Note>
+                </>
+              )}
+              <Foot sources={[mf?.branches ? ECONOMY_MANUFACTURING_SOURCE : undefined, exportsOf ? TOP_EXPORTS_SOURCE : undefined]} />
             </>
           ) : (
-            <None t={t}>No breakdown of manufacturing is held for {name}.</None>
+            <None t={t}>No breakdown of manufacturing or exports is held for {name}.</None>
           )}
         </Panel>
         <Panel t={t} title="Factory output, year on year" meta={mf?.growth?.length ? `real growth · ${mf.growth[0][0]}–${mf.growth[mf.growth.length - 1][0]}` : undefined}>

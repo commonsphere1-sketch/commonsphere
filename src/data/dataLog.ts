@@ -54,6 +54,14 @@ export const DATA_LOG: DataLogEntry[] = [
     "files": 1
   },
   {
+    "what": "What each country sells abroad: its largest goods exports by HS chapter, with their value",
+    "from": "UN Comtrade",
+    "page": "/dashboard/worldview",
+    "where": "Worldview",
+    "read": "2026-10-15",
+    "files": 1
+  },
+  {
     "what": "How far each government watches and restricts its people online: social media monitoring, filtering, shutdowns, arrests, privacy law",
     "from": "V-Dem Institute, Digital Society Project",
     "page": "/dashboard/worldview",
@@ -512,4 +520,4 @@ export const DATA_LOG: DataLogEntry[] = [
 ];
 
 /** How many data files the log covers. */
-export const DATA_LOG_FILES = 81;
+export const DATA_LOG_FILES = 82;
