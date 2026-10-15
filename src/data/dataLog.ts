@@ -49,7 +49,7 @@ export const DATA_LOG: DataLogEntry[] = [
     "what": "The frontiers of invention: AI training compute, clean energy costs and capacity, electric cars, robots, supercomputers, nuclear arsenals, the Nobel Prizes in the sciences",
     "from": "Epoch AI, IRENA, Ember, IEA, IFR, TOP500, FAS via Our World in Data; the Nobel Prize",
     "page": "/dashboard/trends",
-    "where": "Innovations",
+    "where": "Developments",
     "read": "2026-10-15",
     "files": 1
   },

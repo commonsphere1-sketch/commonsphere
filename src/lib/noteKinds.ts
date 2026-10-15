@@ -24,7 +24,7 @@ export const SITE_SECTIONS: { to: string; label: string; holds: string }[] = [
   { to: "/dashboard/world-leaders", label: "World Leaders", holds: "who governs, and the royal houses" },
   { to: "/dashboard/policy", label: "Policy", holds: "what governments spend, by area" },
   { to: "/dashboard/rankings", label: "Compare", holds: "places side by side" },
-  { to: "/dashboard/trends", label: "Innovations", holds: "what the world is inventing and building" },
+  { to: "/dashboard/trends", label: "Developments", holds: "what the world is inventing and building" },
   { to: "/dashboard/worldview", label: "Worldview", holds: "the world as a whole" },
   { to: "/dashboard/planetary-boundaries", label: "Climate", holds: "the climate and the living world" },
   { to: "/dashboard/crime", label: "Crime Statistics", holds: "crime and justice" },

@@ -2134,7 +2134,7 @@ export function TrendsPage() {
       <div className="max-w-screen-2xl mx-auto px-6 py-8 flex flex-col gap-6">
         {/* ── Header: the plain one every page has (PageHeader). ── */}
         <PageHeader
-          title="Innovations"
+          title="Developments"
           aside={
             <>
               IMF World Economic Outlook, {WEO.edition} · UN World Population Prospects {WPP.revision} · World Bank · V-Dem
