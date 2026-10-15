@@ -22,12 +22,28 @@ export interface DataLogEntry {
 
 export const DATA_LOG: DataLogEntry[] = [
   {
+    "what": "How far each kind of right is respected: civil, political and private liberties, expression, association, academic freedom, the rule of law, women's political empowerment",
+    "from": "V-Dem Institute, via Our World in Data",
+    "page": "/dashboard/worldview",
+    "where": "Worldview",
+    "read": "2026-10-15",
+    "files": 1
+  },
+  {
     "what": "Recorded crime and prison populations",
     "from": "UNODC, World Prison Brief",
     "page": "/dashboard/crime",
     "where": "Crime statistics",
     "read": "2026-10-15",
     "files": 3
+  },
+  {
+    "what": "The space race, science and invention, and new medicines: orbital launches by year and by agency, objects launched, R&D spending, researchers, journal articles, patents, novel drug approvals",
+    "from": "GCAT; UNOOSA via Our World in Data; World Bank; US FDA",
+    "page": "/dashboard/trends",
+    "where": "Developments",
+    "read": "2026-10-15",
+    "files": 1
   },
   {
     "what": "How far each government watches and restricts its people online: social media monitoring, filtering, shutdowns, arrests, privacy law",
@@ -488,4 +504,4 @@ export const DATA_LOG: DataLogEntry[] = [
 ];
 
 /** How many data files the log covers. */
-export const DATA_LOG_FILES = 78;
+export const DATA_LOG_FILES = 80;

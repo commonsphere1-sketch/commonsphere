@@ -40,6 +40,7 @@ import { JUSTICE_PROCESS, JUSTICE_SOURCES, LEGAL_SYSTEMS } from "../data/justice
 import { COUNTRY_PEOPLE, COUNTRY_PEOPLE_SOURCES, type Shares as PeopleShares } from "../data/countryPeople";
 import { economyForCountry } from "../data/economiesData";
 import { COUNTRY_REFERENCE } from "../data/countryReference";
+import { RIGHTS, RIGHTS_INDICES, RIGHTS_SOURCE, type RightsIndex } from "../data/rights";
 import { ECONOMY_MANUFACTURING, ECONOMY_MANUFACTURING_SOURCE, MANUFACTURING_BRANCHES, WORLD_MANUFACTURING_SHARE } from "../data/economyManufacturing";
 import { RESOURCE_PRODUCERS, type Share } from "../data/resourceProducers";
 import { ENERGY_PRODUCERS } from "../data/energyProducers";
@@ -333,6 +334,7 @@ export default function CountryFigures({ code, name }: { code: string; name: str
   const cm = COUNTRY_FIGURES.childMortality[code];
   const air = AIR_QUALITY[code];
   const watch = pick(SURVEILLANCE, code);
+  const rights = pick(RIGHTS, code);
   // What is illegal, restricted and legal there: the UK Foreign Office's advice, from the law file the site keeps for each country.
   const [advice, setAdvice] = useState<{ code: string; local: CountryLawAdvice } | null>(null);
   useEffect(() => {
@@ -971,23 +973,61 @@ export default function CountryFigures({ code, name }: { code: string; name: str
             <None t={t}>V-Dem gives no estimate of surveillance for {name}.</None>
           )}
         </Panel>
-        <Panel t={t} title="Freedom" meta={fr ? `Freedom House · ${fr[0]}` : undefined}>
-          {fr ? (
+        <Panel t={t} title="Freedom and rights" meta={fr ? `Freedom House · ${fr[0]}` : rights ? "V-Dem" : undefined}>
+          {fr || rights ? (
             <>
-              <p className="text-2xl font-bold font-mono" style={{ color: t.headText }}>
-                {fr[1]} <span className="text-xs font-normal">of 100 · {({ F: "Free", PF: "Partly free", NF: "Not free" } as const)[fr[4]]}</span>
-              </p>
-              <Bars
-                t={t}
-                rows={[
-                  { label: "Political rights, of 40", text: String(fr[2]), share: (fr[2] / 40) * 100 },
-                  { label: "Civil liberties, of 60", text: String(fr[3]), share: (fr[3] / 60) * 100 },
-                ]}
-              />
-              <Foot sources={[COUNTRY_FIGURE_SOURCES.freedom]} />
+              {fr && (
+                <>
+                  <p className="text-2xl font-bold font-mono" style={{ color: t.headText }}>
+                    {fr[1]} <span className="text-xs font-normal">of 100 · {({ F: "Free", PF: "Partly free", NF: "Not free" } as const)[fr[4]]}</span>
+                  </p>
+                  <Bars
+                    t={t}
+                    rows={[
+                      { label: "Political rights, of 40", text: String(fr[2]), share: (fr[2] / 40) * 100 },
+                      { label: "Civil liberties, of 60", text: String(fr[3]), share: (fr[3] / 60) * 100 },
+                    ]}
+                  />
+                </>
+              )}
+              {/* Each kind of right, as V-Dem measures it: its index, 0 to 1, with what it is made of. */}
+              {rights && (
+                <>
+                  <p className="text-[9px] font-mono uppercase tracking-widest mt-1" style={{ color: t.mutedText }}>
+                    Kinds of rights · V-Dem · {Object.values(rights)[0]?.[0]}
+                  </p>
+                  <ul className="flex flex-col gap-2.5">
+                    {(Object.keys(RIGHTS_INDICES) as RightsIndex[]).flatMap((k, i) => {
+                      const r = rights[k];
+                      if (!r) return [];
+                      return [
+                        <li key={k} className="flex flex-col gap-1">
+                          <span className="flex items-baseline justify-between gap-2">
+                            <span className="text-[11px] font-sans font-semibold" style={{ color: t.headText }}>
+                              {RIGHTS_INDICES[k].name}
+                            </span>
+                            <span className="text-[11px] font-mono font-semibold tabular-nums" style={{ color: t.headText }}>
+                              {r[1].toFixed(2)}
+                              <span className="font-normal" style={{ color: t.mutedText }}> of 1</span>
+                            </span>
+                          </span>
+                          <span className="h-2 rounded-full overflow-hidden" style={{ background: t.gridLine }} aria-hidden>
+                            <span className="block h-full rounded-full" style={{ width: `${Math.max(1, r[1] * 100)}%`, background: `linear-gradient(90deg, color-mix(in srgb, ${INK[i % INK.length]} 35%, transparent), ${INK[i % INK.length]})` }} />
+                          </span>
+                          <span className="text-[10px] font-sans leading-snug" style={{ color: t.mutedText }}>
+                            {RIGHTS_INDICES[k].of.charAt(0).toUpperCase() + RIGHTS_INDICES[k].of.slice(1)}.
+                          </span>
+                        </li>,
+                      ];
+                    })}
+                  </ul>
+                  <Note t={t}>V-Dem's indices run from 0 to 1, higher meaning the right more fully respected; each is its best estimate from country experts' answers.</Note>
+                </>
+              )}
+              <Foot sources={[fr ? COUNTRY_FIGURE_SOURCES.freedom : undefined, rights ? RIGHTS_SOURCE : undefined]} />
             </>
           ) : (
-            <None t={t}>No Freedom House score is held for {name}.</None>
+            <None t={t}>No measure of freedom or rights is held for {name}.</None>
           )}
         </Panel>
       </Section>
