@@ -552,16 +552,45 @@ export default function WorldviewMap() {
       return;
     }
     const info = admin2?.[picked];
-    setPressed({
-      kind: "county",
-      key: c.id,
-      name: c.name,
-      parent: c.parent,
-      sub: `${info?.kind ? `${info.kind.charAt(0).toUpperCase()}${info.kind.slice(1)}` : "A division"}${c.parent ? ` in ${c.parent}` : ""}, ${country}`,
-      rows: info ? [["Boundaries", `${info.by}, ${info.year}`], ["Licence", info.licence]] : [],
-      note: "Its outline is all that is held of it: no figures for it are on the site.",
-      sources: [ADMIN2_SOURCE],
-    });
+    // What can be measured and counted of it from its outline: its area, and the cities of 100,000 or more inside it.
+    const area = Math.round(geoArea(c.geo as never) * 6371.0088 * 6371.0088);
+    const big = cities.filter((x) => x.cc === picked && geoContains(c.geo as never, [x.lon, x.lat])).sort((a, b) => b.people - a.people);
+    const base: [string, string][] = [
+      ["Area", `${area.toLocaleString("en-US")} km², from its outline`],
+      ...(c.parent ? [["In", c.parent] as [string, string]] : []),
+      ["Cities of 100,000+", big.length ? `${big.length} · ${big[0].name}, ${big[0].people.toLocaleString("en-US")}` : "none"],
+    ];
+    const card = (rows: [string, string][], counted: boolean) =>
+      setPressed({
+        kind: "county",
+        key: c.id,
+        name: c.name,
+        parent: c.parent,
+        sub: `${info?.kind ? `${info.kind.charAt(0).toUpperCase()}${info.kind.slice(1)}` : "A division"}${c.parent ? ` in ${c.parent}` : ""}, ${country}`,
+        rows: [...rows, ...(info ? [["Boundaries", `${info.by}, ${info.year}`] as [string, string]] : [])],
+        note: counted
+          ? "Measured and counted here from its outline: GeoNames' places inside it, each its own people. No body publishes this division's own figures. Below, all of it in depth."
+          : "Measured here from its outline; counting its towns and villages…",
+        sources: [ADMIN2_SOURCE, { label: "GeoNames — cities500 (CC BY 4.0)", url: "https://download.geonames.org/export/dump/" }],
+      });
+    card(base, false);
+    // Its towns and villages: GeoNames' places of more than 500 people inside its outline.
+    fetch(`/places/${picked}.json`)
+      .then((res) => (res.ok ? res.json() : null))
+      .then((file: { places: [string, number, number, number][] } | null) => {
+        const inside = (file?.places ?? []).filter((p) => geoContains(c.geo as never, [p[2], p[1]]));
+        const peopled = inside.filter((p) => p[3] > 0).sort((a, b) => b[3] - a[3]);
+        card(
+          [
+            ...base,
+            ["Towns and villages", inside.length.toLocaleString("en-US")],
+            ...(peopled[0] ? [["The largest", `${peopled[0][0]}, ${peopled[0][3].toLocaleString("en-US")}`] as [string, string]] : []),
+            ...(peopled.length ? [["People in them", `${peopled.reduce((n, p) => n + p[3], 0).toLocaleString("en-US")}, added here`] as [string, string]] : []),
+          ],
+          true,
+        );
+      })
+      .catch(() => card(base, true));
   };
   /** A city pressed: GeoNames' count of its people. */
   const pressCity = (c: { name: string; country: string; people: number }) => {
