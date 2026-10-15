@@ -23,7 +23,7 @@ import { Area, AreaChart, Bar, BarChart, CartesianGrid, Line, LineChart, Referen
 import { ChartLineUp, Cpu, Factory, Globe, Leaf, Lightning, Target, TrendUp, Users } from "@phosphor-icons/react";
 import { useTheme } from "../contexts/ThemeContext";
 import { SourceLink } from "../components/SourceLink";
-import { ALL_TOPICS, HeadlinesBanner, SUBJECT, pickWhere, useHeadlineRead } from "../components/HeadlinesBanner";
+import { ALL_TOPICS, HeadlinesBanner, pickWhere, useHeadlineRead } from "../components/HeadlinesBanner";
 import AgendaCards, { AGENDAS } from "../components/AgendaCards";
 import { DashboardDrops, type DropId } from "../components/DashboardDrops";
 import InnovationPart, { INNOVATION_PARTS } from "../components/InnovationParts";
@@ -1510,19 +1510,10 @@ const FIELDS: Field[] = [
     },
     parts: [{ id: "projects", label: "The great projects" }],
   },
-  {
-    id: "economic",
-    label: "Industries",
-    news: { label: "Economic developments", pick: named(SUBJECT.economy), note: "The last week's headlines whose words name the economy - growth, prices, trade, markets, debt." },
-    parts: [
-      { id: "economy", label: "World economy" },
-      { id: "countries", label: "Countries" },
-      { id: "trend-industry", label: "Industry & trade" },
-    ],
-  },
+  // Industries was the last field; it was taken off, as asked. Its sections (the IMF's outlook, countries, industry and trade) stay in the code, unshown.
 ];
 /** The Dashboard's drop-down cards, placed here as asked, each in the field it belongs to. They stay on the Dashboard too. */
-const FIELD_DROPS: Partial<Record<string, DropId[]>> = { technological: ["funding"], breakthroughs: ["research"], economic: ["industries"] };
+const FIELD_DROPS: Partial<Record<string, DropId[]>> = { technological: ["funding"], breakthroughs: ["research"] };
 /** The bar's chips: a field each. */
 const SECTIONS: NavSection[] = FIELDS.map((f) => ({ id: f.id, label: f.label }));
 
@@ -2139,7 +2130,7 @@ export function TrendsPage() {
           }
         >
           What the world is inventing and building — the space race and its companies, science and its breakthroughs, technology, medicine and biology,
-          energy and fusion, the great international projects, and the industries behind them: the week's headlines in each, and under them the published figures
+          energy and fusion, and the great international projects: the week's headlines in each, and under them the published figures
         </PageHeader>
 
         <SectionNav label="Fields of development" sections={SECTIONS} />
