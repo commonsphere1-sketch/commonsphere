@@ -16,6 +16,7 @@ import type { ReactNode } from "react";
 import { Area, AreaChart, Bar, BarChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
 import { ORBITAL_LAUNCHES, LAUNCHES_PARTIAL_YEAR, LAUNCH_AGENCIES, SPACE_OBJECTS, RD_SHARE, RESEARCHERS, ARTICLES, PATENTS, FDA_APPROVALS, INNOVATION_SOURCES } from "../data/innovation";
 import { GENOME_COST } from "../data/technology";
+import { AI_COMPUTE_MAX, AI_LATEST, AI_COUNTRIES, SOLAR_PRICE, SOLAR_GW, WIND_GW, RENEWABLE_SHARE, LCOE, EV_SHARE, ROBOTS, FASTEST_SUPERCOMPUTER, NUCLEAR_WARHEADS, NOBEL_SCIENCE, FRONTIER_SOURCES } from "../data/frontiers";
 import { useTokens, type Tokens } from "./DataExplorer";
 import { INK, Panel, Note, Foot, Tiles } from "./CountryFigures";
 import SlimBars, { SlimColumns } from "./SlimBars";
@@ -334,9 +335,261 @@ function Projects({ t }: { t: Tokens }) {
   );
 }
 
+
+/* ── The frontiers: AI, clean energy, robots and computing, military technology, the Nobel Prizes ── */
+const sci = (v: number) => {
+  if (v >= 1e15) return `${(v / 1e15).toFixed(1)}e15`;
+  if (v >= 1e12) return `${(v / 1e12).toFixed(1)}T`;
+  if (v >= 1e9) return `${(v / 1e9).toFixed(1)}B`;
+  if (v >= 1e6) return `${(v / 1e6).toFixed(1)}M`;
+  if (v >= 1e3) return `${(v / 1e3).toFixed(0)}K`;
+  return v < 1 ? v.toPrecision(2) : whole(v);
+};
+/** A series that grows by powers of ten, on a scale of powers of ten, as its publisher charts it. */
+function LogSeries({ t, rows, fmt, color, id, height = 180 }: { t: Tokens; rows: [number, number][]; fmt: (v: number) => string; color: string; id: string; height?: number }) {
+  const axis = { tick: { fontSize: 9, fill: t.mutedText, fontFamily: "monospace" }, axisLine: false, tickLine: false } as const;
+  return (
+    <ResponsiveContainer width="100%" height={height}>
+      <AreaChart data={rows.filter(([, v]) => v > 0).map(([y, v]) => ({ y: String(y), v }))} margin={{ top: 4, right: 6, left: 0, bottom: 0 }}>
+        <defs>
+          <linearGradient id={id} x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stopColor={color} stopOpacity={0.35} />
+            <stop offset="100%" stopColor={color} stopOpacity={0} />
+          </linearGradient>
+        </defs>
+        <CartesianGrid stroke={t.gridLine} vertical={false} />
+        <XAxis dataKey="y" {...axis} interval="preserveStartEnd" minTickGap={24} />
+        <YAxis {...axis} width={52} scale="log" domain={["auto", "auto"]} allowDataOverflow tickFormatter={(v: number) => fmt(v)} />
+        <Tooltip contentStyle={{ background: t.tooltipBg, border: t.cardBorder, borderRadius: 8, fontSize: 11 }} labelStyle={{ color: t.headText }} itemStyle={{ color: t.headText }} formatter={(v: number) => [fmt(v), ""]} />
+        <Area type="monotone" dataKey="v" stroke={color} strokeWidth={1.5} fill={`url(#${id})`} isAnimationActive={false} baseValue="dataMin" />
+      </AreaChart>
+    </ResponsiveContainer>
+  );
+}
+const TECH_NAMES: Record<string, string> = {
+  solar_photovoltaic: "Solar panels",
+  onshore_wind: "Wind on land",
+  offshore_wind: "Wind at sea",
+  hydropower: "Hydropower",
+  geothermal: "Geothermal",
+  bioenergy: "Bioenergy",
+  concentrated_solar_power: "Concentrated solar",
+};
+
+function AI({ t }: { t: Tokens }) {
+  const last = AI_COMPUTE_MAX[AI_COMPUTE_MAX.length - 1];
+  const first = AI_COMPUTE_MAX[0];
+  return (
+    <section id="ai-frontier" className="scroll-mt-36 flex flex-col gap-3">
+      <Head t={t} title="Artificial intelligence" kicker="how much computing the largest systems are trained with, and who builds them" />
+      <Row>
+        <Panel t={t} title="The largest training run each year" meta={`petaFLOP · ${first[0]}–${last[0]}`} className="md:!basis-full xl:!basis-[calc(66.666%-0.25rem)]">
+          <LogSeries t={t} id="fr-ai" rows={AI_COMPUTE_MAX.map(([y, , v]) => [y, v])} fmt={sci} color={INK[3]} />
+          <Note t={t}>
+            The most computation used to train any notable AI system in each year, on a scale of powers of ten: {first[1]} in {first[0]}, {sci(first[2])} petaFLOP; {last[1]} in {last[0]}, {sci(last[2])} - about {sci(last[2] / first[2])} times as
+            much, worked out here.
+          </Note>
+          <Foot sources={[FRONTIER_SOURCES.aiCompute]} />
+        </Panel>
+        <Panel t={t} title="Who builds the largest systems" meta={`large-scale systems to ${AI_COUNTRIES.year}`}>
+          <SlimBars labelWidth="6.5rem" rows={AI_COUNTRIES.rows.map(([n, v], i) => ({ key: n, label: n, v, color: INK[i % INK.length] }))} fmt={whole} />
+          <Note t={t}>Systems trained with more than 10²³ floating-point operations, counted to date by the country of the organisation that built them, as Epoch AI records them.</Note>
+          <Foot sources={[FRONTIER_SOURCES.aiCountries]} />
+        </Panel>
+        <Panel t={t} title="The latest notable systems" meta="Epoch AI">
+          <ul className="flex flex-col">
+            {AI_LATEST.map(([n, day, v]) => (
+              <li key={`${n}-${day}`} className="flex items-baseline justify-between gap-3 py-1 border-b last:border-b-0" style={{ borderColor: t.gridLine }}>
+                <span className="text-[11px] font-sans font-semibold" style={{ color: t.headText }}>
+                  {n}
+                  <span className="font-normal" style={{ color: t.mutedText }}> · {day}</span>
+                </span>
+                <span className="text-[10px] font-mono" style={{ color: t.bodyText }}>
+                  {sci(v)} PF
+                </span>
+              </li>
+            ))}
+          </ul>
+          <Note t={t}>Each system's training computation in petaFLOP, as Epoch AI estimates it from what its makers published.</Note>
+          <Foot sources={[FRONTIER_SOURCES.aiCompute]} />
+        </Panel>
+      </Row>
+    </section>
+  );
+}
+
+function CleanEnergy({ t }: { t: Tokens }) {
+  const sp = SOLAR_PRICE;
+  const sw = SOLAR_GW.world;
+  const ww = WIND_GW.world;
+  const rs = RENEWABLE_SHARE;
+  const ev = EV_SHARE.world;
+  return (
+    <section id="clean-energy" className="scroll-mt-36 flex flex-col gap-3">
+      <Head t={t} title="Clean energy" kicker="what solar and wind cost now, how much is built, and how fast cars are changing" />
+      <Row>
+        <Panel t={t} title="What a solar panel costs" meta={`US$ a watt · ${sp[0][0]}–${sp[sp.length - 1][0]}`}>
+          <LogSeries t={t} id="fr-solar-price" rows={sp} fmt={(v) => `$${v < 1 ? v.toFixed(2) : whole(v)}`} color={INK[2]} />
+          <Note t={t}>
+            ${sp[0][1].toFixed(0)} a watt in {sp[0][0]}, ${sp[sp.length - 1][1].toFixed(2)} in {sp[sp.length - 1][0]}: {(100 - (sp[sp.length - 1][1] / sp[0][1]) * 100).toFixed(1)}% less, worked out here. In today's dollars, on a scale of powers of ten.
+          </Note>
+          <Foot sources={[FRONTIER_SOURCES.solarPrice]} />
+        </Panel>
+        <Panel t={t} title="What a kilowatt-hour costs to make" meta={`US$ · ${LCOE.first} and ${LCOE.last}`}>
+          <SlimBars labelWidth="7rem" rows={LCOE.rows.filter(([, , b]) => b !== null).map(([k, a, b], i) => ({ key: k, label: TECH_NAMES[k] ?? k, v: b as number, color: INK[(i + 1) % INK.length], tip: `${TECH_NAMES[k] ?? k}: $${(b as number).toFixed(3)} in ${LCOE.last}${a !== null ? `, $${a.toFixed(3)} in ${LCOE.first}` : ""}` }))} fmt={(v) => `$${v.toFixed(3)}`} />
+          <Note t={t}>
+            The cost of each new plant's electricity over its life, the world's average for plants built in {LCOE.last}.
+            {(() => {
+              const s = LCOE.rows.find(([k]) => k === "solar_photovoltaic");
+              return s && s[1] && s[2] ? ` Solar's fell from $${s[1].toFixed(3)} in ${LCOE.first}: ${(100 - (s[2] / s[1]) * 100).toFixed(0)}% less, worked out here.` : "";
+            })()}
+          </Note>
+          <Foot sources={[FRONTIER_SOURCES.lcoe]} />
+        </Panel>
+        <Panel t={t} title="Solar and wind built" meta={`gigawatts · the world · to ${sw[sw.length - 1]?.[0]}`}>
+          <Tiles
+            t={t}
+            items={[
+              ...(sw.length ? [{ label: "Solar", text: `${whole(sw[sw.length - 1][1])} GW`, y: sw[sw.length - 1][0] }] : []),
+              ...(ww.length ? [{ label: "Wind", text: `${whole(ww[ww.length - 1][1])} GW`, y: ww[ww.length - 1][0] }] : []),
+            ]}
+          />
+          <Series t={t} id="fr-solar-gw" rows={sw.filter(([y]) => y >= 2005)} fmt={(v) => `${whole(v)}`} color={INK[2]} height={140} />
+          <Note t={t}>Installed solar capacity, the world's, year by year; the tiles give solar and wind for the latest year.</Note>
+          <Foot sources={[FRONTIER_SOURCES.solar, FRONTIER_SOURCES.wind]} />
+        </Panel>
+        <Panel t={t} title="Who builds the most solar" meta={`gigawatts · ${SOLAR_GW.top.year}`}>
+          <SlimBars labelWidth="6.5rem" rows={SOLAR_GW.top.rows.map(([n, v], i) => ({ key: n, label: n, v, color: INK[(i + 2) % INK.length] }))} fmt={(v) => whole(v)} />
+          <Foot sources={[FRONTIER_SOURCES.solar]} />
+        </Panel>
+        <Panel t={t} title="Electricity from renewables" meta={`% of the world's · ${rs[0]?.[0]}–${rs[rs.length - 1]?.[0]}`}>
+          <Series t={t} id="fr-renew" rows={rs} fmt={(v) => `${v.toFixed(0)}%`} color={INK[1]} />
+          <Note t={t}>
+            {rs[rs.length - 1]?.[1].toFixed(1)}% of the world's electricity in {rs[rs.length - 1]?.[0]}: hydropower, wind, solar, bioenergy and the rest.
+          </Note>
+          <Foot sources={[FRONTIER_SOURCES.renew]} />
+        </Panel>
+        <Panel t={t} title="Electric cars" meta={`% of new cars sold · ${ev[ev.length - 1]?.[0]}`}>
+          <Series t={t} id="fr-ev" rows={ev} fmt={(v) => `${v.toFixed(0)}%`} color={INK[5]} height={130} />
+          <SlimBars labelWidth="6.5rem" max={100} rows={EV_SHARE.top.rows.slice(0, 6).map(([n, v], i) => ({ key: n, label: n, v, color: INK[(i + 5) % INK.length] }))} fmt={(v) => `${v.toFixed(0)}%`} />
+          <Note t={t}>The world's share year by year, and the countries where it is highest in {EV_SHARE.top.year}: battery and plug-in hybrid cars together.</Note>
+          <Foot sources={[FRONTIER_SOURCES.ev]} />
+        </Panel>
+      </Row>
+    </section>
+  );
+}
+
+function RobotsComputing({ t }: { t: Tokens }) {
+  const rw = ROBOTS.world;
+  const f = FASTEST_SUPERCOMPUTER;
+  return (
+    <section id="robots-computing" className="scroll-mt-36 flex flex-col gap-3">
+      <Head t={t} title="Robots and computing" kicker="the machines in factories, and the fastest computer on earth" />
+      <Row>
+        <Panel t={t} title="Industrial robots installed a year" meta={rw.length ? `the world · ${rw[0][0]}–${rw[rw.length - 1][0]}` : `${ROBOTS.top.year}`}>
+          {rw.length > 2 && <Series t={t} id="fr-robots" rows={rw} fmt={(v) => `${Math.round(v / 1000)}K`} color={INK[0]} height={150} />}
+          <SlimBars labelWidth="6.5rem" rows={ROBOTS.top.rows.slice(0, 6).map(([n, v], i) => ({ key: n, label: n, v, color: INK[i % INK.length] }))} fmt={(v) => whole(v)} />
+          <Note t={t}>New industrial robots put to work each year{rw.length ? ", the world's," : ""} and in the countries installing the most in {ROBOTS.top.year}.</Note>
+          <Foot sources={[FRONTIER_SOURCES.robots]} />
+        </Panel>
+        <Panel t={t} title="The fastest supercomputer" meta={`gigaFLOPS · ${f[0][0]}–${f[f.length - 1][0]}`}>
+          <LogSeries t={t} id="fr-flops" rows={f} fmt={sci} color={INK[3]} />
+          <Note t={t}>
+            The computing power of the world's fastest machine on the TOP500 list each year: {sci(f[0][1])} gigaFLOPS in {f[0][0]}, {sci(f[f.length - 1][1])} in {f[f.length - 1][0]}.
+          </Note>
+          <Foot sources={[FRONTIER_SOURCES.flops]} />
+        </Panel>
+      </Row>
+    </section>
+  );
+}
+
+function Military({ t }: { t: Tokens }) {
+  const total = NUCLEAR_WARHEADS.rows.reduce((n, r) => n + r[1] + r[2] + r[3], 0);
+  return (
+    <section id="military-tech" className="scroll-mt-36 flex flex-col gap-3">
+      <Head t={t} title="Military technology" kicker="the most powerful weapons states hold, as the open record counts them" />
+      <Row>
+        <Panel t={t} title="Nuclear warheads" meta={`stockpiles · ${NUCLEAR_WARHEADS.year}`} className="md:!basis-full xl:!basis-[calc(66.666%-0.25rem)]">
+          <SlimBars labelWidth="7rem" rows={NUCLEAR_WARHEADS.rows.map(([n, a, b, c], i) => ({ key: n, label: n, v: a + b + c, color: INK[(i + 4) % INK.length], tip: `${n}: ${whole(a)} deployed strategic, ${whole(b)} deployed non-strategic, ${whole(c)} in reserve` }))} fmt={whole} />
+          <Note t={t}>
+            Each state's stockpile - deployed and in reserve, not those retired and awaiting dismantlement - as the Federation of American Scientists estimates it: {whole(total)} in all, added here. The exact numbers are secret; these are its
+            best estimates from what governments disclose.
+          </Note>
+          <Foot sources={[FRONTIER_SOURCES.nukes]} />
+        </Panel>
+        <Panel t={t} title="Deployed, and in reserve" meta={`${NUCLEAR_WARHEADS.year}`}>
+          <ul className="flex flex-col">
+            {NUCLEAR_WARHEADS.rows.map(([n, a, b, c, d]) => (
+              <li key={n} className="flex items-baseline justify-between gap-2 py-1 border-b last:border-b-0" style={{ borderColor: t.gridLine }}>
+                <span className="text-[11px] font-sans font-semibold" style={{ color: t.headText }}>{n}</span>
+                <span className="text-[10px] font-mono text-right" style={{ color: t.bodyText }}>
+                  {whole(a + b)} deployed · {whole(c)} reserve{d ? ` · ${whole(d)} retired` : ""}
+                </span>
+              </li>
+            ))}
+          </ul>
+          <Foot sources={[FRONTIER_SOURCES.nukes]} />
+        </Panel>
+      </Row>
+      <p className="text-[10px] font-sans px-1" style={{ color: t.mutedText }}>
+        Of other military technology - drones, hypersonic missiles, the arms trade - no open body publishes figures the site may use: the arms-transfer databases are for non-commercial use, so none are shown.
+      </p>
+    </section>
+  );
+}
+
+function Nobel({ t }: { t: Tokens }) {
+  const years = [...new Set(NOBEL_SCIENCE.map(([y]) => y))].sort((a, b) => b - a);
+  const color: Record<string, string> = { Physics: INK[0], Chemistry: INK[1], "Physiology or Medicine": INK[6] };
+  return (
+    <section id="nobel" className="scroll-mt-36 flex flex-col gap-3">
+      <Head t={t} title="The breakthroughs the Nobel committees named" kicker="physics, chemistry, and physiology or medicine, year by year" />
+      <Row>
+        {years.slice(0, 6).map((y) => (
+          <Panel key={y} t={t} title={String(y)} meta="Nobel Prizes in the sciences">
+            <ul className="flex flex-col gap-2.5">
+              {NOBEL_SCIENCE.filter(([py]) => py === y).map(([, field, who, why]) => (
+                <li key={field} className="flex flex-col gap-0.5 pl-2 border-l-2" style={{ borderColor: color[field] ?? INK[3] }}>
+                  <span className="text-[9px] font-mono uppercase tracking-widest" style={{ color: color[field] ?? t.mutedText }}>
+                    {field}
+                  </span>
+                  <span className="text-[11px] font-sans font-semibold leading-snug" style={{ color: t.headText }}>
+                    {who.join(", ")}
+                  </span>
+                  <span className="text-[11px] font-sans leading-snug" style={{ color: t.bodyText }}>
+                    {why.map((w) => w.charAt(0).toUpperCase() + w.slice(1)).join("; ")}
+                  </span>
+                </li>
+              ))}
+            </ul>
+            <Foot sources={[FRONTIER_SOURCES.nobel]} />
+          </Panel>
+        ))}
+      </Row>
+      <p className="text-[10px] font-sans px-1" style={{ color: t.mutedText }}>
+        Each prize's laureates and the committee's own words for why, as the Nobel Prize's own record gives them: the last six years.
+      </p>
+    </section>
+  );
+}
+
 /** The parts the page's fields can show, by id. */
-export const INNOVATION_PARTS = ["space-race", "science-output", "medicine", "fusion", "projects"] as const;
+export const INNOVATION_PARTS = ["space-race", "science-output", "medicine", "fusion", "projects", "ai", "clean-energy", "robots-computing", "military", "nobel"] as const;
 export default function InnovationPart({ part }: { part: string }) {
   const t = useTokens();
-  return part === "space-race" ? <Space t={t} /> : part === "science-output" ? <Science t={t} /> : part === "medicine" ? <Medicine t={t} /> : part === "fusion" ? <Fusion t={t} /> : part === "projects" ? <Projects t={t} /> : null;
+  const parts: Record<string, ReactNode> = {
+    "space-race": <Space t={t} />,
+    "science-output": <Science t={t} />,
+    medicine: <Medicine t={t} />,
+    fusion: <Fusion t={t} />,
+    projects: <Projects t={t} />,
+    ai: <AI t={t} />,
+    "clean-energy": <CleanEnergy t={t} />,
+    "robots-computing": <RobotsComputing t={t} />,
+    military: <Military t={t} />,
+    nobel: <Nobel t={t} />,
+  };
+  return <>{parts[part] ?? null}</>;
 }

@@ -1458,6 +1458,8 @@ const FIELDS: Field[] = [
       note: "The last week's headlines whose words name a technology - AI, chips, satellites, batteries, drones and the like.",
     },
     parts: [
+      { id: "ai", label: "Artificial intelligence" },
+      { id: "robots-computing", label: "Robots and computing" },
       { id: "trend-technology", label: "Take-up" },
       { id: "emerging-tech", label: "Tech in charts" },
     ],
@@ -1473,6 +1475,7 @@ const FIELDS: Field[] = [
     },
     parts: [
       { id: "fusion", label: "Fusion" },
+      { id: "clean-energy", label: "Clean energy" },
       { id: "trend-energy", label: "Energy" },
       { id: "renewables", label: "Renewables" },
     ],
@@ -1486,6 +1489,7 @@ const FIELDS: Field[] = [
       note: "The last week's headlines whose own words claim a breakthrough, a discovery, a first or a cure. No body keeps a list of the world's breakthroughs, so none is given: these are what the headlines themselves call one.",
     },
     parts: [
+      { id: "nobel", label: "Nobel Prizes" },
       { id: "science-output", label: "Science and invention" },
       { id: "trend-research", label: "Research & development" },
     ],
@@ -1499,6 +1503,16 @@ const FIELDS: Field[] = [
       note: "The last week's headlines whose words name medicine or biology - drugs, vaccines, trials, genes, diseases.",
     },
     parts: [{ id: "medicine", label: "New medicines and genomes" }],
+  },
+  {
+    id: "defence",
+    label: "Military technology",
+    news: {
+      label: "Military technology",
+      pick: named(/\b(military|missiles?|drones?|hypersonic|warships?|submarines?|fighter jets?|nuclear weapons?|warheads?|defen[cs]e (ministry|budget|contract|technology)|air defen[cs]e|armed forces)\b/i),
+      note: "The last week's headlines whose words name military technology - missiles, drones, warships, aircraft, nuclear weapons.",
+    },
+    parts: [{ id: "military", label: "Nuclear arsenals" }],
   },
   {
     id: "projects",

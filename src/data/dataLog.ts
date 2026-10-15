@@ -46,6 +46,14 @@ export const DATA_LOG: DataLogEntry[] = [
     "files": 3
   },
   {
+    "what": "The frontiers of invention: AI training compute, clean energy costs and capacity, electric cars, robots, supercomputers, nuclear arsenals, the Nobel Prizes in the sciences",
+    "from": "Epoch AI, IRENA, Ember, IEA, IFR, TOP500, FAS via Our World in Data; the Nobel Prize",
+    "page": "/dashboard/trends",
+    "where": "Innovations",
+    "read": "2026-10-15",
+    "files": 1
+  },
+  {
     "what": "The space race, science and invention, and new medicines: orbital launches by year and by agency, objects launched, R&D spending, researchers, journal articles, patents, novel drug approvals",
     "from": "GCAT; UNOOSA via Our World in Data; World Bank; US FDA",
     "page": "/dashboard/trends",
@@ -520,4 +528,4 @@ export const DATA_LOG: DataLogEntry[] = [
 ];
 
 /** How many data files the log covers. */
-export const DATA_LOG_FILES = 82;
+export const DATA_LOG_FILES = 83;
