@@ -886,7 +886,7 @@ function WorldWheel() {
 function Pill({ label, value, sub, d }: { label: string; value: string; sub: string; d: Delta | null }) {
   const { card, muted, head } = useLook();
   return (
-    <div className="rounded-2xl px-5 py-4 flex flex-col gap-1" style={card}>
+    <div className="rounded-2xl px-5 py-4 flex flex-col justify-center gap-1" style={card}>
       <p className="text-[11px] font-sans uppercase tracking-widest" style={{ color: muted }}>
         {label}
       </p>
@@ -909,7 +909,7 @@ function HeadlinePills() {
     return <Pill key={id} label={label} value={fmt(ind, v)} sub={sub ?? `${unitOf(ind)} · ${y}`} d={delta(ind)} />;
   };
   return (
-    <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-6 gap-3">
+    <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-2 xl:auto-rows-fr xl:h-full gap-3">
       {pill("population", "Population", `World Bank · ${lastOf("population")[0]}`)}
       {pill("gdp", "World GDP", `current US$ · ${lastOf("gdp")[0]}`)}
       {pill("conflicts", "Armed conflicts", `involving a state · ${lastOf("conflicts")[0]}`)}
@@ -3228,7 +3228,8 @@ export function WorldviewPage() {
         </Suspense>
 
         {/* ── Overview: the wheel of the pillars beside the headline figures, on a wide screen ── */}
-        <section id="overview" className="scroll-mt-36 grid grid-cols-1 xl:grid-cols-2 gap-4 items-start">
+        {/* Side by side on a wide screen, the figures stretched to the wheel's height so that no gap is left beneath them, as asked. */}
+        <section id="overview" className="scroll-mt-36 grid grid-cols-1 xl:grid-cols-2 gap-4 items-stretch">
           <WorldWheel />
           <HeadlinePills />
         </section>

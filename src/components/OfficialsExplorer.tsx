@@ -359,7 +359,8 @@ export function OfficialsExplorer({
               const count = (kd: Kind) => beside.filter((x) => x.kind === kd).length + (shown.kind === kd ? 1 : 0);
               const source = shown.kind === "governor" ? STATE_OFFICES_SOURCES.governors : shown.kind === "mayor" ? STATE_OFFICES_SOURCES.mayors : STATE_OFFICES_SOURCES.congress;
               return (
-                <>
+                // Packed into columns on a full screen (explorer-flow), so that a short part never leaves a gap beside a long one.
+                <div className="explorer-flow flex flex-col gap-3">
                   <Block>
                     <div className="min-w-0">
                       <p className="text-[9px] font-mono uppercase tracking-widest" style={{ color: k.color }}>
@@ -436,7 +437,7 @@ export function OfficialsExplorer({
                       Open {shown.stateName}'s window
                     </GoButton>
                   )}
-                </>
+                </div>
               );
             })()
           ) : (

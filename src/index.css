@@ -1355,6 +1355,21 @@ html:not(.light) .cs-chart-tip p[style*="color"] {
   .explorer-detail > :not(section) {
     grid-column: 1 / -1;
   }
+  /* A detail whose parts differ much in height packs them into columns instead, each under the one before it: no part
+     leaves a gap beside a longer one. A part stays whole; anything that is not one spans every column. */
+  .explorer-flow {
+    display: block;
+    column-count: 2;
+    column-gap: 2rem;
+  }
+  .explorer-flow > section {
+    break-inside: avoid;
+    margin-bottom: 1.25rem;
+  }
+  .explorer-flow > :not(section) {
+    column-span: all;
+    margin-bottom: 1rem;
+  }
 }
 @media (min-width: 1536px) {
   .explorer-panes > .explorer-list {

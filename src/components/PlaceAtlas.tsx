@@ -1041,7 +1041,8 @@ export default function PlaceAtlas() {
       </div>
 
       <div className="flex flex-col gap-3">
-        <div className="min-w-0 relative">
+        {/* As large as the Worldview page's map, as asked: on a wide screen that map shares its row with a column 15rem wide. */}
+        <div className="min-w-0 relative w-full lg:w-[calc(100%-15rem)] lg:mx-auto">
           <svg
             ref={svgRef}
             viewBox={`${view.x - W / (2 * view.k)} ${view.y - H / (2 * view.k)} ${W / view.k} ${H / view.k}`}
