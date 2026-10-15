@@ -55,6 +55,9 @@ import { useTokens, type Tokens } from "./DataExplorer";
 import { SourceLink } from "./SourceLink";
 import CountryDashboard, { headlineOf } from "./CountryDashboard";
 import PlaceFigures, { type PressedPlace } from "./PlaceFigures";
+import { Link } from "react-router-dom";
+import { usStatesData } from "../data/statesData";
+import { citiesData } from "../data/citiesData";
 
 type Reading = { v: number; y: string };
 type Measure = {
@@ -169,7 +172,7 @@ const REGIONS_FROM = 1.3;
 const COUNTIES_PICK_FROM = 3;
 type Src = { label: string; url: string };
 /** A county or a city pressed on the map: what the column says of it, every line its publisher's. */
-type Pressed = { kind: "county" | "city"; key: string; name: string; sub: string; rows: [string, string][]; sources: Src[]; note?: string; parent?: string; people?: number };
+type Pressed = { kind: "county" | "city"; key: string; name: string; sub: string; rows: [string, string][]; sources: Src[]; note?: string; parent?: string; people?: number; /** The windows other pages have for the same place. */ links?: { label: string; to: string }[] };
 const US_COUNTY_LINES: Src = { label: "US Census Bureau — cartographic boundary files, via us-atlas", url: "https://www.census.gov/geographies/mapping-files/time-series/geo/cartographic-boundary.html" };
 const GEONAMES: Src = { label: "GeoNames — cities of 100,000 or more (CC BY 4.0)", url: "https://www.geonames.org/" };
 type Geo = { type: string; properties: { n?: string }; geometry: { type: string; coordinates: unknown } };
@@ -210,6 +213,13 @@ function PickedColumn({ code, name, t, region, onClearRegion, pressed, onClearPr
     };
   }, [region, subs]);
   const rec = region && subs ? subs.list.find((x) => x.cc === code && x.name === region) : undefined;
+  const usState = region && code === "US" ? usStatesData.find((s) => s.name === region) : undefined;
+  const regionLinks = region
+    ? [
+        { label: "Its record on the Municipalities page", to: `/dashboard/subnations?country=${code}&name=${encodeURIComponent(region)}` },
+        ...(usState ? [{ label: "On the US States page", to: `/dashboard/states?open=${usState.id}` }] : []),
+      ]
+    : [];
   // Its type of government: the Factbook's words, from the law file the site keeps for each country.
   const [gov, setGov] = useState<{ code: string; type: string } | null>(null);
   useEffect(() => {
@@ -311,6 +321,15 @@ function PickedColumn({ code, name, t, region, onClearRegion, pressed, onClearPr
               {pressed.note}
             </p>
           )}
+          {pressed.links?.length ? (
+            <div className="flex flex-wrap gap-1.5">
+              {pressed.links.map((l) => (
+                <Link key={l.to} to={l.to} className="inline-flex items-center px-2.5 h-6 rounded-full border border-border bg-background/70 text-[10px] font-sans text-muted-foreground hover:text-foreground transition-colors">
+                  {l.label} →
+                </Link>
+              ))}
+            </div>
+          ) : null}
           <SourceLink sources={pressed.sources} />
         </div>
       )}
@@ -369,6 +388,15 @@ function PickedColumn({ code, name, t, region, onClearRegion, pressed, onClearPr
           <p className="text-[10px] font-sans" style={{ color: t.mutedText }}>
             Below, {name}'s own figures: the site holds them for the country.
           </p>
+          {regionLinks?.length ? (
+            <div className="flex flex-wrap gap-1.5">
+              {regionLinks.map((l) => (
+                <Link key={l.to} to={l.to} className="inline-flex items-center px-2.5 h-6 rounded-full border border-border bg-background/70 text-[10px] font-sans text-muted-foreground hover:text-foreground transition-colors">
+                  {l.label} →
+                </Link>
+              ))}
+            </div>
+          ) : null}
         </div>
       )}
       <div className="flex flex-col">
@@ -489,16 +517,16 @@ export default function WorldviewMap() {
   const [view, setView] = useState({ k: 1, x: W / 2, y: H / 2 });
   /* The counties, districts and municipalities of the country picked, fetched once it is drawn close enough to press them: the
      United States' are the Census Bureau's, by us-atlas; every other country's geoBoundaries', as the World Maps page draws them. */
-  type County = { name: string; parent?: string; id: string; d: string; b: [[number, number], [number, number]]; geo: unknown };
+  type County = { name: string; parent?: string; id: string; d: string; b: [[number, number], [number, number]]; geo: unknown; at?: number };
   const [counties, setCounties] = useState<{ code: string; list: County[] } | null>(null);
   const admin2 = useAdmin2Manifest();
   const wantCounties = view.k >= COUNTIES_PICK_FROM;
   useEffect(() => {
     if (!wantCounties || counties?.code === picked) return;
     let off = false;
-    const shape = (f: { id?: string | number; geometry: unknown }, name: string, parent?: string): County[] => {
+    const shape = (f: { id?: string | number; geometry: unknown }, name: string, parent?: string, at?: number): County[] => {
       const d = PATH(f as never);
-      return d ? [{ name, parent, id: String(f.id ?? name), d, b: PATH.bounds(f as never) as County["b"], geo: f }] : [];
+      return d ? [{ name, parent, id: String(f.id ?? name), d, b: PATH.bounds(f as never) as County["b"], geo: f, at }] : [];
     };
     if (picked === "US") {
       import("us-atlas/counties-10m.json").then((m) => {
@@ -512,7 +540,7 @@ export default function WorldviewMap() {
     } else {
       loadAdmin2(picked).then((file) => {
         if (off) return;
-        setCounties({ code: picked, list: file ? file.shapes.flatMap((f, i) => shape({ ...f, id: f.id ?? `${f.properties.n}-${i}` }, f.properties.n, f.properties.p)) : [] });
+        setCounties({ code: picked, list: file ? file.shapes.flatMap((f, i) => shape({ ...f, id: f.id ?? `${f.properties.n}-${i}` }, f.properties.n, f.properties.p, i)) : [] });
       });
     }
     return () => {
@@ -529,9 +557,14 @@ export default function WorldviewMap() {
         const r = m.US_COUNTIES.find((x) => x[0] === c.id);
         const years = m.US_COUNTY_YEARS;
         const people = r?.[7] ?? [];
+        const st = usStatesData.find((s) => s.name === c.parent);
         setPressed({
           kind: "county",
           key: c.id,
+          links: [
+            { label: "Its window on the Municipalities page", to: `/dashboard/subnations?open=county:${c.id}` },
+            ...(st ? [{ label: `${st.name} on the US States page`, to: `/dashboard/states?open=${st.id}` }] : []),
+          ],
           name: r?.[1] ?? c.name,
           sub: `${c.parent ? `${c.parent}, ` : ""}${country}`,
           parent: c.parent,
@@ -566,6 +599,10 @@ export default function WorldviewMap() {
         key: c.id,
         name: c.name,
         parent: c.parent,
+        links: [
+          ...(c.at !== undefined ? [{ label: "Its window on the Municipalities page", to: `/dashboard/subnations?open=district:${picked}:${c.at}` }] : []),
+          ...(c.parent ? [{ label: `${c.parent}'s record`, to: `/dashboard/subnations?country=${picked}&name=${encodeURIComponent(c.parent)}` }] : []),
+        ],
         sub: `${info?.kind ? `${info.kind.charAt(0).toUpperCase()}${info.kind.slice(1)}` : "A division"}${c.parent ? ` in ${c.parent}` : ""}, ${country}`,
         rows: [...rows, ...(info ? [["Boundaries", `${info.by}, ${info.year}`] as [string, string]] : [])],
         note: counted
@@ -595,8 +632,20 @@ export default function WorldviewMap() {
   /** A city pressed: GeoNames' count of its people. */
   const pressCity = (c: { name: string; country: string; people: number }) => {
     setRegion(null);
-    setPressed({ kind: "city", key: `${c.name}-${c.country}`, name: c.name, people: c.people, sub: `City, ${c.country}`, rows: [["People", c.people.toLocaleString("en-US")]], note: "GeoNames' count of its people, of the city itself.", sources: [GEONAMES] });
-  };  const keep = (k: number, x: number, y: number) => {
+    const profile = citiesData.find((x) => x.countryCode === picked && x.name === c.name);
+    const base = { kind: "city" as const, key: `${c.name}-${c.country}`, name: c.name, people: c.people, sub: `City, ${c.country}`, rows: [["People", c.people.toLocaleString("en-US")]] as [string, string][], note: "GeoNames' count of its people, of the city itself.", sources: [GEONAMES] };
+    const links = profile ? [{ label: "Its profile on the Cities page", to: `/dashboard/cities?open=${profile.id}` }] : [];
+    setPressed({ ...base, links });
+    // Its place's window on the Municipalities page, by the GeoNames id its row in the country's list of places carries.
+    fetch(`/places/${picked}.json`)
+      .then((res) => (res.ok ? res.json() : null))
+      .then((file: { places: [string, number, number, number, number, number, number][] } | null) => {
+        const row = file?.places.filter((p) => p[0] === c.name).sort((a, b) => b[3] - a[3])[0];
+        if (row) setPressed((p) => (p?.key === base.key ? { ...p, links: [...links, { label: "Its window on the Municipalities page", to: `/dashboard/subnations?open=place:${picked}:${row[6]}` }] } : p));
+      })
+      .catch(() => {});
+  };
+  const keep = (k: number, x: number, y: number) => {
     const z = Math.max(1, Math.min(MAX_K, k));
     const hw = W / (2 * z);
     const hh = H / (2 * z);
