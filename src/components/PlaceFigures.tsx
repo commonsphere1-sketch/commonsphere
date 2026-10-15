@@ -25,7 +25,8 @@
  * A density, a change or a share worked out here says so. Where nothing more
  * than the outline of a place is held, the section says that and no more.
  */
-import { useEffect, useId, useState } from "react";
+import { useEffect, useId, useMemo, useState } from "react";
+import { geoContains } from "d3-geo";
 import { Area, AreaChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
 import type { Subnation } from "../data/subnations";
 import { usStatesData } from "../data/statesData";
@@ -39,8 +40,8 @@ import SlimBars, { SlimColumns } from "./SlimBars";
 /** A city of 100,000 or more that lies in a place, by GeoNames' count. */
 type InCity = { name: string; people: number };
 export type PressedPlace =
-  | { kind: "region"; cc: string; name: string; cities?: InCity[] }
-  | { kind: "county"; cc: string; id: string; name: string; parent?: string; sub?: string; cities?: InCity[]; areaKm2?: number }
+  | { kind: "region"; cc: string; name: string; cities?: InCity[]; geo?: unknown }
+  | { kind: "county"; cc: string; id: string; name: string; parent?: string; sub?: string; cities?: InCity[]; areaKm2?: number; geo?: unknown }
   | { kind: "city"; cc: string; name: string; people: number; region?: string };
 const GEONAMES = { label: "GeoNames — cities of 100,000 or more (CC BY 4.0)", url: "https://www.geonames.org/" };
 
@@ -132,8 +133,130 @@ function Head({ t, name, sub }: { t: Tokens; name: string; sub: string }) {
   );
 }
 
+
+/**
+ * What lies inside a place's outline, as asked of the smaller places - every figure counted here from a dataset the
+ * site holds for points, each found by whether its point lies inside the outline: its towns and villages (GeoNames'
+ * places of more than 500 people and seats of administration), its mines, plants and refineries (USGS), its airports
+ * and ports (Natural Earth), and the heads of its places that three records agree on.
+ */
+type PlacesFile = { regions: string[]; districts: string[]; places: [name: string, lat: number, lon: number, population: number, region: number, kind: number, id: number, district: number][] };
+type Mines = { sources: { label: string; url: string; surveyed?: string | null }[]; commodities: string[]; kinds: string[]; rows: [name: string, commodity: number, country: number, kind: number, record: number, lon: number, lat: number][] };
+type Infra = { sources: { label: string; url: string }[]; airports: [name: string, lon: number, lat: number, major: number][] };
+type Ports = { source: { label: string; url: string }; rows: [name: string, lon: number, lat: number, rank: number][] };
+function Inside({ t, cc, geo, name }: { t: Tokens; cc: string; geo: unknown; name: string }) {
+  const [got, setGot] = useState<{ places?: PlacesFile; mines?: Mines; infra?: Infra; ports?: Ports; heads?: typeof import("../data/representatives"); kinds?: string[]; placesSource?: { label: string; url: string } } | null>(null);
+  useEffect(() => {
+    let off = false;
+    const json = (u: string) => fetch(u).then((r) => (r.ok ? r.json() : null)).catch(() => null);
+    Promise.all([json(`/places/${cc}.json`), json("/geo/mines.json"), json("/geo/infrastructure.json"), json("/geo/ports.json"), import("../data/representatives"), import("../data/placesIndex")]).then(([places, mines, infra, ports, heads, idx]) => {
+      if (!off) setGot({ places: places ?? undefined, mines: mines ?? undefined, infra: infra ?? undefined, ports: ports ?? undefined, heads, kinds: idx.PLACE_KINDS, placesSource: idx.PLACES_SOURCE.geonames });
+    });
+    return () => {
+      off = true;
+    };
+  }, [cc]);
+  const at = useMemo(() => {
+    if (!got) return null;
+    const inn = (lon: number, lat: number) => geoContains(geo as never, [lon, lat]);
+    const places = (got.places?.places ?? []).filter((p) => inn(p[2], p[1]));
+    const mines = (got.mines?.rows ?? []).filter((m) => inn(m[5], m[6]));
+    const airports = (got.infra?.airports ?? []).filter((a) => inn(a[1], a[2]));
+    const ports = (got.ports?.rows ?? []).filter((p) => inn(p[1], p[2]));
+    const heads = (got.heads?.REPRESENTATIVES ?? []).filter((r) => r[0] === cc && inn(r[7], r[6]));
+    return { places, mines, airports, ports, heads };
+  }, [got, geo, cc]);
+  if (!got || !at) return <p className="text-[11px] font-sans px-1" style={{ color: t.mutedText }}>Counting what lies in {name}…</p>;
+  const { places, mines, airports, ports, heads } = at;
+  const peopled = places.filter((p) => p[3] > 0);
+  const byKind = Object.entries(places.reduce<Record<string, number>>((o, p) => ((o[got.kinds?.[p[5]] ?? "Other"] = (o[got.kinds?.[p[5]] ?? "Other"] ?? 0) + 1), o), {})).sort((a, b) => b[1] - a[1]);
+  const byCommodity = Object.entries(mines.reduce<Record<string, number>>((o, m) => ((o[got.mines!.commodities[m[1]]] = (o[got.mines!.commodities[m[1]]] ?? 0) + 1), o), {})).sort((a, b) => b[1] - a[1]);
+  return (
+    <Section t={t} title="What lies in it" kicker="its towns and villages, what it mines and makes, how it connects, who leads its places">
+      {places.length > 0 && (
+        <Panel t={t} title="Its towns and villages" meta={`${whole(places.length)} places`}>
+          <Tiles
+            t={t}
+            items={[
+              { label: "Places", text: whole(places.length), y: "of more than 500 people, or seats" },
+              ...(peopled.length ? [{ label: "People in them", text: whole(peopled.reduce((n, p) => n + p[3], 0)), y: "GeoNames, added here" }] : []),
+              ...(peopled[0] ? [{ label: "The largest", text: peopled[0][0], y: whole(peopled[0][3]) }] : []),
+            ]}
+          />
+          {peopled.length > 1 && (
+            <SlimBars labelWidth="7rem" rows={peopled.slice(0, 10).map((p, i) => ({ key: `${p[6]}`, label: p[0], v: p[3], color: INK[i % INK.length] }))} fmt={big} />
+          )}
+          <Note t={t}>Every populated place GeoNames lists inside its outline - its count of each place's own people, not of the land around it, so the sum is not the whole population.</Note>
+          <Foot sources={[got.placesSource]} />
+        </Panel>
+      )}
+      {byKind.length > 1 && (
+        <Panel t={t} title="What its places are" meta="by GeoNames' kind">
+          <Ring t={t} slices={byKind.slice(0, 6).map(([k, n]) => ({ name: k, v: (n / places.length) * 100 }))} />
+          <Note t={t}>Each place as GeoNames classes it - a seat of administration, or a town or village - as a share of the places counted, worked out here.</Note>
+          <Foot sources={[got.placesSource]} />
+        </Panel>
+      )}
+      {mines.length > 0 && (
+        <Panel t={t} title="What it mines and refines" meta={`${mines.length} sites · USGS`}>
+          <SlimBars labelWidth="7rem" rows={byCommodity.slice(0, 8).map(([k, n], i) => ({ key: k, label: k, v: n, color: INK[(i + 2) % INK.length] }))} fmt={whole} />
+          <ul className="flex flex-col gap-0.5">
+            {mines.filter((m) => !m[0].includes("�")).slice(0, 6).map((m) => (
+              <li key={`${m[0]}-${m[5]}`} className="text-[11px] font-sans leading-snug" style={{ color: t.bodyText }}>
+                {m[0]}
+                <span style={{ color: t.mutedText }}> · {got.mines!.kinds[m[3]]}, {got.mines!.commodities[m[1]]}</span>
+              </li>
+            ))}
+          </ul>
+          <Note t={t}>Mines, plants, refineries and fields the USGS records inside its outline, by what each produces; its surveys date from 2003 to 2008, so some may have closed since.</Note>
+          <Foot sources={got.mines!.sources} />
+        </Panel>
+      )}
+      {(airports.length > 0 || ports.length > 0) && (
+        <Panel t={t} title="How it connects" meta="airports and ports">
+          <Tiles
+            t={t}
+            items={[
+              { label: "Airports", text: String(airports.length), y: `${airports.filter((a) => a[3]).length} major` },
+              { label: "Seaports", text: String(ports.length) },
+            ]}
+          />
+          <ul className="flex flex-col gap-0.5">
+            {[...airports.map((a) => `${a[0]} · airport`), ...ports.map((p) => `${p[0]} · port`)].slice(0, 8).map((s) => (
+              <li key={s} className="text-[11px] font-sans" style={{ color: t.bodyText }}>
+                {s}
+              </li>
+            ))}
+          </ul>
+          <Note t={t}>The airports and ports Natural Earth maps at its 1:10m scale: the larger ones, not every airstrip and harbour.</Note>
+          <Foot sources={[...(airports.length ? [got.infra!.sources[2] ?? got.infra!.sources[0]] : []), ...(ports.length ? [got.ports!.source] : [])]} />
+        </Panel>
+      )}
+      {heads.length > 0 && (
+        <Panel t={t} title="Who leads its places" meta={`${heads.length} confirmed`}>
+          <ul className="flex flex-col">
+            {heads.slice(0, 8).map((h) => (
+              <li key={h[9]} className="flex items-baseline justify-between gap-2 py-1 border-b last:border-b-0" style={{ borderColor: t.gridLine }}>
+                <span className="text-[11px] font-sans" style={{ color: t.bodyText }}>
+                  {h[1]}
+                  <span style={{ color: t.mutedText }}> · {h[4]}</span>
+                </span>
+                <span className="text-[11px] font-sans font-semibold text-right" style={{ color: t.headText }}>
+                  {h[3]}
+                </span>
+              </li>
+            ))}
+          </ul>
+          <Note t={t}>Only heads that three records agree on: the place's own Wikidata record, its office's holders, and its Wikipedia article. Others are left out, not guessed.</Note>
+          <Foot sources={[got.heads!.REPRESENTATIVES_SOURCES.wikidata, got.heads!.REPRESENTATIVES_SOURCES.wikipedia]} />
+        </Panel>
+      )}
+    </Section>
+  );
+}
+
 /** A state, province or region: its record, and for a US state the federal statistics the site holds. */
-function RegionFigures({ t, cc, name, country, cities = [] }: { t: Tokens; cc: string; name: string; country: string; cities?: InCity[] }) {
+function RegionFigures({ t, cc, name, country, cities = [], geo }: { t: Tokens; cc: string; name: string; country: string; cities?: InCity[]; geo?: unknown }) {
   const [subs, setSubs] = useState<{ list: Subnation[]; sources: Record<string, { label: string; url: string }> } | null>(null);
   useEffect(() => {
     let off = false;
@@ -269,12 +392,13 @@ function RegionFigures({ t, cc, name, country, cities = [] }: { t: Tokens; cc: s
           </Panel>
         </Section>
       )}
+      {geo ? <Inside t={t} cc={cc} geo={geo} name={name} /> : null}
     </>
   );
 }
 
 /** A county: the Census Bureau's figures in the United States; elsewhere nothing but its outline is held. */
-function CountyFigures({ t, cc, id, name, parent, country, sub, cities = [], areaKm2 }: { t: Tokens; cc: string; id: string; name: string; parent?: string; country: string; sub?: string; cities?: InCity[]; areaKm2?: number }) {
+function CountyFigures({ t, cc, id, name, parent, country, sub, cities = [], areaKm2, geo }: { t: Tokens; cc: string; id: string; name: string; parent?: string; country: string; sub?: string; cities?: InCity[]; areaKm2?: number; geo?: unknown }) {
   const [data, setData] = useState<typeof import("../data/usCounties") | null>(null);
   useEffect(() => {
     if (cc !== "US") return;
@@ -308,6 +432,7 @@ function CountyFigures({ t, cc, id, name, parent, country, sub, cities = [], are
           {cities.length > 0 && <CitiesIn t={t} cities={cities} where={name} />}
           {parent && <RegionRecord t={t} cc={cc} name={parent} country={country} />}
         </Section>
+        {geo ? <Inside t={t} cc={cc} geo={geo} name={name} /> : null}
       </>
     );
   if (!data) return <Head t={t} name={name} sub="reading its figures…" />;
@@ -354,6 +479,7 @@ function CountyFigures({ t, cc, id, name, parent, country, sub, cities = [], are
           <Foot sources={[data.US_COUNTY_SOURCES.gazetteer]} />
         </Panel>
       </Section>
+      {geo ? <Inside t={t} cc={cc} geo={geo} name={r[1]} /> : null}
     </>
   );
 }
@@ -405,9 +531,9 @@ export default function PlaceFigures({ place, country }: { place: PressedPlace; 
   return (
     <div className="flex flex-col gap-3" aria-live="polite">
       {place.kind === "region" ? (
-        <RegionFigures t={t} cc={place.cc} name={place.name} country={country} cities={place.cities} />
+        <RegionFigures t={t} cc={place.cc} name={place.name} country={country} cities={place.cities} geo={place.geo} />
       ) : place.kind === "county" ? (
-        <CountyFigures t={t} cc={place.cc} id={place.id} name={place.name} parent={place.parent} country={country} sub={place.sub} cities={place.cities} areaKm2={place.areaKm2} />
+        <CountyFigures t={t} cc={place.cc} id={place.id} name={place.name} parent={place.parent} country={country} sub={place.sub} cities={place.cities} areaKm2={place.areaKm2} geo={place.geo} />
       ) : (
         <CityFigures t={t} cc={place.cc} name={place.name} people={place.people} country={country} region={place.region} />
       )}

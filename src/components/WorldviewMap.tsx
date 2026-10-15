@@ -876,10 +876,10 @@ export default function WorldviewMap() {
       const cityRegion = cityAt && regions?.code === picked ? regions.list.find((r) => geoContains(r.geo as never, [cityAt.lon, cityAt.lat]))?.name : undefined;
       const place: PressedPlace | null = pressed
         ? pressed.kind === "county"
-          ? { kind: "county", cc: picked, id: pressed.key, name: pressed.name, parent: pressed.parent, sub: pressed.sub, cities: countyShape ? inside(countyShape.geo) : [], areaKm2: countyShape ? km2(countyShape.geo) : undefined }
+          ? { kind: "county", cc: picked, id: pressed.key, name: pressed.name, parent: pressed.parent, sub: pressed.sub, cities: countyShape ? inside(countyShape.geo) : [], areaKm2: countyShape ? km2(countyShape.geo) : undefined, geo: countyShape?.geo }
           : { kind: "city", cc: picked, name: pressed.name, people: pressed.people ?? 0, region: cityRegion }
         : region
-          ? { kind: "region", cc: picked, name: region, cities: regionShape ? inside(regionShape.geo) : [] }
+          ? { kind: "region", cc: picked, name: region, cities: regionShape ? inside(regionShape.geo) : [], geo: regionShape?.geo }
           : null;
       return place ? <PlaceFigures key={`${place.kind}-${place.name}`} place={place} country={pickedName} /> : null;
     })()}
