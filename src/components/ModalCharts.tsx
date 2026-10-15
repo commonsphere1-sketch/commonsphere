@@ -199,11 +199,13 @@ export function PartsDonut({ parts, colors = PART_COLORS, label }: { parts: Part
   const C = 2 * Math.PI * R;
   // The slim style: a thinner ring, its arcs a hairline apart with square ends, so that a small part never runs into the next.
   const W = 9;
-  const gap = shown.length > 1 ? 2 : 0;
+  // A hairline between parts; a rounded end reaches half the ring's width past its arc, so a rounded arc gives up that much at each end.
+  const gap = shown.length > 1 ? 2.5 : 0;
   let run = 0;
   const arcs = shown.map((p, i) => {
     const len = (p.value / total) * C;
-    const arc = { p, i, start: run, len: Math.max(0.5, len - gap) };
+    const round = shown.length > 1 && len >= W + gap + 1;
+    const arc = round ? { p, i, start: run + W / 2, len: len - gap - W, round } : { p, i, start: run, len: Math.max(0.5, len - gap), round };
     run += len;
     return arc;
   });
@@ -226,7 +228,7 @@ export function PartsDonut({ parts, colors = PART_COLORS, label }: { parts: Part
         {/* The faint track the arcs lie on. */}
         <circle cx={50} cy={50} r={R} fill="none" stroke="currentColor" strokeOpacity={0.07} strokeWidth={W} className="text-foreground" />
         <g transform="rotate(-90 50 50)">
-          {arcs.map(({ p, i, start, len }) => (
+          {arcs.map(({ p, i, start, len, round }) => (
             <circle
               key={p.label}
               cx={50}
@@ -235,6 +237,7 @@ export function PartsDonut({ parts, colors = PART_COLORS, label }: { parts: Part
               fill="none"
               stroke={shown.length > 1 ? `url(#${gid}-${i})` : fill(p, i)}
               strokeWidth={W}
+              strokeLinecap={round ? "round" : "butt"}
               strokeDasharray={`${len} ${C - len}`}
               strokeDashoffset={-start}
               opacity={on && on !== p.label ? 0.3 : 1}
