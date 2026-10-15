@@ -10389,6 +10389,67 @@ const CATEGORY_FILTERS: ("All" | PolicyCategory)[] = [
  * row of cards (PolicyDetails), not inside the card: the row scrolls sideways,
  * and a card that grew inside it was cut off at the row's edge.
  */
+/**
+ * The place's total spending, at the end of its row of areas, as asked: in the cards' own make. A country's is what its
+ * government spends against the size of its economy, with the share of it each area in the row takes, the rest worked out
+ * here; a state's is its government's general spending in dollars. The figures are the Economy card's.
+ */
+function TotalSpendingCard({ group }: { group: EntityGroup }) {
+  const economy = group.policies.find((p) => p.category === "Economy") ?? group.policies[0];
+  const fig = group.entityType === "country" ? countryPolicyFigures(economy.code, "Economy") : statePolicyFigures(economy.code, "Economy");
+  const head = fig.head;
+  if (!head) return null;
+  const parts = group.policies.flatMap((card) => {
+    const h = figuresOf(card).head;
+    return h?.spending && h.share !== undefined ? [{ cat: card.category, share: h.share, cfg: CATEGORY_CONFIG[card.category] }] : [];
+  });
+  const sum = parts.reduce((n, p) => n + p.share, 0);
+  const source = fig.figures[0]?.source;
+  return (
+    <div className="bg-card rounded-2xl border p-4 flex flex-col gap-2.5 transition-all duration-200 hover:scale-[1.01] hover:shadow-lg w-64 shrink-0 snap-start border-border/50 hover:border-secondary/40">
+      <div className="flex items-center gap-2">
+        <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-muted flex-shrink-0">
+          <span className="text-[11px] font-semibold text-foreground">Total spending</span>
+        </div>
+        <span className="ml-auto text-[15px] font-bold text-foreground leading-none">{head.value}</span>
+      </div>
+      {/* What the areas in the row take of it, each in its colour, the rest in grey: a share of all spending. */}
+      <div className="flex h-1.5 gap-[2px] rounded-full overflow-hidden bg-muted shrink-0" role="img" aria-label={parts.map((p) => `${p.cat} ${p.share.toFixed(1)}%`).join(", ")}>
+        {parts.map((p) => (
+          <span key={p.cat} className={`h-full rounded-full ${p.cfg.bar}`} style={{ width: `${p.share}%` }} title={`${p.cat}: ${p.share.toFixed(1)}% of spending`} />
+        ))}
+      </div>
+      <p className="text-[12px] font-semibold leading-snug text-foreground">{group.entityType === "country" ? "All government spending" : "All state government spending"}</p>
+      <p className="text-[11px] text-muted-foreground leading-snug">
+        <span className="text-foreground font-semibold">{head.value}</span> {head.label} · {head.when}
+      </p>
+      {parts.length > 0 && (
+        <ul className="flex flex-col gap-1">
+          {parts.map((p) => (
+            <li key={p.cat} className="flex items-center gap-1.5 text-[11px]">
+              <span className={`w-2 h-2 rounded-full shrink-0 ${p.cfg.bar}`} aria-hidden />
+              <span className="text-muted-foreground flex-1">{p.cat}</span>
+              <span className="font-semibold text-foreground">{p.share.toFixed(1)}%</span>
+            </li>
+          ))}
+          {sum < 100 && (
+            <li className="flex items-center gap-1.5 text-[11px]">
+              <span className="w-2 h-2 rounded-full shrink-0 bg-muted-foreground/40" aria-hidden />
+              <span className="text-muted-foreground flex-1">Everything else</span>
+              <span className="font-semibold text-foreground">{(100 - sum).toFixed(1)}%</span>
+            </li>
+          )}
+        </ul>
+      )}
+      <p className="text-[10px] text-muted-foreground leading-snug mt-auto">
+        {parts.length > 0 ? "Each area's share of all government spending, its own year; everything else is worked out here. " : ""}
+        {fig.covers?.text ?? ""}
+      </p>
+      {source && <SourceLink sources={source} className="!mt-0" />}
+    </div>
+  );
+}
+
 function PolicyCardItem({ card, open, onToggle, panelId }: { card: PolicyCard; open: boolean; onToggle: () => void; panelId: string }) {
   const cfg = CATEGORY_CONFIG[card.category];
   const Icon = cfg.icon;
@@ -10740,6 +10801,8 @@ function EntityRow({ group }: { group: EntityGroup }) {
             {group.policies.map((card) => (
               <PolicyCardItem key={card.id} card={card} open={detail === card.id} onToggle={() => setDetail((d) => (d === card.id ? null : card.id))} panelId={panelId} />
             ))}
+            {/* The whole of what it spends, after its areas, as asked. */}
+            <TotalSpendingCard group={group} />
           </div>
           {/* Outside the sideways-scrolling row, so nothing cuts it off. */}
           {detailCard && <PolicyDetails card={detailCard} id={panelId} onClose={() => setDetail(null)} />}
