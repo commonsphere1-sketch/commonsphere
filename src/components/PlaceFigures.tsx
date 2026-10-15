@@ -36,10 +36,61 @@ import { useTokens, type Tokens } from "./DataExplorer";
 import { INK, Panel, Note, Foot, Tiles, Stack, Ring, Section } from "./CountryFigures";
 import SlimBars, { SlimColumns } from "./SlimBars";
 
+/** A city of 100,000 or more that lies in a place, by GeoNames' count. */
+type InCity = { name: string; people: number };
 export type PressedPlace =
-  | { kind: "region"; cc: string; name: string }
-  | { kind: "county"; cc: string; id: string; name: string; parent?: string }
-  | { kind: "city"; cc: string; name: string; people: number };
+  | { kind: "region"; cc: string; name: string; cities?: InCity[] }
+  | { kind: "county"; cc: string; id: string; name: string; parent?: string; sub?: string; cities?: InCity[]; areaKm2?: number }
+  | { kind: "city"; cc: string; name: string; people: number; region?: string };
+const GEONAMES = { label: "GeoNames — cities of 100,000 or more (CC BY 4.0)", url: "https://www.geonames.org/" };
+
+/** The cities of 100,000 or more inside a place's outline, largest first. */
+function CitiesIn({ t, cities, where }: { t: Tokens; cities: InCity[]; where: string }) {
+  return (
+    <Panel t={t} title="Its largest cities" meta={`${cities.length} of 100,000 or more`}>
+      <SlimBars
+        label={`The cities of 100,000 people or more in ${where}`}
+        labelWidth="7rem"
+        rows={cities.map((c, i) => ({ key: c.name, label: c.name, v: c.people, color: INK[i % INK.length] }))}
+        fmt={(v) => big(v)}
+      />
+      <Note t={t}>Each city of 100,000 or more whose point lies inside its outline, by GeoNames' count of the city itself.</Note>
+      <Foot sources={[GEONAMES]} />
+    </Panel>
+  );
+}
+
+/** The record of the state, province or region a place lies in: its own figures, which are that region's, not the place's. */
+function RegionRecord({ t, cc, name, country }: { t: Tokens; cc: string; name: string; country: string }) {
+  const [subs, setSubs] = useState<{ list: Subnation[]; sources: Record<string, { label: string; url: string }> } | null>(null);
+  useEffect(() => {
+    let off = false;
+    import("../data/subnations").then((m) => !off && setSubs({ list: m.SUBNATIONS, sources: m.SUBNATIONS_SOURCES }));
+    return () => {
+      off = true;
+    };
+  }, []);
+  const rec = subs?.list.find((x) => x.cc === cc && x.name === name);
+  if (!rec) return null;
+  return (
+    <Panel t={t} title={`The region it lies in`} meta={rec.kind ? `${rec.kind}, ${country}` : country}>
+      <p className="text-sm font-bold font-sans" style={{ color: t.headText }}>
+        {rec.name}
+      </p>
+      <Tiles
+        t={t}
+        items={[
+          ...(rec.capital ? [{ label: "Capital", text: rec.capital }] : []),
+          ...(rec.pop ? [{ label: "People", text: whole(rec.pop[1]), y: rec.pop[0] }] : []),
+          ...(rec.areaKm2 ? [{ label: "Area", text: `${whole(rec.areaKm2)} km²` }] : []),
+          ...(rec.legislature ? [{ label: "Legislature", text: rec.legislature }] : []),
+        ]}
+      />
+      <Note t={t}>The figures of {rec.name} as a whole, from its own record.</Note>
+      <Foot sources={[subs!.sources.naturalEarth, subs!.sources.wikidata, ...(rec.popBy || rec.areaBy === "wp" ? [subs!.sources.wikipedia] : [])]} />
+    </Panel>
+  );
+}
 
 const whole = (v: number) => Math.round(v).toLocaleString("en-US");
 const big = (v: number) => (v >= 1e9 ? `${(v / 1e9).toFixed(2)}B` : v >= 1e6 ? `${(v / 1e6).toFixed(2)}M` : whole(v));
@@ -82,7 +133,7 @@ function Head({ t, name, sub }: { t: Tokens; name: string; sub: string }) {
 }
 
 /** A state, province or region: its record, and for a US state the federal statistics the site holds. */
-function RegionFigures({ t, cc, name, country }: { t: Tokens; cc: string; name: string; country: string }) {
+function RegionFigures({ t, cc, name, country, cities = [] }: { t: Tokens; cc: string; name: string; country: string; cities?: InCity[] }) {
   const [subs, setSubs] = useState<{ list: Subnation[]; sources: Record<string, { label: string; url: string }> } | null>(null);
   useEffect(() => {
     let off = false;
@@ -129,6 +180,7 @@ function RegionFigures({ t, cc, name, country }: { t: Tokens; cc: string; name: 
             <Foot sources={recSources} />
           </Panel>
         ) : null}
+        {cities.length > 0 && <CitiesIn t={t} cities={cities} where={name} />}
         {rec?.borders?.length ? (
           <Panel t={t} title="Its neighbours" meta={`${rec.borders.length}`}>
             <ul className="flex flex-wrap gap-1.5">
@@ -222,7 +274,7 @@ function RegionFigures({ t, cc, name, country }: { t: Tokens; cc: string; name: 
 }
 
 /** A county: the Census Bureau's figures in the United States; elsewhere nothing but its outline is held. */
-function CountyFigures({ t, cc, id, name, parent, country }: { t: Tokens; cc: string; id: string; name: string; parent?: string; country: string }) {
+function CountyFigures({ t, cc, id, name, parent, country, sub, cities = [], areaKm2 }: { t: Tokens; cc: string; id: string; name: string; parent?: string; country: string; sub?: string; cities?: InCity[]; areaKm2?: number }) {
   const [data, setData] = useState<typeof import("../data/usCounties") | null>(null);
   useEffect(() => {
     if (cc !== "US") return;
@@ -238,10 +290,24 @@ function CountyFigures({ t, cc, id, name, parent, country }: { t: Tokens; cc: st
   if (cc !== "US")
     return (
       <>
-        <Head t={t} name={name} sub={`a division of ${where}`} />
-        <p className="text-[11px] font-sans px-1" style={{ color: t.mutedText }}>
-          Only its outline is held: no body the site draws on publishes its figures. Below, {country}'s.
-        </p>
+        <Head t={t} name={name} sub={`${sub ?? `a division of ${where}`} · what is held of it, pressed on the map · the country's figures are below`} />
+        <Section t={t} title="The place" kicker="how large it is, what lies in it, and the region around it">
+          <Panel t={t} title="At a glance">
+            <Tiles
+              t={t}
+              items={[
+                ...(areaKm2 ? [{ label: "Area", text: `${whole(areaKm2)} km²`, y: "worked out from its outline" }] : []),
+                ...(parent ? [{ label: "In", text: parent }] : []),
+                { label: "Cities of 100,000+", text: String(cities.length) },
+                ...(cities.length ? [{ label: "People in them", text: whole(cities.reduce((n, c) => n + c.people, 0)), y: "GeoNames, added here" }] : []),
+              ]}
+            />
+            <Note t={t}>No body the site draws on publishes this division's own figures: its area is measured here from the outline its publisher gives, and the people counted are those of its large cities only.</Note>
+            <Foot sources={[{ label: "geoBoundaries — gbOpen, second-order boundaries", url: "https://www.geoboundaries.org/" }, cities.length ? GEONAMES : undefined]} />
+          </Panel>
+          {cities.length > 0 && <CitiesIn t={t} cities={cities} where={name} />}
+          {parent && <RegionRecord t={t} cc={cc} name={parent} country={country} />}
+        </Section>
       </>
     );
   if (!data) return <Head t={t} name={name} sub="reading its figures…" />;
@@ -275,6 +341,7 @@ function CountyFigures({ t, cc, id, name, parent, country }: { t: Tokens; cc: st
           <Note t={t}>Deaths are drawn as a fall; migration is net - those who came less those who left.</Note>
           <Foot sources={[data.US_COUNTY_SOURCES.estimates]} />
         </Panel>
+        {cities.length > 0 && <CitiesIn t={t} cities={cities} where={r[1]} />}
         <Panel t={t} title="Its land" meta="Gazetteer">
           <Tiles
             t={t}
@@ -292,13 +359,13 @@ function CountyFigures({ t, cc, id, name, parent, country }: { t: Tokens; cc: st
 }
 
 /** A city: the UN's figures for a city the site profiles, otherwise GeoNames' count. */
-function CityFigures({ t, cc, name, people, country }: { t: Tokens; cc: string; name: string; people: number; country: string }) {
+function CityFigures({ t, cc, name, people, country, region }: { t: Tokens; cc: string; name: string; people: number; country: string; region?: string }) {
   const city = citiesData.find((c) => c.countryCode === cc && c.name === name);
   const f = city ? CITY_FIGURES[city.id] : undefined;
   const { firstYear, baseYear } = CITY_FIGURES_SOURCE;
   const series = f ? f.pop.flatMap((v, i) => (v !== null && firstYear + i <= baseYear ? [{ y: String(firstYear + i), v }] : [])) : [];
   const at = (arr: (number | null)[] | undefined) => (arr ? arr[baseYear - firstYear] : null);
-  const geo = { label: "GeoNames — cities of 100,000 or more (CC BY 4.0)", url: "https://www.geonames.org/" };
+  const geo = GEONAMES;
   return (
     <>
       <Head t={t} name={name} sub={`City, ${country} · its own figures, pressed on the map · the country's figures are below`} />
@@ -327,6 +394,7 @@ function CityFigures({ t, cc, name, people, country }: { t: Tokens; cc: string; 
             <Foot sources={[CITY_FIGURES_SOURCE]} />
           </Panel>
         )}
+        {region && <RegionRecord t={t} cc={cc} name={region} country={country} />}
       </Section>
     </>
   );
@@ -337,11 +405,11 @@ export default function PlaceFigures({ place, country }: { place: PressedPlace; 
   return (
     <div className="flex flex-col gap-3" aria-live="polite">
       {place.kind === "region" ? (
-        <RegionFigures t={t} cc={place.cc} name={place.name} country={country} />
+        <RegionFigures t={t} cc={place.cc} name={place.name} country={country} cities={place.cities} />
       ) : place.kind === "county" ? (
-        <CountyFigures t={t} cc={place.cc} id={place.id} name={place.name} parent={place.parent} country={country} />
+        <CountyFigures t={t} cc={place.cc} id={place.id} name={place.name} parent={place.parent} country={country} sub={place.sub} cities={place.cities} areaKm2={place.areaKm2} />
       ) : (
-        <CityFigures t={t} cc={place.cc} name={place.name} people={place.people} country={country} />
+        <CityFigures t={t} cc={place.cc} name={place.name} people={place.people} country={country} region={place.region} />
       )}
     </div>
   );

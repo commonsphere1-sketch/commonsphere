@@ -839,7 +839,7 @@ export default function CountryFigures({ code, name }: { code: string; name: str
         <Panel t={t} title="Crime by type" meta="recorded by the police, per 100,000 people" className="md:!basis-full xl:!basis-full">
           {crimeGroups.length ? (
             <>
-              <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-x-6 gap-y-4">
+              <div className="grid grid-cols-1 md:grid-flow-col md:auto-cols-fr gap-x-6 gap-y-4">
                 {crimeGroups.map((g, gi) => (
                   <div key={g.name} className="flex flex-col gap-1.5 min-w-0">
                     <p className="text-[9px] font-mono uppercase tracking-widest" style={{ color: t.mutedText }}>
@@ -847,7 +847,7 @@ export default function CountryFigures({ code, name }: { code: string; name: str
                     </p>
                     <SlimBars
                       label={`${g.name} offences recorded in ${name}, per 100,000 people`}
-                      labelWidth="8rem"
+                      labelWidth="6.5rem"
                       rows={g.rows.map((r, i) => ({ key: r.label, label: r.label, v: r.v, color: INK[(gi * 3 + i + 4) % INK.length], tip: `${r.label}: ${r.v} per 100,000 · ${r.y}` }))}
                       fmt={(v) => (v >= 100 ? Math.round(v).toLocaleString("en-US") : v >= 1 ? v.toFixed(1) : v.toFixed(2))}
                     />

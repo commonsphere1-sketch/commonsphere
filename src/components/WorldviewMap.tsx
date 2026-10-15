@@ -37,7 +37,7 @@
 import { type ReactNode, useCallback, useEffect, useRef, useState } from "react";
 import { ArrowCounterClockwise, MagnifyingGlassMinus, MagnifyingGlassPlus } from "@phosphor-icons/react";
 import { flagColor } from "../lib/flagColor";
-import { geoArea, geoEqualEarth, geoGraticule10, geoPath } from "d3-geo";
+import { geoArea, geoContains, geoEqualEarth, geoGraticule10, geoPath } from "d3-geo";
 import type { Subnation } from "../data/subnations";
 import { ADMIN2_SOURCE, loadAdmin2, useAdmin2Manifest } from "../lib/admin2";
 import { feature } from "topojson-client";
@@ -460,7 +460,7 @@ export default function WorldviewMap() {
   /** The country whose figures fill the panels under the map. */
   const [picked, setPicked] = useState("US");
   /* The divisions of the country picked - its states, provinces, regions - as the World Maps page's files draw them; the one pressed, and the one pointed at. */
-  const [regions, setRegions] = useState<{ code: string; list: { name: string; d: string }[] } | null>(null);
+  const [regions, setRegions] = useState<{ code: string; list: { name: string; d: string; geo: Geo }[] } | null>(null);
   const [region, setRegion] = useState<string | null>(null);
   const [hoverRegion, setHoverRegion] = useState<string | null>(null);
   const [pressed, setPressed] = useState<Pressed | null>(null);
@@ -476,7 +476,7 @@ export default function WorldviewMap() {
         const key = Object.keys(topo.objects)[0];
         const list = (feature(topo, topo.objects[key] as never) as unknown as { features: Geo[] }).features.flatMap((f) => {
           const d = f.properties.n ? PATH(rewind(f) as never) : null;
-          return d ? [{ name: f.properties.n!, d }] : [];
+          return d ? [{ name: f.properties.n!, d, geo: f }] : [];
         });
         setRegions({ code: picked, list });
       })
@@ -489,7 +489,7 @@ export default function WorldviewMap() {
   const [view, setView] = useState({ k: 1, x: W / 2, y: H / 2 });
   /* The counties, districts and municipalities of the country picked, fetched once it is drawn close enough to press them: the
      United States' are the Census Bureau's, by us-atlas; every other country's geoBoundaries', as the World Maps page draws them. */
-  type County = { name: string; parent?: string; id: string; d: string; b: [[number, number], [number, number]] };
+  type County = { name: string; parent?: string; id: string; d: string; b: [[number, number], [number, number]]; geo: unknown };
   const [counties, setCounties] = useState<{ code: string; list: County[] } | null>(null);
   const admin2 = useAdmin2Manifest();
   const wantCounties = view.k >= COUNTIES_PICK_FROM;
@@ -498,7 +498,7 @@ export default function WorldviewMap() {
     let off = false;
     const shape = (f: { id?: string | number; geometry: unknown }, name: string, parent?: string): County[] => {
       const d = PATH(f as never);
-      return d ? [{ name, parent, id: String(f.id ?? name), d, b: PATH.bounds(f as never) as County["b"] }] : [];
+      return d ? [{ name, parent, id: String(f.id ?? name), d, b: PATH.bounds(f as never) as County["b"], geo: f }] : [];
     };
     if (picked === "US") {
       import("us-atlas/counties-10m.json").then((m) => {
@@ -598,7 +598,7 @@ export default function WorldviewMap() {
   /* The borders inside the countries - states and provinces, then counties and districts - and the cities: the World Maps
      page's own files, fetched after the map is drawn. A file that does not come leaves the map without that layer. */
   const [inner, setInner] = useState<{ one: { c: string; d: string }[]; two: { c: string; d: string }[] }>({ one: [], two: [] });
-  const [cities, setCities] = useState<{ name: string; country: string; cc: string | null; people: number; x: number; y: number }[]>([]);
+  const [cities, setCities] = useState<{ name: string; country: string; cc: string | null; people: number; x: number; y: number; lon: number; lat: number }[]>([]);
   useEffect(() => {
     let off = false;
     const lines = (url: string) =>
@@ -622,7 +622,7 @@ export default function WorldviewMap() {
         setCities(
           j.rows.flatMap(([name, country, people, lon, lat]) => {
             const p = PROJECTION([lon, lat]);
-            return p ? [{ name, country, cc: countryForFeature(country)?.code ?? null, people, x: p[0], y: p[1] }] : [];
+            return p ? [{ name, country, cc: countryForFeature(country)?.code ?? null, people, x: p[0], y: p[1], lon, lat }] : [];
           }),
         );
       })
@@ -862,12 +862,24 @@ export default function WorldviewMap() {
     {/* The country picked: its own figures, filled in under the map. */}
     {/* The state, county or city pressed on the map: its own figures, above its country's, as asked. */}
     {(() => {
+      // What lies in a shape, and how large it is: the cities of 100,000 or more inside its outline (GeoNames'), and its area worked out from the outline.
+      const inside = (geo: unknown) =>
+        cities
+          .filter((c) => c.cc === picked && geoContains(geo as never, [c.lon, c.lat]))
+          .sort((a, b) => b.people - a.people)
+          .slice(0, 10)
+          .map((c) => ({ name: c.name, people: c.people }));
+      const km2 = (geo: unknown) => Math.round(geoArea(geo as never) * 6371.0088 * 6371.0088);
+      const countyShape = pressed?.kind === "county" ? counties?.list.find((c) => c.id === pressed.key) : undefined;
+      const regionShape = region ? regions?.list.find((r) => r.name === region) : undefined;
+      const cityAt = pressed?.kind === "city" ? cities.find((c) => `${c.name}-${c.country}` === pressed.key) : undefined;
+      const cityRegion = cityAt && regions?.code === picked ? regions.list.find((r) => geoContains(r.geo as never, [cityAt.lon, cityAt.lat]))?.name : undefined;
       const place: PressedPlace | null = pressed
         ? pressed.kind === "county"
-          ? { kind: "county", cc: picked, id: pressed.key, name: pressed.name, parent: pressed.parent }
-          : { kind: "city", cc: picked, name: pressed.name, people: pressed.people ?? 0 }
+          ? { kind: "county", cc: picked, id: pressed.key, name: pressed.name, parent: pressed.parent, sub: pressed.sub, cities: countyShape ? inside(countyShape.geo) : [], areaKm2: countyShape ? km2(countyShape.geo) : undefined }
+          : { kind: "city", cc: picked, name: pressed.name, people: pressed.people ?? 0, region: cityRegion }
         : region
-          ? { kind: "region", cc: picked, name: region }
+          ? { kind: "region", cc: picked, name: region, cities: regionShape ? inside(regionShape.geo) : [] }
           : null;
       return place ? <PlaceFigures key={`${place.kind}-${place.name}`} place={place} country={pickedName} /> : null;
     })()}
