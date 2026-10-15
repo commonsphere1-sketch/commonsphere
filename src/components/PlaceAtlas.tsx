@@ -803,6 +803,10 @@ export default function PlaceAtlas() {
           ["Population", pop ? people(pop.v) : null, pop?.y],
           ["GDP per person", ci?.gdpPerCapita ? `$${whole(ci.gdpPerCapita.v)}` : null, ci?.gdpPerCapita?.y],
           ["Life expectancy", ci?.lifeExpectancy ? `${ci.lifeExpectancy.v} years` : null, ci?.lifeExpectancy?.y],
+          ["GDP", ci?.gdp ? (ci.gdp.v >= 1000 ? `$${(ci.gdp.v / 1000).toFixed(2)} trillion` : `$${ci.gdp.v < 10 ? ci.gdp.v.toFixed(2) : whole(ci.gdp.v)} billion`) : null, ci?.gdp?.y],
+          ["Growth", ci?.gdpGrowth ? `${ci.gdpGrowth.v > 0 ? "+" : ""}${ci.gdpGrowth.v.toFixed(1)}%` : null, ci?.gdpGrowth ? `real GDP · ${ci.gdpGrowth.y}` : undefined],
+          ["Inflation", ci?.inflationRate ? `${ci.inflationRate.v.toFixed(1)}%` : null, ci?.inflationRate?.y],
+          ["Unemployment", ci?.unemploymentRate ? `${ci.unemploymentRate.v.toFixed(1)}%` : null, ci?.unemploymentRate?.y],
           ["Divisions drawn", manifest?.[ref.code] ? whole(manifest[ref.code]) : null],
           ["Counties or districts", ref.code === "US" ? "3,142" : manifest2?.[ref.code] ? whole(manifest2[ref.code].n) : null, ref.code === "US" ? "drawn, of the Census Bureau's" : manifest2?.[ref.code]?.kind],
         ],
@@ -820,6 +824,12 @@ export default function PlaceAtlas() {
           ["Capital", s?.capital ?? null],
           ["Population", m ? people(m.population.v) : null, m ? `Census Bureau · ${m.population.y}` : undefined],
           ["Governor", m?.governor.name ?? null],
+          ["GDP", m?.gdp ? `$${m.gdp.v >= 1000 ? `${(m.gdp.v / 1000).toFixed(2)} trillion` : `${m.gdp.v.toFixed(1)} billion`}` : null, m?.gdp?.y],
+          ["Median household income", m?.medianIncome ? `$${whole(m.medianIncome.v)}` : null, m?.medianIncome?.y],
+          ["Unemployment", m?.unemploymentRate ? `${m.unemploymentRate.v.toFixed(1)}%` : null, m?.unemploymentRate?.y],
+          ["Median age", m?.medianAge ? `${m.medianAge.v} years` : null, m?.medianAge?.y],
+          ["Bachelor's degree or more", m?.education ? `${m.education.bachelorsOrHigherPct}%` : null, m?.education ? `of adults 25 and over · ${m.education.y}` : undefined],
+          ["Median home value", m?.housing ? `$${whole(m.housing.medianHomeValue)}` : null, m?.housing?.y],
           ["Counties", counties ? whole(counties.filter((f) => String(f.id).startsWith(ref.fips)).length) : null, counties ? "drawn" : undefined],
         ],
       };
@@ -837,6 +847,10 @@ export default function PlaceAtlas() {
           ["Population", s?.pop ? people(s.pop[1]) : null, s?.pop ? String(s.pop[0]) : undefined],
           ["Area", s?.areaKm2 ? `${whole(s.areaKm2)} km²` : null],
           ["Code", s?.code ?? null],
+          ["Kind", s?.kind ?? null],
+          ["Region", s?.region ?? null],
+          ["Its own name", s?.native && s.native !== s.name ? s.native : null],
+          ["Coordinates", s ? `${Math.abs(s.lat).toFixed(2)}°${s.lat >= 0 ? "N" : "S"}, ${Math.abs(s.lon).toFixed(2)}°${s.lon >= 0 ? "E" : "W"}` : null],
         ],
       };
     }
@@ -853,6 +867,12 @@ export default function PlaceAtlas() {
           ["Population", row ? whole(row[7][row[7].length - 1]) : null, row && years ? `Census Bureau · 1 July ${years[years.length - 1]}` : undefined],
           ["Land area", row && row[5] != null ? `${whole(row[5])} km²` : null],
           ["FIPS code", ref.fips],
+          ["Water area", row && row[6] != null ? `${whole(row[6])} km²` : null],
+          ["Change since ${years?.[0] ?? 2020}", row && row[7].length > 1 && row[7][0] ? `${row[7][row[7].length - 1] >= row[7][0] ? "+" : ""}${(((row[7][row[7].length - 1] - row[7][0]) / row[7][0]) * 100).toFixed(1)}%` : null, row ? "worked out here" : undefined],
+          ["Births", row ? whole(row[8]) : null, row && years ? `year to 1 July ${years[years.length - 1]}` : undefined],
+          ["Deaths", row ? whole(row[9]) : null, row && years ? `year to 1 July ${years[years.length - 1]}` : undefined],
+          ["Moved in from abroad, net", row ? whole(row[10]) : null, row && years ? `year to 1 July ${years[years.length - 1]}` : undefined],
+          ["Moved in from the rest of the US, net", row ? whole(row[11]) : null, row && years ? `year to 1 July ${years[years.length - 1]}` : undefined],
         ],
       };
     }
@@ -866,6 +886,7 @@ export default function PlaceAtlas() {
         facts: [
           ["Division", ref.parent ?? null, ref.parent ? "the one most of its outline lies in" : undefined],
           ["Boundary", info?.by ?? null, info?.year],
+          ["Country", cc ? (COUNTRY_BY_CODE.get(cc)?.name ?? cc) : null],
           ["Population", null],
           ["Area", null],
         ],
@@ -882,6 +903,7 @@ export default function PlaceAtlas() {
           ["People", pop > 0 ? whole(pop) : null, pop > 0 ? "GeoNames, undated" : undefined],
           ["County or district", ref.district || null],
           ["Division", ref.region || null],
+          ["Country", COUNTRY_BY_CODE.get(ref.cc)?.name ?? ref.cc],
           ["Coordinates", `${Math.abs(lat).toFixed(2)}°${lat >= 0 ? "N" : "S"}, ${Math.abs(lon).toFixed(2)}°${lon >= 0 ? "E" : "W"}`, "where GeoNames places it"],
         ],
       };
@@ -896,6 +918,9 @@ export default function PlaceAtlas() {
         ["Land area", c[10] != null ? `${c[10] < 100 ? c[10].toFixed(1) : whole(c[10])} km²` : null, c[10] != null ? String(year) : undefined],
         ["People to a km²", c[11] != null ? whole(c[11]) : null, c[11] != null ? String(year) : undefined],
         [`Projected for ${cityData?.UN_CITY_YEARS[3]}`, c[9] != null ? whole(c[9]) : null, c[9] != null ? "the UN's projection" : undefined],
+        ["Change to then", c[9] != null && c[8] ? `${c[9] >= c[8] ? "+" : ""}${(((c[9] - c[8]) / c[8]) * 100).toFixed(1)}%` : null, c[9] != null ? "worked out here" : undefined],
+        ["Country", COUNTRY_BY_CODE.get(c[0])?.name ?? c[0]],
+        ["Its country's capital", c[5] ? "Yes" : "No"],
       ],
     };
   };
@@ -1271,7 +1296,7 @@ export default function PlaceAtlas() {
         </div>
 
         {/* The place last pointed at on the map, set out: on the map's right where the list stood, as asked, and under the map on a narrow screen. */}
-        <div className="rounded-xl p-4 self-start" style={{ background: t.tile, border: `1px solid ${t.gridLine}` }} aria-live="polite">
+        <div className="rounded-xl p-4 flex flex-col min-w-0" style={{ background: t.tile, border: `1px solid ${t.gridLine}` }} aria-live="polite">
           {item && about ? (
             <>
               <div className="flex flex-wrap items-center gap-3">
@@ -1281,10 +1306,10 @@ export default function PlaceAtlas() {
                   </span>
                 )}
                 <div className="min-w-0 flex-1">
-                  <p className="text-[10px] font-mono uppercase tracking-widest truncate" style={{ color: t.mutedText }}>
+                  <p className="text-[10px] font-mono uppercase tracking-widest leading-snug break-words" style={{ color: t.mutedText }}>
                     {about.kicker}
                   </p>
-                  <p className="text-base font-bold font-sans leading-tight truncate" style={{ color: t.headText }}>
+                  <p className="text-base font-bold font-sans leading-tight break-words" style={{ color: t.headText }}>
                     {item.name}
                   </p>
                 </div>
@@ -1292,7 +1317,7 @@ export default function PlaceAtlas() {
                   Open
                 </Go>
               </div>
-              <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-2 gap-x-4 gap-y-2 mt-3">
+              <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-2 gap-x-4 gap-y-2.5 mt-3 content-start lg:flex-1 lg:content-around">
                 {about.facts
                   .filter(([, value], i) => value !== null || i < 4)
                   .map(([label, value, sub]) => (
@@ -1300,11 +1325,11 @@ export default function PlaceAtlas() {
                       <p className="text-[10px] font-sans" style={{ color: t.mutedText }}>
                         {label}
                       </p>
-                      <p className={`text-[13px] font-mono truncate ${value === null ? "" : "font-bold"}`} style={{ color: value === null ? t.mutedText : t.headText }} title={value ?? undefined}>
+                      <p className={`text-[13px] font-mono leading-snug break-words ${value === null ? "" : "font-bold"}`} style={{ color: value === null ? t.mutedText : t.headText }}>
                         {value ?? "Not held"}
                       </p>
                       {value !== null && sub && (
-                        <p className="text-[9px] font-sans leading-snug truncate" style={{ color: t.mutedText }} title={sub}>
+                        <p className="text-[9px] font-sans leading-snug break-words" style={{ color: t.mutedText }}>
                           {sub}
                         </p>
                       )}
