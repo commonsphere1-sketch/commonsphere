@@ -46,6 +46,14 @@ export const DATA_LOG: DataLogEntry[] = [
     "files": 3
   },
   {
+    "what": "Satellites and probes working in space, by owner, class and use; government research budgets by objective; MRI, CT and PET scanners per million people",
+    "from": "GCAT; OECD GBARD; OECD Health Statistics",
+    "page": "/dashboard/trends",
+    "where": "Developments",
+    "read": "2026-10-15",
+    "files": 1
+  },
+  {
     "what": "The frontiers of invention: AI training compute, clean energy costs and capacity, electric cars, robots, supercomputers, nuclear arsenals, the Nobel Prizes in the sciences",
     "from": "Epoch AI, IRENA, Ember, IEA, IFR, TOP500, FAS via Our World in Data; the Nobel Prize",
     "page": "/dashboard/trends",
@@ -528,4 +536,4 @@ export const DATA_LOG: DataLogEntry[] = [
 ];
 
 /** How many data files the log covers. */
-export const DATA_LOG_FILES = 83;
+export const DATA_LOG_FILES = 84;

@@ -31,7 +31,8 @@ import { SectionNav, type NavSection } from "../components/SectionNav";
 import { StyledSelect } from "../components/StyledSelect";
 import { StatExplorer, type StatGroup } from "../components/StatExplorer";
 import { EnergyOutlook } from "../components/EnergyOutlook";
-import { INDUSTRY_FIGURES, INDUSTRY_GROUPS, PROJECTION_FIGURES, TREND_GROUPS } from "../data/trendGroups";
+import { FRONTIER_FIGURES, INDUSTRY_FIGURES, INDUSTRY_GROUPS, PROJECTION_FIGURES, TREND_GROUPS } from "../data/trendGroups";
+import { FRONTIER_GROUPS } from "../components/FrontierCards";
 import { CategoryCharts, TREND_CHARTS } from "../components/CategoryCharts";
 import { StatCard, splitChange, type StatCardData, type StatFact, type StatTable } from "../components/StatCard";
 import { usdFromBillions } from "../lib/money";
@@ -1447,7 +1448,11 @@ const FIELDS: Field[] = [
       pick: named(/\b(space|spacecraft|rockets?|launch(es|ed)?|satellites?|orbit(al)?|astronauts?|cosmonauts?|NASA|ESA|SpaceX|Starship|Falcon|Blue Origin|Rocket Lab|Roscosmos|CNSA|ISRO|JAXA|Moon|lunar|Mars|Artemis|telescope)\b/i),
       note: "The last week's headlines whose words name space - rockets, launches, satellites, the space agencies and companies, the Moon and Mars.",
     },
-    parts: [{ id: "space-race", label: "The space race" }],
+    parts: [
+      { id: "space-race", label: "The space race" },
+      { id: "satellites", label: "Satellites" },
+      { id: "telescopes", label: "Telescopes" },
+    ],
   },
   {
     id: "technological",
@@ -1490,6 +1495,9 @@ const FIELDS: Field[] = [
     },
     parts: [
       { id: "nobel", label: "Nobel Prizes" },
+      { id: "budgets", label: "Research budgets" },
+      { id: "physics", label: "Physics" },
+      { id: "materials", label: "Materials science" },
       { id: "science-output", label: "Science and invention" },
       { id: "trend-research", label: "Research & development" },
     ],
@@ -1502,7 +1510,12 @@ const FIELDS: Field[] = [
       pick: named(/\b(medicines?|drugs?|vaccines?|clinical trials?|FDA|EMA|approv(al|ed)|therap(y|ies)|treatments?|cancer|gene(tic|s)?|genom(e|ics)|CRISPR|biotech|antibiotics?|stem cells?|disease|virus(es)?|pandemic)\b/i),
       note: "The last week's headlines whose words name medicine or biology - drugs, vaccines, trials, genes, diseases.",
     },
-    parts: [{ id: "medicine", label: "New medicines and genomes" }],
+    parts: [
+      { id: "medicine", label: "New medicines and genomes" },
+      { id: "scanners", label: "Scanners" },
+      { id: "brain-mapping", label: "Brain mapping" },
+      { id: "engineered-life", label: "Engineered life" },
+    ],
   },
   {
     id: "defence",
@@ -1512,7 +1525,10 @@ const FIELDS: Field[] = [
       pick: named(/\b(military|missiles?|drones?|hypersonic|warships?|submarines?|fighter jets?|nuclear weapons?|warheads?|defen[cs]e (ministry|budget|contract|technology)|air defen[cs]e|armed forces)\b/i),
       note: "The last week's headlines whose words name military technology - missiles, drones, warships, aircraft, nuclear weapons.",
     },
-    parts: [{ id: "military", label: "Nuclear arsenals" }],
+    parts: [
+      { id: "military-ai", label: "Drones, weapons and AI" },
+      { id: "military", label: "Nuclear arsenals" },
+    ],
   },
   {
     id: "projects",
@@ -1732,20 +1748,23 @@ function projectionCards(): StatCardData[] {
 }
 const PROJECTION_CARDS = projectionCards();
 if (import.meta.env.DEV && PROJECTION_CARDS.length !== PROJECTION_FIGURES) console.warn(`trendGroups.ts says ${PROJECTION_FIGURES} projections; the Trends page builds ${PROJECTION_CARDS.length}.`);
+const FRONTIER_COUNT = FRONTIER_GROUPS.reduce((n, g) => n + g.items.length, 0);
+if (import.meta.env.DEV && FRONTIER_COUNT !== FRONTIER_FIGURES) console.warn(`trendGroups.ts says ${FRONTIER_FIGURES} frontier figures; FrontierCards.ts builds ${FRONTIER_COUNT}.`);
 
 /**
- * The explorer of the page's own figures: the projections, then each group of
- * trends. The page has it under its headlines; the Dashboard's explorer has it
+ * The explorer of the page's own figures: its fields first - space, AI and
+ * computing, clean energy, research budgets, medicine, military technology -
+ * then each group of trends, then the projections. The page has it under its headlines; the Dashboard's explorer has it
  * as its Trends tab, without the card and heading of its own.
  */
 export function TrendsExplorer({ embedded = false, action }: { embedded?: boolean; action?: { label: string; onClick: () => void } }) {
   return (
     <StatExplorer
-      title="Trends & projections"
+      title="Developments in figures"
       icon={<ChartLineUp size={12} weight="fill" aria-hidden />}
       color="#6366f1"
       noun="figures"
-      groups={[{ title: "Projections", color: "#6366f1", items: PROJECTION_CARDS }, ...TREND_CARDS]}
+      groups={[...FRONTIER_GROUPS, ...TREND_CARDS, { title: "Projections", color: "#6366f1", items: PROJECTION_CARDS }]}
       embedded={embedded}
       action={action}
     />

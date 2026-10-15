@@ -52,4 +52,6 @@ export const INDUSTRY_FIGURES = INDUSTRY_GROUPS.reduce((n, g) => n + g.ids.lengt
 /** The headline projections the Trends page gives as cards, beside the trends. The page checks this against what it builds. */
 export const PROJECTION_FIGURES = 8;
 /** Every figure the Trends explorer lists: the projections and the trends. */
-export const TREND_FIGURES = PROJECTION_FIGURES + TREND_GROUPS.reduce((n, g) => n + g.ids.length, 0);
+/** The Developments page's own figures, as cards (FrontierCards.ts): counted here so that the explorer's tab can say how many without loading them. */
+export const FRONTIER_FIGURES = 19;
+export const TREND_FIGURES = PROJECTION_FIGURES + FRONTIER_FIGURES + TREND_GROUPS.reduce((n, g) => n + g.ids.length, 0);

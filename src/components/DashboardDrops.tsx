@@ -45,6 +45,9 @@ import { WORLD } from "../data/worldview";
 import { AI_DEALS, AI_DEALS_SOURCE, AI_INVESTMENT_PLACES, AI_INVESTMENT_PLACES_SOURCE, DATA_CENTRES, DISK_PRICE, DRIVERLESS_TAXIS, GENOME_COST, LARGE_AI_SYSTEMS, SUPERCOMPUTER, TRANSISTORS } from "../data/technology";
 import { BATTERY_CELL_PRICE, RENEWABLE_GENERATION, RENEWABLE_GENERATION_SOURCE, SOLAR_MODULE_PRICE } from "../data/renewables";
 import { ALLIANCES, ALLIANCES_CHECKED } from "../data/alliances";
+import { AI_COMPUTE_MAX, NOBEL_SCIENCE, FRONTIER_SOURCES } from "../data/frontiers";
+import { ORBITAL_LAUNCHES, LAUNCHES_PARTIAL_YEAR, INNOVATION_SOURCES } from "../data/innovation";
+import { SATELLITES_WORKING, RD_BUDGETS, RD_BUDGET_SERIES, RD_OBJECTIVES, FRONTIER2_SOURCES } from "../data/frontiers2";
 import { useTokens, type Tokens } from "./DataExplorer";
 import { PartsBar } from "./ModalCharts";
 import { SourceLink } from "./SourceLink";
@@ -490,13 +493,21 @@ const DELIVERED: Then[] = [
   { name: "Disk storage", unit: "2020 US dollars a terabyte", series: DISK_PRICE.series as Point[], print: (v) => `$${v >= 1000 ? compact(v) : Number(v.toFixed(2))}`, source: DISK_PRICE.source },
   { name: "Solar modules", unit: "2025 US dollars a watt", series: SOLAR_MODULE_PRICE.series as Point[], print: (v) => `$${Number(v.toFixed(2))}`, source: SOLAR_MODULE_PRICE.source },
   { name: "Lithium-ion battery cells", unit: "2024 US dollars a kilowatt-hour", series: BATTERY_CELL_PRICE.series as Point[], print: (v) => `$${whole(v)}`, source: BATTERY_CELL_PRICE.source },
+  { name: "The largest AI training run", unit: "petaFLOP, the most used to train any notable system that year", series: AI_COMPUTE_MAX.filter(([y]) => y < new Date().getFullYear()).map(([y, , v]) => [y, v] as Point), print: compact, source: FRONTIER_SOURCES.aiCompute },
+  { name: "Orbital launches", unit: "attempts a year, the world's", series: ORBITAL_LAUNCHES.filter(([y]) => y < LAUNCHES_PARTIAL_YEAR).map(([y, n]) => [y, n] as Point), print: whole, source: INNOVATION_SOURCES.gcat },
+  { name: "Satellites and probes working", unit: "at the end of each year, counted here from GCAT's dates", series: SATELLITES_WORKING as Point[], print: whole, source: FRONTIER2_SOURCES.satellites },
 ];
 const PUT_IN: Then[] = [
   ...worldThen("research", "Research and development", (v) => `${v.toFixed(2)}%`),
   ...worldThen("researchers", "Researchers", whole),
   ...worldThen("sciArticles", "Scientific articles", compact),
   ...worldThen("patents", "Patent applications", compact),
+  ...(RD_BUDGETS[0] && RD_BUDGET_SERIES[RD_BUDGETS[0].code]?.length > 1
+    ? [{ name: `${RD_BUDGETS[0].name}'s government research budget`, unit: "millions of US dollars at PPP, current prices", series: RD_BUDGET_SERIES[RD_BUDGETS[0].code] as Point[], print: (v: number) => `$${compact(v * 1e6)}`, source: FRONTIER2_SOURCES.gbard }]
+    : []),
 ];
+/** The objectives the card follows in the countries that budget most for research. */
+const AIMS = ["NABS14", "NABS07", "NABS03", "NABS05"];
 
 /** A series at its two ends: where it is, where it started, and the multiple between the two. */
 function ThenRow({ t, r, color }: { t: Tokens; r: Then; color: string }) {
@@ -547,9 +558,57 @@ function Research({ t, accent }: { t: Tokens; accent: string }) {
           <ThenRow key={r.name} t={t} r={r} color={accent} />
         ))}
       </ul>
+      <p className="text-[9px] font-mono uppercase tracking-widest mt-4 mb-1" style={{ color: t.mutedText }}>
+        What governments budget for research, and on what
+      </p>
+      <ul className="grid grid-cols-1 lg:grid-cols-2 gap-x-10">
+        {RD_BUDGETS.slice(0, 6).map((b) => (
+          <li key={b.code} className="py-2" style={{ borderBottom: `1px solid ${t.gridLine}` }}>
+            <div className="flex items-baseline justify-between gap-3">
+              <span className="text-[11px] font-sans font-semibold min-w-0" style={{ color: t.headText }}>
+                {b.name}
+              </span>
+              <span className="text-[11px] font-mono font-bold shrink-0" style={{ color: t.headText }}>
+                {usd(b.total * 1e6)}
+                <span className="font-normal" style={{ color: t.mutedText }}> · {b.year}</span>
+              </span>
+            </div>
+            <p className="text-[10px] font-mono leading-snug mt-0.5" style={{ color: t.mutedText }}>
+              {AIMS.flatMap((k) => {
+                const v = b.parts.find(([o]) => o === k)?.[1];
+                return v ? [`${RD_OBJECTIVES[k]} ${usd(v * 1e6)}`] : [];
+              }).join(" · ") || "No breakdown by objective"}
+            </p>
+          </li>
+        ))}
+      </ul>
+      <p className="text-[10px] font-mono leading-snug mt-1" style={{ color: t.mutedText }}>
+        US dollars at purchasing power parity, each country's latest year · <Credit source={FRONTIER2_SOURCES.gbard} />
+      </p>
+      <p className="text-[9px] font-mono uppercase tracking-widest mt-4 mb-1" style={{ color: t.mutedText }}>
+        The latest breakthroughs the Nobel committees named · {NOBEL_SCIENCE[0]?.[0]}
+      </p>
+      <ul className="flex flex-col">
+        {NOBEL_SCIENCE.filter(([y]) => y === NOBEL_SCIENCE[0]?.[0]).map(([, field, who, why]) => (
+          <li key={field} className="py-2" style={{ borderBottom: `1px solid ${t.gridLine}` }}>
+            <span className="text-[9px] font-mono uppercase tracking-widest" style={{ color: accent }}>
+              {field}
+            </span>
+            <p className="text-[11px] font-sans font-semibold leading-snug" style={{ color: t.headText }}>
+              {who.join(", ")}
+            </p>
+            <p className="text-[11px] font-sans leading-snug" style={{ color: t.bodyText }}>
+              {why.map((w) => w.charAt(0).toUpperCase() + w.slice(1)).join("; ")}
+            </p>
+          </li>
+        ))}
+      </ul>
+      <p className="text-[10px] font-mono leading-snug mt-1" style={{ color: t.mutedText }}>
+        The committees' own words for why · <Credit source={FRONTIER_SOURCES.nobel} />
+      </p>
       <Note t={t}>
-        Each is a published series at its first year and its latest, with the multiple between the two worked out here. They are measurements, not announcements: the
-        site keeps no list of breakthroughs, and the dated one that stood here included events that had not happened. Each publisher's name links to the page its
+        Each is a published series at its first year and its latest, with the multiple between the two worked out here. They are measurements, not announcements: beyond
+        the Nobel Prizes, whose committees name what they honour, the site keeps no list of breakthroughs, and the dated one that stood here included events that had not happened. Each publisher's name links to the page its
         figures were read from. "Why it matters" and "In practice" are the site's own explanation of what each series measures, not the publisher's words.
       </Note>
     </>
@@ -610,7 +669,7 @@ export function DashboardDrops({ only }: { /** Some of the cards and not the res
           icon={<Atom size={14} weight="fill" style={{ color: "#06b6d4" }} />}
           title="R&D Breakthroughs"
           badge="Then and now"
-          description="What research has delivered, measured: the cost of a genome, transistors on a chip, the fastest computer - and what the world puts into research."
+          description="What research has delivered, measured: the cost of a genome, chips, the fastest computer, AI training, satellites in orbit; the latest Nobel Prizes in the sciences; and what governments budget for research, and on what."
           accent="#06b6d4"
         >
           <Research t={t} accent="#06b6d4" />

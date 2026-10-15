@@ -12,10 +12,12 @@
  * published, with a link to it; a share or a change is worked out here and
  * says so.
  */
-import type { ReactNode } from "react";
+import { useState, type ReactNode } from "react";
 import { Area, AreaChart, Bar, BarChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
 import { ORBITAL_LAUNCHES, LAUNCHES_PARTIAL_YEAR, LAUNCH_AGENCIES, SPACE_OBJECTS, RD_SHARE, RESEARCHERS, ARTICLES, PATENTS, FDA_APPROVALS, INNOVATION_SOURCES } from "../data/innovation";
 import { GENOME_COST } from "../data/technology";
+import { BATTERY_CELL_PRICE } from "../data/renewables";
+import { SATELLITES, SATELLITES_WORKING, RD_BUDGETS, RD_BUDGET_SERIES, RD_OBJECTIVES, SCANNERS, SCANNER_KINDS, FRONTIER2_SOURCES } from "../data/frontiers2";
 import { AI_COMPUTE_MAX, AI_LATEST, AI_COUNTRIES, SOLAR_PRICE, SOLAR_GW, WIND_GW, RENEWABLE_SHARE, LCOE, EV_SHARE, ROBOTS, FASTEST_SUPERCOMPUTER, NUCLEAR_WARHEADS, NOBEL_SCIENCE, FRONTIER_SOURCES } from "../data/frontiers";
 import { useTokens, type Tokens } from "./DataExplorer";
 import { INK, Panel, Note, Foot, Tiles } from "./CountryFigures";
@@ -209,7 +211,7 @@ function Medicine({ t }: { t: Tokens }) {
 }
 
 /* ── Fusion and the great projects ── */
-type Project = { name: string; by: string; what: string; facts: [label: string, value: string][]; source: { label: string; url: string } };
+type Project = { name: string; by: string; what: string; facts: [label: string, value: string][]; source: { label: string; url: string }; more?: { label: string; url: string }[] };
 const FUSION: Project[] = [
   {
     name: "ITER",
@@ -306,7 +308,7 @@ function ProjectCard({ t, p, color }: { t: Tokens; p: Project; color: string }) 
           </li>
         ))}
       </ul>
-      <Foot sources={[p.source]} />
+      <Foot sources={[p.source, ...(p.more ?? [])]} />
     </Panel>
   );
 }
@@ -377,14 +379,16 @@ const TECH_NAMES: Record<string, string> = {
 };
 
 function AI({ t }: { t: Tokens }) {
-  const last = AI_COMPUTE_MAX[AI_COMPUTE_MAX.length - 1];
-  const first = AI_COMPUTE_MAX[0];
+  // The year under way is left out: its largest run so far is not the year's.
+  const full = AI_COMPUTE_MAX.filter(([y]) => y < new Date().getFullYear());
+  const last = full[full.length - 1];
+  const first = full[0];
   return (
     <section id="ai-frontier" className="scroll-mt-36 flex flex-col gap-3">
       <Head t={t} title="Artificial intelligence" kicker="how much computing the largest systems are trained with, and who builds them" />
       <Row>
         <Panel t={t} title="The largest training run each year" meta={`petaFLOP · ${first[0]}–${last[0]}`} className="md:!basis-full xl:!basis-[calc(66.666%-0.25rem)]">
-          <LogSeries t={t} id="fr-ai" rows={AI_COMPUTE_MAX.map(([y, , v]) => [y, v])} fmt={sci} color={INK[3]} />
+          <LogSeries t={t} id="fr-ai" rows={full.map(([y, , v]) => [y, v])} fmt={sci} color={INK[3]} />
           <Note t={t}>
             The most computation used to train any notable AI system in each year, on a scale of powers of ten: {first[1]} in {first[0]}, {sci(first[2])} petaFLOP; {last[1]} in {last[0]}, {sci(last[2])} - about {sci(last[2] / first[2])} times as
             much, worked out here.
@@ -575,8 +579,477 @@ function Nobel({ t }: { t: Tokens }) {
   );
 }
 
+/* ── More of the frontiers: satellites and telescopes, research budgets, materials, physics, scanners, brain maps, engineered life, and
+   drones, weapons and AI. The figures are the OECD's and GCAT's (frontiers2.ts); each card gives only what its body's own page, or the
+   journal its work appeared in, says, with a link to it. ── */
+const usdM = (v: number) => (v >= 1000 ? `$${(v / 1000).toFixed(1)}B` : `$${whole(v)}M`);
+/** The countries' research budgets for one objective, largest first. */
+const objective = (k: string) =>
+  RD_BUDGETS.flatMap((b) => {
+    const v = b.parts.find(([o]) => o === k)?.[1];
+    return v ? [{ name: b.name, v, year: b.year, share: (100 * v) / b.total }] : [];
+  }).sort((a, b) => b.v - a.v);
+function ObjectivePanel({ t, k, title, color, n = 8, wide = false }: { t: Tokens; k: string; title: string; color: number; n?: number; wide?: boolean }) {
+  const list = objective(k).slice(0, n);
+  if (!list.length) return null;
+  return (
+    <Panel t={t} title={title} meta="government R&D budgets · US$ at PPP" className={wide ? "md:!basis-full xl:!basis-[calc(66.666%-0.25rem)]" : undefined}>
+      <SlimBars labelWidth="6.5rem" rows={list.map((r, i) => ({ key: r.name, label: r.name, v: r.v, color: INK[(i + color) % INK.length], tip: `${r.name}: ${usdM(r.v)} in ${r.year}, ${r.share.toFixed(1)}% of its research budget (worked out here)` }))} fmt={usdM} />
+      <Note t={t}>
+        What each government set aside for research and development with this aim, as it reports it to the OECD, in its latest year ({[...new Set(list.map((r) => r.year))].sort().join(", ")}). Dollars at purchasing power parity,
+        current prices; no total is added up across years that differ.
+      </Note>
+      <Foot sources={[FRONTIER2_SOURCES.gbard]} />
+    </Panel>
+  );
+}
+
+function Satellites({ t }: { t: Tokens }) {
+  const s = SATELLITES;
+  const w = SATELLITES_WORKING;
+  return (
+    <section id="satellites" className="scroll-mt-36 flex flex-col gap-3">
+      <Head t={t} title="Satellites" kicker="what is working in space, whose it is, and what it does" />
+      <Row>
+        <Panel t={t} title="Satellites and probes working" meta={`GCAT · ${w[0][0]}–${s.updated.slice(0, 4)}`} className="md:!basis-full xl:!basis-[calc(66.666%-0.25rem)]">
+          <Tiles
+            t={t}
+            items={[
+              { label: "Working now", text: whole(s.total), y: s.updated.slice(0, 11) },
+              { label: "Of them Starlink's", text: whole(s.starlink), y: `${((s.starlink / s.total) * 100).toFixed(0)}% of all, worked out here` },
+            ]}
+          />
+          <Series t={t} id="ip-sats" rows={w} fmt={big} color={SPACEX} height={150} />
+          <Note t={t}>
+            Payloads whose operations GCAT gives as still under way. The line is those working at the end of each year, counted here from GCAT's launch and end-of-operations dates: {whole(w[w.length - 1][1])} at the end of {w[w.length - 1][0]}.
+          </Note>
+          <Foot sources={[FRONTIER2_SOURCES.satellites]} />
+        </Panel>
+        <Panel t={t} title="Whose they are" meta="payloads working · by owning state">
+          <SlimBars labelWidth="6.5rem" rows={s.byState.slice(0, 10).map(([n, , v], i) => ({ key: n, label: n, v, color: n === "United States" ? SPACEX : INK[(i + 2) % INK.length] }))} fmt={whole} />
+          <Foot sources={[FRONTIER2_SOURCES.satellites]} />
+        </Panel>
+        <Panel t={t} title="What they do" meta="payloads working · by GCAT's category">
+          <SlimBars labelWidth="7.5rem" rows={s.byUse.slice(0, 10).map(([n, v], i) => ({ key: n, label: n, v, color: INK[(i + 4) % INK.length] }))} fmt={whole} />
+          <Foot sources={[FRONTIER2_SOURCES.satellites]} />
+        </Panel>
+        <Panel t={t} title="Commercial, civil, military" meta="payloads working · by GCAT's class of owner">
+          <SlimBars labelWidth="6.5rem" rows={s.byClass.filter(([n]) => n !== "Other").map(([n, v], i) => ({ key: n, label: n, v, color: INK[(i + 1) % INK.length], tip: `${n}: ${whole(v)}, ${((v / s.total) * 100).toFixed(1)}% of all (worked out here)` }))} fmt={whole} />
+          <Note t={t}>Commercial is owned by companies; civil by governments' civil agencies and universities; military by armed forces and defence agencies; amateur by radio amateurs and hobbyists.</Note>
+          <Foot sources={[FRONTIER2_SOURCES.satellites]} />
+        </Panel>
+        <ObjectivePanel t={t} k="NABS03" title="What governments budget for space research" color={5} />
+      </Row>
+    </section>
+  );
+}
+
+const TELESCOPES: Project[] = [
+  {
+    name: "Nancy Grace Roman Space Telescope",
+    by: "NASA",
+    what: "A wide-field infrared survey telescope, built to settle questions of dark energy, planets around other stars and astrophysics.",
+    facts: [
+      ["Launched", "30 August 2026, on a SpaceX Falcon Heavy"],
+      ["From", "Launch Complex 39A, Kennedy Space Center"],
+      ["Where it works", "the second Sun-Earth Lagrange point"],
+    ],
+    source: { label: "NASA — Roman launch", url: "https://science.nasa.gov/mission/roman-space-telescope/roman-launch/" },
+  },
+  {
+    name: "Vera C. Rubin Observatory",
+    by: "the US National Science Foundation and Department of Energy",
+    what: "A telescope on Cerro Pachón in Chile with the largest camera ever built for astronomy, which is to photograph the whole southern sky every few nights for ten years: the Legacy Survey of Space and Time.",
+    facts: [
+      ["Camera", "3,200 megapixels"],
+      ["Main mirror", "8.4 metres"],
+      ["First images shown", "23 June 2025"],
+    ],
+    source: { label: "Rubin Observatory — First Look", url: "https://rubinobservatory.org/news/rubin-first-look" },
+  },
+  {
+    name: "Extremely Large Telescope",
+    by: "the European Southern Observatory",
+    what: "The largest optical and infrared telescope under construction, on Cerro Armazones in Chile's Atacama Desert: its main mirror is made of hundreds of hexagonal segments.",
+    facts: [
+      ["Main mirror", "39 metres, of 798 segments"],
+      ["Altitude", "3,046 metres"],
+      ["Technical first light", "planned for 2029"],
+    ],
+    source: { label: "ESO — The ELT in numbers", url: "https://elt.eso.org/about/facts/" },
+  },
+  {
+    name: "Hubble Space Telescope",
+    by: "NASA and the European Space Agency",
+    what: "The space telescope that has observed in visible, ultraviolet and near-infrared light from low Earth orbit since 1990, serviced in orbit by five Space Shuttle crews.",
+    facts: [["Launched", "24 April 1990, on Space Shuttle Discovery"]],
+    source: { label: "NASA — Hubble Space Telescope", url: "https://science.nasa.gov/mission/hubble/" },
+  },
+];
+function Telescopes({ t }: { t: Tokens }) {
+  const astro = SATELLITES.byUse.find(([n]) => n === "Astronomy")?.[1];
+  return (
+    <section id="telescopes" className="scroll-mt-36 flex flex-col gap-3">
+      <Head t={t} title="Telescopes" kicker="the great eyes on the sky, in orbit and on the ground" />
+      <Row>
+        {TELESCOPES.map((p, i) => (
+          <ProjectCard key={p.name} t={t} p={p} color={INK[(i + 3) % INK.length]} />
+        ))}
+      </Row>
+      {astro !== undefined && (
+        <p className="text-[10px] font-sans px-1" style={{ color: t.mutedText }}>
+          {whole(astro)} astronomy payloads are working in space now, by GCAT's count; the James Webb Space Telescope is among the great projects below.
+        </p>
+      )}
+    </section>
+  );
+}
+
+function Budgets({ t }: { t: Tokens }) {
+  const [code, setCode] = useState(RD_BUDGETS[0]?.code ?? "");
+  const b = RD_BUDGETS.find((x) => x.code === code) ?? RD_BUDGETS[0];
+  if (!b) return null;
+  const series = RD_BUDGET_SERIES[b.code] ?? [];
+  const parts = [...b.parts].sort((x, y) => y[1] - x[1]);
+  return (
+    <section id="budgets" className="scroll-mt-36 flex flex-col gap-3">
+      <Head t={t} title="Research budgets" kicker="what governments set aside for research, and what for" />
+      <Row>
+        <Panel t={t} title="Who budgets most for research" meta="government R&D budgets · US$ at PPP · each its latest year">
+          <SlimBars labelWidth="6.5rem" rows={RD_BUDGETS.slice(0, 12).map((r, i) => ({ key: r.code, label: r.name, v: r.total, color: r.code === b.code ? INK[3] : INK[(i + 5) % INK.length], tip: `${r.name}: ${usdM(r.total)} in ${r.year}` }))} fmt={usdM} />
+          <Note t={t}>
+            What each government set aside in its budget for research and development, all aims together, as it reports it to the OECD. China does not report to this series, so is not here.
+          </Note>
+          <Foot sources={[FRONTIER2_SOURCES.gbard]} />
+        </Panel>
+        <Panel t={t} title={`What ${b.name}'s is for`} meta={`by objective · ${b.year}`} className="md:!basis-full xl:!basis-[calc(66.666%-0.25rem)]">
+          <div className="flex flex-wrap gap-1.5">
+            {RD_BUDGETS.slice(0, 10).map((r) => (
+              <button
+                key={r.code}
+                type="button"
+                onClick={() => setCode(r.code)}
+                aria-pressed={r.code === b.code}
+                className="px-2 py-0.5 rounded-full text-[10px] font-sans font-semibold cursor-pointer transition-opacity hover:opacity-80"
+                style={{ background: r.code === b.code ? INK[3] : t.tile, color: r.code === b.code ? "#fff" : t.bodyText, border: `1px solid ${t.gridLine}` }}
+              >
+                {r.name}
+              </button>
+            ))}
+          </div>
+          <SlimBars labelWidth="11rem" rows={parts.map(([k, v], i) => ({ key: k, label: RD_OBJECTIVES[k] ?? k, v, color: INK[i % INK.length], tip: `${RD_OBJECTIVES[k] ?? k}: ${usdM(v)}, ${((100 * v) / b.total).toFixed(1)}% of ${usdM(b.total)} (worked out here)` }))} fmt={usdM} />
+          {series.length > 1 && <Series t={t} id="ip-gbard" rows={series} fmt={usdM} color={INK[3]} height={110} />}
+          <Note t={t}>
+            {usdM(b.total)} in all in {b.year}, by the socio-economic objective it names; the parts need not add up to the whole, as some is not given an aim.{series.length > 1 ? ` The line is the total, ${series[0][0]}–${series[series.length - 1][0]}.` : ""}
+          </Note>
+          <Foot sources={[FRONTIER2_SOURCES.gbard]} />
+        </Panel>
+        <ObjectivePanel t={t} k="NABS07" title="Health research" color={6} n={6} />
+        <ObjectivePanel t={t} k="NABS05" title="Energy research" color={2} n={6} />
+        <ObjectivePanel t={t} k="NABS06" title="Industry and technology research" color={0} n={6} />
+      </Row>
+    </section>
+  );
+}
+
+/** The prizes for new materials: the Nobel record's own words; those before 2016 are written here from the Nobel Prize's pages. */
+const MATERIAL_PRIZES: [year: number, field: string, who: string, why: string, url?: string][] = [
+  ...NOBEL_SCIENCE.filter(([y, f]) => f === "Chemistry" && [2025, 2023, 2019, 2016].includes(y)).map(([y, f, who, why]) => [y, f, who.join(", "), why.join("; ")] as [number, string, string, string]),
+  [2014, "Physics", "Isamu Akasaki, Hiroshi Amano, Shuji Nakamura", "for the invention of efficient blue light-emitting diodes which has enabled bright and energy-saving white light sources", "https://www.nobelprize.org/prizes/physics/2014/summary/"],
+  [2010, "Physics", "Andre Geim, Konstantin Novoselov", "for groundbreaking experiments regarding the two-dimensional material graphene", "https://www.nobelprize.org/prizes/physics/2010/summary/"],
+];
+function Materials({ t }: { t: Tokens }) {
+  const bat = BATTERY_CELL_PRICE.series;
+  return (
+    <section id="materials" className="scroll-mt-36 flex flex-col gap-3">
+      <Head t={t} title="Materials science" kicker="the new materials the Nobel committees named, and what one of them now costs" />
+      <Row>
+        <Panel t={t} title="Materials that won a Nobel Prize" meta="chemistry and physics" className="md:!basis-full xl:!basis-[calc(66.666%-0.25rem)]">
+          <ul className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-2.5">
+            {MATERIAL_PRIZES.map(([y, f, who, why]) => (
+              <li key={`${y}-${f}`} className="flex flex-col gap-0.5 pl-2 border-l-2" style={{ borderColor: f === "Physics" ? INK[0] : INK[1] }}>
+                <span className="text-[9px] font-mono uppercase tracking-widest" style={{ color: f === "Physics" ? INK[0] : INK[1] }}>
+                  {y} · {f}
+                </span>
+                <span className="text-[11px] font-sans font-semibold leading-snug" style={{ color: t.headText }}>
+                  {who}
+                </span>
+                <span className="text-[11px] font-sans leading-snug" style={{ color: t.bodyText }}>
+                  {why.charAt(0).toUpperCase() + why.slice(1)}
+                </span>
+              </li>
+            ))}
+          </ul>
+          <Note t={t}>Metal-organic frameworks, quantum dots, lithium-ion batteries, molecular machines, blue LEDs and graphene: each prize's laureates and the committee's own words for why.</Note>
+          <Foot sources={[FRONTIER_SOURCES.nobel, ...MATERIAL_PRIZES.flatMap(([y, f, , , url]) => (url ? [{ label: `The Nobel Prize — ${f} ${y}`, url }] : []))]} />
+        </Panel>
+        <Panel t={t} title="What a lithium-ion battery cell costs" meta={`US$ a kilowatt-hour · ${bat[0][0]}–${bat[bat.length - 1][0]}`}>
+          <LogSeries t={t} id="ip-battery" rows={bat} fmt={(v) => `$${whole(v)}`} color={INK[1]} />
+          <Note t={t}>
+            ${whole(bat[0][1])} a kilowatt-hour in {bat[0][0]}, ${whole(bat[bat.length - 1][1])} in {bat[bat.length - 1][0]}: {(100 - (bat[bat.length - 1][1] / bat[0][1]) * 100).toFixed(1)}% less, worked out here. In 2024 dollars, on a scale of powers of ten.
+          </Note>
+          <Foot sources={[BATTERY_CELL_PRICE.source]} />
+        </Panel>
+      </Row>
+    </section>
+  );
+}
+
+const DISCOVERIES: Project[] = [
+  {
+    name: "Gravitational waves",
+    by: "LIGO, Caltech and MIT",
+    what: "Ripples in spacetime, foretold by Einstein's general relativity, detected for the first time by LIGO's two detectors in the United States, from two black holes merging.",
+    facts: [
+      ["Detected", "14 September 2015"],
+      ["Announced", "11 February 2016"],
+    ],
+    source: { label: "LIGO Caltech — Gravitational waves detected 100 years after Einstein's prediction", url: "https://www.ligo.caltech.edu/news/ligo20160211" },
+  },
+  {
+    name: "Willow",
+    by: "Google Quantum AI",
+    what: "A quantum computing chip with which Google reported errors falling, rather than rising, as more qubits were joined together: a step its makers count towards a quantum computer large enough to be useful.",
+    facts: [
+      ["Qubits", "105"],
+      ["Announced", "9 December 2024"],
+    ],
+    source: { label: "Google — Meet Willow, our state-of-the-art quantum chip", url: "https://blog.google/technology/research/google-willow-quantum-chip/" },
+  },
+];
+function Physics({ t }: { t: Tokens }) {
+  const prizes = NOBEL_SCIENCE.filter(([, f]) => f === "Physics").slice(0, 6);
+  return (
+    <section id="physics" className="scroll-mt-36 flex flex-col gap-3">
+      <Head t={t} title="Physics" kicker="the discoveries the Nobel committee named, and the experiments at the edge" />
+      <Row>
+        <Panel t={t} title="The Nobel Prize in Physics" meta={`${prizes[prizes.length - 1]?.[0]}–${prizes[0]?.[0]}`} className="md:!basis-full xl:!basis-[calc(66.666%-0.25rem)]">
+          <ul className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-2.5">
+            {prizes.map(([y, , who, why]) => (
+              <li key={y} className="flex flex-col gap-0.5 pl-2 border-l-2" style={{ borderColor: INK[0] }}>
+                <span className="text-[9px] font-mono uppercase tracking-widest" style={{ color: INK[0] }}>
+                  {y}
+                </span>
+                <span className="text-[11px] font-sans font-semibold leading-snug" style={{ color: t.headText }}>
+                  {who.join(", ")}
+                </span>
+                <span className="text-[11px] font-sans leading-snug" style={{ color: t.bodyText }}>
+                  {why.map((w) => w.charAt(0).toUpperCase() + w.slice(1)).join("; ")}
+                </span>
+              </li>
+            ))}
+          </ul>
+          <Foot sources={[FRONTIER_SOURCES.nobel]} />
+        </Panel>
+        {DISCOVERIES.map((p, i) => (
+          <ProjectCard key={p.name} t={t} p={p} color={INK[(i + 1) % INK.length]} />
+        ))}
+      </Row>
+      <p className="text-[10px] font-sans px-1" style={{ color: t.mutedText }}>The Large Hadron Collider, where the Higgs boson was found, is among the great projects; the fastest computers are under Technology.</p>
+    </section>
+  );
+}
+
+const SCAN_COLORS: Record<string, number> = { MRI: 3, CT_SCAN: 5, PET_SCAN: 6 };
+function Scanners({ t }: { t: Tokens }) {
+  return (
+    <section id="scanners" className="scroll-mt-36 flex flex-col gap-3">
+      <Head t={t} title="Scanners" kicker="the machines that see inside the body, and who has the most" />
+      <Row>
+        {(["MRI", "CT_SCAN", "PET_SCAN"] as const).map((k) => {
+          const list = SCANNERS[k] ?? [];
+          if (!list.length) return null;
+          return (
+            <Panel key={k} t={t} title={`${SCANNER_KINDS[k]} per million people`} meta={`OECD · each its latest year`}>
+              <SlimBars labelWidth="6.5rem" rows={list.slice(0, 10).map(([n, , v, y], i) => ({ key: n, label: n, v, color: INK[(i + SCAN_COLORS[k]) % INK.length], tip: `${n}: ${v} per million · ${y}` }))} fmt={(v) => v.toFixed(1)} />
+              <Note t={t}>
+                {k === "MRI"
+                  ? "Magnetic resonance imaging: whole-body scanners that picture soft tissue with magnets and radio waves."
+                  : k === "CT_SCAN"
+                    ? "Computed tomography: whole-body scanners that build a picture from X-rays taken from many angles."
+                    : "Positron emission tomography: scanners that show how tissues work, from a tracer injected into the blood."}{" "}
+                In hospitals and clinics together; {list.length} countries report one from the last six years.
+              </Note>
+              <Foot sources={[FRONTIER2_SOURCES.scanners]} />
+            </Panel>
+          );
+        })}
+        <ObjectivePanel t={t} k="NABS07" title="What governments budget for health research" color={6} wide />
+      </Row>
+    </section>
+  );
+}
+
+const BRAIN_MAPS: Project[] = [
+  {
+    name: "The fruit fly's whole brain",
+    by: "the FlyWire consortium, with the NIH BRAIN Initiative",
+    what: "The first complete map of every neuron in an adult fruit fly's brain and the connections between them: the largest and most complete wiring diagram of an adult animal's brain yet made, published as nine papers in Nature.",
+    facts: [
+      ["Neurons", "139,000"],
+      ["Synapses", "more than 50 million"],
+      ["Published", "2 October 2024"],
+    ],
+    source: { label: "US National Institutes of Health — Researchers fully map neural connections of the fruit fly brain", url: "https://www.nih.gov/news-events/news-releases/researchers-fully-map-neural-connections-fruit-fly-brain" },
+  },
+  {
+    name: "A cubic millimetre of mouse brain",
+    by: "the MICrONS programme, funded by IARPA and the NIH BRAIN Initiative",
+    what: "The wiring of a piece of a mouse's visual cortex the size of a grain of sand, mapped together with how its neurons fired as the mouse watched video: ten papers in the Nature journals from more than 150 scientists.",
+    facts: [
+      ["Cells", "more than 200,000"],
+      ["Synapses", "more than 524 million"],
+      ["Axons", "four kilometres"],
+      ["Published", "9 April 2025"],
+    ],
+    source: { label: "US National Institutes of Health — Scientists map unprecedented detail of connections and visual perception in the mouse brain", url: "https://www.nih.gov/news-events/news-releases/scientists-map-unprecedented-detail-connections-visual-perception-mouse-brain" },
+  },
+  {
+    name: "The mouse brain's cells",
+    by: "the NIH BRAIN Initiative",
+    what: "The first complete atlas of the cells of the mouse brain: the types of cell and where each is found.",
+    facts: [
+      ["Cells surveyed", "more than 32 million"],
+      ["Completed", "2023"],
+    ],
+    source: { label: "US National Institutes of Health — Scientists map unprecedented detail of connections and visual perception in the mouse brain", url: "https://www.nih.gov/news-events/news-releases/scientists-map-unprecedented-detail-connections-visual-perception-mouse-brain" },
+  },
+];
+function BrainMapping({ t }: { t: Tokens }) {
+  return (
+    <section id="brain-mapping" className="scroll-mt-36 flex flex-col gap-3">
+      <Head t={t} title="Brain mapping" kicker="the wiring of brains, neuron by neuron" />
+      <Row>
+        {BRAIN_MAPS.map((p, i) => (
+          <ProjectCard key={p.name} t={t} p={p} color={INK[(i + 6) % INK.length]} />
+        ))}
+      </Row>
+    </section>
+  );
+}
+
+const ENGINEERED: Project[] = [
+  {
+    name: "The minimal synthetic cell",
+    by: "the J. Craig Venter Institute",
+    what: "A bacterium running on a genome designed and built in the laboratory, cut down from the first synthetic cell its team made in 2010 to the smallest genome of any self-replicating organism.",
+    facts: [
+      ["Genes", "473"],
+      ["Genome", "531,000 base pairs"],
+      ["Published", "Science, 25 March 2016"],
+    ],
+    source: { label: "J. Craig Venter Institute — First minimal synthetic bacterial cell", url: "https://www.jcvi.org/research/first-minimal-synthetic-bacterial-cell" },
+  },
+  {
+    name: "Casgevy",
+    by: "approved by the US Food and Drug Administration",
+    what: "A treatment for sickle cell disease that edits the patient's own blood stem cells: the first therapy the FDA approved that uses CRISPR/Cas9 genome editing.",
+    facts: [["Approved", "8 December 2023"]],
+    source: { label: "US Food and Drug Administration — FDA approves first gene therapies to treat patients with sickle cell disease", url: "https://www.fda.gov/news-events/press-announcements/fda-approves-first-gene-therapies-treat-patients-sickle-cell-disease" },
+  },
+  {
+    name: "A gene edit made for one child",
+    by: "Children's Hospital of Philadelphia and Penn Medicine, supported by the NIH",
+    what: "A base-editing therapy designed and made for a single infant with CPS1 deficiency, a rare and incurable disease of the liver, from diagnosis to treatment in six months: the first time the technology had been used successfully to treat a patient.",
+    facts: [
+      ["Announced", "15 May 2025"],
+      ["Published", "The New England Journal of Medicine"],
+    ],
+    source: { label: "US National Institutes of Health — Infant with rare, incurable disease is first to successfully receive personalized gene therapy treatment", url: "https://www.nih.gov/news-events/news-releases/infant-rare-incurable-disease-first-successfully-receive-personalized-gene-therapy-treatment" },
+  },
+];
+function EngineeredLife({ t }: { t: Tokens }) {
+  const prizes = NOBEL_SCIENCE.filter(([y, f]) => (y === 2020 || y === 2018 || y === 2024) && f === "Chemistry");
+  return (
+    <section id="engineered-life" className="scroll-mt-36 flex flex-col gap-3">
+      <Head t={t} title="Engineered life" kicker="cells built in the laboratory, and genes edited to treat disease" />
+      <Row>
+        {ENGINEERED.map((p, i) => (
+          <ProjectCard key={p.name} t={t} p={p} color={INK[(i + 2) % INK.length]} />
+        ))}
+        {prizes.length > 0 && (
+          <Panel t={t} title="The tools, and their Nobel Prizes" meta="chemistry" className="md:!basis-full xl:!basis-full">
+            <ul className="grid grid-cols-1 md:grid-cols-3 gap-x-6 gap-y-2.5">
+              {prizes.map(([y, , who, why]) => (
+                <li key={y} className="flex flex-col gap-0.5 pl-2 border-l-2" style={{ borderColor: INK[1] }}>
+                  <span className="text-[9px] font-mono uppercase tracking-widest" style={{ color: INK[1] }}>
+                    {y}
+                  </span>
+                  <span className="text-[11px] font-sans font-semibold leading-snug" style={{ color: t.headText }}>
+                    {who.join(", ")}
+                  </span>
+                  <span className="text-[11px] font-sans leading-snug" style={{ color: t.bodyText }}>
+                    {why.map((w) => w.charAt(0).toUpperCase() + w.slice(1)).join("; ")}
+                  </span>
+                </li>
+              ))}
+            </ul>
+            <Foot sources={[FRONTIER_SOURCES.nobel]} />
+          </Panel>
+        )}
+      </Row>
+    </section>
+  );
+}
+
+const AUTONOMY: Project[] = [
+  {
+    name: "Autonomous weapons at the United Nations",
+    by: "the UN General Assembly",
+    what: "The General Assembly's first resolutions on lethal autonomous weapons systems - weapons that, once switched on, choose and strike targets without a person deciding each time. The second set up talks in New York; neither began a treaty.",
+    facts: [
+      ["Resolution 78/241", "22 December 2023 · 152 for, 4 against, 11 abstaining"],
+      ["Resolution 79/62", "2 December 2024 · 166 for, 3 against, 15 abstaining"],
+    ],
+    source: { label: "UN Digital Library — Lethal autonomous weapons systems: resolution adopted by the General Assembly (A/RES/78/241)", url: "https://digitallibrary.un.org/record/4033027" },
+    more: [{ label: "UN Digital Library — Lethal autonomous weapons systems: resolution adopted by the General Assembly (A/RES/79/62)", url: "https://digitallibrary.un.org/record/4071100" }],
+  },
+  {
+    name: "Autonomy in weapon systems: the US rules",
+    by: "the US Department of Defense",
+    what: "The Pentagon's directive on weapons that can select and engage targets on their own: they are to let commanders and operators use appropriate human judgment over the use of force, and must pass senior review before they are developed or fielded.",
+    facts: [
+      ["Directive", "3000.09"],
+      ["In force", "from 25 January 2023, replacing the 2012 directive"],
+    ],
+    source: { label: "US Department of Defense — Directive 3000.09, Autonomy in Weapon Systems", url: "https://www.esd.whs.mil/Portals/54/Documents/DD/issuances/dodd/300009p.PDF" },
+  },
+];
+function MilitaryAI({ t }: { t: Tokens }) {
+  const mil = SATELLITES.byClass.find(([n]) => n === "Military")?.[1];
+  return (
+    <section id="military-ai" className="scroll-mt-36 flex flex-col gap-3">
+      <Head t={t} title="Drones, weapons and AI" kicker="what governments spend on military research, what armed forces have in orbit, and the rules for weapons that decide" />
+      <Row>
+        <ObjectivePanel t={t} k="NABS14" title="What governments budget for defence research" color={4} n={10} wide />
+        {mil !== undefined && (
+          <Panel t={t} title="Military satellites working" meta={`GCAT · ${SATELLITES.updated.slice(0, 11)}`}>
+            <Tiles
+              t={t}
+              items={[
+                { label: "Military", text: whole(mil), y: `${((mil / SATELLITES.total) * 100).toFixed(1)}% of all working, worked out here` },
+                { label: "Signals intelligence", text: whole(SATELLITES.militaryUse.find(([n]) => n === "Signals intelligence")?.[1] ?? 0), y: "military" },
+              ]}
+            />
+            <SlimBars labelWidth="7.5rem" rows={SATELLITES.militaryUse.filter(([n]) => n !== "Other").slice(0, 7).map(([n, v], i) => ({ key: n, label: n, v, color: INK[(i + 4) % INK.length] }))} fmt={whole} />
+            <Note t={t}>Payloads owned by armed forces and defence agencies whose operations GCAT gives as still under way, by what they do.</Note>
+            <Foot sources={[FRONTIER2_SOURCES.satellites]} />
+          </Panel>
+        )}
+        {AUTONOMY.map((p, i) => (
+          <ProjectCard key={p.name} t={t} p={p} color={INK[(i + 4) % INK.length]} />
+        ))}
+      </Row>
+      <p className="text-[10px] font-sans px-1" style={{ color: t.mutedText }}>
+        Counts of military drones, of hypersonic missiles and of the arms trade are not shown: the databases that keep them are for non-commercial use, and no government publishes its own. Defence research budgets cover drones, weapons and military AI
+        together; no government breaks them out.
+      </p>
+    </section>
+  );
+}
+
 /** The parts the page's fields can show, by id. */
-export const INNOVATION_PARTS = ["space-race", "science-output", "medicine", "fusion", "projects", "ai", "clean-energy", "robots-computing", "military", "nobel"] as const;
+export const INNOVATION_PARTS = ["space-race", "science-output", "medicine", "fusion", "projects", "ai", "clean-energy", "robots-computing", "military", "nobel", "satellites", "telescopes", "budgets", "materials", "physics", "scanners", "brain-mapping", "engineered-life", "military-ai"] as const;
 export default function InnovationPart({ part }: { part: string }) {
   const t = useTokens();
   const parts: Record<string, ReactNode> = {
@@ -590,6 +1063,15 @@ export default function InnovationPart({ part }: { part: string }) {
     "robots-computing": <RobotsComputing t={t} />,
     military: <Military t={t} />,
     nobel: <Nobel t={t} />,
+    satellites: <Satellites t={t} />,
+    telescopes: <Telescopes t={t} />,
+    budgets: <Budgets t={t} />,
+    materials: <Materials t={t} />,
+    physics: <Physics t={t} />,
+    scanners: <Scanners t={t} />,
+    "brain-mapping": <BrainMapping t={t} />,
+    "engineered-life": <EngineeredLife t={t} />,
+    "military-ai": <MilitaryAI t={t} />,
   };
   return <>{parts[part] ?? null}</>;
 }
