@@ -2445,7 +2445,18 @@ export function DashboardPage() {
         {/* The Quarter Tracker stood here. It is the calendar button at the top right of every page now, as asked, with a full
             calendar beside it (CalendarPopup). */}
 
-        {/* ── LATEST HEADLINES: every desk the site reads ── */}
+        {/* ── COUNTRIES CAROUSEL ─────────────────────────────────────────── */}
+        <CountryCarousel
+          isLight={isLight}
+          cardBg={cardBg}
+          cardBorder={cardBorder}
+          headText={headText}
+          mutedText={mutedText}
+          gridLine={gridLine}
+          onNav={navigate}
+        />
+
+        {/* ── LATEST HEADLINES: every desk the site reads - under the Countries carousel, as asked ── */}
         <HeadlinesBanner
           label="Latest headlines"
           topics={ALL_TOPICS}
@@ -2459,17 +2470,6 @@ export function DashboardPage() {
               half hour. The tag is the place a story is about, violet for more than one. Each links to the outlet.
             </>
           )}
-        />
-
-        {/* ── COUNTRIES CAROUSEL ─────────────────────────────────────────── */}
-        <CountryCarousel
-          isLight={isLight}
-          cardBg={cardBg}
-          cardBorder={cardBorder}
-          headText={headText}
-          mutedText={mutedText}
-          gridLine={gridLine}
-          onNav={navigate}
         />
 
         {/* ── FIND A PLACE: a map to press. A country opens on its divisions, the United States on its states and a
