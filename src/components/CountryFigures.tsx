@@ -287,11 +287,11 @@ function Range({ t, label, v, lo, hi, text, color }: { t: Tokens; label: string;
 }
 /** Whether a panel holds nothing: its whole content is the line that says so. */
 const holdsNothing = (c: ReactNode) => isValidElement(c) && c.type === Panel && empty((c as ReactElement<{ children: ReactNode }>).props.children);
-export function Section({ t, title, kicker, children }: { t: Tokens; title: string; kicker: string; children: ReactNode }) {
+export function Section({ t, title, kicker, children, id }: { t: Tokens; title: string; kicker: string; children: ReactNode; /** Where the page's bar of sections takes a reader. */ id?: string }) {
   const held = Children.toArray(children).filter((c) => !holdsNothing(c));
   if (!held.length) return null;
   return (
-    <div className="flex flex-col gap-3">
+    <div id={id} className="flex flex-col gap-3 scroll-mt-36">
       <div className="flex items-baseline gap-3 px-1 pt-3">
         <h3 className="text-sm font-bold font-sans" style={{ color: t.headText }}>
           {title}
@@ -390,7 +390,7 @@ export default function CountryFigures({ code, name }: { code: string; name: str
   return (
     <div className="flex flex-col gap-2">
       {/* ── Economics and policy ── */}
-      <Section t={t} title="Economics, tax and policy" kicker="what it makes, what it raises, what it pays">
+      <Section t={t} id="place-economy" title="Economics, tax and policy" kicker="what it makes, what it raises, what it pays">
         <Panel t={t} title="What its tax revenue is made of" meta={tax?.mix ? `% of revenue · ${tax.mix.y}` : undefined}>
           {tax?.mix ? (
             <>
@@ -504,7 +504,7 @@ export default function CountryFigures({ code, name }: { code: string; name: str
       </Section>
 
       {/* ── Industry ── */}
-      <Section t={t} title="Industry and resources" kicker="what it makes, what its factories turn out, what it digs and pumps">
+      <Section t={t} id="place-industry" title="Industry and resources" kicker="what it makes, what its factories turn out, what it digs and pumps">
         <Panel t={t} title="What its economy makes" meta="% of GDP">
           {has("agriculturePct", "industryPct", "servicesPct") ? (
             <>
@@ -597,7 +597,7 @@ export default function CountryFigures({ code, name }: { code: string; name: str
       </Section>
 
       {/* ── People ── */}
-      <Section t={t} title="Demographics" kicker="who lives there">
+      <Section t={t} id="place-people" title="Demographics" kicker="who lives there">
         <Panel t={t} title="Births, deaths and the sexes" meta="a year">
           {has("birthRate", "deathRate", "femalePct") ? (
             <>
@@ -703,7 +703,7 @@ export default function CountryFigures({ code, name }: { code: string; name: str
       </Section>
 
       {/* ── Health and public services ── */}
-      <Section t={t} title="Health and public services" kicker="how long, how well, and what is covered">
+      <Section t={t} id="place-health" title="Health and public services" kicker="how long, how well, and what is covered">
         <Panel t={t} title="Life and death" meta="years, and deaths">
           {has("lifeExpMale", "lifeExpFemale", "maternalMortality") || cm ? (
             <>
@@ -774,7 +774,7 @@ export default function CountryFigures({ code, name }: { code: string; name: str
       </Section>
 
       {/* ── Education ── */}
-      <Section t={t} title="Education" kicker="who can read, how far they go, what is free">
+      <Section t={t} id="place-education" title="Education" kicker="who can read, how far they go, what is free">
         <Panel t={t} title="Reading, by sex" meta="% of adults">
           {has("literacy", "literacyMale", "literacyFemale") ? (
             <>
@@ -835,7 +835,7 @@ export default function CountryFigures({ code, name }: { code: string; name: str
       </Section>
 
       {/* ── Security, crime and justice ── */}
-      <Section t={t} title="Security, crime and justice" kicker="how safe, how lawful, who is held">
+      <Section t={t} id="place-security" title="Security, crime and justice" kicker="how safe, how lawful, who is held">
         <Panel t={t} title="Crime by type" meta="recorded by the police, per 100,000 people" className="md:!basis-full xl:!basis-full">
           {crimeGroups.length ? (
             <>
@@ -1045,7 +1045,7 @@ export default function CountryFigures({ code, name }: { code: string; name: str
       </Section>
 
       {/* ── Infrastructure, energy and land ── */}
-      <Section t={t} title="Infrastructure, energy and land" kicker="what connects it, powers it and covers it">
+      <Section t={t} id="place-infrastructure" title="Infrastructure, energy and land" kicker="what connects it, powers it and covers it">
         <Panel t={t} title="Energy it uses" meta={energy ? `US EIA · ${energy.y}` : undefined}>
           {energy ? (
             <>
@@ -1109,7 +1109,7 @@ export default function CountryFigures({ code, name }: { code: string; name: str
       </Section>
 
       {/* ── Standing and the world ── */}
-      <Section t={t} title="Standing, relations and the world" kicker="how it is ranked, and whom it is allied with">
+      <Section t={t} id="place-standing" title="Standing, relations and the world" kicker="how it is ranked, and whom it is allied with">
         <Panel t={t} title="Official indexes" meta={`${indexRows.length} held`} className="md:!basis-full xl:!basis-full">
           {indexRows.length ? (
             <>

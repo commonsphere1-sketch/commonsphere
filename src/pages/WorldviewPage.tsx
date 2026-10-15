@@ -1608,10 +1608,19 @@ const PILLARS: Pillar[] = [
 
 /** The page's nav: the overview, each pillar - each its own section, one to a row - and the rankings. */
 /** The bar's chips: what the page holds now, top to bottom. The twelve pillars and the rankings had chips here, and went with them. */
+/* The bar follows what the page does, as asked: the map, then each subject of the place picked on it, then the world as a whole and its geopolitics. */
 const SECTIONS: NavSection[] = [
   { id: "world-map", label: "The map" },
-  { id: "country-figures", label: "The place picked" },
-  { id: "overview", label: "Overview" },
+  { id: "country-figures", label: "At a glance" },
+  { id: "place-economy", label: "Economy" },
+  { id: "place-industry", label: "Industry" },
+  { id: "place-people", label: "People" },
+  { id: "place-health", label: "Health" },
+  { id: "place-education", label: "Education" },
+  { id: "place-security", label: "Security" },
+  { id: "place-infrastructure", label: "Infrastructure" },
+  { id: "place-standing", label: "Standing" },
+  { id: "overview", label: "The world" },
   { id: "geopolitics", label: "Geopolitics" },
 ];
 
