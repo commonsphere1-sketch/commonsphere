@@ -54,6 +54,7 @@ import { ENERGY_PRODUCERS } from "../data/energyProducers";
 import { useTokens, type Tokens } from "./DataExplorer";
 import { SourceLink } from "./SourceLink";
 import CountryDashboard, { headlineOf } from "./CountryDashboard";
+import PlaceFigures, { type PressedPlace } from "./PlaceFigures";
 
 type Reading = { v: number; y: string };
 type Measure = {
@@ -168,7 +169,7 @@ const REGIONS_FROM = 1.3;
 const COUNTIES_PICK_FROM = 3;
 type Src = { label: string; url: string };
 /** A county or a city pressed on the map: what the column says of it, every line its publisher's. */
-type Pressed = { kind: "county" | "city"; key: string; name: string; sub: string; rows: [string, string][]; sources: Src[]; note?: string };
+type Pressed = { kind: "county" | "city"; key: string; name: string; sub: string; rows: [string, string][]; sources: Src[]; note?: string; parent?: string; people?: number };
 const US_COUNTY_LINES: Src = { label: "US Census Bureau — cartographic boundary files, via us-atlas", url: "https://www.census.gov/geographies/mapping-files/time-series/geo/cartographic-boundary.html" };
 const GEONAMES: Src = { label: "GeoNames — cities of 100,000 or more (CC BY 4.0)", url: "https://www.geonames.org/" };
 type Geo = { type: string; properties: { n?: string }; geometry: { type: string; coordinates: unknown } };
@@ -533,6 +534,7 @@ export default function WorldviewMap() {
           key: c.id,
           name: r?.[1] ?? c.name,
           sub: `${c.parent ? `${c.parent}, ` : ""}${country}`,
+          parent: c.parent,
           rows: r
             ? [
                 ...(people.length ? [["People", `${people[people.length - 1].toLocaleString("en-US")} · ${years[years.length - 1]}`] as [string, string]] : []),
@@ -554,6 +556,7 @@ export default function WorldviewMap() {
       kind: "county",
       key: c.id,
       name: c.name,
+      parent: c.parent,
       sub: `${info?.kind ? `${info.kind.charAt(0).toUpperCase()}${info.kind.slice(1)}` : "A division"}${c.parent ? ` in ${c.parent}` : ""}, ${country}`,
       rows: info ? [["Boundaries", `${info.by}, ${info.year}`], ["Licence", info.licence]] : [],
       note: "Its outline is all that is held of it: no figures for it are on the site.",
@@ -563,7 +566,7 @@ export default function WorldviewMap() {
   /** A city pressed: GeoNames' count of its people. */
   const pressCity = (c: { name: string; country: string; people: number }) => {
     setRegion(null);
-    setPressed({ kind: "city", key: `${c.name}-${c.country}`, name: c.name, sub: `City, ${c.country}`, rows: [["People", c.people.toLocaleString("en-US")]], note: "GeoNames' count of its people, of the city itself.", sources: [GEONAMES] });
+    setPressed({ kind: "city", key: `${c.name}-${c.country}`, name: c.name, people: c.people, sub: `City, ${c.country}`, rows: [["People", c.people.toLocaleString("en-US")]], note: "GeoNames' count of its people, of the city itself.", sources: [GEONAMES] });
   };  const keep = (k: number, x: number, y: number) => {
     const z = Math.max(1, Math.min(MAX_K, k));
     const hw = W / (2 * z);
@@ -857,6 +860,17 @@ export default function WorldviewMap() {
       </div>
     </section>
     {/* The country picked: its own figures, filled in under the map. */}
+    {/* The state, county or city pressed on the map: its own figures, above its country's, as asked. */}
+    {(() => {
+      const place: PressedPlace | null = pressed
+        ? pressed.kind === "county"
+          ? { kind: "county", cc: picked, id: pressed.key, name: pressed.name, parent: pressed.parent }
+          : { kind: "city", cc: picked, name: pressed.name, people: pressed.people ?? 0 }
+        : region
+          ? { kind: "region", cc: picked, name: region }
+          : null;
+      return place ? <PlaceFigures key={`${place.kind}-${place.name}`} place={place} country={pickedName} /> : null;
+    })()}
     <CountryDashboard code={picked} name={pickedName} />
     </>
   );

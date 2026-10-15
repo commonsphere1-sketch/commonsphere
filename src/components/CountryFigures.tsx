@@ -97,13 +97,13 @@ export const None = ({ t, children }: { t: Tokens; children: ReactNode }) => (
     {children}
   </p>
 );
-const Note = ({ t, children }: { t: Tokens; children: ReactNode }) => (
+export const Note = ({ t, children }: { t: Tokens; children: ReactNode }) => (
   <p className="text-[10px] font-sans leading-snug" style={{ color: t.mutedText }}>
     {children}
   </p>
 );
 /** The sources of a panel, at its foot. */
-const Foot = ({ sources }: { sources: (Src | undefined)[] }) => {
+export const Foot = ({ sources }: { sources: (Src | undefined)[] }) => {
   const list = [...new Map(sources.filter((s): s is Src => !!s).map((s) => [s.url + s.label, s])).values()];
   return list.length ? <SourceLink sources={list} className="mt-auto pt-1" /> : null;
 };
@@ -130,7 +130,7 @@ function Bars({ t, rows, wide = false }: { t: Tokens; rows: { label: string; tex
   );
 }
 /** A ring of shares, with its largest parts listed beside it. */
-function Ring({ t, slices, unit = "%" }: { t: Tokens; slices: { name: string; v: number; color?: string }[]; unit?: string }) {
+export function Ring({ t, slices, unit = "%" }: { t: Tokens; slices: { name: string; v: number; color?: string }[]; unit?: string }) {
   const parts = slices.map((s, i) => ({ ...s, color: s.color ?? INK[i % INK.length] }));
   const tip = { contentStyle: { background: t.tooltipBg, border: t.cardBorder, borderRadius: 8, fontSize: 11 }, itemStyle: { color: t.headText } };
   return (
@@ -174,7 +174,7 @@ function Ring({ t, slices, unit = "%" }: { t: Tokens; slices: { name: string; v:
   );
 }
 /** One whole, in its parts, across: with a key under it. */
-function Stack({ t, parts }: { t: Tokens; parts: { name: string; v: number; color?: string }[] }) {
+export function Stack({ t, parts }: { t: Tokens; parts: { name: string; v: number; color?: string }[] }) {
   const shown = parts.filter((p) => p.v > 0).map((p, i) => ({ ...p, color: p.color ?? INK[i % INK.length] }));
   const total = shown.reduce((n, p) => n + p.v, 0) || 1;
   return (
@@ -243,7 +243,7 @@ function Shares({ t, of }: { t: Tokens; of: PeopleShares }) {
   );
 }
 /** Figures in tiles, two across. */
-function Tiles({ t, items }: { t: Tokens; items: { label: string; text: string; y?: string | number }[] }) {
+export function Tiles({ t, items }: { t: Tokens; items: { label: string; text: string; y?: string | number }[] }) {
   return (
     <div className="grid grid-cols-2 gap-2">
       {items.map((i) => (
@@ -285,7 +285,7 @@ function Range({ t, label, v, lo, hi, text, color }: { t: Tokens; label: string;
 }
 /** Whether a panel holds nothing: its whole content is the line that says so. */
 const holdsNothing = (c: ReactNode) => isValidElement(c) && c.type === Panel && empty((c as ReactElement<{ children: ReactNode }>).props.children);
-function Section({ t, title, kicker, children }: { t: Tokens; title: string; kicker: string; children: ReactNode }) {
+export function Section({ t, title, kicker, children }: { t: Tokens; title: string; kicker: string; children: ReactNode }) {
   const held = Children.toArray(children).filter((c) => !holdsNothing(c));
   if (!held.length) return null;
   return (
