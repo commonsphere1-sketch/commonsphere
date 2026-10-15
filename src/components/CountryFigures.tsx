@@ -836,12 +836,12 @@ export default function CountryFigures({ code, name }: { code: string; name: str
 
       {/* ── Security, crime and justice ── */}
       <Section t={t} title="Security, crime and justice" kicker="how safe, how lawful, who is held">
-        <Panel t={t} title="Crime by type" meta="recorded by the police, per 100,000 people">
+        <Panel t={t} title="Crime by type" meta="recorded by the police, per 100,000 people" className="md:!basis-full xl:!basis-full">
           {crimeGroups.length ? (
             <>
-              <div className="flex flex-col">
+              <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-x-6 gap-y-4">
                 {crimeGroups.map((g, gi) => (
-                  <div key={g.name} className="flex flex-col gap-1.5 min-w-0 py-3 first:pt-0 border-b last:border-b-0" style={{ borderColor: t.gridLine }}>
+                  <div key={g.name} className="flex flex-col gap-1.5 min-w-0">
                     <p className="text-[9px] font-mono uppercase tracking-widest" style={{ color: t.mutedText }}>
                       {g.name}
                     </p>
@@ -889,11 +889,12 @@ export default function CountryFigures({ code, name }: { code: string; name: str
             <None t={t}>No governance scores are held for {name}.</None>
           )}
         </Panel>
-        <Panel t={t} title="Through the courts" meta={justice ? `UNODC · ${justice.y}` : undefined}>
+        <Panel t={t} title="Through the courts" meta={justice ? `UNODC · ${justice.y}` : undefined} className="md:!basis-full xl:!basis-full">
           {justice ? (
             <>
               <Bars
                 t={t}
+                wide
                 rows={(
                   [
                     ["suspected", "Suspected or arrested"],
@@ -958,11 +959,12 @@ export default function CountryFigures({ code, name }: { code: string; name: str
             <None t={t}>No account of its legal system is held for {name}.</None>
           )}
         </Panel>
-        <Panel t={t} title="Surveillance of the public" meta={watch ? `V-Dem · ${watch.y}` : undefined}>
+        <Panel t={t} title="Surveillance of the public" meta={watch ? `V-Dem · ${watch.y}` : undefined} className="md:!basis-full xl:!basis-full">
           {watch ? (
             <>
               <Bars
                 t={t}
+                wide
                 rows={(Object.keys(SURVEILLANCE_SCALES) as SurveillanceMeasure[]).flatMap((k) => {
                   const v = watch[k];
                   if (v === undefined) return [];
@@ -982,7 +984,7 @@ export default function CountryFigures({ code, name }: { code: string; name: str
             <None t={t}>V-Dem gives no estimate of surveillance for {name}.</None>
           )}
         </Panel>
-        <Panel t={t} title="Freedom and rights" meta={fr ? `Freedom House · ${fr[0]}` : rights ? "V-Dem" : undefined}>
+        <Panel t={t} title="Freedom and rights" meta={fr ? `Freedom House · ${fr[0]}` : rights ? "V-Dem" : undefined} className="md:!basis-full xl:!basis-full">
           {fr || rights ? (
             <>
               {fr && (
@@ -992,6 +994,7 @@ export default function CountryFigures({ code, name }: { code: string; name: str
                   </p>
                   <Bars
                     t={t}
+                    wide
                     rows={[
                       { label: "Political rights, of 40", text: String(fr[2]), share: (fr[2] / 40) * 100 },
                       { label: "Civil liberties, of 60", text: String(fr[3]), share: (fr[3] / 60) * 100 },
@@ -1005,7 +1008,7 @@ export default function CountryFigures({ code, name }: { code: string; name: str
                   <p className="text-[9px] font-mono uppercase tracking-widest mt-1" style={{ color: t.mutedText }}>
                     Kinds of rights · V-Dem · {Object.values(rights)[0]?.[0]}
                   </p>
-                  <ul className="flex flex-col gap-2.5">
+                  <ul className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-3">
                     {(Object.keys(RIGHTS_INDICES) as RightsIndex[]).flatMap((k, i) => {
                       const r = rights[k];
                       if (!r) return [];
