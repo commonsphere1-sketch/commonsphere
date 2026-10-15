@@ -26,6 +26,7 @@ import { SourceLink } from "../components/SourceLink";
 import { ALL_TOPICS, HeadlinesBanner, SUBJECT, pickWhere, useHeadlineRead } from "../components/HeadlinesBanner";
 import AgendaCards, { AGENDAS } from "../components/AgendaCards";
 import { DashboardDrops, type DropId } from "../components/DashboardDrops";
+import InnovationPart, { INNOVATION_PARTS } from "../components/InnovationParts";
 import { SectionNav, type NavSection } from "../components/SectionNav";
 import { StyledSelect } from "../components/StyledSelect";
 import { StatExplorer, type StatGroup } from "../components/StatExplorer";
@@ -1439,32 +1440,18 @@ const FIELDS: Field[] = [
     parts: [],
   },
   {
-    id: "social",
-    label: "Social",
+    id: "space",
+    label: "Space",
     news: {
-      label: "Social developments",
-      pick: named(/\b(health|hospitals?|schools?|education|students?|housing|homeless(ness)?|poverty|welfare|pensions?|migrants?|migration|refugees?|inequality|women|children|famil(y|ies)|birth rates?|ageing|aging|population|hunger|wages?|workers?|strikes?|protests?)\b/i),
-      note: "The last week's headlines whose words name health, schooling, housing, work, migration, poverty or population.",
+      label: "Space",
+      pick: named(/\b(space|spacecraft|rockets?|launch(es|ed)?|satellites?|orbit(al)?|astronauts?|cosmonauts?|NASA|ESA|SpaceX|Starship|Falcon|Blue Origin|Rocket Lab|Roscosmos|CNSA|ISRO|JAXA|Moon|lunar|Mars|Artemis|telescope)\b/i),
+      note: "The last week's headlines whose words name space - rockets, launches, satellites, the space agencies and companies, the Moon and Mars.",
     },
-    parts: [
-      { id: "trend-people", label: "People" },
-      { id: "population", label: "Population" },
-      { id: "scenarios", label: "Population scenarios" },
-    ],
-  },
-  {
-    id: "political",
-    label: "Political",
-    news: {
-      label: "Political developments",
-      pick: named(/\b(elections?|votes?|voters?|ballots?|parliament|congress|senate|president|prime minister|ministers?|government|coalition|cabinet|opposition|referendum|constitution|sanctions?|treat(y|ies)|diplomat(s|ic)?|ceasefire|coup)\b/i),
-      note: "The last week's headlines whose words name an election, a government, a parliament, a treaty or sanctions.",
-    },
-    parts: [...(REGIME_CARDS.length ? [{ id: "regimes", label: "Regimes" }] : []), { id: "trend-relations", label: "International relations" }],
+    parts: [{ id: "space-race", label: "The space race" }],
   },
   {
     id: "technological",
-    label: "Technological",
+    label: "Technology",
     news: {
       label: "Technological developments",
       pick: named(/\b(tech|technology|AI|artificial intelligence|digital|cyber|cyberattacks?|chips?|semiconductors?|robots?|robotics|software|satellites?|quantum|data cent(er|re)s?|electric vehicles?|EVs?|batter(y|ies)|drones?|5G|spacecraft|rockets?)\b/i),
@@ -1478,50 +1465,54 @@ const FIELDS: Field[] = [
   // Energy had a chip of its own on the bar, was folded into Technological, and was asked back.
   {
     id: "energy",
-    label: "Energy",
+    label: "Energy & fusion",
     news: {
       label: "Energy developments",
-      pick: named(/\b(energy|oil|crude|gas|LNG|electricity|power (plants?|grid|cuts?|outages?)|blackouts?|nuclear|reactors?|renewables?|solar|wind (farms?|power|turbines?)|hydropower|coal|fuel|OPEC|pipelines?|refiner(y|ies))\b/i),
+      pick: named(/\b(fusion|ITER|tokamak|energy|oil|crude|gas|LNG|electricity|power (plants?|grid|cuts?|outages?)|blackouts?|nuclear|reactors?|renewables?|solar|wind (farms?|power|turbines?)|hydropower|coal|fuel|OPEC|pipelines?|refiner(y|ies))\b/i),
       note: "The last week's headlines whose words name energy - oil, gas, electricity, nuclear, coal, the sun and the wind.",
     },
     parts: [
+      { id: "fusion", label: "Fusion" },
       { id: "trend-energy", label: "Energy" },
       { id: "renewables", label: "Renewables" },
     ],
   },
   {
-    id: "research",
-    label: "Research",
-    news: {
-      label: "Research developments",
-      pick: named(/\b(research(ers)?|scientists?|stud(y|ies)|universit(y|ies)|clinical trials?|experiments?|findings|laborator(y|ies)|peer[- ]reviewed|astronomers?|physicists?|genome|telescope)\b/i),
-      note: "The last week's headlines whose words name a study, a trial, scientists or a laboratory.",
-    },
-    parts: [{ id: "trend-research", label: "Research & development" }],
-  },
-  {
     id: "breakthroughs",
-    label: "Breakthroughs",
+    label: "Science & breakthroughs",
     news: {
       label: "Breakthroughs",
       pick: named(/\b(breakthroughs?|discover(y|ies|ed|s)|first[- ]ever|world[- ]first|for the first time|milestones?|pioneering|cure[sd]?|vaccines?|new (drug|treatment|therapy|species|material))\b/i),
-      note: "The last week's headlines whose own words claim a breakthrough, a discovery, a first or a cure. No body keeps a list of the world's breakthroughs, so none is given: these are what the outlets called one.",
+      note: "The last week's headlines whose own words claim a breakthrough, a discovery, a first or a cure. No body keeps a list of the world's breakthroughs, so none is given: these are what the headlines themselves call one.",
     },
-    parts: [],
+    parts: [
+      { id: "science-output", label: "Science and invention" },
+      { id: "trend-research", label: "Research & development" },
+    ],
   },
   {
-    id: "agendas",
-    label: "Agendas",
+    id: "medicine",
+    label: "Medicine & biology",
     news: {
-      label: "Agendas in the news",
-      pick: named(/\b(agenda|summits?|roadmap|strateg(y|ies)|action plan|five[- ]year plan|pledges?|targets?|manifesto|reforms?|budget|COP\d+|G7|G20|SDGs?|net[- ]zero)\b/i),
-      note: "The last week's headlines whose words name a summit, a plan, a pledge, a reform or a budget.",
+      label: "Medicine and biology",
+      pick: named(/\b(medicines?|drugs?|vaccines?|clinical trials?|FDA|EMA|approv(al|ed)|therap(y|ies)|treatments?|cancer|gene(tic|s)?|genom(e|ics)|CRISPR|biotech|antibiotics?|stem cells?|disease|virus(es)?|pandemic)\b/i),
+      note: "The last week's headlines whose words name medicine or biology - drugs, vaccines, trials, genes, diseases.",
     },
-    parts: [{ id: "agendas-bodies", label: "What the world's bodies are working on" }],
+    parts: [{ id: "medicine", label: "New medicines and genomes" }],
+  },
+  {
+    id: "projects",
+    label: "Great projects",
+    news: {
+      label: "The great projects",
+      pick: named(/\b(ITER|CERN|collider|International Space Station|ISS|James Webb|telescope|Artemis|megaprojects?|observatory|particle physics)\b/i),
+      note: "The last week's headlines whose words name one of the great projects of science and space.",
+    },
+    parts: [{ id: "projects", label: "The great projects" }],
   },
   {
     id: "economic",
-    label: "Economic",
+    label: "Industries",
     news: { label: "Economic developments", pick: named(SUBJECT.economy), note: "The last week's headlines whose words name the economy - growth, prices, trade, markets, debt." },
     parts: [
       { id: "economy", label: "World economy" },
@@ -1531,7 +1522,7 @@ const FIELDS: Field[] = [
   },
 ];
 /** The Dashboard's drop-down cards, placed here as asked, each in the field it belongs to. They stay on the Dashboard too. */
-const FIELD_DROPS: Partial<Record<string, DropId[]>> = { political: ["alliances"], technological: ["funding"], breakthroughs: ["research"], economic: ["industries"] };
+const FIELD_DROPS: Partial<Record<string, DropId[]>> = { technological: ["funding"], breakthroughs: ["research"], economic: ["industries"] };
 /** The bar's chips: a field each. */
 const SECTIONS: NavSection[] = FIELDS.map((f) => ({ id: f.id, label: f.label }));
 
@@ -1825,6 +1816,8 @@ export function TrendsPage() {
     const onTrends = TREND_GROUPS.some((g) => g.id === part);
     return (
       <>
+        {/* ══ The innovation sections: space, science, medicine, fusion, the great projects ══ */}
+        {(INNOVATION_PARTS as readonly string[]).includes(part) && <InnovationPart part={part} />}
         {/* ══ Political: how the world is ruled ══ */}
         {part === "regimes" && (
           <section id="regimes" className="scroll-mt-36 flex flex-col gap-6" aria-labelledby="regimes-title">
@@ -2136,7 +2129,7 @@ export function TrendsPage() {
       <div className="max-w-screen-2xl mx-auto px-6 py-8 flex flex-col gap-6">
         {/* ── Header: the plain one every page has (PageHeader). ── */}
         <PageHeader
-          title="Developments"
+          title="Innovations"
           aside={
             <>
               IMF World Economic Outlook, {WEO.edition} · UN World Population Prospects {WPP.revision} · World Bank · V-Dem
@@ -2145,8 +2138,8 @@ export function TrendsPage() {
             </>
           }
         >
-          What is changing in the world, field by field — social, political, technological, research, breakthroughs and agendas, and the economy: the week's
-          headlines in each, and under them the published figures and projections behind it
+          What the world is inventing and building — the space race and its companies, science and its breakthroughs, technology, medicine and biology,
+          energy and fusion, the great international projects, and the industries behind them: the week's headlines in each, and under them the published figures
         </PageHeader>
 
         <SectionNav label="Fields of development" sections={SECTIONS} />

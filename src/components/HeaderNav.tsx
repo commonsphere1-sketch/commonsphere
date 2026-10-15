@@ -100,7 +100,7 @@ const PAGES: [label: string, to: string, about: string][] = [
   ["World Leaders", "/dashboard/world-leaders", "Heads of state and government"],
   ["Policy", "/dashboard/policy", "Policies, country by country"],
   ["Compare", "/dashboard/rankings", "Places side by side"],
-  ["Developments", "/dashboard/trends", "Social, political, technological, research, breakthroughs, agendas - and the trends behind them"],
+  ["Innovations", "/dashboard/trends", "Space, science and breakthroughs, technology, medicine, fusion, the great projects and industries"],
   ["Worldview", "/dashboard/worldview", "The world's news and views"],
   ["Climate", "/dashboard/planetary-boundaries", "The measured state of the climate"],
   ["Crime Statistics", "/dashboard/crime", "Crime and justice figures"],

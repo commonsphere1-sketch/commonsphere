@@ -79,7 +79,7 @@ const analysisNav = [
     end: false,
   },
   // What is changing, field by field: the week's headlines, and the projections and trends behind them. It was "Trends".
-  { to: "/dashboard/trends", label: "Developments", icon: ChartLine, end: false },
+  { to: "/dashboard/trends", label: "Innovations", icon: ChartLine, end: false },
   {
     to: "/dashboard/planetary-boundaries",
     label: "Climate",

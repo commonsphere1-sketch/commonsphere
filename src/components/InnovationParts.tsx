@@ -1,0 +1,342 @@
+/**
+ * The innovation sections of the Developments page, as asked: the space race
+ * and the companies in it, science and invention, new medicines and the cost
+ * of reading a genome, fusion, and the great national and international
+ * projects.
+ *
+ * Every figure is its publisher's, read from data the site holds
+ * (innovation.ts, technology.ts): GCAT's orbital launches, the UN's count of
+ * objects launched, the World Bank's research and invention series, the FDA's
+ * novel drug approvals, and NHGRI's cost of sequencing a genome. The project
+ * and fusion cards give only what each project's own body or laboratory has
+ * published, with a link to it; a share or a change is worked out here and
+ * says so.
+ */
+import type { ReactNode } from "react";
+import { Area, AreaChart, Bar, BarChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
+import { ORBITAL_LAUNCHES, LAUNCHES_PARTIAL_YEAR, LAUNCH_AGENCIES, SPACE_OBJECTS, RD_SHARE, RESEARCHERS, ARTICLES, PATENTS, FDA_APPROVALS, INNOVATION_SOURCES } from "../data/innovation";
+import { GENOME_COST } from "../data/technology";
+import { useTokens, type Tokens } from "./DataExplorer";
+import { INK, Panel, Note, Foot, Tiles } from "./CountryFigures";
+import SlimBars, { SlimColumns } from "./SlimBars";
+
+const whole = (v: number) => Math.round(v).toLocaleString("en-US");
+const big = (v: number) => (v >= 1e9 ? `${(v / 1e9).toFixed(1)}B` : v >= 1e6 ? `${(v / 1e6).toFixed(2)}M` : v >= 1e4 ? `${Math.round(v / 1e3)}K` : whole(v));
+const SPACEX = "#0ea5e9";
+const OTHERS = "#8b5cf6";
+
+/** A row of panels, three across on a wide screen, as the Worldview page's are. */
+function Row({ children }: { children: ReactNode }) {
+  return <div className="flex flex-wrap gap-3 items-stretch">{children}</div>;
+}
+function Head({ t, title, kicker }: { t: Tokens; title: string; kicker: string }) {
+  return (
+    <div className="flex items-baseline gap-3 px-1">
+      <h3 className="text-sm font-bold font-sans" style={{ color: t.headText }}>
+        {title}
+      </h3>
+      <span className="text-[10px] font-sans" style={{ color: t.mutedText }}>
+        {kicker}
+      </span>
+      <span className="flex-1 h-px" style={{ background: t.gridLine }} aria-hidden />
+    </div>
+  );
+}
+/** A world series year by year: a line over a gradient. */
+function Series({ t, rows, fmt, color, id, height = 170 }: { t: Tokens; rows: [number, number][]; fmt: (v: number) => string; color: string; id: string; height?: number }) {
+  const axis = { tick: { fontSize: 9, fill: t.mutedText, fontFamily: "monospace" }, axisLine: false, tickLine: false } as const;
+  return (
+    <ResponsiveContainer width="100%" height={height}>
+      <AreaChart data={rows.map(([y, v]) => ({ y: String(y), v }))} margin={{ top: 4, right: 6, left: 0, bottom: 0 }}>
+        <defs>
+          <linearGradient id={id} x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stopColor={color} stopOpacity={0.35} />
+            <stop offset="100%" stopColor={color} stopOpacity={0} />
+          </linearGradient>
+        </defs>
+        <CartesianGrid stroke={t.gridLine} vertical={false} />
+        <XAxis dataKey="y" {...axis} interval="preserveStartEnd" minTickGap={24} />
+        <YAxis {...axis} width={48} tickFormatter={(v: number) => fmt(v)} />
+        <Tooltip contentStyle={{ background: t.tooltipBg, border: t.cardBorder, borderRadius: 8, fontSize: 11 }} labelStyle={{ color: t.headText }} itemStyle={{ color: t.headText }} formatter={(v: number) => [fmt(v), ""]} />
+        <Area type="monotone" dataKey="v" stroke={color} strokeWidth={1.5} fill={`url(#${id})`} isAnimationActive={false} />
+      </AreaChart>
+    </ResponsiveContainer>
+  );
+}
+
+/* ── Space ── */
+function Space({ t }: { t: Tokens }) {
+  const recent = ORBITAL_LAUNCHES.filter(([y]) => y >= 2010);
+  const full = ORBITAL_LAUNCHES.filter(([y]) => y < LAUNCHES_PARTIAL_YEAR);
+  const last = full[full.length - 1];
+  const now = ORBITAL_LAUNCHES.find(([y]) => y === LAUNCHES_PARTIAL_YEAR);
+  const axis = { tick: { fontSize: 9, fill: t.mutedText, fontFamily: "monospace" }, axisLine: false, tickLine: false } as const;
+  const objLast = SPACE_OBJECTS.world[SPACE_OBJECTS.world.length - 1];
+  return (
+    <section id="space-race" className="scroll-mt-36 flex flex-col gap-3">
+      <Head t={t} title="The space race" kicker="who is launching, how often, and what they put up" />
+      <Row>
+        <Panel t={t} title="Orbital launches a year" meta={`GCAT · ${recent[0][0]}–${LAUNCHES_PARTIAL_YEAR}`} className="md:!basis-full xl:!basis-[calc(66.666%-0.25rem)]">
+          <ResponsiveContainer width="100%" height={200}>
+            <BarChart data={recent.map(([y, total, , spacex]) => ({ y: String(y), spacex, others: total - spacex }))} margin={{ top: 6, right: 6, left: 0, bottom: 0 }} barCategoryGap="28%">
+              <defs>
+                {[SPACEX, OTHERS].map((c) => (
+                  <linearGradient key={c} id={`ip-${c.slice(1)}`} x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="0%" stopColor={c} stopOpacity={1} />
+                    <stop offset="100%" stopColor={c} stopOpacity={0.5} />
+                  </linearGradient>
+                ))}
+              </defs>
+              <CartesianGrid stroke={t.gridLine} vertical={false} />
+              <XAxis dataKey="y" {...axis} interval="preserveStartEnd" minTickGap={16} />
+              <YAxis {...axis} width={34} />
+              <Tooltip contentStyle={{ background: t.tooltipBg, border: t.cardBorder, borderRadius: 8, fontSize: 11 }} labelStyle={{ color: t.headText }} itemStyle={{ color: t.headText }} cursor={{ fill: t.gridLine }} />
+              <Bar dataKey="others" name="Every other agency" stackId="l" fill={`url(#ip-${OTHERS.slice(1)})`} maxBarSize={18} isAnimationActive={false} />
+              <Bar dataKey="spacex" name="SpaceX" stackId="l" fill={`url(#ip-${SPACEX.slice(1)})`} radius={[5, 5, 0, 0]} maxBarSize={18} isAnimationActive={false} />
+            </BarChart>
+          </ResponsiveContainer>
+          <div className="flex flex-wrap gap-x-4 gap-y-1 text-[10px] font-sans" style={{ color: t.bodyText }}>
+            <span className="inline-flex items-center gap-1.5">
+              <span className="w-2 h-2 rounded-full" style={{ background: SPACEX }} />
+              SpaceX
+            </span>
+            <span className="inline-flex items-center gap-1.5">
+              <span className="w-2 h-2 rounded-full" style={{ background: OTHERS }} />
+              Every other launch agency
+            </span>
+          </div>
+          <Note t={t}>
+            Every orbital launch attempt GCAT lists, successful or not. In {last[0]}, {whole(last[1])} attempts, {whole(last[2])} of them reaching orbit; SpaceX made {whole(last[3])}, {((last[3] / last[1]) * 100).toFixed(0)}% of them -
+            the share worked out here.{now ? ` ${LAUNCHES_PARTIAL_YEAR} so far: ${whole(now[1])}, ${whole(now[3])} of them SpaceX's.` : ""}
+          </Note>
+          <Foot sources={[INNOVATION_SOURCES.gcat]} />
+        </Panel>
+        <Panel t={t} title="The launch companies and agencies" meta={`orbital launch attempts · ${LAUNCH_AGENCIES.year}`}>
+          <SlimBars labelWidth="6.5rem" rows={LAUNCH_AGENCIES.rows.map(([n, s, v], i) => ({ key: n, label: `${n}${s ? ` · ${s}` : ""}`, v, color: n === "SpaceX" ? SPACEX : INK[(i + 2) % INK.length] }))} fmt={whole} />
+          <Note t={t}>Each launch agency as GCAT names it, with the state code it gives: a company or a state's agency alike.</Note>
+          <Foot sources={[INNOVATION_SOURCES.gcat]} />
+        </Panel>
+        <Panel t={t} title="Objects launched into space" meta={`UNOOSA · ${SPACE_OBJECTS.world[0][0]}–${objLast[0]}`}>
+          <Series t={t} id="ip-objects" rows={SPACE_OBJECTS.world.filter(([y]) => y >= 1990)} fmt={big} color={INK[5]} />
+          <Note t={t}>
+            Satellites, probes, crewed craft and the like registered with the UN each year: {whole(objLast[1])} in {objLast[0]}.
+          </Note>
+          <Foot sources={[INNOVATION_SOURCES.unoosa]} />
+        </Panel>
+        <Panel t={t} title="Who launched them" meta={`objects launched · ${SPACE_OBJECTS.year}`}>
+          <SlimBars labelWidth="6.5rem" rows={SPACE_OBJECTS.top.map(([n, v], i) => ({ key: n, label: n, v, color: INK[i % INK.length] }))} fmt={whole} />
+          <Foot sources={[INNOVATION_SOURCES.unoosa]} />
+        </Panel>
+      </Row>
+    </section>
+  );
+}
+
+/* ── Science and invention ── */
+function Science({ t }: { t: Tokens }) {
+  const rdLast = RD_SHARE.world[RD_SHARE.world.length - 1];
+  const artLast = ARTICLES.world[ARTICLES.world.length - 1];
+  const patLast = PATENTS.world[PATENTS.world.length - 1];
+  const resLast = RESEARCHERS[RESEARCHERS.length - 1];
+  return (
+    <section id="science-output" className="scroll-mt-36 flex flex-col gap-3">
+      <Head t={t} title="Science and invention" kicker="what the world spends on research, who does it, and what comes of it" />
+      <Row>
+        <Panel t={t} title="At a glance" meta="the world">
+          <Tiles
+            t={t}
+            items={[
+              { label: "Spent on R&D, of GDP", text: `${rdLast[1].toFixed(2)}%`, y: rdLast[0] },
+              { label: "Researchers per million", text: whole(resLast[1]), y: resLast[0] },
+              { label: "Journal articles", text: big(artLast[1]), y: artLast[0] },
+              { label: "Patent applications", text: big(patLast[1] + (patLast[2] ?? 0)), y: `${patLast[0]} · residents and non-residents, added here` },
+            ]}
+          />
+          <Foot sources={[INNOVATION_SOURCES.rd, INNOVATION_SOURCES.researchers, INNOVATION_SOURCES.articles, INNOVATION_SOURCES.patents]} />
+        </Panel>
+        <Panel t={t} title="Who spends most on research" meta="% of GDP · each its latest year">
+          <SlimBars labelWidth="6.5rem" rows={RD_SHARE.top.map(([n, v, y], i) => ({ key: n, label: n, v, color: INK[i % INK.length], tip: `${n}: ${v}% of GDP · ${y}` }))} fmt={(v) => `${v.toFixed(2)}%`} />
+          <Foot sources={[INNOVATION_SOURCES.rd]} />
+        </Panel>
+        <Panel t={t} title="The world's R&D spending" meta={`% of GDP · ${RD_SHARE.world[0][0]}–${rdLast[0]}`}>
+          <Series t={t} id="ip-rd" rows={RD_SHARE.world} fmt={(v) => `${v.toFixed(1)}%`} color={INK[0]} />
+          <Foot sources={[INNOVATION_SOURCES.rd]} />
+        </Panel>
+        <Panel t={t} title="Scientific papers a year" meta={`the world · ${ARTICLES.world[0][0]}–${artLast[0]}`}>
+          <Series t={t} id="ip-art" rows={ARTICLES.world} fmt={big} color={INK[1]} />
+          <Foot sources={[INNOVATION_SOURCES.articles]} />
+        </Panel>
+        <Panel t={t} title="Who publishes most" meta="journal articles · each its latest year">
+          <SlimBars labelWidth="6.5rem" rows={ARTICLES.top.map(([n, v, y], i) => ({ key: n, label: n, v, color: INK[(i + 3) % INK.length], tip: `${n}: ${whole(v)} · ${y}` }))} fmt={big} />
+          <Foot sources={[INNOVATION_SOURCES.articles]} />
+        </Panel>
+        <Panel t={t} title="Where inventors file patents" meta="by residents · each its latest year">
+          <SlimBars labelWidth="6.5rem" rows={PATENTS.top.map(([n, v, y], i) => ({ key: n, label: n, v, color: INK[(i + 5) % INK.length], tip: `${n}: ${whole(v)} · ${y}` }))} fmt={big} />
+          <Note t={t}>Applications filed by the country's own residents, at home or abroad, as WIPO counts them.</Note>
+          <Foot sources={[INNOVATION_SOURCES.patents]} />
+        </Panel>
+      </Row>
+    </section>
+  );
+}
+
+/* ── Medicine and biology ── */
+function Medicine({ t }: { t: Tokens }) {
+  const g = GENOME_COST.series;
+  const thisYear = new Date().getFullYear();
+  return (
+    <section id="medicine-figures" className="scroll-mt-36 flex flex-col gap-3">
+      <Head t={t} title="Medicine and biology" kicker="new medicines, and what it costs to read a human genome" />
+      <Row>
+        <Panel t={t} title="New medicines approved in the United States" meta={`FDA · ${FDA_APPROVALS[0]?.[0]}–${FDA_APPROVALS[FDA_APPROVALS.length - 1]?.[0]}`}>
+          <SlimColumns height={170} label="Novel drugs the FDA approved each year" rows={FDA_APPROVALS.map(([y, n]) => ({ key: String(y), label: y === thisYear ? `${y}*` : String(y), v: n, faint: y === thisYear }))} fmt={whole} up={INK[6]} />
+          <Note t={t}>
+            Novel drugs - medicines never approved before - that the FDA's Center for Drug Evaluation and Research approved each year: the rows of its own list.{FDA_APPROVALS.some(([y]) => y === thisYear) ? ` * ${thisYear} so far.` : ""}
+          </Note>
+          <Foot sources={[INNOVATION_SOURCES.fda]} />
+        </Panel>
+        <Panel t={t} title="The cost of reading a human genome" meta={`NHGRI · ${g[0][0]}–${g[g.length - 1][0]}`}>
+          <Series t={t} id="ip-genome" rows={g} fmt={(v) => (v >= 1e6 ? `$${(v / 1e6).toFixed(0)}M` : `$${whole(v)}`)} color={INK[3]} />
+          <Note t={t}>
+            What it cost to sequence one human genome: ${big(g[0][1])} in {g[0][0]}, ${whole(g[g.length - 1][1])} in {g[g.length - 1][0]}.
+          </Note>
+          <Foot sources={[GENOME_COST.source]} />
+        </Panel>
+      </Row>
+    </section>
+  );
+}
+
+/* ── Fusion and the great projects ── */
+type Project = { name: string; by: string; what: string; facts: [label: string, value: string][]; source: { label: string; url: string } };
+const FUSION: Project[] = [
+  {
+    name: "ITER",
+    by: "China, the European Union, India, Japan, Korea, Russia and the United States",
+    what: "The international experimental fusion reactor being built to show that fusion can be a source of energy at scale: a tokamak designed to make 500 megawatts of fusion power from 50 megawatts of heating.",
+    facts: [
+      ["Site", "Saint-Paul-lez-Durance, France"],
+      ["Agreement signed", "21 November 2006"],
+      ["Research operation", "from 2034, by its 2024 baseline"],
+      ["Deuterium-tritium fuel", "from 2039, by its 2024 baseline"],
+    ],
+    source: { label: "ITER Organization — What is ITER?", url: "https://www.iter.org/proj/inafewlines" },
+  },
+  {
+    name: "National Ignition Facility",
+    by: "Lawrence Livermore National Laboratory, United States",
+    what: "A laser facility that on 5 December 2022 achieved fusion ignition for the first time: more energy from the fusion reaction than the lasers put into the fuel.",
+    facts: [
+      ["Laser energy in", "2.05 megajoules"],
+      ["Fusion energy out", "3.15 megajoules"],
+    ],
+    source: { label: "Lawrence Livermore National Laboratory — Achieving fusion ignition", url: "https://lasers.llnl.gov/science/achieving-fusion-ignition" },
+  },
+  {
+    name: "JET",
+    by: "EUROfusion and the UK Atomic Energy Authority",
+    what: "The Joint European Torus, at Culham in England, the largest tokamak to have operated until its closure. In its last deuterium-tritium campaign it set a record for fusion energy from a single pulse.",
+    facts: [
+      ["Record energy", "69 megajoules, in about five seconds"],
+      ["Operated", "1983 to the end of 2023"],
+    ],
+    source: { label: "EUROfusion — JET's final tritium experiments yield new fusion energy record", url: "https://euro-fusion.org/eurofusion-news/dte3record/" },
+  },
+];
+const PROJECTS: Project[] = [
+  {
+    name: "International Space Station",
+    by: "NASA, Roscosmos, the European Space Agency, JAXA and the Canadian Space Agency",
+    what: "A laboratory in low Earth orbit, assembled from modules launched from 1998, where people have lived and worked without a break since November 2000.",
+    facts: [
+      ["First module", "Zarya, launched 20 November 1998"],
+      ["Crewed without a break", "since 2 November 2000"],
+    ],
+    source: { label: "NASA — International Space Station facts and figures", url: "https://www.nasa.gov/international-space-station/space-station-facts-and-figures/" },
+  },
+  {
+    name: "James Webb Space Telescope",
+    by: "NASA, with the European and Canadian space agencies",
+    what: "The largest space telescope yet flown, observing in the infrared from a point about 1.5 million kilometres from Earth.",
+    facts: [
+      ["Launched", "25 December 2021, on an Ariane 5 from Kourou"],
+      ["Where it works", "the second Sun-Earth Lagrange point"],
+    ],
+    source: { label: "NASA — James Webb Space Telescope", url: "https://science.nasa.gov/mission/webb/" },
+  },
+  {
+    name: "Artemis",
+    by: "NASA, with international and commercial partners",
+    what: "The programme to return people to the Moon. Its first flight, Artemis I, sent the uncrewed Orion spacecraft around the Moon and back.",
+    facts: [["Artemis I", "launched 16 November 2022, back on 11 December 2022"]],
+    source: { label: "NASA — Artemis I", url: "https://www.nasa.gov/mission/artemis-i/" },
+  },
+  {
+    name: "Large Hadron Collider",
+    by: "CERN, the European Organization for Nuclear Research",
+    what: "The world's largest particle accelerator, a 27-kilometre ring under the French-Swiss border, where the discovery of the Higgs boson was announced in 2012.",
+    facts: [
+      ["Ring", "27 kilometres"],
+      ["Higgs boson announced", "4 July 2012"],
+    ],
+    source: { label: "CERN — The Large Hadron Collider", url: "https://home.cern/science/accelerators/large-hadron-collider" },
+  },
+];
+function ProjectCard({ t, p, color }: { t: Tokens; p: Project; color: string }) {
+  return (
+    <Panel t={t} title={p.name} meta={p.by.length > 40 ? undefined : p.by}>
+      {p.by.length > 40 && (
+        <p className="text-[10px] font-sans leading-snug" style={{ color: t.mutedText }}>
+          {p.by}
+        </p>
+      )}
+      <p className="text-[12px] font-sans leading-snug" style={{ color: t.bodyText }}>
+        {p.what}
+      </p>
+      <ul className="flex flex-col">
+        {p.facts.map(([k, v]) => (
+          <li key={k} className="flex items-baseline justify-between gap-3 py-1 border-b last:border-b-0" style={{ borderColor: t.gridLine }}>
+            <span className="text-[9px] font-mono uppercase tracking-widest shrink-0" style={{ color }}>
+              {k}
+            </span>
+            <span className="text-[11px] font-sans font-semibold text-right" style={{ color: t.headText }}>
+              {v}
+            </span>
+          </li>
+        ))}
+      </ul>
+      <Foot sources={[p.source]} />
+    </Panel>
+  );
+}
+function Fusion({ t }: { t: Tokens }) {
+  return (
+    <section id="fusion" className="scroll-mt-36 flex flex-col gap-3">
+      <Head t={t} title="Fusion" kicker="the machines chasing power from the reaction that lights the sun" />
+      <Row>
+        {FUSION.map((p, i) => (
+          <ProjectCard key={p.name} t={t} p={p} color={INK[(i + 2) % INK.length]} />
+        ))}
+      </Row>
+    </section>
+  );
+}
+function Projects({ t }: { t: Tokens }) {
+  return (
+    <section id="projects-figures" className="scroll-mt-36 flex flex-col gap-3">
+      <Head t={t} title="The great projects" kicker="what nations build together in space and science" />
+      <Row>
+        {PROJECTS.map((p, i) => (
+          <ProjectCard key={p.name} t={t} p={p} color={INK[(i + 5) % INK.length]} />
+        ))}
+      </Row>
+    </section>
+  );
+}
+
+/** The parts the page's fields can show, by id. */
+export const INNOVATION_PARTS = ["space-race", "science-output", "medicine", "fusion", "projects"] as const;
+export default function InnovationPart({ part }: { part: string }) {
+  const t = useTokens();
+  return part === "space-race" ? <Space t={t} /> : part === "science-output" ? <Science t={t} /> : part === "medicine" ? <Medicine t={t} /> : part === "fusion" ? <Fusion t={t} /> : part === "projects" ? <Projects t={t} /> : null;
+}
