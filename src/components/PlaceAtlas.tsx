@@ -106,6 +106,7 @@ import type { PlaceRow } from "../data/placesIndex";
 import { Card, Go, Head } from "./DashboardCitiesSectors";
 import { useTokens } from "./DataExplorer";
 import { SourceLink } from "./SourceLink";
+import PlaceSearch from "./PlaceSearch";
 
 const W = 960;
 const H = 480;
@@ -1038,11 +1039,13 @@ export default function PlaceAtlas() {
             hint
           )}
         </p>
+        {/* A search of every place the site holds, as asked: a result opens its window. */}
+        <PlaceSearch />
       </div>
 
-      <div className="flex flex-col gap-3">
-        {/* As large as the Worldview page's map, as asked: on a wide screen that map shares its row with a column 15rem wide. */}
-        <div className="min-w-0 relative w-full lg:w-[calc(100%-15rem)] lg:mx-auto">
+      <div className="grid grid-cols-1 lg:grid-cols-[minmax(0,1fr)_14rem] xl:grid-cols-[14rem_minmax(0,1fr)_14rem] gap-3">
+        {/* The map in the middle, the place picked on its left and the list on its right, as the Worldview page sets its column beside its map. */}
+        <div className="min-w-0 relative order-1 xl:order-2">
           <svg
             ref={svgRef}
             viewBox={`${view.x - W / (2 * view.k)} ${view.y - H / (2 * view.k)} ${W / view.k} ${H / view.k}`}
@@ -1275,9 +1278,9 @@ export default function PlaceAtlas() {
         </div>
 
         {/* The same places by name: for one too small to press, and for a keyboard. */}
-        {/* Under the map, which has the card's whole width: in as many columns as there is room for. */}
-        <div className="min-w-0">
-         <div className="flex flex-col">
+        {/* Beside the map, on its right, as tall as it is and scrolled within; under it on a phone. */}
+        <div className="min-w-0 order-2 xl:order-3 lg:relative">
+         <div className="flex flex-col lg:absolute lg:inset-0">
           <p className="text-[10px] font-mono uppercase tracking-widest mb-1.5" style={{ color: t.mutedText }}>
             {listLabel}
           </p>
@@ -1285,7 +1288,7 @@ export default function PlaceAtlas() {
             <MagnifyingGlass size={12} className="text-muted-foreground shrink-0" aria-hidden />
             <input type="search" value={find} onChange={(e) => setFind(e.target.value)} placeholder="Find one by name" aria-label="Find a place in the list by name" className="flex-1 min-w-0 bg-transparent text-[11px] font-medium font-sans text-foreground placeholder:text-muted-foreground focus:outline-none" />
           </label>
-          <ul className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 content-start overflow-y-auto rounded-xl max-h-44" style={{ border: `1px solid ${t.gridLine}` }}>
+          <ul className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-1 content-start overflow-y-auto rounded-xl max-h-44 lg:max-h-none lg:flex-1 lg:min-h-0" style={{ border: `1px solid ${t.gridLine}` }}>
             {shownList.map((x) => (
               <li key={x.key} style={{ borderBottom: `1px solid ${t.gridLine}` }}>
                 <button type="button" onClick={x.go} onFocus={() => setHover(x.name)} onBlur={() => setHover(null)} onMouseEnter={() => setHover(x.name)} onMouseLeave={() => setHover(null)} className="w-full text-left text-[11px] font-sans px-3 py-1.5 truncate hover:opacity-70 cursor-pointer" style={{ color: t.bodyText }}>
@@ -1301,55 +1304,55 @@ export default function PlaceAtlas() {
           </ul>
          </div>
         </div>
-      </div>
 
-      {/* The place last pointed at, on the map or in the list, set out: what the site holds of it, each figure with whose it is or its year. */}
-      <div className="rounded-xl p-4 mt-3" style={{ background: t.tile, border: `1px solid ${t.gridLine}` }} aria-live="polite">
-        {item && about ? (
-          <>
-            <div className="flex flex-wrap items-center gap-3">
-              {about.flag && (
-                <span className="w-11 h-7 rounded-[4px] overflow-hidden shrink-0" style={{ border: `1px solid ${t.gridLine}` }} title={about.pale ? "It has no flag of its own held: its country's is shown, paler" : undefined}>
-                  <img src={about.flag} alt="" className={`w-full h-full object-cover ${about.pale ? "opacity-45" : ""}`} onError={(e) => (e.currentTarget.style.visibility = "hidden")} />
-                </span>
-              )}
-              <div className="min-w-0 flex-1">
-                <p className="text-[10px] font-mono uppercase tracking-widest truncate" style={{ color: t.mutedText }}>
-                  {about.kicker}
-                </p>
-                <p className="text-base font-bold font-sans leading-tight truncate" style={{ color: t.headText }}>
-                  {item.name}
-                </p>
+          {/* The place last pointed at, on the map or in the list, set out: on the map's left on a wide screen, as asked, and under the map and the list on a smaller one. */}
+        <div className="rounded-xl p-4 order-3 lg:col-span-2 xl:col-span-1 xl:order-1 self-start" style={{ background: t.tile, border: `1px solid ${t.gridLine}` }} aria-live="polite">
+          {item && about ? (
+            <>
+              <div className="flex flex-wrap items-center gap-3">
+                {about.flag && (
+                  <span className="w-11 h-7 rounded-[4px] overflow-hidden shrink-0" style={{ border: `1px solid ${t.gridLine}` }} title={about.pale ? "It has no flag of its own held: its country's is shown, paler" : undefined}>
+                    <img src={about.flag} alt="" className={`w-full h-full object-cover ${about.pale ? "opacity-45" : ""}`} onError={(e) => (e.currentTarget.style.visibility = "hidden")} />
+                  </span>
+                )}
+                <div className="min-w-0 flex-1">
+                  <p className="text-[10px] font-mono uppercase tracking-widest truncate" style={{ color: t.mutedText }}>
+                    {about.kicker}
+                  </p>
+                  <p className="text-base font-bold font-sans leading-tight truncate" style={{ color: t.headText }}>
+                    {item.name}
+                  </p>
+                </div>
+                <Go color={COLOR} onClick={item.go}>
+                  Open
+                </Go>
               </div>
-              <Go color={COLOR} onClick={item.go}>
-                Open
-              </Go>
-            </div>
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-x-4 gap-y-2 mt-3">
-              {about.facts
-                .filter(([, value], i) => value !== null || i < 4)
-                .map(([label, value, sub]) => (
-                  <div key={label} className="min-w-0">
-                    <p className="text-[10px] font-sans" style={{ color: t.mutedText }}>
-                      {label}
-                    </p>
-                    <p className={`text-[13px] font-mono truncate ${value === null ? "" : "font-bold"}`} style={{ color: value === null ? t.mutedText : t.headText }} title={value ?? undefined}>
-                      {value ?? "Not held"}
-                    </p>
-                    {value !== null && sub && (
-                      <p className="text-[9px] font-sans leading-snug truncate" style={{ color: t.mutedText }} title={sub}>
-                        {sub}
+              <div className="grid grid-cols-2 sm:grid-cols-4 xl:grid-cols-2 gap-x-4 gap-y-2 mt-3">
+                {about.facts
+                  .filter(([, value], i) => value !== null || i < 4)
+                  .map(([label, value, sub]) => (
+                    <div key={label} className="min-w-0">
+                      <p className="text-[10px] font-sans" style={{ color: t.mutedText }}>
+                        {label}
                       </p>
-                    )}
-                  </div>
-                ))}
-            </div>
-          </>
-        ) : (
-          <p className="text-[12px] font-sans" style={{ color: t.mutedText }}>
-            Select or hover over any area - on the map or in the list beside it - and what the site holds of it is set out here.
-          </p>
-        )}
+                      <p className={`text-[13px] font-mono truncate ${value === null ? "" : "font-bold"}`} style={{ color: value === null ? t.mutedText : t.headText }} title={value ?? undefined}>
+                        {value ?? "Not held"}
+                      </p>
+                      {value !== null && sub && (
+                        <p className="text-[9px] font-sans leading-snug truncate" style={{ color: t.mutedText }} title={sub}>
+                          {sub}
+                        </p>
+                      )}
+                    </div>
+                  ))}
+              </div>
+            </>
+          ) : (
+            <p className="text-[12px] font-sans" style={{ color: t.mutedText }}>
+              Select or hover over any area - on the map or in the list - and what the site holds of it is set out here.
+            </p>
+          )}
+        </div>
       </div>
 
       {/* How the map is drawn, folded away: the place under the map is the selected area's now. */}
