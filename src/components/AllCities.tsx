@@ -547,7 +547,7 @@ function CountryCard({ row, matching, onOpen }: { row: Row; /** How many of its 
         <span className="text-[10px] font-mono px-2 py-0.5 rounded-full border border-border text-foreground" title={pop ? `${row.name}'s population, ${pop.y} · ${peopleSource(pop).label}` : `No population is held for ${row.name}`}>
           {pop ? `${people(pop.v)} people · ${pop.y}` : "Population not held"}
         </span>
-        <span className="text-[10px] font-mono px-2 py-0.5 rounded-full border border-border text-foreground">{row.big} of a million or more</span>
+        {/* The count of its cities of a million or more stood here; taken off, as asked. */}
       </div>
     </article>
   );
