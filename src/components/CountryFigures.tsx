@@ -834,12 +834,12 @@ export default function CountryFigures({ code, name }: { code: string; name: str
 
       {/* ── Security, crime and justice ── */}
       <Section t={t} title="Security, crime and justice" kicker="how safe, how lawful, who is held">
-        <Panel t={t} title="Crime by type" meta="recorded by the police, per 100,000 people" className={crimeGroups.length > 1 ? "md:!basis-full xl:!basis-full" : ""}>
+        <Panel t={t} title="Crime by type" meta="recorded by the police, per 100,000 people">
           {crimeGroups.length ? (
             <>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-4">
+              <div className="flex flex-col">
                 {crimeGroups.map((g, gi) => (
-                  <div key={g.name} className="flex flex-col gap-1.5 min-w-0">
+                  <div key={g.name} className="flex flex-col gap-1.5 min-w-0 py-3 first:pt-0 border-b last:border-b-0" style={{ borderColor: t.gridLine }}>
                     <p className="text-[9px] font-mono uppercase tracking-widest" style={{ color: t.mutedText }}>
                       {g.name}
                     </p>
