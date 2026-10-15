@@ -45,7 +45,8 @@ const BY_DAY = (() => {
 const when = (e: CalendarEvent) =>
   e.monthOnly ? `${new Intl.DateTimeFormat("en-GB", { month: "long" }).format(fromKey(e.start))}, days not yet published` : e.end && e.end !== e.start ? `${SHORT.format(fromKey(e.start))} – ${SHORT.format(fromKey(e.end))}` : SHORT.format(fromKey(e.start));
 
-function MonthCalendar() {
+/** The month, a day to a cell. Full screen, as asked, it is the calendar that fills the window: its cells grow taller with it. */
+function MonthCalendar({ wide = false }: { wide?: boolean } = {}) {
   const t = useTokens();
   const today = new Date();
   const [month, setMonth] = useState(() => new Date(today.getFullYear(), today.getMonth(), 1));
@@ -113,7 +114,7 @@ function MonthCalendar() {
               aria-selected={on}
               aria-label={`${DAY.format(d)}${events.length ? `: ${events.length} ${events.length === 1 ? "event" : "events"}` : ""}`}
               onClick={() => setPicked(on ? null : k)}
-              className="relative rounded-lg h-11 flex flex-col items-center justify-start pt-1 cursor-pointer transition-colors hover:bg-muted/50"
+              className={`relative rounded-lg ${wide ? "h-16 lg:h-20" : "h-11"} flex flex-col items-center justify-start pt-1 cursor-pointer transition-colors hover:bg-muted/50`}
               style={{
                 opacity: here ? 1 : 0.35,
                 background: on ? (t.isLight ? "rgba(0,0,0,0.08)" : "rgba(255,255,255,0.12)") : "transparent",
@@ -225,8 +226,9 @@ export function CalendarPopup() {
             </button>
           </div>
         </div>
-        <div className={`grid gap-4 ${wide ? "lg:grid-cols-[minmax(0,26rem)_minmax(0,1fr)] items-start" : "grid-cols-1"}`}>
-          <MonthCalendar />
+        {/* Full screen, the calendar takes the wide column and the quarter tracker the narrow one beside it, as asked. */}
+        <div className={`grid gap-4 ${wide ? "lg:grid-cols-[minmax(0,1fr)_minmax(0,24rem)] items-start" : "grid-cols-1"}`}>
+          <MonthCalendar wide={wide} />
           <QuarterTracker isLight={t.isLight} cardBg={t.cardBg} cardBorder={t.cardBorder} headText={t.headText} mutedText={t.mutedText} gridLine={t.gridLine} />
         </div>
       </div>
