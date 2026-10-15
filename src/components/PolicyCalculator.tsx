@@ -28,8 +28,8 @@ import { FigureTile } from "./ModalCharts";
 import { SourceLink } from "./SourceLink";
 import { StyledSelect } from "./StyledSelect";
 
-/** The green of the Economies page's currency converter, as asked: the two tools are cards of one make. */
-const ACCENT = "#10b981";
+/** The teal of the Economies page's currency converter, as asked: the two tools are cards of one make. */
+const ACCENT = "#14b8a6";
 const COUNTRIES = Object.keys(COUNTRY_BUDGET)
   .map((code) => ({ value: code, label: PLACE_COUNTRIES[code]?.[0] ?? code }))
   .sort((a, b) => a.label.localeCompare(b.label));
@@ -67,7 +67,7 @@ export default function PolicyCalculator({ className = "" }: { className?: strin
           </div>
           <span className="text-sm font-bold font-sans text-foreground">Policy calculator</span>
           {/* A darker green on a light page: the hue itself is too pale to read there at this size. */}
-          <span className="text-[10px] font-bold font-mono px-2.5 py-1 rounded-lg text-emerald-700 dark:text-emerald-400" style={{ background: `color-mix(in srgb, ${ACCENT} 22%, transparent)` }}>
+          <span className="text-[10px] font-bold font-mono px-2.5 py-1 rounded-lg text-teal-700 dark:text-teal-400" style={{ background: `color-mix(in srgb, ${ACCENT} 22%, transparent)` }}>
             {COUNTRIES.length} countries
           </span>
         </div>
