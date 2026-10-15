@@ -867,13 +867,22 @@ export default function CountryFigures({ code, name }: { code: string; name: str
             <None t={t}>No recorded crime is held for {name}.</None>
           )}
         </Panel>
-        <Panel t={t} title="Stability and the rule of law" meta={security?.ruleOfLaw ? `World Bank · ${security.ruleOfLaw.y}` : undefined}>
+        {/* The width of its row and first in the section, above crime by type, as asked: its figures side by side. */}
+        <Panel t={t} title="Stability and the rule of law" meta={security?.ruleOfLaw ? `World Bank · ${security.ruleOfLaw.y}` : undefined} className="md:!basis-full xl:!basis-full order-first">
           {security?.stability || security?.ruleOfLaw ? (
             <>
-              {security.stability && <Range t={t} label="Political stability, no violence" v={security.stability.v} lo={security.stability.lo} hi={security.stability.hi} text={`${security.stability.v} of 100`} color={INK[0]} />}
-              {security.ruleOfLaw && <Range t={t} label="Rule of law" v={security.ruleOfLaw.v} lo={security.ruleOfLaw.lo} hi={security.ruleOfLaw.hi} text={`${security.ruleOfLaw.v} of 100`} color={INK[3]} />}
+              <div className="grid grid-cols-1 md:grid-cols-[minmax(0,1fr)_minmax(0,1fr)_auto] gap-x-8 gap-y-3 items-center">
+                {security.stability && <Range t={t} label="Political stability, no violence" v={security.stability.v} lo={security.stability.lo} hi={security.stability.hi} text={`${security.stability.v} of 100`} color={INK[0]} />}
+                {security.ruleOfLaw && <Range t={t} label="Rule of law" v={security.ruleOfLaw.v} lo={security.ruleOfLaw.lo} hi={security.ruleOfLaw.hi} text={`${security.ruleOfLaw.v} of 100`} color={INK[3]} />}
+                {prison && (
+                  <div className="rounded-lg px-3 py-2 min-w-[9rem]" style={{ background: t.tile, border: `1px solid ${t.gridLine}` }}>
+                    <p className="text-[9px] font-mono uppercase tracking-wider" style={{ color: t.mutedText }}>In prison, per 100,000</p>
+                    <p className="text-sm font-bold font-mono" style={{ color: t.headText }}>{prison.v}</p>
+                    <p className="text-[9px] font-mono" style={{ color: t.mutedText }}>{prison.y}</p>
+                  </div>
+                )}
+              </div>
               <Note t={t}>The World Bank's percentile ranks: the dot is the country's, the band the range it is fairly sure of.</Note>
-              {prison && <Tiles t={t} items={[{ label: "In prison, per 100,000", text: String(prison.v), y: prison.y }]} />}
               <Foot sources={[PUBLIC_SECURITY_SOURCES.wgi, prison ? PRISON_RATES_SOURCE : undefined]} />
             </>
           ) : (
