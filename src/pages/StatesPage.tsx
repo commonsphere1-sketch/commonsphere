@@ -1,5 +1,6 @@
 import React, { useState, useEffect, lazy, Suspense } from "react";
 import { useNavigate } from "react-router-dom";
+import { SiteMark } from "../components/SiteMark";
 import {
   MapPin,
   Timer,
@@ -7126,7 +7127,14 @@ export function StatesPage() {
   return (
     <div className="min-h-screen bg-background text-foreground animate-fade-in">
       <div className="px-6 py-8 max-w-screen-2xl mx-auto">
-        {/* Summary metrics: first on the page, as on the Cities page */}
+        {/* The page's name with the site's globe on its left, as every page has it, and named as the side menu names it. */}
+        <div className="mb-6">
+          <h1 className="text-2xl font-bold font-sans text-foreground flex items-center gap-3">
+            <SiteMark />
+            US States
+          </h1>
+        </div>
+        {/* Summary metrics: under the name, as on the Cities page */}
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-6">
           {[
             {
