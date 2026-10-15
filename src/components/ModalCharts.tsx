@@ -197,9 +197,9 @@ export function PartsDonut({ parts, colors = PART_COLORS, label }: { parts: Part
   const fill = (p: Part, i: number) => p.color ?? semanticColor(p.label) ?? colors[i % colors.length];
   const R = 40;
   const C = 2 * Math.PI * R;
-  // The slim style: a thinner ring with rounded ends, so the gap between arcs allows for the caps.
+  // The slim style: a thinner ring, its arcs a hairline apart with square ends, so that a small part never runs into the next.
   const W = 9;
-  const gap = shown.length > 1 ? 2.5 + W : 0;
+  const gap = shown.length > 1 ? 2 : 0;
   let run = 0;
   const arcs = shown.map((p, i) => {
     const len = (p.value / total) * C;
@@ -235,9 +235,8 @@ export function PartsDonut({ parts, colors = PART_COLORS, label }: { parts: Part
               fill="none"
               stroke={shown.length > 1 ? `url(#${gid}-${i})` : fill(p, i)}
               strokeWidth={W}
-              strokeLinecap={shown.length > 1 ? "round" : "butt"}
               strokeDasharray={`${len} ${C - len}`}
-              strokeDashoffset={-start - (shown.length > 1 ? W / 2 : 0)}
+              strokeDashoffset={-start}
               opacity={on && on !== p.label ? 0.3 : 1}
               onMouseEnter={() => setOn(p.label)}
               onMouseLeave={() => setOn(null)}

@@ -42,6 +42,7 @@ import { ECONOMY_ISO3, type EconomyRents } from "../data/resourceRents";
 import { useResourceRents } from "../hooks/useResourceRents";
 import { useLiveStatus } from "../lib/liveFigures";
 import { SourceLink } from "../components/SourceLink";
+import { gradId } from "../components/SlimBars";
 import { WindowGroup } from "../components/WindowGroup";
 import EconomyManufacturing from "../components/EconomyManufacturing";
 import TaxPanel from "../components/TaxPanel";
@@ -811,15 +812,24 @@ function SectorPie({ sectors }: { sectors: EconomySectors }) {
         <div className="shrink-0" style={{ width: 110, height: 110 }}>
           <ResponsiveContainer width="100%" height="100%">
             <PieChart>
+              <defs>
+                {[...new Set(pieData.map((e) => getSectorColor(e.name)))].map((c) => (
+                  <linearGradient key={c} id={gradId(c)} x1="0" y1="0" x2="1" y2="1">
+                    <stop offset="0%" stopColor={c} stopOpacity={0.55} />
+                    <stop offset="100%" stopColor={c} stopOpacity={1} />
+                  </linearGradient>
+                ))}
+              </defs>
+              <Pie data={[{ v: 1 }]} dataKey="v" innerRadius={40} outerRadius={52} fill={"rgba(127,127,127,0.12)"} stroke="none" isAnimationActive={false} tooltipType="none" />
               <Pie
                 data={pieData}
                 cx="50%"
                 cy="50%"
-                /* A pie, so no hole and no gaps between slices: the parts of a
-                   whole should visibly meet. */
-                innerRadius={0}
+                /* The site's slim ring, as asked of every chart: its parts a hairline apart, each in a gradient of its colour. */
+                innerRadius={40}
                 outerRadius={52}
-                paddingAngle={0}
+                paddingAngle={2.5}
+                cornerRadius={3}
                 dataKey="value"
                 startAngle={90}
                 endAngle={-270}
@@ -828,7 +838,7 @@ function SectorPie({ sectors }: { sectors: EconomySectors }) {
                 {pieData.map((entry) => (
                   <Cell
                     key={entry.name}
-                    fill={getSectorColor(entry.name)}
+                    fill={`url(#${gradId(getSectorColor(entry.name))})`}
                     stroke="transparent"
                   />
                 ))}
@@ -964,20 +974,30 @@ function BudgetPie({ budget }: { budget: CountryBudget }) {
         <div className="shrink-0" style={{ width: 160, height: 160 }}>
           <ResponsiveContainer width="100%" height="100%">
             <PieChart>
+              <defs>
+                {[...new Set(ranked.map((s) => BUDGET_COLORS[s.key]))].map((c) => (
+                  <linearGradient key={c} id={gradId(c)} x1="0" y1="0" x2="1" y2="1">
+                    <stop offset="0%" stopColor={c} stopOpacity={0.55} />
+                    <stop offset="100%" stopColor={c} stopOpacity={1} />
+                  </linearGradient>
+                ))}
+              </defs>
+              <Pie data={[{ v: 1 }]} dataKey="v" innerRadius={60} outerRadius={76} fill={"rgba(127,127,127,0.12)"} stroke="none" isAnimationActive={false} tooltipType="none" />
               <Pie
                 data={ranked}
                 cx="50%"
                 cy="50%"
-                innerRadius={0}
+                innerRadius={60}
                 outerRadius={76}
-                paddingAngle={0}
+                paddingAngle={2.5}
+                cornerRadius={3}
                 dataKey="pct"
                 startAngle={90}
                 endAngle={-270}
                 isAnimationActive={false}
               >
                 {ranked.map((s) => (
-                  <Cell key={s.key} fill={BUDGET_COLORS[s.key]} stroke="transparent" />
+                  <Cell key={s.key} fill={`url(#${gradId(BUDGET_COLORS[s.key])})`} stroke="transparent" />
                 ))}
               </Pie>
               <Tooltip content={<CustomTooltip />} />
@@ -1787,15 +1807,24 @@ function EconomyModal({
                           >
                             <ResponsiveContainer width="100%" height="100%">
                               <PieChart>
+                                <defs>
+                                  {[...new Set(pieData.map((e) => resources.find((r) => r.name === e.name)?.color ?? "#94a3b8"))].map((c) => (
+                                    <linearGradient key={c} id={gradId(c)} x1="0" y1="0" x2="1" y2="1">
+                                      <stop offset="0%" stopColor={c} stopOpacity={0.55} />
+                                      <stop offset="100%" stopColor={c} stopOpacity={1} />
+                                    </linearGradient>
+                                  ))}
+                                </defs>
+                                <Pie data={[{ v: 1 }]} dataKey="v" innerRadius={42} outerRadius={54} fill={"rgba(127,127,127,0.12)"} stroke="none" isAnimationActive={false} tooltipType="none" />
                                 <Pie
                                   data={pieData}
                                   cx="50%"
                                   cy="50%"
-                                  /* A pie: no hole, and no gaps, because the
-                                     slices are parts of one total. */
-                                  innerRadius={0}
+                                  /* The site's slim ring: its parts a hairline apart, each in a gradient of its colour. */
+                                  innerRadius={42}
                                   outerRadius={54}
-                                  paddingAngle={0}
+                                  paddingAngle={2.5}
+                                  cornerRadius={3}
                                   dataKey="value"
                                   startAngle={90}
                                   endAngle={-270}
@@ -1808,7 +1837,7 @@ function EconomyModal({
                                     return (
                                       <Cell
                                         key={entry.name}
-                                        fill={res?.color ?? "#94a3b8"}
+                                        fill={`url(#${gradId(res?.color ?? "#94a3b8")})`}
                                         stroke="transparent"
                                       />
                                     );

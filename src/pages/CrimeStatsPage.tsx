@@ -2,7 +2,7 @@ import { PageHeader } from "../components/PageHeader";
 import { lazy, Suspense, useState } from "react";
 import { useTheme } from "../contexts/ThemeContext";
 import { SourceLink } from "../components/SourceLink";
-import SlimBars from "../components/SlimBars";
+import SlimBars, { gradId } from "../components/SlimBars";
 import { HeadlinesBanner } from "../components/HeadlinesBanner";
 
 // The explorer of revolutions, protests, boycotts and internal conflicts, with its accounts: loaded when the page reaches it.
@@ -1783,18 +1783,29 @@ export function CrimeStatsPage() {
             </div>
             <ResponsiveContainer width="100%" height={170}>
               <PieChart>
+                <defs>
+                  {[...new Set(ATTACK_TYPES.map((e) => e.color))].map((c) => (
+                    <linearGradient key={c} id={gradId(c)} x1="0" y1="0" x2="1" y2="1">
+                      <stop offset="0%" stopColor={c} stopOpacity={0.55} />
+                      <stop offset="100%" stopColor={c} stopOpacity={1} />
+                    </linearGradient>
+                  ))}
+                </defs>
+                <Pie data={[{ v: 1 }]} dataKey="v" innerRadius={60} outerRadius={72} fill={gridLine} stroke="none" isAnimationActive={false} tooltipType="none" />
                 <Pie
                   data={ATTACK_TYPES}
                   cx="50%"
                   cy="50%"
-                  innerRadius={48}
+                  innerRadius={60}
                   outerRadius={72}
-                  paddingAngle={2}
+                  paddingAngle={2.5}
+                  cornerRadius={3}
+                  stroke="none"
                   dataKey="pct"
                   nameKey="type"
                 >
                   {ATTACK_TYPES.map((entry) => (
-                    <Cell key={entry.type} fill={entry.color} />
+                    <Cell key={entry.type} fill={`url(#${gradId(entry.color)})`} />
                   ))}
                 </Pie>
                 <Tooltip
@@ -2392,18 +2403,29 @@ export function CrimeStatsPage() {
             </div>
             <ResponsiveContainer width="100%" height={210}>
               <PieChart>
+                <defs>
+                  {[...new Set(FORCED_LABOUR_ECONOMY.map((e) => e.color))].map((c) => (
+                    <linearGradient key={c} id={gradId(c)} x1="0" y1="0" x2="1" y2="1">
+                      <stop offset="0%" stopColor={c} stopOpacity={0.55} />
+                      <stop offset="100%" stopColor={c} stopOpacity={1} />
+                    </linearGradient>
+                  ))}
+                </defs>
+                <Pie data={[{ v: 1 }]} dataKey="v" innerRadius={72} outerRadius={88} fill={gridLine} stroke="none" isAnimationActive={false} tooltipType="none" />
                 <Pie
                   data={FORCED_LABOUR_ECONOMY}
                   cx="50%"
                   cy="50%"
-                  innerRadius={55}
+                  innerRadius={72}
                   outerRadius={88}
-                  paddingAngle={2}
+                  paddingAngle={2.5}
+                  cornerRadius={3}
+                  stroke="none"
                   dataKey="value"
                   nameKey="sector"
                 >
                   {FORCED_LABOUR_ECONOMY.map((entry) => (
-                    <Cell key={entry.sector} fill={entry.color} />
+                    <Cell key={entry.sector} fill={`url(#${gradId(entry.color)})`} />
                   ))}
                 </Pie>
                 <Tooltip

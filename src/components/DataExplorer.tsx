@@ -32,7 +32,8 @@
  */
 import { lazy, Suspense, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
-import { Area, AreaChart, Bar, BarChart, CartesianGrid, Cell, LabelList, Line, LineChart, ReferenceLine, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
+import { Area, AreaChart, CartesianGrid, Line, LineChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
+import { SlimColumns } from "./SlimBars";
 import { ArrowRight, ArrowSquareOut, ChartBar, ChartLine, Globe, GlobeHemisphereWest, Heart, Leaf, Lightbulb, MagnifyingGlass, MapPin, Megaphone, Scales, Tree, Users, X } from "@phosphor-icons/react";
 import { useTheme } from "../contexts/ThemeContext";
 import { useLiveCountries } from "../contexts/LiveDataContext";
@@ -1024,21 +1025,7 @@ function RegionDetail({ t, region: r, byGdp, onExplorer }: { t: Tokens; region: 
         Real growth · % a year · {r.growth[0][0]}–{growthYear}
       </Label>
       <div role="img" aria-label={`Real growth of ${r.name}, year by year: ${r.growth.map(([y, g]) => `${y} ${signed(g)}%`).join(", ")}.`}>
-        <ResponsiveContainer width="100%" height={92}>
-          <BarChart data={growthBars} margin={{ top: 12, right: 2, left: -24, bottom: 0 }}>
-            <CartesianGrid stroke={t.gridLine} vertical={false} />
-            <XAxis dataKey="year" {...axis} />
-            <YAxis {...axis} tickFormatter={(v: number) => `${v}%`} />
-            <ReferenceLine y={0} stroke={t.mutedText} strokeWidth={1} />
-            <Tooltip {...tooltipStyle(t)} cursor={{ fill: t.tile }} formatter={(v: number) => [`${signed(v)}%`, "Real growth"]} />
-            <Bar dataKey="g" radius={[2, 2, 0, 0]} maxBarSize={22} isAnimationActive={false}>
-              {growthBars.map((b) => (
-                <Cell key={b.year} fill={b.g >= 0 ? GREEN : RED} />
-              ))}
-              <LabelList dataKey="g" position="top" formatter={(v: number) => signed(v)} style={{ fontSize: 8, fontFamily: "monospace", fill: t.mutedText }} />
-            </Bar>
-          </BarChart>
-        </ResponsiveContainer>
+          <SlimColumns label="Real growth, year by year" rows={growthBars.map((b) => ({ key: b.year, label: b.year, v: b.g }))} fmt={(v) => signed(v)} up={GREEN} down={RED} height={150} />
       </div>
       </Block>
 

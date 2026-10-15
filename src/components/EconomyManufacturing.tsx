@@ -20,7 +20,8 @@
  * A regional bloc is not ranked among countries. Nothing is shown where the
  * World Bank publishes nothing, and the section itself is left out then.
  */
-import { Area, AreaChart, Bar, BarChart, CartesianGrid, Cell, Line, LineChart, ReferenceLine, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
+import { SlimColumns } from "./SlimBars";
+import { Area, AreaChart, CartesianGrid, Line, LineChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
 import { economiesData, type Economy } from "../data/economiesData";
 import { ECONOMY_MANUFACTURING, ECONOMY_MANUFACTURING_SOURCE, MANUFACTURING_BRANCHES, WORLD_MANUFACTURING_SHARE, type Latest } from "../data/economyManufacturing";
 import { ACCENT, ChartNote, ChartTitle, MeasureBars, PART_COLORS, PartsBar } from "./ModalCharts";
@@ -162,20 +163,7 @@ export default function EconomyManufacturing({ economy }: { economy: Economy }) 
         {m.growth && m.growth.length > 2 && (
           <div className="modal-tile rounded-xl p-4" role="img" aria-label={`Real growth of manufacturing in ${economy.name}: ${m.growth.map(([y, v]) => `${y} ${pct(v)}`).join(", ")}.`}>
             <ChartTitle>Growth · real, % a year</ChartTitle>
-            <ResponsiveContainer width="100%" height={160}>
-              <BarChart data={m.growth.map(([year, v]) => ({ year: String(year).slice(2), full: year, v }))} margin={{ top: 6, right: 8, left: 0, bottom: 0 }}>
-                <CartesianGrid stroke="currentColor" strokeOpacity={0.08} vertical={false} />
-                <XAxis dataKey="year" tick={tick} axisLine={false} tickLine={false} interval={0} />
-                <YAxis tick={tick} axisLine={false} tickLine={false} width={36} tickFormatter={(v: number) => `${v}%`} />
-                <ReferenceLine y={0} stroke="currentColor" strokeOpacity={0.35} />
-                <Tooltip formatter={(v: number) => [pct(v), "Growth"]} labelFormatter={(_, items) => String((items[0]?.payload as { full?: number } | undefined)?.full ?? "")} contentStyle={tip} cursor={{ fill: "currentColor", fillOpacity: 0.06 }} />
-                <Bar dataKey="v" isAnimationActive={false} radius={[2, 2, 0, 0]}>
-                  {m.growth.map(([year, v]) => (
-                    <Cell key={year} fill={ACCENT} fillOpacity={v < 0 ? 0.45 : 0.9} />
-                  ))}
-                </Bar>
-              </BarChart>
-            </ResponsiveContainer>
+              <SlimColumns label={`Real growth of manufacturing in ${economy.name}, year by year`} rows={m.growth.map(([year, v]) => ({ key: String(year), label: `'${String(year).slice(2)}`, v }))} fmt={(v) => `${v > 0 ? "+" : ""}${v.toFixed(1)}`} up={ACCENT} down={ACCENT} />
           </div>
         )}
       </div>

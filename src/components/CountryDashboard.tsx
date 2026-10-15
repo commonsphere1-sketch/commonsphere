@@ -28,7 +28,7 @@ import { BUDGET_DIVISIONS, BUDGET_SOURCE, COUNTRY_BUDGET } from "../data/country
 import { COUNTRY_PANELS, PANEL_SOURCES, type PanelField } from "../data/countryPanels";
 import { useTokens } from "./DataExplorer";
 import { SourceLink } from "./SourceLink";
-import { SlimColumns } from "./SlimBars";
+import { SlimColumns, gradId } from "./SlimBars";
 import CountryFigures, { INK, None, Panel } from "./CountryFigures";
 
 const usd = (b: number) => (b >= 1000 ? `$${(b / 1000).toFixed(2)}T` : b >= 1 ? `$${b.toFixed(b >= 100 ? 0 : 1)}B` : `$${Math.round(b * 1000)}M`);
@@ -148,9 +148,18 @@ export default function CountryDashboard({ code, name }: { code: string; name: s
                 <div className="w-[130px] h-[130px] shrink-0">
                   <ResponsiveContainer width="100%" height="100%">
                     <PieChart>
-                      <Pie data={slices} dataKey="v" nameKey="name" innerRadius={34} outerRadius={60} stroke="none" isAnimationActive={false}>
+                      <defs>
+                        {[...new Set(slices.map((s) => s.color))].map((c) => (
+                          <linearGradient key={c} id={gradId(c)} x1="0" y1="0" x2="1" y2="1">
+                            <stop offset="0%" stopColor={c} stopOpacity={0.55} />
+                            <stop offset="100%" stopColor={c} stopOpacity={1} />
+                          </linearGradient>
+                        ))}
+                      </defs>
+                      <Pie data={[{ v: 1 }]} dataKey="v" innerRadius={47} outerRadius={60} fill={t.gridLine} stroke="none" isAnimationActive={false} tooltipType="none" />
+                      <Pie data={slices} dataKey="v" nameKey="name" innerRadius={47} outerRadius={60} paddingAngle={2.5} cornerRadius={3} stroke="none" isAnimationActive={false}>
                         {slices.map((s) => (
-                          <Cell key={s.name} fill={s.color} />
+                          <Cell key={s.name} fill={`url(#${gradId(s.color)})`} />
                         ))}
                       </Pie>
                       <Tooltip {...tip} formatter={(v: number, k: string) => [`${v.toFixed(1)}%`, k]} />

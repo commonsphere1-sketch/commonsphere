@@ -1,5 +1,5 @@
 import { useMemo, useState, type CSSProperties, type ReactNode } from "react";
-import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid } from "recharts";
+import { SlimColumns } from "./SlimBars";
 import { Gavel, Info } from "@phosphor-icons/react";
 import { SourceLink } from "./SourceLink";
 import { StyledSelect } from "./StyledSelect";
@@ -585,19 +585,7 @@ function Wildlife({ look }: { look: Look }) {
           );
         })}
       </div>
-      <ResponsiveContainer width="100%" height={150}>
-        <BarChart data={data} margin={{ top: 4, right: 8, left: 0, bottom: 0 }} barCategoryGap="22%">
-          <CartesianGrid stroke={look.grid} strokeDasharray="3 3" vertical={false} />
-          <XAxis dataKey="year" tick={{ fontSize: 9, fill: look.muted, fontFamily: "monospace" }} axisLine={false} tickLine={false} />
-          <YAxis tick={{ fontSize: 9, fill: look.muted, fontFamily: "monospace" }} axisLine={false} tickLine={false} width={52} tickFormatter={(v: number) => amount(v)} />
-          <Tooltip
-            contentStyle={{ background: look.tip, border: `1px solid ${look.line}`, borderRadius: 10, fontSize: 11, fontFamily: "monospace", color: look.head }}
-            formatter={(v: number) => [amount(v), `${g.group} seized`]}
-            cursor={{ fill: look.isLight ? "rgba(0,0,0,0.03)" : "rgba(255,255,255,0.04)" }}
-          />
-          <Bar dataKey="value" fill={color} radius={[4, 4, 0, 0]} isAnimationActive={false} />
-        </BarChart>
-      </ResponsiveContainer>
+        <SlimColumns label={`${g.group} seized worldwide, year by year`} rows={data.map((d) => ({ key: d.year, label: d.year, v: d.value }))} fmt={amount} up={color} />
       <p className="text-[10px] font-mono uppercase tracking-widest mt-3 mb-2" style={{ color: look.muted }}>
         By region · {g.span.replace("-", "–")} together
       </p>

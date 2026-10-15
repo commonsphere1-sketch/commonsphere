@@ -274,7 +274,7 @@ function SplitArea({ series, split, color, name, fmt, tick, height = 250, mark, 
               <stop offset="100%" stopColor={color} stopOpacity={0.02} />
             </linearGradient>
           </defs>
-          <CartesianGrid stroke={look.grid} strokeDasharray="3 3" vertical={false} />
+          <CartesianGrid stroke={look.grid} vertical={false} />
           <XAxis dataKey="year" {...axis(look)} minTickGap={22} ticks={ticks?.map(String)} />
           <YAxis {...axis(look)} width={48} tickFormatter={tick} domain={[0, "auto"]} />
           <ReferenceArea x1={String(split)} x2={String(last(series)[0])} fill={look.ahead} fillOpacity={1} ifOverflow="visible" />
@@ -313,7 +313,7 @@ function OutlookLines({ lines, split, fmt, height = 230, from, tick }: { lines: 
     <div role="img" aria-label={`${lines.map((l) => l.label).join(", ")}, ${years[0]} to ${lastYear}. Projections from ${split}; the latest figures are in the legend below.`}>
       <ResponsiveContainer width="100%" height={height}>
         <LineChart data={data} margin={{ top: 6, right: 8, left: 0, bottom: 0 }}>
-          <CartesianGrid stroke={look.grid} strokeDasharray="3 3" vertical={false} />
+          <CartesianGrid stroke={look.grid} vertical={false} />
           <XAxis dataKey="year" {...axis(look)} minTickGap={18} />
           <YAxis {...axis(look)} width={44} tickFormatter={(v: number) => (tick ?? fmt)(v)} />
           {lastYear >= split && <ReferenceArea x1={String(split)} x2={String(lastYear)} fill={look.ahead} fillOpacity={1} ifOverflow="visible" />}
@@ -698,7 +698,7 @@ function MultiLine({ data, lines, fmt, tick, label, height = 250 }: { data: Reco
     <div role="img" aria-label={label}>
       <ResponsiveContainer width="100%" height={height}>
         <LineChart data={data} margin={{ top: 6, right: 18, left: 0, bottom: 0 }}>
-          <CartesianGrid stroke={look.grid} strokeDasharray="3 3" vertical={false} />
+          <CartesianGrid stroke={look.grid} vertical={false} />
           <XAxis dataKey="year" {...axis(look)} minTickGap={18} />
           <YAxis {...axis(look)} width={50} tickFormatter={(v: number) => (tick ?? fmt)(v)} />
           <Tooltip {...look.tooltip} formatter={(v: number, k: string) => [fmt(v), lines.find((l) => l.key === k)?.label ?? k]} />
@@ -964,13 +964,21 @@ function RenewablesSection() {
             aria-label={`New investment in renewable power by technology, ${inv[0].year} to ${invLast.year}. In ${invLast.year}: ${invKeys.map((k) => `${k.label} ${usdBn(invLast[k.key])}`).join(", ")}.`}
           >
             <ResponsiveContainer width="100%" height={250}>
-              <BarChart data={inv.map((r) => ({ ...r, year: String(r.year) }))} margin={{ top: 6, right: 8, left: 0, bottom: 0 }} barCategoryGap="22%">
-                <CartesianGrid stroke={look.grid} strokeDasharray="3 3" vertical={false} />
+              <BarChart data={inv.map((r) => ({ ...r, year: String(r.year) }))} margin={{ top: 6, right: 8, left: 0, bottom: 0 }} barCategoryGap="30%">
+                <defs>
+                  {invKeys.map((k) => k.color).map((c, i) => (
+                    <linearGradient key={i} id={`tg-inv-${i}`} x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="0%" stopColor={c} stopOpacity={1} />
+                      <stop offset="100%" stopColor={c} stopOpacity={0.5} />
+                    </linearGradient>
+                  ))}
+                </defs>
+                <CartesianGrid stroke={look.grid} vertical={false} />
                 <XAxis dataKey="year" {...axis(look)} minTickGap={12} />
                 <YAxis {...axis(look)} width={50} tickFormatter={(v: number) => `$${v}bn`} />
                 <Tooltip {...look.tooltip} cursor={{ fill: look.grid }} formatter={(v: number, k: string) => [usdBn(v), invKeys.find((x) => x.key === k)?.label ?? k]} />
                 {invKeys.map((k, i) => (
-                  <Bar key={k.key} dataKey={k.key} stackId="inv" fill={k.color} stroke={look.card.background} strokeWidth={1} radius={i === invKeys.length - 1 ? [4, 4, 0, 0] : 0} isAnimationActive={false} />
+                  <Bar key={k.key} dataKey={k.key} stackId="inv" fill={`url(#tg-inv-${i})`} stroke={look.card.background} strokeWidth={1} maxBarSize={22} radius={i === invKeys.length - 1 ? [6, 6, 0, 0] : 0} isAnimationActive={false} />
                 ))}
               </BarChart>
             </ResponsiveContainer>
@@ -1236,13 +1244,21 @@ function TechnologySection() {
           <CardHead title="The deals behind AI, by type" kicker={`Corporate deals involving AI companies, US$ billions at 2021 prices · ${AI_DEALS[0].year}–${dealNow.year}`} />
           <div role="img" aria-label={`Corporate deals involving AI companies by type, ${AI_DEALS[0].year} to ${dealNow.year}. In ${dealNow.year}: ${dealKinds.map((k) => `${k.label} ${usdBn(dealNow[k.key])}`).join(", ")}.`}>
             <ResponsiveContainer width="100%" height={250}>
-              <BarChart data={AI_DEALS.map((r) => ({ ...r, year: String(r.year) }))} margin={{ top: 6, right: 8, left: 0, bottom: 0 }} barCategoryGap="22%">
-                <CartesianGrid stroke={look.grid} strokeDasharray="3 3" vertical={false} />
+              <BarChart data={AI_DEALS.map((r) => ({ ...r, year: String(r.year) }))} margin={{ top: 6, right: 8, left: 0, bottom: 0 }} barCategoryGap="30%">
+                <defs>
+                  {dealKinds.map((k) => k.color).map((c, i) => (
+                    <linearGradient key={i} id={`tg-deals-${i}`} x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="0%" stopColor={c} stopOpacity={1} />
+                      <stop offset="100%" stopColor={c} stopOpacity={0.5} />
+                    </linearGradient>
+                  ))}
+                </defs>
+                <CartesianGrid stroke={look.grid} vertical={false} />
                 <XAxis dataKey="year" {...axis(look)} minTickGap={12} />
                 <YAxis {...axis(look)} width={50} tickFormatter={(v: number) => `$${v}bn`} />
                 <Tooltip {...look.tooltip} cursor={{ fill: look.grid }} formatter={(v: number, k: string) => [usdBn(v), dealKinds.find((x) => x.key === k)?.label ?? k]} />
                 {dealKinds.map((k, i) => (
-                  <Bar key={k.key} dataKey={k.key} stackId="deals" fill={k.color} stroke={look.card.background} strokeWidth={1} radius={stack(i, dealKinds.length)} isAnimationActive={false} />
+                  <Bar key={k.key} dataKey={k.key} stackId="deals" fill={`url(#tg-deals-${i})`} maxBarSize={22} stroke={look.card.background} strokeWidth={1} radius={stack(i, dealKinds.length)} isAnimationActive={false} />
                 ))}
               </BarChart>
             </ResponsiveContainer>
@@ -1304,13 +1320,21 @@ function TechnologySection() {
             aria-label={`NVIDIA's quarterly revenue, ${nvFirst.quarter} to ${nvNow.quarter}. In ${nvNow.quarter}: ${usdBn(nvNow.dataCentres)} from data centres and AI and ${usdBn(nvNow.other)} from everything else.`}
           >
             <ResponsiveContainer width="100%" height={250}>
-              <BarChart data={NVIDIA_REVENUE} margin={{ top: 6, right: 8, left: 0, bottom: 0 }} barCategoryGap="12%">
-                <CartesianGrid stroke={look.grid} strokeDasharray="3 3" vertical={false} />
+              <BarChart data={NVIDIA_REVENUE} margin={{ top: 6, right: 8, left: 0, bottom: 0 }} barCategoryGap="22%">
+                <defs>
+                  {[ORDERED[0], ORDERED[1]].map((c, i) => (
+                    <linearGradient key={i} id={`tg-nv-${i}`} x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="0%" stopColor={c} stopOpacity={1} />
+                      <stop offset="100%" stopColor={c} stopOpacity={0.5} />
+                    </linearGradient>
+                  ))}
+                </defs>
+                <CartesianGrid stroke={look.grid} vertical={false} />
                 <XAxis dataKey="quarter" {...axis(look)} minTickGap={28} tickFormatter={(q: string) => q.slice(0, 4)} />
                 <YAxis {...axis(look)} width={50} tickFormatter={(v: number) => `$${v}bn`} />
                 <Tooltip {...look.tooltip} cursor={{ fill: look.grid }} formatter={(v: number, k: string) => [usdBn(v), k === "dataCentres" ? "Data centres and AI" : "Everything else"]} />
-                <Bar dataKey="dataCentres" stackId="nv" fill={ORDERED[0]} stroke={look.card.background} strokeWidth={1} isAnimationActive={false} />
-                <Bar dataKey="other" stackId="nv" fill={ORDERED[1]} stroke={look.card.background} strokeWidth={1} radius={[3, 3, 0, 0]} isAnimationActive={false} />
+                <Bar dataKey="dataCentres" stackId="nv" fill="url(#tg-nv-0)" maxBarSize={18} stroke={look.card.background} strokeWidth={1} isAnimationActive={false} />
+                <Bar dataKey="other" stackId="nv" fill="url(#tg-nv-1)" maxBarSize={18} stroke={look.card.background} strokeWidth={1} radius={[5, 5, 0, 0]} isAnimationActive={false} />
               </BarChart>
             </ResponsiveContainer>
           </div>
@@ -1331,13 +1355,21 @@ function TechnologySection() {
           <CardHead title="Who builds AI systems: industry and academia" kicker={`Notable AI systems published in the year, by who built them · Epoch AI · ${AI_MODELS[0].year}–${modelsNow.year}`} />
           <div role="img" aria-label={`Notable AI systems by who built them, ${AI_MODELS[0].year} to ${modelsNow.year}. In ${modelsNow.year}: ${modelKinds.map((k) => `${k.label} ${modelsNow[k.key]}`).join(", ")}.`}>
             <ResponsiveContainer width="100%" height={250}>
-              <BarChart data={AI_MODELS.map((r) => ({ ...r, year: String(r.year) }))} margin={{ top: 6, right: 8, left: 0, bottom: 0 }} barCategoryGap="22%">
-                <CartesianGrid stroke={look.grid} strokeDasharray="3 3" vertical={false} />
+              <BarChart data={AI_MODELS.map((r) => ({ ...r, year: String(r.year) }))} margin={{ top: 6, right: 8, left: 0, bottom: 0 }} barCategoryGap="30%">
+                <defs>
+                  {modelKinds.map((k) => k.color).map((c, i) => (
+                    <linearGradient key={i} id={`tg-models-${i}`} x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="0%" stopColor={c} stopOpacity={1} />
+                      <stop offset="100%" stopColor={c} stopOpacity={0.5} />
+                    </linearGradient>
+                  ))}
+                </defs>
+                <CartesianGrid stroke={look.grid} vertical={false} />
                 <XAxis dataKey="year" {...axis(look)} minTickGap={12} />
                 <YAxis {...axis(look)} width={36} allowDecimals={false} />
                 <Tooltip {...look.tooltip} cursor={{ fill: look.grid }} formatter={(v: number, k: string) => [String(v), modelKinds.find((x) => x.key === k)?.label ?? k]} />
                 {modelKinds.map((k, i) => (
-                  <Bar key={k.key} dataKey={k.key} stackId="models" fill={k.color} stroke={look.card.background} strokeWidth={1} radius={stack(i, modelKinds.length)} isAnimationActive={false} />
+                  <Bar key={k.key} dataKey={k.key} stackId="models" fill={`url(#tg-models-${i})`} maxBarSize={22} stroke={look.card.background} strokeWidth={1} radius={stack(i, modelKinds.length)} isAnimationActive={false} />
                 ))}
               </BarChart>
             </ResponsiveContainer>

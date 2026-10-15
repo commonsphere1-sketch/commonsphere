@@ -50,7 +50,7 @@ import { COUNTRY_LAW_HELD, COUNTRY_LAW_SOURCES, type CountryLawAdvice, type Coun
 import { AdviceLists } from "./LawAdvice";
 import { useTokens, type Tokens } from "./DataExplorer";
 import { SourceLink } from "./SourceLink";
-import SlimBars, { SlimColumns } from "./SlimBars";
+import SlimBars, { SlimColumns, gradId } from "./SlimBars";
 
 /** The site's colours for the panels, in turn. */
 export const INK = ["#2a78d6", "#10b981", "#f59e0b", "#8b5cf6", "#ef4444", "#06b6d4", "#ec4899", "#84cc16", "#f97316", "#6366f1"];
@@ -138,9 +138,18 @@ function Ring({ t, slices, unit = "%" }: { t: Tokens; slices: { name: string; v:
       <div className="w-[120px] h-[120px] shrink-0">
         <ResponsiveContainer width="100%" height="100%">
           <PieChart>
-            <Pie data={parts} dataKey="v" nameKey="name" innerRadius={38} outerRadius={56} paddingAngle={parts.length > 1 ? 1.5 : 0} stroke="none" cornerRadius={2} isAnimationActive={false}>
+            <defs>
+              {[...new Set(parts.map((s) => s.color))].map((c) => (
+                <linearGradient key={c} id={gradId(c)} x1="0" y1="0" x2="1" y2="1">
+                  <stop offset="0%" stopColor={c} stopOpacity={0.55} />
+                  <stop offset="100%" stopColor={c} stopOpacity={1} />
+                </linearGradient>
+              ))}
+            </defs>
+            <Pie data={[{ v: 1 }]} dataKey="v" innerRadius={45} outerRadius={56} fill={t.gridLine} stroke="none" isAnimationActive={false} tooltipType="none" />
+            <Pie data={parts} dataKey="v" nameKey="name" innerRadius={45} outerRadius={56} paddingAngle={parts.length > 1 ? 2.5 : 0} stroke="none" cornerRadius={3} isAnimationActive={false}>
               {parts.map((s) => (
-                <Cell key={s.name} fill={s.color} />
+                <Cell key={s.name} fill={`url(#${gradId(s.color)})`} />
               ))}
             </Pie>
             <Tooltip {...tip} formatter={(v: number, k: string) => [`${v.toFixed(1)}${unit}`, k]} />

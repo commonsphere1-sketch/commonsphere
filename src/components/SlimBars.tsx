@@ -26,6 +26,9 @@ export type SlimRow = {
   faint?: boolean;
 };
 
+/** The id of the slim style's gradient for a colour: the same colour makes the same gradient, so two charts on a page can share it. */
+export const gradId = (c: string) => `sg-${c.replace(/[^a-zA-Z0-9]/g, "")}`;
+
 /** A round number at or above the largest figure: 1, 1.5, 2, 2.5, 3, 4, 5, 6 or 8 times a power of ten. */
 function roundUp(v: number): number {
   if (v <= 0) return 1;
@@ -101,7 +104,7 @@ export function SlimColumns({
   height = 170,
   label,
 }: {
-  rows: { key: string; label: string; v: number }[];
+  rows: { key: string; label: string; v: number; /** Drawn fainter: a projection. */ faint?: boolean }[];
   fmt: (v: number) => string;
   up?: string;
   down?: string;
@@ -129,9 +132,21 @@ export function SlimColumns({
           <ReferenceLine y={0} stroke="currentColor" strokeOpacity={0.25} />
           <Bar dataKey="v" maxBarSize={14} radius={7} background={{ fill: "currentColor", fillOpacity: 0.06, radius: 7 }} isAnimationActive={false}>
             {rows.map((r) => (
-              <Cell key={r.key} fill={`url(#${id}-${r.v >= 0 ? "up" : "down"})`} />
+              <Cell key={r.key} fill={`url(#${id}-${r.v >= 0 ? "up" : "down"})`} fillOpacity={r.faint ? 0.45 : 1} />
             ))}
-            <LabelList dataKey="v" position="top" formatter={(v: number) => fmt(v)} style={{ fontSize: 9, fontFamily: "monospace", fontWeight: 600, fill: "currentColor" }} />
+            <LabelList
+              dataKey="v"
+              content={(p: { x?: number | string; y?: number | string; width?: number | string; height?: number | string; value?: number | string }) => {
+                const x = Number(p.x ?? 0) + Number(p.width ?? 0) / 2;
+                const y = Number(p.y ?? 0);
+                const h = Number(p.height ?? 0);
+                return (
+                  <text x={x} y={Math.min(y, y + h) - 4} textAnchor="middle" style={{ fontSize: 9, fontFamily: "monospace", fontWeight: 600, fill: "currentColor" }}>
+                    {fmt(Number(p.value ?? 0))}
+                  </text>
+                );
+              }}
+            />
           </Bar>
         </BarChart>
       </ResponsiveContainer>

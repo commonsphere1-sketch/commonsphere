@@ -23,7 +23,8 @@
  * are of that ground and not of the administrative city.
  */
 import { useEffect, useMemo, useState, type ReactNode } from "react";
-import { Area, Bar, BarChart, CartesianGrid, Cell, ComposedChart, Line, LineChart, ReferenceLine, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
+import { SlimColumns } from "./SlimBars";
+import { Area, CartesianGrid, ComposedChart, Line, LineChart, ReferenceLine, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
 import { countriesData } from "../data/countriesData";
 import { UN_CITIES, UN_CITIES_SOURCE, type UnCity } from "../data/unCities";
 import { ChartNote, ChartTitle, FigureRow, MeasureBars, PartsDonut } from "./ModalCharts";
@@ -168,20 +169,7 @@ export default function CityAnalysis({ c, color, fallback }: { c: UnCity; color:
       {periods.length > 1 && (
         <Section title="📊 Its growth, five years at a time" note="The change a year over each five years, compounded: worked out here from the UN's figures at either end. A bar below the line is a fall. Paler bars are projections.">
           <div className="modal-tile rounded-lg p-4" role="img" aria-label={`${name}'s growth a year: ${periods.map((x) => `${x.span} ${pct(x.v)}`).join(", ")}.`}>
-            <ResponsiveContainer width="100%" height={170}>
-              <BarChart data={periods} margin={{ top: 6, right: 8, left: 0, bottom: 0 }}>
-                <CartesianGrid stroke="currentColor" strokeOpacity={0.08} vertical={false} />
-                <XAxis dataKey="label" tick={tick} axisLine={false} tickLine={false} interval={0} />
-                <YAxis tick={tick} axisLine={false} tickLine={false} width={40} tickFormatter={(v: number) => `${v}%`} />
-                <ReferenceLine y={0} stroke="currentColor" strokeOpacity={0.35} />
-                <Tooltip formatter={(v: number) => [pct(v, 2), "A year"]} labelFormatter={(_, items) => (items[0]?.payload as { span?: string } | undefined)?.span ?? ""} contentStyle={tip} cursor={{ fill: "currentColor", fillOpacity: 0.06 }} />
-                <Bar dataKey="v" isAnimationActive={false} radius={[2, 2, 0, 0]}>
-                  {periods.map((x) => (
-                    <Cell key={x.label} fill={color} fillOpacity={x.projected ? 0.35 : 0.9} />
-                  ))}
-                </Bar>
-              </BarChart>
-            </ResponsiveContainer>
+              <SlimColumns label={`${name}'s growth a year over each five years`} rows={periods.map((x) => ({ key: x.label, label: x.label, v: x.v, faint: x.projected }))} fmt={(v) => `${v > 0 ? "+" : ""}${v.toFixed(1)}%`} up={color} down={color} />
           </div>
           {fastest && (
             <ChartNote>
