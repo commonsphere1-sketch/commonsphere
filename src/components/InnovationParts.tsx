@@ -18,7 +18,7 @@ import { ORBITAL_LAUNCHES, LAUNCHES_PARTIAL_YEAR, LAUNCH_AGENCIES, SPACE_OBJECTS
 import { GENOME_COST } from "../data/technology";
 import { BATTERY_CELL_PRICE } from "../data/renewables";
 import { SATELLITES, SATELLITES_WORKING, RD_BUDGETS, RD_BUDGET_SERIES, RD_OBJECTIVES, SCANNERS, SCANNER_KINDS, FRONTIER2_SOURCES } from "../data/frontiers2";
-import { AI_COMPUTE_MAX, AI_LATEST, AI_COUNTRIES, SOLAR_PRICE, SOLAR_GW, WIND_GW, RENEWABLE_SHARE, LCOE, EV_SHARE, ROBOTS, FASTEST_SUPERCOMPUTER, NUCLEAR_WARHEADS, NOBEL_SCIENCE, FRONTIER_SOURCES } from "../data/frontiers";
+import { AI_COMPUTE_MAX, AI_LATEST, AI_COUNTRIES, SOLAR_PRICE, SOLAR_GW, WIND_GW, RENEWABLE_SHARE, RENEWABLE_KINDS, LCOE, EV_SHARE, ROBOTS, FASTEST_SUPERCOMPUTER, NUCLEAR_WARHEADS, NOBEL_SCIENCE, FRONTIER_SOURCES } from "../data/frontiers";
 import { useTokens, type Tokens } from "./DataExplorer";
 import { INK, Panel, Note, Foot, Tiles } from "./CountryFigures";
 import SlimBars, { SlimColumns } from "./SlimBars";
@@ -468,10 +468,24 @@ function CleanEnergy({ t }: { t: Tokens }) {
         </Panel>
         <Panel t={t} title="Electricity from renewables" meta={`% of the world's · ${rs[0]?.[0]}–${rs[rs.length - 1]?.[0]}`}>
           <Series t={t} id="fr-renew" rows={rs} fmt={(v) => `${v.toFixed(0)}%`} color={INK[1]} />
+          {/* Each kind and its share of the world's electricity, as asked: the space under the line, filled. */}
+          <p className="text-[9px] font-mono uppercase tracking-widest" style={{ color: t.mutedText }}>
+            By kind · % of the world's electricity · {RENEWABLE_KINDS.year}
+          </p>
+          <SlimBars
+            labelWidth="9.75rem"
+            rows={RENEWABLE_KINDS.rows.filter(([, v]) => v !== null).map(([n, v, was], i) => ({ key: n, label: n, v: v as number, color: INK[(i + 1) % INK.length], tip: `${n}: ${(v as number).toFixed(2)}% of the world's electricity in ${RENEWABLE_KINDS.year}${was !== null ? `, ${was.toFixed(2)}% in ${RENEWABLE_KINDS.first}` : ""}` }))}
+            fmt={(v) => `${v.toFixed(1)}%`}
+          />
           <Note t={t}>
-            {rs[rs.length - 1]?.[1].toFixed(1)}% of the world's electricity in {rs[rs.length - 1]?.[0]}: hydropower, wind, solar, bioenergy and the rest.
+            {rs[rs.length - 1]?.[1].toFixed(1)}% of the world's electricity in {rs[rs.length - 1]?.[0]}.
+            {(() => {
+              const sum = RENEWABLE_KINDS.rows.reduce((n, [, v]) => n + (v ?? 0), 0);
+              const top = RENEWABLE_KINDS.rows[0];
+              return sum && top[1] !== null ? ` ${top[0]} is ${((100 * top[1]) / sum).toFixed(0)}% of the renewable share, solar and wind together ${((100 * ((RENEWABLE_KINDS.rows[1][1] ?? 0) + (RENEWABLE_KINDS.rows[2][1] ?? 0))) / sum).toFixed(0)}% - worked out here. In ${RENEWABLE_KINDS.first} solar made ${RENEWABLE_KINDS.rows[1][2]?.toFixed(2)}% of the world's electricity and wind ${RENEWABLE_KINDS.rows[2][2]?.toFixed(2)}%.` : "";
+            })()}
           </Note>
-          <Foot sources={[FRONTIER_SOURCES.renew]} />
+          <Foot sources={[FRONTIER_SOURCES.renew, FRONTIER_SOURCES.renewKinds]} />
         </Panel>
         <Panel t={t} title="Electric cars" meta={`% of new cars sold · ${ev[ev.length - 1]?.[0]}`}>
           <Series t={t} id="fr-ev" rows={ev} fmt={(v) => `${v.toFixed(0)}%`} color={INK[5]} height={130} />

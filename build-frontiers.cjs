@@ -77,6 +77,22 @@ const topLatest = (rows, col, n = 10) => {
   const solar = owid("installed-solar-pv-capacity");
   const wind = owid("cumulative-installed-wind-energy-capacity-gigawatts");
   const renew = owid("share-of-electricity-production-from-renewable-sources");
+  // Each kind of renewable electricity, the world's share from each: in the latest year and in 2000, the first year of Ember's own figures.
+  const bySource = owid("share-elec-by-source").filter((x) => x.entity === "World");
+  const KINDS = [
+    ["Hydropower", "hydro_share_of_electricity__pct"],
+    ["Solar", "solar_share_of_electricity__pct"],
+    ["Wind", "wind_share_of_electricity__pct"],
+    ["Bioenergy", "bioenergy_share_of_electricity__pct"],
+    ["Geothermal, wave and tidal", "other_renewables_excluding_bioenergy_share_of_electricity__pct"],
+  ];
+  const kindsLast = Math.max(...bySource.filter((x) => KINDS.every(([, c]) => x[c] !== null)).map((x) => x.year));
+  const kindsAt = (y) => bySource.find((x) => x.year === y) || {};
+  const renewKinds = KINDS.map(([n, c]) => [n, r(kindsAt(kindsLast)[c] ?? null, 2), r(kindsAt(2000)[c] ?? null, 2)]);
+  // A check: the kinds add up to the renewable share the other series gives, within rounding.
+  const renewLast = world(renew, "renewable_share_of_electricity__pct").find(([y]) => y === kindsLast)?.[1];
+  const kindsSum = renewKinds.reduce((n, [, v]) => n + (v ?? 0), 0);
+  if (renewLast !== undefined && Math.abs(kindsSum - renewLast) > 0.2) throw new Error(`renewable kinds add to ${kindsSum}, the share is ${renewLast}`);
   const lcoe = owid("levelized-cost-of-energy");
   const techs = ["solar_photovoltaic", "onshore_wind", "offshore_wind", "hydropower", "geothermal", "bioenergy", "concentrated_solar_power"];
   const lcoeWorld = lcoe.filter((x) => x.entity === "World");
@@ -143,6 +159,7 @@ export const FRONTIER_SOURCES = {
   solar: owid("installed-solar-pv-capacity", "IRENA — installed solar capacity"),
   wind: owid("cumulative-installed-wind-energy-capacity-gigawatts", "IRENA — installed wind capacity"),
   renew: owid("share-of-electricity-production-from-renewable-sources", "Ember and the Energy Institute — share of electricity from renewables"),
+  renewKinds: owid("share-elec-by-source", "Ember and the Energy Institute — share of electricity by source"),
   lcoe: owid("levelized-cost-of-energy", "IRENA — levelized cost of electricity by technology"),
   ev: owid("electric-car-sales-share", "IEA — Global EV Outlook, electric car sales share"),
   robots: owid("annual-industrial-robots-installed", "International Federation of Robotics — industrial robot installations"),
@@ -165,6 +182,8 @@ export const SOLAR_GW: { world: [year: number, v: number][]; top: { year: number
 export const WIND_GW: { world: [year: number, v: number][]; top: { year: number; rows: [country: string, v: number][] } } = { world: ${J(world(wind, "wind__total_gw"))}, top: ${J(topLatest(wind, "wind__total_gw"))} };
 /** The share of the world's electricity made from renewable sources, %. */
 export const RENEWABLE_SHARE: [year: number, pct: number][] = ${J(world(renew, "renewable_share_of_electricity__pct"))};
+/** Each kind of renewable electricity: its share of the world's electricity, %, in ${kindsLast} and in 2000. */
+export const RENEWABLE_KINDS: { year: number; first: number; rows: [kind: string, pct: number | null, pct2000: number | null][] } = { year: ${kindsLast}, first: 2000, rows: ${J(renewKinds)} };
 /** What a kilowatt-hour of electricity costs to make, US$, by technology: [technology, ${lcoeFirst}, ${lcoeLast}], the world's. */
 export const LCOE: { first: number | null; last: number | null; rows: [tech: string, first: number | null, last: number | null][] } = { first: ${lcoeFirst}, last: ${lcoeLast}, rows: ${J(lcoeRows)} };
 /** The share of new cars sold that are electric, %: the world's, and the ten highest countries'. */
