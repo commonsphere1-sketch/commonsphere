@@ -2229,6 +2229,8 @@ export function EconomiesPage() {
 
   const filtered = economiesData
     .filter((e) => {
+      // The European Union's card was taken off the list, as asked; its figures stay for the rest of the site.
+      if (e.id === "eu-eco") return false;
       const matchSearch = e.name.toLowerCase().includes(search.toLowerCase());
       const matchType = typeFilter === "All" || e.entityType === typeFilter;
       return matchSearch && matchType;
