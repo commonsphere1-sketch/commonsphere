@@ -1405,7 +1405,8 @@ function EnergySection({
 // The offences are given as figures, not bars: they are on scales a hundred
 // times apart, and the bars they had were each drawn against a ceiling picked
 // for the purpose.
-type CrimeField = keyof (typeof COUNTRY_CRIME)[string];
+// The five offences this panel reads, of the many the data now holds (the Worldview page gives them all).
+type CrimeField = "homicide" | "robbery" | "assault" | "burglary" | "vehicleTheft";
 const OFFENCE_PRISONS_SOURCE = { label: "UNODC — prisons and prisoners", url: "https://data.unodc.org/datareport/prison-held" };
 const CRIME_FIELDS: [CrimeField, string][] = [
   ["homicide", "Intentional homicide"],

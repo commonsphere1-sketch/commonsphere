@@ -22,6 +22,14 @@ export interface DataLogEntry {
 
 export const DATA_LOG: DataLogEntry[] = [
   {
+    "what": "Recorded crime and prison populations",
+    "from": "UNODC, World Prison Brief",
+    "page": "/dashboard/crime",
+    "where": "Crime statistics",
+    "read": "2026-10-15",
+    "files": 3
+  },
+  {
     "what": "How far each government watches and restricts its people online: social media monitoring, filtering, shutdowns, arrests, privacy law",
     "from": "V-Dem Institute, Digital Society Project",
     "page": "/dashboard/worldview",
@@ -420,14 +428,6 @@ export const DATA_LOG: DataLogEntry[] = [
     "where": "Trends",
     "read": "2026-10-01",
     "files": 1
-  },
-  {
-    "what": "Recorded crime and prison populations",
-    "from": "UNODC, World Prison Brief",
-    "page": "/dashboard/crime",
-    "where": "Crime statistics",
-    "read": "2026-10-01",
-    "files": 3
   },
   {
     "what": "The fifty states: people, incomes, budgets and power",

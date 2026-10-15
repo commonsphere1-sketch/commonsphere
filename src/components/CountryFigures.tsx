@@ -367,16 +367,15 @@ export default function CountryFigures({ code, name }: { code: string; name: str
   const producedSources = produced.slice(0, 8).flatMap((r) => r.sources);
   const axis = { tick: { fontSize: 9, fill: t.mutedText, fontFamily: "monospace" }, axisLine: false, tickLine: false } as const;
   const tip = { contentStyle: { background: t.tooltipBg, border: t.cardBorder, borderRadius: 8, fontSize: 11 }, labelStyle: { color: t.headText }, itemStyle: { color: t.headText } };
-  const crimeRows = crime
-    ? (
-        [
-          ["homicide", "Murders"],
-          ["robbery", "Robberies"],
-          ["assault", "Serious assaults"],
-          ["burglary", "Burglaries"],
-          ["vehicleTheft", "Vehicle thefts"],
-        ] as const
-      ).flatMap(([k, label]) => (crime[k] ? [{ label, v: crime[k]!.v, y: crime[k]!.y, derived: crime[k]!.derived }] : []))
+  // Every kind of offence UNODC records for it, in four groups; each group is drawn on its own scale, since a theft and a bribe are counted in very different numbers.
+  const CRIME_GROUPS = [
+    { name: "Violent", kinds: [["homicide", "Murders"], ["robbery", "Robberies"], ["assault", "Serious assaults"], ["kidnapping", "Kidnappings"], ["sexualViolence", "Sexual violence"], ["rape", "Rapes"]] },
+    { name: "Property", kinds: [["theft", "Thefts"], ["burglary", "Burglaries"], ["vehicleTheft", "Vehicle thefts"], ["fraud", "Frauds"]] },
+    { name: "Corruption and organised crime", kinds: [["corruption", "Corruption"], ["bribery", "Bribery"], ["moneyLaundering", "Money laundering"], ["migrantSmuggling", "Smuggling of migrants"]] },
+    { name: "Cyber", kinds: [["computerAccess", "Unlawful access to a computer system"]] },
+  ] as const;
+  const crimeGroups = crime
+    ? CRIME_GROUPS.map((g) => ({ name: g.name, rows: g.kinds.flatMap(([k, label]) => (crime[k] ? [{ label, v: crime[k]!.v, y: crime[k]!.y }] : [])) })).filter((g) => g.rows.length)
     : [];
   const indexRows = INDEX_DEFS.flatMap((d) => {
     const f = indexes[d.id];
@@ -835,18 +834,30 @@ export default function CountryFigures({ code, name }: { code: string; name: str
 
       {/* ── Security, crime and justice ── */}
       <Section t={t} title="Security, crime and justice" kicker="how safe, how lawful, who is held">
-        <Panel t={t} title="Recorded crime" meta="per 100,000 people">
-          {crimeRows.length ? (
+        <Panel t={t} title="Crime by type" meta="recorded by the police, per 100,000 people" className={crimeGroups.length > 1 ? "md:!basis-full xl:!basis-full" : ""}>
+          {crimeGroups.length ? (
             <>
-              <SlimBars
-                label={`Offences recorded in ${name}, per 100,000 people`}
-                labelWidth="7rem"
-                rows={crimeRows.map((r, i) => ({ key: r.label, label: r.label, v: r.v, color: INK[(i + 4) % INK.length], tip: `${r.label}: ${r.v} per 100,000 · ${r.y}` }))}
-                fmt={(v) => (v >= 100 ? Math.round(v).toLocaleString("en-US") : v.toFixed(1))}
-              />
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-4">
+                {crimeGroups.map((g, gi) => (
+                  <div key={g.name} className="flex flex-col gap-1.5 min-w-0">
+                    <p className="text-[9px] font-mono uppercase tracking-widest" style={{ color: t.mutedText }}>
+                      {g.name}
+                    </p>
+                    <SlimBars
+                      label={`${g.name} offences recorded in ${name}, per 100,000 people`}
+                      labelWidth="8rem"
+                      rows={g.rows.map((r, i) => ({ key: r.label, label: r.label, v: r.v, color: INK[(gi * 3 + i + 4) % INK.length], tip: `${r.label}: ${r.v} per 100,000 · ${r.y}` }))}
+                      fmt={(v) => (v >= 100 ? Math.round(v).toLocaleString("en-US") : v >= 1 ? v.toFixed(1) : v.toFixed(2))}
+                    />
+                    <p className="text-[9px] font-mono" style={{ color: t.mutedText }}>
+                      {[...new Set(g.rows.map((r) => r.y))].sort().join(", ")}
+                    </p>
+                  </div>
+                ))}
+              </div>
               <Note t={t}>
-                {crimeRows.map((r) => `${r.label} ${r.v} (${r.y})`).join(" · ")}. Offences recorded by the police, as UNODC gathers them
-                {crimeRows.some((r) => r.derived) ? "; a rate marked from counts is worked out from UNODC's count and the population" : ""}.
+                Offences recorded by the police, as UNODC gathers them, each for the latest year it holds in the last ten. Each group is drawn on its own scale. Each country records by its own definitions and its people report
+                crimes to the police at different rates, so a higher figure can mean more reporting as well as more crime: UNODC cautions against setting one country's against another's.
               </Note>
               <Foot sources={[CRIME_SOURCE]} />
             </>

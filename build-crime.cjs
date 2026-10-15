@@ -131,26 +131,24 @@ function loadCountries() {
   const burglary = longFormat(eco.at, (r, c) => r[c.cat] === "Burglary" && isTotal(r, c) && isRate(r, c));
   const vehicle = longFormat(eco.at, (r, c) => r[c.cat] === "Theft: of a motorized vehicle" && isTotal(r, c) && isRate(r, c));
 
-  // The violent-crime file is wide and names countries without codes; take
-  // codes from the other two files, which carry both.
-  const nameToIso = { ...homicide.names, ...burglary.names };
-  const { rows } = readXlsx(vio.at);
-  const vh = rows.findIndex((r) => r[2] === "Country" && r[3] === "Category");
-  if (vh < 0 || rows[vh][4] !== "variable" || rows[vh][5] !== "value") throw new Error("violent file layout changed");
-  const pop = await population();
-  const counts = { Robbery: {}, "Serious assault": {} };
-  const unnamed = new Set();
-  for (const r of rows.slice(vh + 1)) {
-    if (!(r[3] in counts)) continue;
-    const v = num(r[5]), y = r[4];
-    if (!Number.isFinite(v) || +y < OLDEST) continue;
-    const iso = nameToIso[r[2]];
-    if (!iso) { unnamed.add(r[2]); continue; }
-    const p = pop[iso]?.[y];
-    if (!p) continue;
-    const bucket = counts[r[3]];
-    if (!bucket[iso] || +y > +bucket[iso].y) bucket[iso] = { v: (v / p) * 1e5, y: String(y) };
-  }
+  // Every kind of offence the files hold for a country, each the rate UNODC publishes, for the latest year in the last ten.
+  // The violent-crime file was once wide and named countries without codes; it is now long and coded as the other two are.
+  const offence = (file, cat) => longFormat(file, (r, c) => /ffences$/.test(r[c.ind]) && r[c.cat] === cat && isTotal(r, c) && isRate(r, c)).out;
+  const KINDS = {
+    robbery: [vio.at, "Robbery"],
+    assault: [vio.at, "Serious assault"],
+    kidnapping: [vio.at, "Kidnapping"],
+    sexualViolence: [vio.at, "Sexual violence"],
+    rape: [vio.at, "Sexual violence: Rape"],
+    theft: [eco.at, "Theft"],
+    fraud: [eco.at, "Fraud"],
+    corruption: [eco.at, "Corruption"],
+    bribery: [eco.at, "Corruption: Bribery"],
+    moneyLaundering: [eco.at, "Money laundering"],
+    migrantSmuggling: [eco.at, "Smuggling of migrants"],
+    computerAccess: [eco.at, "Unlawful access to a computer system"],
+  };
+  const kinds = Object.fromEntries(Object.entries(KINDS).map(([k, [file, cat]]) => [k, offence(file, cat)]));
 
   const iso3 = {};
   {
@@ -162,16 +160,15 @@ function loadCountries() {
   const r1 = (v) => (v >= 10 ? Math.round(v) : Math.round(v * 10) / 10);
   const lit = (x, derived) => (x ? `{ v: ${r1(x.v)}, y: "${x.y}"${derived ? ", derived: true" : ""} }` : null);
   const out = [];
-  const tally = { homicide: 0, robbery: 0, assault: 0, burglary: 0, vehicleTheft: 0 };
+  const tally = { homicide: 0, burglary: 0, vehicleTheft: 0, ...Object.fromEntries(Object.keys(KINDS).map((k) => [k, 0])) };
   for (const c of loadCountries().sort((a, b) => a.id.localeCompare(b.id))) {
     const i = iso3[c.code];
     if (!i) continue;
     const f = {
       homicide: lit(homicide.out[i]),
-      robbery: lit(counts.Robbery[i], true),
-      assault: lit(counts["Serious assault"][i], true),
       burglary: lit(burglary.out[i]),
       vehicleTheft: lit(vehicle.out[i]),
+      ...Object.fromEntries(Object.keys(KINDS).map((k) => [k, lit(kinds[k][i])])),
     };
     const parts = Object.entries(f).filter(([, v]) => v).map(([k, v]) => { tally[k]++; return `${k}: ${v}`; });
     if (parts.length) out.push(`  ${JSON.stringify(c.id)}: { ${parts.join(", ")} },`);
@@ -192,9 +189,14 @@ function loadCountries() {
  * script and re-run it.
  *
  * UNODC crime and criminal justice statistics (data.unodc.org):
- *   homicide, burglary, vehicleTheft  rates as UNODC publishes them
- *   robbery, assault (serious)        UNODC counts over World Bank population
- *                                     for the same year (\`derived: true\`)
+ *   every kind of offence below       the rate per 100,000 people UNODC
+ *                                     publishes, for the latest year of the
+ *                                     last ten: homicide; robbery, serious
+ *                                     assault, kidnapping, sexual violence and
+ *                                     rape; burglary, theft, vehicle theft,
+ *                                     fraud; corruption and bribery, money
+ *                                     laundering, smuggling of migrants, and
+ *                                     unlawful access to a computer system
  * UNODC cautions that recorded offences reflect each country's definitions
  * and reporting rates, so cross-country comparison is weak.
  */
@@ -211,8 +213,18 @@ export interface CountryCrime {
   homicide?: CrimeFigure;
   robbery?: CrimeFigure;
   assault?: CrimeFigure;
+  kidnapping?: CrimeFigure;
+  sexualViolence?: CrimeFigure;
+  rape?: CrimeFigure;
   burglary?: CrimeFigure;
+  theft?: CrimeFigure;
   vehicleTheft?: CrimeFigure;
+  fraud?: CrimeFigure;
+  corruption?: CrimeFigure;
+  bribery?: CrimeFigure;
+  moneyLaundering?: CrimeFigure;
+  migrantSmuggling?: CrimeFigure;
+  computerAccess?: CrimeFigure;
 }
 
 export const COUNTRY_CRIME: Record<string, CountryCrime> = {
@@ -222,5 +234,4 @@ ${out.join("\n")}
   );
   console.log(`wrote ${path.relative(__dirname, OUT)}: ${out.length} countries; releases ${hom.release}/${eco.release}/${vio.release}`);
   console.log("  coverage: " + Object.entries(tally).map(([k, n]) => `${k} ${n}`).join(", "));
-  if (unnamed.size) console.log("  violent-crime rows with no code match: " + [...unnamed].join(", "));
 })().catch((e) => { console.error(e); process.exit(1); });
