@@ -2,6 +2,9 @@ import { WindowTitle } from "./WindowTitle";
 import React, { useState } from "react";
 import ReactDOM from "react-dom";
 import { NavLink } from "react-router-dom";
+import { countriesData } from "@/data/countriesData";
+import { usStatesData } from "@/data/statesData";
+import { economiesData } from "@/data/economiesData";
 import {
   SquaresFour,
   GearSix,
@@ -104,195 +107,41 @@ const bottomNav = [
 
 // ─── About Modal ────────────────────────────────────────────────────────────
 
+/* The publishers the site's figures are mostly drawn from - each figure names its own, with its year, under the Sources menu beside it.
+   Only those whose terms let a commercial site use their data are listed, and used. */
 const DATA_SOURCES = [
-  {
-    icon: Bank,
-    name: "World Bank Open Data",
-    category: "Economics",
-    desc: "GDP, poverty, trade, and development indicators for 200+ economies.",
-    color: "text-emerald-400",
-    bg: "bg-emerald-500/10",
-    url: "https://data.worldbank.org",
-  },
-  {
-    icon: Globe,
-    name: "UN Statistics Division",
-    category: "Demographics",
-    desc: "Population, migration, and human development data from all UN member states.",
-    color: "text-blue-400",
-    bg: "bg-blue-500/10",
-    url: "https://unstats.un.org",
-  },
-  {
-    icon: ChartBar,
-    name: "IMF Data Warehouse",
-    category: "Fiscal & Monetary",
-    desc: "Government debt, currency reserves, inflation, and fiscal balance data.",
-    color: "text-purple-400",
-    bg: "bg-purple-500/10",
-    url: "https://data.imf.org",
-  },
-  {
-    icon: Flag,
-    name: "Freedom House",
-    category: "Civil Liberties",
-    desc: "Annual freedom scores measuring political rights and civil liberties globally.",
-    color: "text-orange-400",
-    bg: "bg-orange-500/10",
-    url: "https://freedomhouse.org",
-  },
-  {
-    icon: Buildings,
-    name: "US Census Bureau",
-    category: "US Demographics",
-    desc: "US state population, income, housing, and demographic breakdowns.",
-    color: "text-cyan-400",
-    bg: "bg-cyan-500/10",
-    url: "https://data.census.gov",
-  },
-  {
-    icon: Database,
-    name: "Bureau of Labor Statistics",
-    category: "Employment",
-    desc: "US employment, wages, unemployment rates, and labor productivity metrics.",
-    color: "text-indigo-400",
-    bg: "bg-indigo-500/10",
-    url: "https://bls.gov",
-  },
-  {
-    icon: ShieldCheck,
-    name: "FBI Crime Data Explorer",
-    category: "Public Safety",
-    desc: "National crime statistics by offense type, agency, and geography.",
-    color: "text-rose-400",
-    bg: "bg-rose-500/10",
-    url: "https://cde.ucr.cjis.gov",
-  },
-  {
-    icon: Newspaper,
-    name: "WHO Global Health Observatory",
-    category: "Public Health",
-    desc: "Life expectancy, disease burden, healthcare access, and mortality data.",
-    color: "text-teal-400",
-    bg: "bg-teal-500/10",
-    url: "https://who.int/data/gho",
-  },
-  {
-    icon: ChartLine,
-    name: "OECD Statistics",
-    category: "Policy & Economy",
-    desc: "Education, labor, tax, and well-being indicators across OECD nations.",
-    color: "text-violet-400",
-    bg: "bg-violet-500/10",
-    url: "https://stats.oecd.org",
-  },
-  {
-    icon: Lightning,
-    name: "Int'l Energy Agency",
-    category: "Energy",
-    desc: "Global energy production, consumption, renewable share, and CO₂ emissions.",
-    color: "text-yellow-400",
-    bg: "bg-yellow-500/10",
-    url: "https://iea.org/data-and-statistics",
-  },
-  {
-    icon: Scales,
-    name: "Heritage Foundation",
-    category: "Economic Freedom",
-    desc: "Annual Index of Economic Freedom across 180+ countries.",
-    color: "text-amber-400",
-    bg: "bg-amber-500/10",
-    url: "https://heritage.org/index",
-  },
-  {
-    icon: Newspaper,
-    name: "V-Dem Institute",
-    category: "Governance",
-    desc: "Multidimensional democracy indicators measuring 500+ political attributes.",
-    color: "text-pink-400",
-    bg: "bg-pink-500/10",
-    url: "https://v-dem.net",
-  },
-  {
-    icon: ShieldCheck,
-    name: "SIPRI Military Data",
-    category: "Defense & Security",
-    desc: "Military expenditure, arms transfers, and nuclear force estimates.",
-    color: "text-red-400",
-    bg: "bg-red-500/10",
-    url: "https://sipri.org",
-  },
-  {
-    icon: Globe,
-    name: "Pew Research Center",
-    category: "Public Opinion",
-    desc: "Political, religious, and social survey data across global populations.",
-    color: "text-sky-400",
-    bg: "bg-sky-500/10",
-    url: "https://pewresearch.org",
-  },
-  {
-    icon: ChartBar,
-    name: "ProPublica Congress API",
-    category: "US Legislation",
-    desc: "Real-time US congressional votes, members, bills, and committee data.",
-    color: "text-lime-400",
-    bg: "bg-lime-500/10",
-    url: "https://projects.propublica.org/api-docs/congress-api",
-  },
-  {
-    icon: Newspaper,
-    name: "NewsAPI",
-    category: "Live News",
-    desc: "Breaking news aggregation from 70,000+ sources in real time.",
-    color: "text-orange-300",
-    bg: "bg-orange-400/10",
-    url: "https://newsapi.org",
-  },
+  { icon: Bank, name: "World Bank Open Data", category: "Economy and development", desc: "GDP, trade, research, poverty and the World Development Indicators for every economy.", color: "text-emerald-400", bg: "bg-emerald-500/10", url: "https://data.worldbank.org" },
+  { icon: ChartBar, name: "International Monetary Fund", category: "Outlook", desc: "The World Economic Outlook: growth, inflation and debt, with its projections.", color: "text-purple-400", bg: "bg-purple-500/10", url: "https://www.imf.org/external/datamapper/" },
+  { icon: Globe, name: "United Nations", category: "People and places", desc: "World Population Prospects, the UN's cities, UN Comtrade's trade, UNODC's crime and UNESCO's statistics.", color: "text-blue-400", bg: "bg-blue-500/10", url: "https://unstats.un.org" },
+  { icon: ChartLine, name: "OECD", category: "Policy and research", desc: "Government spending, research budgets by aim, health and medical technology.", color: "text-violet-400", bg: "bg-violet-500/10", url: "https://data-explorer.oecd.org" },
+  { icon: Buildings, name: "US Census Bureau", category: "United States", desc: "States' and counties' people, income, housing and the American Community Survey.", color: "text-cyan-400", bg: "bg-cyan-500/10", url: "https://data.census.gov" },
+  { icon: Database, name: "Bureau of Labor Statistics", category: "US work", desc: "Employment, wages and unemployment in the United States.", color: "text-indigo-400", bg: "bg-indigo-500/10", url: "https://www.bls.gov" },
+  { icon: Scales, name: "V-Dem Institute", category: "Governance", desc: "How countries are ruled, and the rights their people hold.", color: "text-pink-400", bg: "bg-pink-500/10", url: "https://v-dem.net" },
+  { icon: Lightning, name: "Our World in Data", category: "Energy and invention", desc: "Ember's electricity, IRENA's renewables, Epoch AI's computing and more, as it republishes them.", color: "text-yellow-400", bg: "bg-yellow-500/10", url: "https://ourworldindata.org" },
+  { icon: Flag, name: "UK Foreign Office", category: "Law", desc: "The laws and customs each country's travel advice sets out, under the Open Government Licence.", color: "text-orange-400", bg: "bg-orange-500/10", url: "https://www.gov.uk/foreign-travel-advice" },
+  { icon: GlobeHemisphereWest, name: "Natural Earth, geoBoundaries and GeoNames", category: "Maps", desc: "The borders of countries, their divisions and districts, and their towns.", color: "text-teal-400", bg: "bg-teal-500/10", url: "https://www.naturalearthdata.com" },
+  { icon: Newspaper, name: "Wikidata", category: "Reference", desc: "Office-holders and facts, kept only where its record agrees with others; Wikipedia is listed last, never alone.", color: "text-sky-400", bg: "bg-sky-500/10", url: "https://www.wikidata.org" },
+  { icon: ShieldCheck, name: "GCAT and the Federation of American Scientists", category: "Space and security", desc: "Every launch and satellite in Jonathan McDowell's catalogue, and the world's nuclear arsenals.", color: "text-red-400", bg: "bg-red-500/10", url: "https://planet4589.org/space/gcat/" },
 ];
 
-const FEATURES = [
-  {
-    icon: Globe,
-    label: "195 Countries",
-    desc: "Full sovereign nation profiles with leadership, governance & economy data",
-  },
-  {
-    icon: Buildings,
-    label: "All 50 US States",
-    desc: "State-level political, economic, and demographic intelligence",
-  },
-  {
-    icon: City,
-    label: "Cities",
-    desc: "Major city profiles with regional economic and social indicators",
-  },
-  {
-    icon: CurrencyDollar,
-    label: "Economies",
-    desc: "Country, regional bloc, and global economic tracking",
-  },
-  {
-    icon: Scales,
-    label: "Policy Hub",
-    desc: "Active policies, legislation, and governance documents",
-  },
-  {
-    icon: Lectern,
-    label: "World Leaders",
-    desc: "Interactive map of current heads of state and government",
-  },
-  {
-    icon: ChartLine,
-    label: "Trends & Analysis",
-    desc: "Sector outlooks, forecasts, and macroeconomic trend signals",
-  },
-  {
-    icon: NotePencil,
-    label: "Research Notes",
-    desc: "Personal note-taking tied to any entity, exportable and organised",
-  },
-];
+/* What each of the menu's pages is for: the features are the menu's own pages, so that the window cannot list a page that has gone. */
+const FEATURE_ABOUT: Record<string, string> = {
+  "/dashboard": "The world at a glance: a map to press, the headlines, countries, states and cities, and an explorer of the site's figures.",
+  "/dashboard/worldview": "A wheel of countries, and for the one picked its economy, industry, people, health, security and standing - down to its states, counties and cities.",
+  "/dashboard/states": "Each US state's people, economy, politics and laws.",
+  "/dashboard/countries": "A window on every country and territory: its leaders, economy, people, law and divisions.",
+  "/dashboard/subnations": "States, provinces, counties, districts and towns the world over, each with its record.",
+  "/dashboard/cities": "The cities the United Nations counts: their people, their land and how they are growing.",
+  "/dashboard/economies": "Economies, their resources and trade, and a currency converter.",
+  "/dashboard/world-leaders": "Who holds office in each country, and the alliances and blocs countries belong to.",
+  "/dashboard/policy": "What governments spend and on what, and a calculator to move it from one area to another.",
+  "/dashboard/rankings": "Countries, states and systems side by side.",
+  "/dashboard/trends": "Space, AI, clean energy, science, medicine, military technology and the great projects, with what governments budget for research.",
+  "/dashboard/planetary-boundaries": "The state of the planet: emissions, temperature, energy and the limits the earth can bear.",
+  "/dashboard/crime": "Crime by type and by country, as the UN Office on Drugs and Crime counts it.",
+  "/dashboard/maps": "The world mapped by any measure the site holds.",
+  "/dashboard/notes": "Your own notes on any place, person or page.",
+};
 
 function AboutModal({ onClose }: { onClose: () => void }) {
   const [tab, setTab] = useState<"mission" | "features" | "sources">("mission");
@@ -317,7 +166,7 @@ function AboutModal({ onClose }: { onClose: () => void }) {
       >
         {/* Its name and the window's buttons: one bar across the top of the window - the same in every window of the site. */}
         {/* The window does not scroll as a whole - its body does - so the bar has no padding to reach across. */}
-        <WindowTitle className="!m-0 shrink-0" title={<span className="inline-flex items-center gap-2 min-w-0"><Globe size={18} weight="fill" className="text-secondary shrink-0" aria-hidden />About CommonSphere</span>} note="Political intelligence platform">
+        <WindowTitle className="!m-0 shrink-0" title={<span className="inline-flex items-center gap-2 min-w-0"><Globe size={18} weight="fill" className="text-secondary shrink-0" aria-hidden />About CommonSphere</span>} note="An atlas of the world as it stands">
           <button
             onClick={() => setIsExpanded((v) => !v)}
             className="p-2 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted/60 transition-colors cursor-pointer"
@@ -373,30 +222,31 @@ function AboutModal({ onClose }: { onClose: () => void }) {
                   </span>
                 </div>
                 <h3 className="text-base font-bold text-foreground font-sans mb-2 leading-snug">
-                  Democratising access to political intelligence
+                  An atlas of the world as it stands
                 </h3>
                 <p className="text-sm text-muted-foreground font-sans leading-relaxed">
-                  CommonSphere is a political intelligence platform built for
-                  researchers, analysts, journalists, and citizens who want to
-                  understand how the world is governed — without wading through
-                  dozens of disconnected sources.
+                  CommonSphere sets the world's nations, economies, people,
+                  climate, law and new developments side by side - for researchers,
+                  journalists and anyone who wants to understand how the world is
+                  governed and how it is changing, without wading through dozens of
+                  disconnected sources.
                 </p>
                 <p className="text-sm text-muted-foreground font-sans leading-relaxed mt-3">
-                  Geopolitical data has long been locked behind expensive
-                  subscriptions, inconsistent formats, and institutional
-                  gatekeeping. We remove those barriers — giving any researcher
-                  or policy professional access to the same depth of political
-                  intelligence that governments rely on.
+                  Every figure is its publisher's, named beside it with the year it
+                  describes. Nothing is estimated or made up: a figure the site does
+                  not hold is left out or marked Not held, and anything worked out
+                  here - a share, a change, a score - says so.
                 </p>
               </div>
 
               {/* Stats */}
               <div className="grid grid-cols-4 gap-3">
                 {[
-                  { val: "195", lbl: "Countries" },
-                  { val: "50", lbl: "US States" },
-                  { val: "40K+", lbl: "Data Points" },
-                  { val: "2024", lbl: "Founded" },
+                  // Counted from the data, as the Dashboard's welcome counts them, so that they cannot drift from it.
+                  { val: String(countriesData.filter((c) => !c.territory).length), lbl: "Countries" },
+                  { val: String(countriesData.filter((c) => c.territory).length), lbl: "Territories" },
+                  { val: String(usStatesData.length), lbl: "US States" },
+                  { val: String(economiesData.length), lbl: "Economies" },
                 ].map((s) => (
                   <div
                     key={s.lbl}
@@ -420,28 +270,28 @@ function AboutModal({ onClose }: { onClose: () => void }) {
                     color: "text-emerald-400",
                     bg: "bg-emerald-500/10",
                     title: "Global Coverage",
-                    desc: "Every sovereign nation, major territory, and all 50 US states in one unified view.",
+                    desc: "Every country and territory, their divisions, districts and towns, and the US states and counties, on one map.",
                   },
                   {
                     icon: Lightning,
                     color: "text-secondary",
                     bg: "bg-secondary/10",
-                    title: "Continuous Updates",
-                    desc: "Leadership changes, policy shifts, and economic signals surface as they happen.",
+                    title: "Kept current",
+                    desc: "The headlines are read every half hour, and each dataset gives the day it was read from its publisher.",
                   },
                   {
                     icon: Scales,
                     color: "text-blue-400",
                     bg: "bg-blue-500/10",
-                    title: "Non-partisan Integrity",
-                    desc: "Facts, not opinions. Every data point is sourced from verified government records.",
+                    title: "Sourced, never estimated",
+                    desc: "Facts, not opinions: official and reference publishers first, several a reader can open, Wikipedia last and never alone.",
                   },
                   {
                     icon: Newspaper,
                     color: "text-purple-400",
                     bg: "bg-purple-500/10",
-                    title: "Research-first Design",
-                    desc: "Built for analysts, journalists, and policy researchers who need rigorous depth.",
+                    title: "Open to use",
+                    desc: "Only data whose licence lets the site use it: public domain, the open Creative Commons licences and the Open Government Licence.",
                   },
                 ].map((v) => {
                   const Icon = v.icon;
@@ -472,7 +322,7 @@ function AboutModal({ onClose }: { onClose: () => void }) {
 
           {tab === "features" && (
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-              {FEATURES.map((f) => {
+              {[...mainNav, ...analysisNav, ...bottomNav].filter((n) => FEATURE_ABOUT[n.to]).map((n) => ({ icon: n.icon, label: n.label, desc: FEATURE_ABOUT[n.to] })).map((f) => {
                 const Icon = f.icon;
                 return (
                   <div
@@ -503,9 +353,9 @@ function AboutModal({ onClose }: { onClose: () => void }) {
           {tab === "sources" && (
             <div className="space-y-4">
               <p className="text-xs text-muted-foreground font-sans leading-relaxed">
-                Every data point on CommonSphere is sourced from authoritative,
-                publicly accessible institutions. We cross-reference multiple
-                sources to ensure accuracy and consistency.
+                The publishers the site's figures are mostly drawn from. Each figure
+                names its own source and the year it describes, under the Sources
+                menu beside it.
               </p>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 {DATA_SOURCES.map((src) => {
@@ -555,7 +405,7 @@ function AboutModal({ onClose }: { onClose: () => void }) {
         {/* Footer */}
         <div className="px-6 py-3 border-t border-border/40 modal-tile shrink-0 flex items-center justify-between">
           <span className="text-[10px] text-muted-foreground font-sans">
-            © 2024 CommonSphere. All rights reserved.
+            © {new Date().getFullYear()} CommonSphere. All rights reserved.
           </span>
           <span className="text-[10px] text-muted-foreground font-mono">
             v1.0.0
