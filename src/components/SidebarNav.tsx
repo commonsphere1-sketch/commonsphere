@@ -44,6 +44,8 @@ interface SidebarNavProps {
 
 const mainNav = [
   { to: "/dashboard", label: "Dashboard", icon: SquaresFour, end: true },
+  // The world, and any country, state, county or city in it, picked on its map: the first page under the Dashboard, as asked.
+  { to: "/dashboard/worldview", label: "Worldview", icon: GlobeStand, end: false },
   { to: "/dashboard/states", label: "US States", icon: Buildings, end: false },
   { to: "/dashboard/countries", label: "Countries", icon: Globe, end: false },
   // What countries are divided into - states, provinces, regions - and the counties of the United States: between the countries and their cities.
@@ -78,8 +80,6 @@ const analysisNav = [
   },
   // What is changing, field by field: the week's headlines, and the projections and trends behind them. It was "Trends".
   { to: "/dashboard/trends", label: "Developments", icon: ChartLine, end: false },
-  // The world as a whole: peace, debt, climate, development, food, technology.
-  { to: "/dashboard/worldview", label: "Worldview", icon: GlobeStand, end: false },
   {
     to: "/dashboard/planetary-boundaries",
     label: "Climate",
