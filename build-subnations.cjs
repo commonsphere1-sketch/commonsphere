@@ -504,7 +504,7 @@ const tidy = (o) => Object.fromEntries(Object.entries(o).filter(([, v]) => v !==
       flagLicence: licences.get(ownFlag ?? boxFlag),
       flagBy: boxFlag ? "wp" : undefined,
       official: r.official && r.official !== b.name ? r.official : undefined,
-      native: (r.native || b.local) && (r.native || b.local) !== b.name ? r.native || b.local : undefined,
+      native: (r.native || b.local) && (r.native || b.local) !== b.name ? String(r.native || b.local).replace(/\s+/g, " ").trim() : undefined,
       capital: named(r.capital) ?? seat ?? boxSeat,
       capitalBy: seat ? "gn" : boxSeat ? "wp" : undefined,
       legislature: named(r.legislature),

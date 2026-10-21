@@ -124,8 +124,9 @@ const topLatest = (rows, col, n = 10) => {
   for (const [cat, name] of [["phy", "Physics"], ["che", "Chemistry"], ["med", "Physiology or Medicine"]]) {
     const j = JSON.parse(get(`https://api.nobelprize.org/2.1/nobelPrizes?nobelPrizeYear=${thisYear - 10}&yearTo=${thisYear}&nobelPrizeCategory=${cat}&limit=50`, `nobel-${cat}.json`));
     for (const p of j.nobelPrizes || []) {
-      const laureates = (p.laureates || []).map((l) => l.knownName?.en || l.orgName?.en || l.fullName?.en).filter(Boolean);
-      const why = [...new Set((p.laureates || []).map((l) => l.motivation?.en).filter(Boolean))];
+      // Names and words tidied of the stray spaces the record has in a few.
+      const laureates = (p.laureates || []).map((l) => (l.knownName?.en || l.orgName?.en || l.fullName?.en || "").replace(/\s+/g, " ").trim()).filter(Boolean);
+      const why = [...new Set((p.laureates || []).map((l) => (l.motivation?.en || "").replace(/\s+/g, " ").trim()).filter(Boolean))];
       if (laureates.length) nobel.push([Number(p.awardYear), name, laureates, why]);
     }
   }

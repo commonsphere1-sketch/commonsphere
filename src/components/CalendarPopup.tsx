@@ -11,7 +11,7 @@
  * drawn without entries, and say so.
  */
 import { useEffect, useMemo, useState } from "react";
-import { CalendarBlank, CaretLeft, CaretRight, ArrowsIn, ArrowsOut, X } from "@phosphor-icons/react";
+import { CalendarBlank, CaretLeft, CaretRight, X } from "@phosphor-icons/react";
 import { CALENDAR_2026, CALENDAR_CHECKED, CALENDAR_YEAR, type CalendarEvent } from "../data/calendar2026";
 import { useTokens } from "./DataExplorer";
 import { QuarterTracker } from "./QuarterTracker";
@@ -188,7 +188,8 @@ function MonthCalendar({ wide = false }: { wide?: boolean } = {}) {
 export function CalendarPopup() {
   const t = useTokens();
   const [open, setOpen] = useState(false);
-  const [wide, setWide] = useState(false);
+  /* The window has no full-screen button: it was taken off, as asked. */
+  const wide = false;
   useEffect(() => {
     if (!open) return;
     const onKey = (e: KeyboardEvent) => e.key === "Escape" && setOpen(false);
@@ -218,9 +219,6 @@ export function CalendarPopup() {
             <span className="text-xs font-medium font-sans text-foreground/80">and the quarter tracker</span>
           </div>
           <div className="flex items-center gap-1.5 shrink-0">
-            <button onClick={() => setWide((v) => !v)} className="p-2 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted/60 transition-colors cursor-pointer" aria-label={wide ? "Collapse" : "Expand to full screen"} title={wide ? "Collapse" : "Expand to full screen"}>
-              {wide ? <ArrowsIn size={18} /> : <ArrowsOut size={18} />}
-            </button>
             <button onClick={() => setOpen(false)} className="p-2 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted/60 transition-colors cursor-pointer" aria-label="Close the calendar">
               <X size={18} />
             </button>

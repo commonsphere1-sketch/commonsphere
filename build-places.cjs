@@ -173,7 +173,7 @@ export const PLACES_TOTAL = ${total};
 export const PLACES_WORLD = { atLeast: ${WORLD_MIN}, count: ${world.length / 2} };
 
 /** [the country's or territory's name as GeoNames gives it, how many of its places there are, its continent's code], by ISO code. */
-export const PLACE_COUNTRIES: Record<string, [name: string, places: number, continent: string]> = ${q(Object.fromEntries(Object.keys(counts).map((cc) => [cc, [countryName.get(cc), counts[cc], continentOf.get(cc)]])))};
+export const PLACE_COUNTRIES: Record<string, [name: string, places: number, continent: string]> = ${q(Object.fromEntries(Object.keys(counts).map((cc) => [cc, [String(countryName.get(cc) ?? "").replace(/\s+/g, " ").trim(), counts[cc], continentOf.get(cc)]])))};
 `,
 );
 function whole(n) {

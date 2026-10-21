@@ -949,23 +949,7 @@ export const conflictsData: Conflict[] = [
     lat: 18.5,
     lng: -72.3,
   },
-  {
-    id: "taiwan-strait-tensions",
-    name: "Taiwan Strait Tensions",
-    type: "Political Instability",
-    intensity: "High",
-    region: "East Asia",
-    countries: ["China", "Taiwan", "United States"],
-    startYear: 1950,
-    active: true,
-    description:
-      "Ongoing Chinese military pressure on Taiwan through air and naval incursions, large-scale drills, and economic coercion. US arms sales and increasing military presence in the region escalate tensions.",
-    tags: ["PLA", "TSMC", "semiconductor war", "US-China"],
-    lastUpdate: "2026-04",
-    trend: "Escalating",
-    lat: 24.0,
-    lng: 121.5,
-  },
+  // Taiwan Strait Tensions stood here a second time, without its background; the full record is below.
   {
     id: "south-china-sea",
     name: "South China Sea Disputes",

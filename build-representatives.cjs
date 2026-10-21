@@ -679,7 +679,7 @@ export type RepresentativeRow = [country: string, place: string, region: string,
 
 /** By country, then the subdivisions with an ISO 3166-2 code first, then by population. */
 export const REPRESENTATIVES: RepresentativeRow[] = [
-${confirmed.map((p) => `  ${q([p.country, p.name, p.iso ?? "", p.head, p.officeName, p.since ?? "", p.lat, p.lon, p.pop, p.id, p.title, p.geo])},`).join("\n")}
+${confirmed.map((p) => `  ${q([p.country, p.name, p.iso ?? "", String(p.head).replace(/\s+/g, " ").trim(), p.officeName, p.since ?? "", p.lat, p.lon, p.pop, p.id, p.title, p.geo])},`).join("\n")}
 ];
 `,
   );

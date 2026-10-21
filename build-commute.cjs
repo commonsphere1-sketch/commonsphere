@@ -405,7 +405,7 @@ async function europeCities() {
       if (hits.length === 1 && rivals.length === 1) {
         const id = `un-${cc}-${hits[0][1]}`;
         if (out[id]) throw new Error(`${CITY_TABLE}: two cities answer for ${id}`);
-        out[id] = { place: r.place, code: r.code, ...(r.minutes ? { minutes: r.minutes } : {}), ...(r.modes ? { modes: r.modes } : {}) };
+        out[id] = { place: String(r.place).replace(/\s+/g, " ").trim(), code: r.code, ...(r.minutes ? { minutes: r.minutes } : {}), ...(r.modes ? { modes: r.modes } : {}) };
       } else missed.push(`${cc} ${r.place}${hits.length > 1 ? ` (${hits.length} of the UN's cities)` : rivals.length > 1 ? " (two of Eurostat's cities)" : ""}`);
     }
   }
