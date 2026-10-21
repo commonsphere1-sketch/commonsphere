@@ -31,16 +31,15 @@
  * happened, not a forecast: the published projections are on the Trends
  * page.
  */
-import { lazy, Suspense, useMemo, useState, type ReactNode } from "react";
+import { useEffect, useMemo, useState, type ReactNode } from "react";
 import { useNavigate } from "react-router-dom";
 import { Area, AreaChart, ResponsiveContainer } from "recharts";
 import { ArrowRight, Buildings, CaretDown, ChartLineUp, TrendDown, TrendUp } from "@phosphor-icons/react";
-import { citiesData } from "../data/citiesData";
-import { CITY_FIGURES, CITY_FIGURES_SOURCE } from "../data/cityFigures";
+import { countriesData } from "../data/countriesData";
+import { unCityId } from "../lib/profiledCities";
 import { RENEWABLE_GENERATION, RENEWABLE_GENERATION_SOURCE } from "../data/renewables";
 import { TSMC_REVENUE } from "../data/technology";
 import { WORLD } from "../data/worldview";
-import { cityGrowth, cityYear } from "../lib/cityFigures";
 import { useTokens, type Tokens } from "./DataExplorer";
 import { SourceLink } from "./SourceLink";
 import SlimBars from "./SlimBars";
@@ -48,9 +47,7 @@ import SlimBars from "./SlimBars";
 type Source = { label: string; url: string };
 type Point = [year: number, value: number];
 
-/** A city's quality-of-living bars, and where they are from: loaded with the country panels they read when the card is shown. */
-const CityQualityBars = lazy(() => import("./CityQualityBars"));
-const CityQualitySources = lazy(() => import("./CityQualityBars").then((m) => ({ default: m.CityQualitySources })));
+/* The quality-of-living bars that opened under a city (CityQualityBars) are in its window now; the card opens that. */
 
 const GREEN = "#10b981";
 const RED = "#ef4444";
@@ -108,118 +105,130 @@ export function Go({ color, onClick, children }: { color: string; onClick: () =>
 
 // ── Cities ──────────────────────────────────────────────────────────────────
 
-const BASE = CITY_FIGURES_SOURCE.baseYear;
+/* The card is the Cities page in brief, as asked: the cities the United Nations counts (World Urbanization Prospects: The
+   2025 Revision), the ten largest, and each one opening its own window on that page - not the 34 profiles it once listed.
+   The UN's list is large, so it is read when the card is first drawn. */
+type UnModule = typeof import("../data/unCities");
 const SINCE = 2000;
 const CITY_COLORS = ["#6366f1", "#8b5cf6", "#3b82f6", "#06b6d4", "#10b981", "#f59e0b", "#f97316", "#ef4444", "#a855f7", "#ec4899"];
 const millions = (n: number) => `${(n / 1e6).toFixed(1)}M`;
-
-/** The cities the site profiles, with the UN's population for its base year and their growth since 2000: the largest first. */
-const CITY_ROWS = citiesData
-  .flatMap((c) => {
-    const now = cityYear(c.id);
-    const f = CITY_FIGURES[c.id];
-    return now && f ? [{ c, pop: now.population, growth: cityGrowth(c.id, SINCE, BASE), capital: f.capital }] : [];
-  })
-  .sort((a, b) => b.pop - a.pop);
+const COUNTRY_NAME = new Map(countriesData.map((c) => [c.code, c.name]));
+/** A city's change from 2000 to 2025, %, where the UN gives both. */
+const since2000 = (c: UnModule["UN_CITIES"][number]) => (c[7] && c[8] ? ((c[8] - c[7]) / c[7]) * 100 : null);
 
 export function CitiesContainer() {
   const t = useTokens();
   const navigate = useNavigate();
   const color = "#10b981";
-  const top = CITY_ROWS.slice(0, 10);
+  const [un, setUn] = useState<UnModule | null>(null);
+  useEffect(() => {
+    let off = false;
+    import("../data/unCities").then((m) => !off && setUn(m));
+    return () => {
+      off = true;
+    };
+  }, []);
+  const base = un?.UN_CITY_YEARS[2] ?? 2025;
+  const top = useMemo(() => (un ? un.UN_CITIES.slice(0, 10) : []), [un]);
+  // The fastest-growing since 2000 of the cities of a million or more: among smaller ones a few thousand new people is a large share.
+  const fastest = useMemo(() => {
+    if (!un) return null;
+    let best: { c: UnModule["UN_CITIES"][number]; pct: number } | null = null;
+    for (const c of un.UN_CITIES) {
+      if (c[8] < 1e6) break;
+      const pct = since2000(c);
+      if (pct !== null && (!best || pct > best.pct)) best = { c, pct };
+    }
+    return best;
+  }, [un]);
+  const open = (c: UnModule["UN_CITIES"][number]) => navigate(`/dashboard/cities?open=${unCityId(c)}`);
   const largest = top[0];
-  // One city is open at a time: the first, until another is chosen.
-  const [open, setOpen] = useState(top[0]?.c.id);
-  const fastest = useMemo(() => [...CITY_ROWS].filter((r) => r.growth).sort((a, b) => b.growth!.pct - a.growth!.pct)[0], []);
-  const chart = top.map((r, i) => ({ name: r.c.name.length > 9 ? `${r.c.name.slice(0, 8)}…` : r.c.name, full: r.c.name, pop: Number((r.pop / 1e6).toFixed(1)), color: CITY_COLORS[i % CITY_COLORS.length] }));
   return (
     <Card t={t} className="flex-1">
-      <Head t={t} icon={<Buildings size={16} weight="fill" />} label="Cities" badge={`${CITY_ROWS.length} profiled`} color={color} cta="All Cities" to="/dashboard/cities" />
+      <Head t={t} icon={<Buildings size={16} weight="fill" />} label="Cities" badge={un ? `${un.UN_CITIES.length.toLocaleString("en-US")} counted` : "the UN's"} color={color} cta="All Cities" to="/dashboard/cities" />
 
-      <Kicker t={t}>Population · millions · {BASE}</Kicker>
-      <div role="img" aria-label={`The ten largest cities on the site by population, ${BASE}: ${top.map((r) => `${r.c.name} ${millions(r.pop)}`).join(", ")}.`}>
-        <SlimBars dense labelWidth="6.5rem" rows={chart.map((d) => ({ key: d.full, label: d.full, v: d.pop, color: d.color, tip: `${d.full}: ${d.pop}M people` }))} fmt={(v) => `${v}M`} />
-      </div>
-      <SourceLink sources={[{ label: "United Nations, World Urbanization Prospects: The 2025 Revision", url: CITY_FIGURES_SOURCE.url }]} className="mt-1 mb-1" />
+      {!un ? (
+        <p className="text-[11px] font-sans" style={{ color: t.mutedText }}>
+          Loading the cities…
+        </p>
+      ) : (
+        <>
+          <Kicker t={t}>Population · millions · {base}</Kicker>
+          <div role="img" aria-label={`The world's ten largest cities by population, ${base}: ${top.map((c) => `${c[2]} ${millions(c[8])}`).join(", ")}.`}>
+            <SlimBars dense labelWidth="7.5rem" rows={top.map((c, i) => ({ key: unCityId(c), label: c[2], v: Number((c[8] / 1e6).toFixed(1)), color: CITY_COLORS[i % CITY_COLORS.length], tip: `${c[2]}: ${millions(c[8])} people, ${base}` }))} fmt={(v) => `${v}M`} />
+          </div>
+          <SourceLink sources={[un.UN_CITIES_SOURCE]} className="mt-1 mb-1" />
 
-      {/* City list */}
-      <div className="flex flex-col flex-1 mt-3 pt-3" style={{ borderTop: `1px solid ${t.gridLine}` }}>
-        <Kicker t={t}>The ten largest · choose one for its quality of living</Kicker>
-        {top.map(({ c, pop, growth, capital }, i) => (
-          <div key={c.id} className="py-2" style={{ borderBottom: i < top.length - 1 ? `1px solid ${t.gridLine}` : "none" }}>
-            <button type="button" aria-expanded={open === c.id} onClick={() => setOpen(c.id)} className="flex items-center gap-2 w-full text-left hover:opacity-80 transition-opacity cursor-pointer">
-              <img src={`https://flagcdn.com/w40/${c.countryCode.toLowerCase()}.png`} alt="" width={20} height={15} loading="lazy" className="rounded-sm shrink-0" onError={(e) => (e.currentTarget.style.visibility = "hidden")} />
-              <span className="flex-1 min-w-0">
-                <span className="block text-xs font-semibold font-sans truncate" style={{ color: t.headText }}>
-                  {c.name}
-                </span>
-                <span className="block text-[10px] font-mono truncate" style={{ color: t.mutedText }}>
-                  {c.country}
-                  {capital ? " · its capital" : ""}
-                </span>
-              </span>
-              {/* On the scale of the largest city shown. */}
-              <span className="w-12 h-1.5 rounded-full overflow-hidden shrink-0" style={{ background: t.isLight ? "rgba(0,0,0,0.07)" : "rgba(255,255,255,0.08)" }} aria-hidden>
-                <span className="block h-full rounded-full" style={{ width: `${Math.round((100 * pop) / largest.pop)}%`, background: CITY_COLORS[i % CITY_COLORS.length] }} />
-              </span>
-              <span className="text-right shrink-0 w-16">
-                <span className="block text-[11px] font-mono font-semibold" style={{ color: t.headText }}>
-                  {millions(pop)}
-                </span>
-                {growth && (
-                  <span className="block text-[10px] font-mono" style={{ color: growth.pct >= 0 ? GREEN : RED }}>
-                    {signed(growth.pct, 0)}
+          {/* The ten, each opening its window on the Cities page. */}
+          <div className="flex flex-col flex-1 mt-3 pt-3" style={{ borderTop: `1px solid ${t.gridLine}` }}>
+            <Kicker t={t}>The world's ten largest · choose one to open its window</Kicker>
+            {top.map((c, i) => {
+              const pct = since2000(c);
+              return (
+                <button
+                  key={unCityId(c)}
+                  type="button"
+                  onClick={() => open(c)}
+                  className="flex items-center gap-2 w-full text-left py-2 hover:opacity-80 transition-opacity cursor-pointer"
+                  style={{ borderBottom: i < top.length - 1 ? `1px solid ${t.gridLine}` : "none" }}
+                  aria-label={`Open ${c[2]}'s window`}
+                >
+                  <img src={`https://flagcdn.com/w40/${c[0].toLowerCase()}.png`} alt="" width={20} height={15} loading="lazy" className="rounded-sm shrink-0" onError={(e) => (e.currentTarget.style.visibility = "hidden")} />
+                  <span className="flex-1 min-w-0">
+                    <span className="block text-xs font-semibold font-sans" style={{ color: t.headText }}>
+                      {c[2]}
+                    </span>
+                    <span className="block text-[10px] font-mono" style={{ color: t.mutedText }}>
+                      {COUNTRY_NAME.get(c[0]) ?? c[0]}
+                      {c[5] ? " · its capital" : ""}
+                    </span>
                   </span>
-                )}
-              </span>
-              <Caret open={open === c.id} color={t.mutedText} />
-            </button>
-            {/* Quality of living: the rows of the city's own window, which are its country's and say so. */}
-            {open === c.id && (
-              <Suspense fallback={null}>
-                <CityQualityBars t={t} code={c.countryCode} country={c.country} city={c.id} name={c.name} />
-                <div className="pl-7 mt-2">
-                  <Go color={color} onClick={() => navigate(`/dashboard/cities?open=${c.id}`)}>
-                    Open {c.name}
-                  </Go>
-                </div>
-              </Suspense>
-            )}
+                  {/* On the scale of the largest. */}
+                  <span className="w-12 h-1.5 rounded-full overflow-hidden shrink-0" style={{ background: t.isLight ? "rgba(0,0,0,0.07)" : "rgba(255,255,255,0.08)" }} aria-hidden>
+                    <span className="block h-full rounded-full" style={{ width: `${Math.round((100 * c[8]) / largest[8])}%`, background: CITY_COLORS[i % CITY_COLORS.length] }} />
+                  </span>
+                  <span className="text-right shrink-0 w-16">
+                    <span className="block text-[11px] font-mono font-semibold" style={{ color: t.headText }}>
+                      {millions(c[8])}
+                    </span>
+                    {pct !== null && (
+                      <span className="block text-[10px] font-mono" style={{ color: pct >= 0 ? GREEN : RED }}>
+                        {signed(pct, 0)}
+                      </span>
+                    )}
+                  </span>
+                  <ArrowRight size={11} weight="bold" aria-hidden className="shrink-0" style={{ color: t.mutedText }} />
+                </button>
+              );
+            })}
           </div>
 
-        ))}
-      </div>
-
-      {/* Summary */}
-      <div className="grid grid-cols-3 gap-2 mt-3 pt-3" style={{ borderTop: `1px solid ${t.gridLine}` }}>
-        {[
-          { label: "Largest", value: millions(largest.pop), note: largest.c.name, color: "#10b981" },
-          { label: `Fastest since ${SINCE}`, value: fastest?.growth ? signed(fastest.growth.pct, 0) : "—", note: fastest?.c.name ?? "", color: "#f59e0b" },
-          { label: "Cities profiled", value: `${CITY_ROWS.length}`, note: "on the site", color: "#6366f1" },
-        ].map((m) => (
-          <div key={m.label} className="rounded-xl px-2 py-2 text-center" style={{ background: m.color + "10", border: `1px solid ${m.color}20` }}>
-            <p className="text-sm font-bold font-mono" style={{ color: t.headText }}>
-              {m.value}
-            </p>
-            <p className="text-[9px] font-sans leading-snug" style={{ color: t.mutedText }}>
-              {m.label}
-              <br />
-              {m.note}
-            </p>
+          {/* Summary */}
+          <div className="grid grid-cols-3 gap-2 mt-3 pt-3" style={{ borderTop: `1px solid ${t.gridLine}` }}>
+            {[
+              { label: "Largest", value: millions(largest[8]), note: largest[2], color: "#10b981" },
+              { label: `Fastest since ${SINCE}`, value: fastest ? signed(fastest.pct, 0) : "—", note: fastest ? `${fastest.c[2]}, of a million or more` : "", color: "#f59e0b" },
+              { label: "Cities counted", value: un.UN_CITIES.length.toLocaleString("en-US"), note: "by the UN", color: "#6366f1" },
+            ].map((m) => (
+              <div key={m.label} className="rounded-xl px-2 py-2 text-center" style={{ background: m.color + "10", border: `1px solid ${m.color}20` }}>
+                <p className="text-sm font-bold font-mono" style={{ color: t.headText }}>
+                  {m.value}
+                </p>
+                <p className="text-[9px] font-sans leading-snug" style={{ color: t.mutedText }}>
+                  {m.label}
+                  <br />
+                  {m.note}
+                </p>
+              </div>
+            ))}
           </div>
-        ))}
-      </div>
-      <p className="text-[9px] font-sans leading-snug mt-2" style={{ color: t.mutedText }}>
-        Each city as the UN draws it, for {BASE}: built-up land of at least 1,500 people to a km² holding 50,000 or more, which is not the city's own boundary. The change under a
-        figure is its population on {SINCE}. The quality-of-living figures under a city are its country's, each from the body that measures it and for its latest year: no body
-        publishes health, water, air, safety, schooling and income city by city on one footing. A figure that is the city's own comes first and says so. A bar is on the measure's
-        own scale - 0 to 100 for a share - or, where the world's figure is the only yardstick, on the larger of the two; the tick is the world. A figure with neither is given
-        without a bar. Every panel is in the city's window. The ten largest of the {CITY_ROWS.length} the site profiles, not of the world's.
-      </p>
-      <Suspense fallback={null}>
-        <CityQualitySources places={top.map(({ c }) => ({ code: c.countryCode, country: c.country, city: c.id, name: c.name }))} className="mt-1" />
-      </Suspense>
-
+          <p className="text-[9px] font-sans leading-snug mt-2" style={{ color: t.mutedText }}>
+            Each city as the UN draws it, for {base}: built-up land of at least 1,500 people to a km² holding 50,000 or more, which is not the city's own boundary. The change under a figure is
+            its population on {SINCE}'s, worked out here; since the UN draws a city as its built-up land, a change can include towns that land has grown to take in. A city opens its window on the Cities
+            page, with its people, land and growth.
+          </p>
+        </>
+      )}
     </Card>
   );
 }
