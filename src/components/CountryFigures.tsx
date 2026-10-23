@@ -137,7 +137,8 @@ export function Ring({ t, slices, unit = "%" }: { t: Tokens; slices: { name: str
   const parts = slices.map((s, i) => ({ ...s, color: s.color ?? INK[i % INK.length] }));
   const tip = { contentStyle: { background: t.tooltipBg, border: t.cardBorder, borderRadius: 8, fontSize: 11 }, itemStyle: { color: t.headText } };
   return (
-    <div className="flex items-center gap-3">
+    // The legend goes under the ring where the panel is too narrow for both side by side.
+    <div className="flex flex-wrap items-center justify-center gap-3">
       <div className="w-[120px] h-[120px] shrink-0">
         <ResponsiveContainer width="100%" height="100%">
           <PieChart>
@@ -159,7 +160,7 @@ export function Ring({ t, slices, unit = "%" }: { t: Tokens; slices: { name: str
           </PieChart>
         </ResponsiveContainer>
       </div>
-      <ul className="flex flex-col gap-1 min-w-0 flex-1">
+      <ul className="flex flex-col gap-1 min-w-[9rem] flex-1">
         {[...parts].sort((a, b) => b.v - a.v).slice(0, 6).map((s) => (
           <li key={s.name} className="flex items-center gap-1.5 min-w-0">
             <span className="w-2 h-2 rounded-sm shrink-0" style={{ background: s.color }} aria-hidden />
@@ -662,65 +663,63 @@ export default function CountryFigures({ code, name }: { code: string; name: str
             <None t={t}>No age figures are held for {name}.</None>
           )}
         </Panel>
-        <Panel t={t} title="Religions" meta={people?.religions?.year ? `Factbook · ${people.religions.year}` : undefined}>
-          {people?.religions && (people.religions.parts?.length || people.religions.text) ? (
-            <>
-              <Shares t={t} of={people.religions} />
-              <Foot sources={[COUNTRY_PEOPLE_SOURCES.factbook]} />
-            </>
-          ) : (
-            <None t={t}>No account of religion is held for {name}.</None>
-          )}
-        </Panel>
-        <Panel t={t} title="Languages and culture" meta={people?.languages?.year ? `Factbook · ${people.languages.year}` : undefined}>
-          {(people?.languages && (people.languages.parts?.length || people.languages.text)) || people?.ethnic || heritage?.heritageSites?.length ? (
-            <>
-              {people?.languages && (people.languages.parts?.length || people.languages.text) ? (
-                <>
-                  <p className="text-[9px] font-mono uppercase tracking-widest" style={{ color: t.mutedText }}>
-                    Languages
-                  </p>
-                  <Shares t={t} of={people.languages} />
-                </>
-              ) : null}
-              {people?.ethnic && (people.ethnic.parts?.length || people.ethnic.text) ? (
-                <>
-                  <p className="text-[9px] font-mono uppercase tracking-widest mt-1" style={{ color: t.mutedText }}>
-                    Its peoples{people.ethnic.year ? ` · ${people.ethnic.year}` : ""}
-                  </p>
-                  <Shares t={t} of={people.ethnic} />
-                </>
-              ) : null}
-              {heritage?.heritageSites?.length ? (
-                <>
-                  <p className="text-[9px] font-mono uppercase tracking-widest mt-1" style={{ color: t.mutedText }}>
-                    World Heritage sites · {heritage.heritageSiteCount ?? heritage.heritageSites.length}
-                  </p>
-                  <ul className="flex flex-col gap-1">
-                    {heritage.heritageSites.map((s) => (
-                      <li key={s} className="text-[11px] font-sans leading-snug pl-2 border-l-2" style={{ color: t.bodyText, borderColor: INK[2] }}>
-                        {s}
-                      </li>
-                    ))}
-                  </ul>
-                  {(heritage.heritageSiteCount ?? 0) > heritage.heritageSites.length && (
-                    <Note t={t}>
-                      The first {heritage.heritageSites.length} of its {heritage.heritageSiteCount}: those of {name} alone first, then by the year UNESCO inscribed them.
-                    </Note>
-                  )}
-                </>
-              ) : null}
-              <Foot
-                sources={[
-                  people?.languages || people?.ethnic ? COUNTRY_PEOPLE_SOURCES.factbook : undefined,
-                  heritage?.heritageSites?.length ? { label: "UNESCO World Heritage List (CC BY-SA 4.0)", url: "https://data.unesco.org/explore/dataset/whc001/" } : undefined,
-                ]}
-              />
-            </>
-          ) : (
-            <None t={t}>No account of its languages or culture is held for {name}.</None>
-          )}
-        </Panel>
+        {/* Religions, languages, peoples and heritage: each in a container of its own, side by side in a row of their own, as asked. */}
+        <div className="basis-full flex flex-wrap gap-3 items-stretch">
+          <Panel t={t} title="Religions" meta={people?.religions?.year ? `Factbook · ${people.religions.year}` : undefined} className="xl:!basis-[calc(25%-0.5625rem)]">
+            {people?.religions && (people.religions.parts?.length || people.religions.text) ? (
+              <>
+                <Shares t={t} of={people.religions} />
+                <Foot sources={[COUNTRY_PEOPLE_SOURCES.factbook]} />
+              </>
+            ) : (
+              <None t={t}>No account of religion is held for {name}.</None>
+            )}
+          </Panel>
+          <Panel t={t} title="Languages" meta={people?.languages?.year ? `Factbook · ${people.languages.year}` : undefined} className="xl:!basis-[calc(25%-0.5625rem)]">
+            {people?.languages && (people.languages.parts?.length || people.languages.text) ? (
+              <>
+                <Shares t={t} of={people.languages} />
+                <Foot sources={[COUNTRY_PEOPLE_SOURCES.factbook]} />
+              </>
+            ) : (
+              <None t={t}>No account of its languages is held for {name}.</None>
+            )}
+          </Panel>
+          <Panel t={t} title="Its peoples" meta={people?.ethnic?.year ? `Factbook · ${people.ethnic.year}` : undefined} className="xl:!basis-[calc(25%-0.5625rem)]">
+            {people?.ethnic && (people.ethnic.parts?.length || people.ethnic.text) ? (
+              <>
+                <Shares t={t} of={people.ethnic} />
+                <Foot sources={[COUNTRY_PEOPLE_SOURCES.factbook]} />
+              </>
+            ) : (
+              <None t={t}>No account of its peoples is held for {name}.</None>
+            )}
+          </Panel>
+          <Panel t={t} title="Culture" meta={heritage?.heritageSites?.length ? `World Heritage · ${heritage.heritageSiteCount ?? heritage.heritageSites.length} sites` : undefined} className="xl:!basis-[calc(25%-0.5625rem)]">
+            {heritage?.heritageSites?.length ? (
+              <>
+                <p className="text-[9px] font-mono uppercase tracking-widest" style={{ color: t.mutedText }}>
+                  World Heritage sites
+                </p>
+                <ul className="flex flex-col gap-1">
+                  {heritage.heritageSites.map((s) => (
+                    <li key={s} className="text-[11px] font-sans leading-snug pl-2 border-l-2" style={{ color: t.bodyText, borderColor: INK[2] }}>
+                      {s}
+                    </li>
+                  ))}
+                </ul>
+                {(heritage.heritageSiteCount ?? 0) > heritage.heritageSites.length && (
+                  <Note t={t}>
+                    The first {heritage.heritageSites.length} of its {heritage.heritageSiteCount}: those of {name} alone first, then by the year UNESCO inscribed them.
+                  </Note>
+                )}
+                <Foot sources={[{ label: "UNESCO World Heritage List (CC BY-SA 4.0)", url: "https://data.unesco.org/explore/dataset/whc001/" }]} />
+              </>
+            ) : (
+              <None t={t}>No World Heritage site is listed for {name}.</None>
+            )}
+          </Panel>
+        </div>
       </Section>
 
       {/* ── Health and public services ── */}
