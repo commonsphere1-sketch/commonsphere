@@ -22,6 +22,14 @@ export interface DataLogEntry {
 
 export const DATA_LOG: DataLogEntry[] = [
   {
+    "what": "Elections by country and US state, and US city council meetings, for the calendar",
+    "from": "Wikidata (with the page each date cites); US Code, US Senate, National Governors Association; cities' Legistar calendars",
+    "page": "/dashboard",
+    "where": "Calendar",
+    "read": "2026-10-23",
+    "files": 1
+  },
+  {
     "what": "How far each kind of right is respected: civil, political and private liberties, expression, association, academic freedom, the rule of law, women's political empowerment",
     "from": "V-Dem Institute, via Our World in Data",
     "page": "/dashboard/worldview",
@@ -536,4 +544,4 @@ export const DATA_LOG: DataLogEntry[] = [
 ];
 
 /** How many data files the log covers. */
-export const DATA_LOG_FILES = 84;
+export const DATA_LOG_FILES = 85;

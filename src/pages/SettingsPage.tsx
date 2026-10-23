@@ -3,6 +3,7 @@ import { SiteMark } from "../components/SiteMark";
 import {
   User,
   Bell,
+  CalendarBlank,
   Lock,
   Palette,
   Moon,
@@ -36,6 +37,8 @@ import { useWatchlist, type WatchItem } from "@/contexts/WatchlistContext";
 import { TOPICS } from "@/lib/watchlist";
 import { useFollowedCities } from "@/lib/followedCities";
 import { followedFallback, followedKind, followedLink } from "@/lib/noteKinds";
+import { StyledSelect } from "@/components/StyledSelect";
+import { AREA_OPTIONS, useCalendarArea } from "@/lib/calendarArea";
 
 /** A search result: "country-ke" / "state-ca" plus what to show. */
 interface WatchedEntity {
@@ -236,6 +239,8 @@ function WatchedRow({ item }: { item: WatchItem }) {
 
 // ─── Main page ────────────────────────────────────────────────────────────────
 export function SettingsPage() {
+  /* The area the calendar opens on, as asked: kept in this browser, and changed in the calendar too. */
+  const [calendarArea, setCalendarArea] = useCalendarArea();
   const {
     photo,
     setPhotoFromFile,
@@ -594,6 +599,30 @@ export function SettingsPage() {
             >
               {profileSaving ? "Saving…" : "Save Changes"}
             </Button>
+          </div>
+        </section>
+
+        {/* Calendar: the area it opens on, as asked - everywhere, the international meetings, a country or a US state. */}
+        <section aria-labelledby="calendar-settings" className="bg-card border border-border rounded-lg p-6 mb-6">
+          <div className="flex items-center gap-2 mb-1">
+            <CalendarBlank size={20} weight="fill" className="text-secondary" />
+            <h2 id="calendar-settings" className="text-base font-semibold font-sans text-foreground">
+              Calendar
+            </h2>
+          </div>
+          <p className="text-xs text-muted-foreground font-sans mb-4 leading-relaxed">
+            The area the calendar at the top right opens on. A country or a US state shows its elections and, for the US cities that publish them, its city council
+            meetings, beside the meetings the site lists there; it can still be changed in the calendar. Saved in this browser.
+          </p>
+          <div className="flex items-center justify-between gap-4">
+            <p className="text-sm font-sans text-foreground">Opens on</p>
+            <StyledSelect
+              value={calendarArea}
+              onValueChange={setCalendarArea}
+              options={AREA_OPTIONS}
+              ariaLabel="The area the calendar opens on"
+              triggerClassName="px-3 py-1.5 rounded-full border border-border text-foreground"
+            />
           </div>
         </section>
 

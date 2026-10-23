@@ -7,17 +7,21 @@
  *
  * Every entry is the convening body's own, with its page as its source; a
  * month-only entry is set on its month and not on a day nobody has
- * confirmed. The diary the site holds is 2026's: another year's months are
- * drawn without entries, and say so.
+ * confirmed. It can be set to an area - everywhere, the international meetings,
+ * a country or a US state - and then holds that area's elections and city council
+ * meetings too (calendarArea.ts); the default area is chosen in Settings.
  */
 import { useEffect, useMemo, useState } from "react";
 import { CalendarBlank, CaretLeft, CaretRight, X } from "@phosphor-icons/react";
-import { CALENDAR_2026, CALENDAR_CHECKED, CALENDAR_YEAR, type CalendarEvent } from "../data/calendar2026";
+import { CALENDAR_CHECKED } from "../data/calendar2026";
+import { CIVIC_RETRIEVED, COUNCIL_CITIES } from "../data/civicCalendar";
+import { AREA_OPTIONS, CALENDAR_ENTRIES, areaLabel, inArea, useCalendarArea, type CalendarEntry, type EntryKind } from "../lib/calendarArea";
+import { StyledSelect } from "./StyledSelect";
 import { useTokens } from "./DataExplorer";
 import { QuarterTracker } from "./QuarterTracker";
 import { SourceLink } from "./SourceLink";
 
-const THEME_COLOR: Record<CalendarEvent["theme"], string> = { Political: "#6366f1", Economic: "#f59e0b", Social: "#10b981" };
+const KIND_COLOR: Record<EntryKind, string> = { Political: "#6366f1", Economic: "#f59e0b", Social: "#10b981", Election: "#ef4444", Council: "#0ea5e9" };
 const WEEKDAYS = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
 const MONTH = new Intl.DateTimeFormat("en-GB", { month: "long", year: "numeric" });
 const DAY = new Intl.DateTimeFormat("en-GB", { weekday: "long", day: "numeric", month: "long", year: "numeric" });
@@ -29,42 +33,44 @@ const fromKey = (s: string) => {
   const [y, m, d] = s.split("-").map(Number);
   return new Date(y, m - 1, d);
 };
-/** The days an event runs on, by key: none for a month-only entry, which is shown on its month. */
-function daysOf(e: CalendarEvent): string[] {
+/** The days an entry runs on, by key: none for a month-only entry, which is shown on its month. */
+function daysOf(e: CalendarEntry): string[] {
   if (e.monthOnly) return [];
   const out: string[] = [];
   const end = fromKey(e.end ?? e.start);
   for (let d = fromKey(e.start); d <= end; d = new Date(d.getFullYear(), d.getMonth(), d.getDate() + 1)) out.push(keyOf(d));
   return out;
 }
-const BY_DAY = (() => {
-  const m = new Map<string, CalendarEvent[]>();
-  for (const e of CALENDAR_2026) for (const k of daysOf(e)) m.set(k, [...(m.get(k) ?? []), e]);
-  return m;
-})();
-const when = (e: CalendarEvent) =>
+const when = (e: CalendarEntry) =>
   e.monthOnly ? `${new Intl.DateTimeFormat("en-GB", { month: "long" }).format(fromKey(e.start))}, days not yet published` : e.end && e.end !== e.start ? `${SHORT.format(fromKey(e.start))} – ${SHORT.format(fromKey(e.end))}` : SHORT.format(fromKey(e.start));
 
-/** The month, a day to a cell. Full screen, as asked, it is the calendar that fills the window: its cells grow taller with it. */
+/** The month, a day to a cell, for the area chosen: everywhere, the international meetings, a country or a US state. */
 function MonthCalendar({ wide = false }: { wide?: boolean } = {}) {
   const t = useTokens();
   const today = new Date();
   const [month, setMonth] = useState(() => new Date(today.getFullYear(), today.getMonth(), 1));
   const [picked, setPicked] = useState<string | null>(null);
+  const [area, setArea] = useCalendarArea();
+  const entries = useMemo(() => CALENDAR_ENTRIES.filter((e) => inArea(e, area)), [area]);
+  const byDay = useMemo(() => {
+    const m = new Map<string, CalendarEntry[]>();
+    for (const e of entries) for (const k of daysOf(e)) m.set(k, [...(m.get(k) ?? []), e]);
+    return m;
+  }, [entries]);
   const cells = useMemo(() => {
     // From the Monday on or before the first, six weeks: every month fits.
     const first = new Date(month.getFullYear(), month.getMonth(), 1);
     const lead = (first.getDay() + 6) % 7;
     return Array.from({ length: 42 }, (_, i) => new Date(month.getFullYear(), month.getMonth(), 1 - lead + i));
   }, [month]);
-  const monthOnly = CALENDAR_2026.filter((e) => e.monthOnly && fromKey(e.start).getMonth() === month.getMonth() && fromKey(e.start).getFullYear() === month.getFullYear());
-  const inMonth = CALENDAR_2026.filter((e) => {
+  const monthOnly = entries.filter((e) => e.monthOnly && fromKey(e.start).getMonth() === month.getMonth() && fromKey(e.start).getFullYear() === month.getFullYear());
+  const inMonth = entries.filter((e) => {
     const s = fromKey(e.start);
     const end = fromKey(e.end ?? e.start);
     return !e.monthOnly && end >= new Date(month.getFullYear(), month.getMonth(), 1) && s < new Date(month.getFullYear(), month.getMonth() + 1, 1);
   });
-  const list = picked ? (BY_DAY.get(picked) ?? []) : inMonth;
-  const held = month.getFullYear() === CALENDAR_YEAR;
+  const list = picked ? (byDay.get(picked) ?? []) : inMonth;
+  const kinds = [...new Set(entries.map((e) => e.kind))] as EntryKind[];
   const step = (n: number) => {
     setMonth((m) => new Date(m.getFullYear(), m.getMonth() + n, 1));
     setPicked(null);
@@ -72,7 +78,7 @@ function MonthCalendar({ wide = false }: { wide?: boolean } = {}) {
   const navBtn = "w-7 h-7 rounded-full flex items-center justify-center cursor-pointer transition-colors hover:bg-muted/60";
   return (
     <section className="rounded-2xl p-4" style={{ background: t.cardBg, border: t.cardBorder }} aria-label="Calendar">
-      <div className="flex items-center gap-2 mb-3">
+      <div className="flex items-center gap-2 mb-2">
         <h3 className="text-sm font-bold font-sans flex-1" style={{ color: t.headText }}>
           {MONTH.format(month)}
         </h3>
@@ -94,6 +100,22 @@ function MonthCalendar({ wide = false }: { wide?: boolean } = {}) {
           <CaretRight size={13} weight="bold" />
         </button>
       </div>
+      {/* The area, as asked: everywhere, the international meetings, a country or a US state - the default is set in Settings. */}
+      <div className="flex items-center gap-2 mb-3">
+        <span className="text-[10px] font-mono uppercase tracking-widest" style={{ color: t.mutedText }}>
+          Showing
+        </span>
+        <StyledSelect
+          value={area}
+          onValueChange={(v) => {
+            setArea(v);
+            setPicked(null);
+          }}
+          options={AREA_OPTIONS}
+          ariaLabel="The area the calendar shows"
+          triggerClassName="px-2.5 py-1 rounded-full border border-border text-foreground"
+        />
+      </div>
       <div className="grid grid-cols-7 gap-1 text-center" role="grid" aria-label={MONTH.format(month)}>
         {WEEKDAYS.map((d) => (
           <div key={d} className="text-[9px] font-mono uppercase tracking-wider pb-1" style={{ color: t.mutedText }} role="columnheader">
@@ -103,7 +125,7 @@ function MonthCalendar({ wide = false }: { wide?: boolean } = {}) {
         {cells.map((d) => {
           const k = keyOf(d);
           const here = d.getMonth() === month.getMonth();
-          const events = BY_DAY.get(k) ?? [];
+          const events = byDay.get(k) ?? [];
           const isToday = k === keyOf(today);
           const on = picked === k;
           return (
@@ -112,7 +134,7 @@ function MonthCalendar({ wide = false }: { wide?: boolean } = {}) {
               type="button"
               role="gridcell"
               aria-selected={on}
-              aria-label={`${DAY.format(d)}${events.length ? `: ${events.length} ${events.length === 1 ? "event" : "events"}` : ""}`}
+              aria-label={`${DAY.format(d)}${events.length ? `: ${events.length} ${events.length === 1 ? "entry" : "entries"}` : ""}`}
               onClick={() => setPicked(on ? null : k)}
               className={`relative rounded-lg ${wide ? "h-16 lg:h-20" : "h-11"} flex flex-col items-center justify-start pt-1 cursor-pointer transition-colors hover:bg-muted/50`}
               style={{
@@ -126,8 +148,8 @@ function MonthCalendar({ wide = false }: { wide?: boolean } = {}) {
               </span>
               {events.length > 0 && (
                 <span className="flex gap-0.5 mt-1" aria-hidden>
-                  {events.slice(0, 3).map((e) => (
-                    <span key={e.id} className="w-1.5 h-1.5 rounded-full" style={{ background: THEME_COLOR[e.theme] }} />
+                  {[...new Set(events.map((e) => e.kind))].slice(0, 3).map((kd) => (
+                    <span key={kd} className="w-1.5 h-1.5 rounded-full" style={{ background: KIND_COLOR[kd] }} />
                   ))}
                 </span>
               )}
@@ -136,49 +158,50 @@ function MonthCalendar({ wide = false }: { wide?: boolean } = {}) {
         })}
       </div>
       <div className="flex flex-wrap gap-x-4 gap-y-1 mt-3">
-        {(Object.keys(THEME_COLOR) as CalendarEvent["theme"][]).map((th) => (
-          <span key={th} className="inline-flex items-center gap-1.5 text-[10px] font-sans" style={{ color: t.mutedText }}>
-            <span className="w-1.5 h-1.5 rounded-full" style={{ background: THEME_COLOR[th] }} aria-hidden />
-            {th}
+        {kinds.map((kd) => (
+          <span key={kd} className="inline-flex items-center gap-1.5 text-[10px] font-sans" style={{ color: t.mutedText }}>
+            <span className="w-1.5 h-1.5 rounded-full" style={{ background: KIND_COLOR[kd] }} aria-hidden />
+            {kd === "Council" ? "City council" : kd}
           </span>
         ))}
       </div>
 
       <div className="mt-4 pt-3 border-t" style={{ borderColor: t.gridLine }}>
         <p className="text-[10px] font-mono uppercase tracking-widest mb-2" style={{ color: t.mutedText }}>
-          {picked ? DAY.format(fromKey(picked)) : `${MONTH.format(month)} · ${inMonth.length + monthOnly.length} scheduled`}
+          {picked ? DAY.format(fromKey(picked)) : `${MONTH.format(month)} · ${areaLabel(area)} · ${inMonth.length + monthOnly.length} scheduled`}
         </p>
-        {!held ? (
+        {list.length === 0 && (picked || monthOnly.length === 0) ? (
           <p className="text-[11px] font-sans" style={{ color: t.mutedText }}>
-            The diary the site holds is {CALENDAR_YEAR}'s: no entries are held for {month.getFullYear()}.
-          </p>
-        ) : list.length === 0 && (picked || monthOnly.length === 0) ? (
-          <p className="text-[11px] font-sans" style={{ color: t.mutedText }}>
-            Nothing the site holds is scheduled {picked ? "that day" : "this month"}.
+            Nothing the site holds for {areaLabel(area)} is scheduled {picked ? "that day" : "this month"}.
           </p>
         ) : (
           <ul className="flex flex-col gap-2.5">
             {[...list, ...(picked ? [] : monthOnly)].map((e) => (
               <li key={e.id} className="flex gap-2.5 min-w-0">
-                <span className="w-1.5 h-1.5 rounded-full mt-1.5 shrink-0" style={{ background: THEME_COLOR[e.theme] }} aria-hidden />
+                <span className="w-1.5 h-1.5 rounded-full mt-1.5 shrink-0" style={{ background: KIND_COLOR[e.kind] }} aria-hidden />
                 <div className="min-w-0">
                   <p className="text-[12px] font-sans font-semibold leading-snug" style={{ color: t.headText }}>
                     {e.name}
                   </p>
                   <p className="text-[10.5px] font-sans leading-snug" style={{ color: t.mutedText }}>
-                    {when(e)} · {e.city}, {e.country} · {e.org} · {e.scope.toLowerCase()}, {e.theme.toLowerCase()}
+                    {when(e)} · {e.place} · {e.org}
                   </p>
-                  <p className="text-[11px] font-sans leading-snug mt-0.5" style={{ color: t.bodyText }}>
-                    {e.what}
-                  </p>
-                  <SourceLink sources={[e.source]} className="mt-1" />
+                  {e.what && (
+                    <p className="text-[11px] font-sans leading-snug mt-0.5" style={{ color: t.bodyText }}>
+                      {e.what}
+                    </p>
+                  )}
+                  <SourceLink sources={e.sources} className="mt-1" />
                 </div>
               </li>
             ))}
           </ul>
         )}
-        <p className="text-[10px] font-sans mt-3" style={{ color: t.mutedText }}>
-          Each entry is taken from the convening body's own page, checked on {CALENDAR_CHECKED}; scheduled dates can move.
+        <p className="text-[10px] font-sans mt-3 leading-snug" style={{ color: t.mutedText }}>
+          Meetings and conferences are taken from the convening body's own page, checked on {CALENDAR_CHECKED}. Elections outside the United States are Wikidata's, kept where a date
+          cites a page, which is listed first; US elections are the general election of 3 November 2026 in every state, with its ballot from the Senate's and the National Governors
+          Association's records - special elections for appointed seats are not given. City council meetings are those {COUNCIL_CITIES.length} US cities listed on {CIVIC_RETRIEVED}; the
+          city's own page is the record. Town halls are not listed: no open source gathers them. Scheduled dates can move.
         </p>
       </div>
     </section>
