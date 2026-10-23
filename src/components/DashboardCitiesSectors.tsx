@@ -42,7 +42,7 @@ import { TSMC_REVENUE } from "../data/technology";
 import { WORLD } from "../data/worldview";
 import { useTokens, type Tokens } from "./DataExplorer";
 import { SourceLink } from "./SourceLink";
-import SlimBars from "./SlimBars";
+import SlimBars, { SLIM_TRACK, slimFill } from "./SlimBars";
 
 type Source = { label: string; url: string };
 type Point = [year: number, value: number];
@@ -184,8 +184,8 @@ export function CitiesContainer() {
                     </span>
                   </span>
                   {/* On the scale of the largest. */}
-                  <span className="w-12 h-1.5 rounded-full overflow-hidden shrink-0" style={{ background: t.isLight ? "rgba(0,0,0,0.07)" : "rgba(255,255,255,0.08)" }} aria-hidden>
-                    <span className="block h-full rounded-full" style={{ width: `${Math.round((100 * c[8]) / largest[8])}%`, background: CITY_COLORS[i % CITY_COLORS.length] }} />
+                  <span className="w-12 h-2 rounded-full overflow-hidden shrink-0" style={{ background: SLIM_TRACK }} aria-hidden>
+                    <span className="block h-full rounded-full" style={{ width: `${Math.round((100 * c[8]) / largest[8])}%`, background: slimFill(CITY_COLORS[i % CITY_COLORS.length])}} />
                   </span>
                   <span className="text-right shrink-0 w-16">
                     <span className="block text-[11px] font-mono font-semibold" style={{ color: t.headText }}>

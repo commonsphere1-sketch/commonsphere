@@ -1,4 +1,5 @@
 import { useMemo, useState, type CSSProperties, type ReactNode } from "react";
+import { SLIM_TRACK, slimFill } from "./SlimBars";
 import { SlimColumns } from "./SlimBars";
 import { Gavel, Info } from "@phosphor-icons/react";
 import { SourceLink } from "./SourceLink";
@@ -193,7 +194,7 @@ function StackList({ look, rows, restLabel, totalHead, extraHead }: { look: Look
             <span className="text-[11px] font-sans truncate" style={{ color: look.head }}>
               {r.name}
             </span>
-            <span className="h-3 rounded-full overflow-hidden" style={{ background: look.track }}>
+            <span className="h-3 rounded-full overflow-hidden" style={{ background: SLIM_TRACK }}>
               <span className="flex h-full gap-px sm:gap-[2px]" style={{ width: `${Math.max(1.5, (100 * r.total) / top)}%` }}>
                 {r.segs.map((s) => (s.value > 0 ? <span key={s.label} className="h-full first:rounded-l-full last:rounded-r-full" style={{ width: `${(100 * s.value) / of}%`, background: s.color }} /> : null))}
                 {rest > 0 && <span className="h-full first:rounded-l-full last:rounded-r-full" style={{ width: `${(100 * rest) / of}%`, background: look.rest }} aria-label={restLabel} />}
@@ -293,8 +294,8 @@ function OffenceExplorer({ look }: { look: Look }) {
             <span className="text-[11px] font-sans truncate" style={{ color: look.head }}>
               {r.name}
             </span>
-            <span className="h-2.5 rounded-full overflow-hidden" style={{ background: look.track }}>
-              <span className="block h-full rounded-full" style={{ width: `${Math.max(1, (100 * r.rate) / top)}%`, background: group.color }} />
+            <span className="h-2.5 rounded-full overflow-hidden" style={{ background: SLIM_TRACK }}>
+              <span className="block h-full rounded-full" style={{ width: `${Math.max(1, (100 * r.rate) / top)}%`, background: slimFill(group.color)}} />
             </span>
             <span className="text-[11px] font-mono font-bold text-right tabular-nums" style={{ color: look.head }}>
               {rateText(r.rate)}
@@ -392,7 +393,7 @@ function CountryRecord({ look }: { look: Look }) {
       {others.length > 0 && (
         <ul className="mt-3 grid grid-cols-2 gap-2">
           {others.map((o) => (
-            <li key={o.label} className="rounded-xl px-3 py-2" style={{ background: look.track }}>
+            <li key={o.label} className="rounded-xl px-3 py-2" style={{ background: SLIM_TRACK }}>
               <span className="block text-sm font-bold font-mono" style={{ color: look.head }}>
                 {o.value}
               </span>
@@ -526,8 +527,8 @@ function Unsentenced({ look }: { look: Look }) {
             <span className="text-[11px] font-sans truncate" style={{ color: look.head }}>
               {r.name}
             </span>
-            <span className="h-2.5 rounded-full overflow-hidden" style={{ background: look.track }}>
-              <span className="block h-full rounded-full" style={{ width: `${Math.max(1, r.pct)}%`, background: HELD_COLOR }} />
+            <span className="h-2.5 rounded-full overflow-hidden" style={{ background: SLIM_TRACK }}>
+              <span className="block h-full rounded-full" style={{ width: `${Math.max(1, r.pct)}%`, background: slimFill(HELD_COLOR)}} />
             </span>
             <span className="text-[11px] font-mono font-bold text-right tabular-nums" style={{ color: look.head }}>
               {r.pct}%
@@ -595,8 +596,8 @@ function Wildlife({ look }: { look: Look }) {
             <span className="text-[11px] font-sans truncate" style={{ color: look.head }}>
               {region}
             </span>
-            <span className="h-2.5 rounded-full overflow-hidden" style={{ background: look.track }}>
-              <span className="block h-full rounded-full" style={{ width: `${Math.max(1, (100 * value) / top)}%`, background: color }} />
+            <span className="h-2.5 rounded-full overflow-hidden" style={{ background: SLIM_TRACK }}>
+              <span className="block h-full rounded-full" style={{ width: `${Math.max(1, (100 * value) / top)}%`, background: slimFill(color)}} />
             </span>
             <span className="text-[11px] font-mono font-bold text-right tabular-nums" style={{ color: look.head }}>
               {amount(value)}

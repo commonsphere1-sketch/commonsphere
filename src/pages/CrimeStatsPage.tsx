@@ -1,4 +1,5 @@
 import { PageHeader } from "../components/PageHeader";
+import { SLIM_TRACK, slimFill } from "../components/SlimBars";
 import { lazy, Suspense, useState } from "react";
 import { useTheme } from "../contexts/ThemeContext";
 import { SourceLink } from "../components/SourceLink";
@@ -624,7 +625,7 @@ function SectionHeader({
   );
 }
 
-function SafetyBar({ score, isLight }: { score: number; isLight: boolean }) {
+function SafetyBar({ score }: { score: number }) {
   const color =
     score >= 75
       ? "#10b981"
@@ -639,12 +640,12 @@ function SafetyBar({ score, isLight }: { score: number; isLight: boolean }) {
     <div
       className="h-1.5 rounded-full overflow-hidden w-full"
       style={{
-        background: isLight ? "rgba(0,0,0,0.07)" : "rgba(255,255,255,0.08)",
+        background: SLIM_TRACK,
       }}
     >
       <div
         className="h-full rounded-full transition-all"
-        style={{ width: `${score}%`, background: color }}
+        style={{ width: `${score}%`, background: slimFill(color)}}
       />
     </div>
   );
@@ -1094,7 +1095,7 @@ export function CrimeStatsPage() {
                         </span>
                       </div>
                     </div>
-                    <SafetyBar score={item.score} isLight={isLight} />
+                    <SafetyBar score={item.score} />
                   </div>
                 </div>
               ))}
@@ -1220,15 +1221,14 @@ export function CrimeStatsPage() {
                                   className="w-2 rounded-full relative overflow-hidden"
                                   style={{
                                     height: 56,
-                                    background: `${CATEGORY_COLORS[c.key]}14`,
-                                    border: `1px solid ${CATEGORY_COLORS[c.key]}2e`,
+                                    background: SLIM_TRACK,
                                   }}
                                 >
                                   <div
                                     className="absolute inset-x-0 bottom-0 rounded-full transition-all duration-300"
                                     style={{
                                       height: `${pct}%`,
-                                      background: CATEGORY_COLORS[c.key],
+                                      background: slimFill(CATEGORY_COLORS[c.key], true),
                                     }}
                                   />
                                 </div>
@@ -1283,16 +1283,14 @@ export function CrimeStatsPage() {
                       <div
                         className="flex-1 h-3 rounded-full overflow-hidden"
                         style={{
-                          background: isLight
-                            ? "rgba(0,0,0,0.06)"
-                            : "rgba(255,255,255,0.07)",
+                          background: SLIM_TRACK,
                         }}
                       >
                         <div
                           className="h-full rounded-full"
                           style={{
                             width: `${(item.loss / maxLoss) * 100}%`,
-                            background: item.color,
+                            background: slimFill(item.color),
                           }}
                         />
                       </div>
@@ -1393,16 +1391,14 @@ export function CrimeStatsPage() {
                         <div
                           className="flex-1 h-2 rounded-full overflow-hidden"
                           style={{
-                            background: isLight
-                              ? "rgba(0,0,0,0.06)"
-                              : "rgba(255,255,255,0.07)",
+                            background: SLIM_TRACK,
                           }}
                         >
                           <div
                             className="h-full rounded-full"
                             style={{
                               width: `${(item.rate / maxRate) * 100}%`,
-                              background: color,
+                              background: slimFill(color),
                             }}
                           />
                         </div>
@@ -1912,9 +1908,7 @@ export function CrimeStatsPage() {
                     <div
                       className="h-1.5 rounded-full overflow-hidden"
                       style={{
-                        background: isLight
-                          ? "rgba(0,0,0,0.07)"
-                          : "rgba(255,255,255,0.08)",
+                        background: SLIM_TRACK,
                       }}
                     >
                       <div
@@ -1922,11 +1916,11 @@ export function CrimeStatsPage() {
                         style={{
                           width: `${(item.score / 10) * 100}%`,
                           background:
-                            item.score >= 8
+                            slimFill(item.score >= 8
                               ? "#ef4444"
                               : item.score >= 7
                                 ? "#f97316"
-                                : "#f59e0b",
+                                : "#f59e0b"),
                         }}
                       />
                     </div>
@@ -2162,14 +2156,12 @@ export function CrimeStatsPage() {
                   <div
                     className="h-2.5 rounded-full overflow-hidden"
                     style={{
-                      background: isLight
-                        ? "rgba(0,0,0,0.06)"
-                        : "rgba(255,255,255,0.07)",
+                      background: SLIM_TRACK,
                     }}
                   >
                     <div
                       className="h-full rounded-full transition-all duration-700"
-                      style={{ width: `${f.pct}%`, background: f.color }}
+                      style={{ width: `${f.pct}%`, background: slimFill(f.color)}}
                     />
                   </div>
                 </div>
@@ -2345,16 +2337,14 @@ export function CrimeStatsPage() {
                       <div
                         className="h-1.5 rounded-full overflow-hidden"
                         style={{
-                          background: isLight
-                            ? "rgba(0,0,0,0.07)"
-                            : "rgba(255,255,255,0.08)",
+                          background: SLIM_TRACK,
                         }}
                       >
                         <div
                           className="h-full rounded-full"
                           style={{
                             width: `${(item.victims / maxV) * 100}%`,
-                            background: "#a855f7",
+                            background: slimFill("#a855f7"),
                           }}
                         />
                       </div>
@@ -2550,16 +2540,14 @@ export function CrimeStatsPage() {
                     <div
                       className="flex-1 h-2 rounded-full overflow-hidden"
                       style={{
-                        background: isLight
-                          ? "rgba(0,0,0,0.06)"
-                          : "rgba(255,255,255,0.07)",
+                        background: SLIM_TRACK,
                       }}
                     >
                       <div
                         className="h-full rounded-full"
                         style={{
                           width: `${item.score}%`,
-                          background: "#10b981",
+                          background: slimFill("#10b981"),
                         }}
                       />
                     </div>
@@ -2576,9 +2564,7 @@ export function CrimeStatsPage() {
             <div
               className="h-px"
               style={{
-                background: isLight
-                  ? "rgba(0,0,0,0.08)"
-                  : "rgba(255,255,255,0.08)",
+                background: SLIM_TRACK,
               }}
             />
             {/* Worst responders */}
@@ -2602,16 +2588,14 @@ export function CrimeStatsPage() {
                     <div
                       className="flex-1 h-2 rounded-full overflow-hidden"
                       style={{
-                        background: isLight
-                          ? "rgba(0,0,0,0.06)"
-                          : "rgba(255,255,255,0.07)",
+                        background: SLIM_TRACK,
                       }}
                     >
                       <div
                         className="h-full rounded-full"
                         style={{
                           width: `${Math.max(item.score, 2)}%`,
-                          background: "#ef4444",
+                          background: slimFill("#ef4444"),
                         }}
                       />
                     </div>

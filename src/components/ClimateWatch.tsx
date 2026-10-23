@@ -12,6 +12,7 @@
  * record temperatures - is said to be missing, not filled in.
  */
 import { useMemo, useState, type ReactNode } from "react";
+import { SLIM_TRACK, slimFill } from "./SlimBars";
 import { ArrowSquareOut } from "@phosphor-icons/react";
 import {
   CLIMATE_RECORDS,
@@ -101,8 +102,8 @@ function Bars({ rows, max, color }: { rows: { key: string; label: string; value:
           <span className="text-[11px] font-sans text-foreground w-36 sm:w-44 shrink-0 truncate" title={r.label}>
             {r.label}
           </span>
-          <span className="flex-1 h-2 rounded-full bg-muted/50 overflow-hidden" aria-hidden>
-            <span className="block h-full rounded-full" style={{ width: `${Math.max(1, Math.min(100, (r.value / max) * 100))}%`, background: r.color ?? color }} />
+          <span className="flex-1 h-2 rounded-full overflow-hidden" style={{ background: SLIM_TRACK }} aria-hidden>
+            <span className="block h-full rounded-full" style={{ width: `${Math.max(1, Math.min(100, (r.value / max) * 100))}%`, background: slimFill(r.color ?? color)}} />
           </span>
           <span className="text-[11px] font-mono font-bold text-foreground w-24 text-right shrink-0">{r.text}</span>
         </div>

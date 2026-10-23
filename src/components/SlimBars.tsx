@@ -26,6 +26,11 @@ export type SlimRow = {
   faint?: boolean;
 };
 
+/** The slim bars' faint track, for a bar drawn by hand in the same style: the text colour at 7%. */
+export const SLIM_TRACK = "color-mix(in srgb, currentColor 7%, transparent)";
+/** The slim bars' fill for a colour: a gradient from faint to full, along the bar - upward for a bar stood on end. */
+export const slimFill = (c: string, up = false) => `linear-gradient(${up ? "0deg" : "90deg"}, color-mix(in srgb, ${c} 35%, transparent), ${c})`;
+
 /** The id of the slim style's gradient for a colour: the same colour makes the same gradient, so two charts on a page can share it. */
 export const gradId = (c: string) => `sg-${c.replace(/[^a-zA-Z0-9]/g, "")}`;
 
