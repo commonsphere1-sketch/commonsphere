@@ -10396,6 +10396,8 @@ const CATEGORY_FILTERS: ("All" | PolicyCategory)[] = [
  * here; a state's is its government's general spending in dollars. The figures are the Economy card's.
  */
 function TotalSpendingCard({ group }: { group: EntityGroup }) {
+  // The breakdown, folded away: the card stays the size of the others in its row until it is opened, as asked.
+  const [open, setOpen] = useState(false);
   const economy = group.policies.find((p) => p.category === "Economy") ?? group.policies[0];
   const fig = group.entityType === "country" ? countryPolicyFigures(economy.code, "Economy") : statePolicyFigures(economy.code, "Economy");
   const head = fig.head;
@@ -10424,29 +10426,42 @@ function TotalSpendingCard({ group }: { group: EntityGroup }) {
       <p className="text-[11px] text-muted-foreground leading-snug">
         <span className="text-foreground font-semibold">{head.value}</span> {head.label} · {head.when}
       </p>
-      {parts.length > 0 && (
-        <ul className="flex flex-col gap-1">
-          {parts.map((p) => (
-            <li key={p.cat} className="flex items-center gap-1.5 text-[11px]">
-              <span className={`w-2 h-2 rounded-full shrink-0 ${p.cfg.bar}`} aria-hidden />
-              <span className="text-muted-foreground flex-1">{p.cat}</span>
-              <span className="font-semibold text-foreground">{p.share.toFixed(1)}%</span>
-            </li>
-          ))}
-          {sum < 100 && (
-            <li className="flex items-center gap-1.5 text-[11px]">
-              <span className="w-2 h-2 rounded-full shrink-0 bg-muted-foreground/40" aria-hidden />
-              <span className="text-muted-foreground flex-1">Everything else</span>
-              <span className="font-semibold text-foreground">{(100 - sum).toFixed(1)}%</span>
-            </li>
+      <button
+        type="button"
+        onClick={() => setOpen((v) => !v)}
+        aria-expanded={open}
+        className="mt-auto self-start inline-flex items-center gap-1 text-[11px] font-semibold text-foreground px-2.5 py-1 rounded-full border border-border hover:bg-muted/60 transition-colors cursor-pointer"
+      >
+        {open ? "Hide the breakdown" : "Breakdown"}
+        <CaretDown size={11} weight="bold" className={`transition-transform ${open ? "rotate-180" : ""}`} />
+      </button>
+      {open && (
+        <div className="flex flex-col gap-2.5">
+          {parts.length > 0 && (
+            <ul className="flex flex-col gap-1">
+              {parts.map((p) => (
+                <li key={p.cat} className="flex items-center gap-1.5 text-[11px]">
+                  <span className={`w-2 h-2 rounded-full shrink-0 ${p.cfg.bar}`} aria-hidden />
+                  <span className="text-muted-foreground flex-1">{p.cat}</span>
+                  <span className="font-semibold text-foreground">{p.share.toFixed(1)}%</span>
+                </li>
+              ))}
+              {sum < 100 && (
+                <li className="flex items-center gap-1.5 text-[11px]">
+                  <span className="w-2 h-2 rounded-full shrink-0 bg-muted-foreground/40" aria-hidden />
+                  <span className="text-muted-foreground flex-1">Everything else</span>
+                  <span className="font-semibold text-foreground">{(100 - sum).toFixed(1)}%</span>
+                </li>
+              )}
+            </ul>
           )}
-        </ul>
+          <p className="text-[10px] text-muted-foreground leading-snug mt-auto">
+            {parts.length > 0 ? "Each area's share of all government spending, its own year; everything else is worked out here. " : ""}
+            {fig.covers?.text ?? ""}
+          </p>
+          {source && <SourceLink sources={source} className="!mt-0" />}
+        </div>
       )}
-      <p className="text-[10px] text-muted-foreground leading-snug mt-auto">
-        {parts.length > 0 ? "Each area's share of all government spending, its own year; everything else is worked out here. " : ""}
-        {fig.covers?.text ?? ""}
-      </p>
-      {source && <SourceLink sources={source} className="!mt-0" />}
     </div>
   );
 }
