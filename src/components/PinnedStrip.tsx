@@ -64,13 +64,13 @@ export function PinnedStrip() {
 
   const accent = "#6366f1";
   const bg = isLight ? "rgba(255,255,255,0.96)" : "rgba(14,13,26,0.97)";
-  const border = isLight ? "rgba(0,0,0,0.09)" : "rgba(255,255,255,0.09)";
+  const border = isLight ? "rgba(0,0,0,0.09)" : "rgba(255,255,255,0.14)";
   const shadow = isLight
     ? "0 4px 24px rgba(0,0,0,0.10)"
     : "0 4px 24px rgba(0,0,0,0.45)";
   const mutedText = isLight ? "rgba(30,41,59,0.45)" : "rgba(255,255,255,0.66)";
   const headText = isLight ? "#0f172a" : "#f1f0ff";
-  const gridLine = isLight ? "rgba(0,0,0,0.06)" : "rgba(255,255,255,0.06)";
+  const gridLine = isLight ? "rgba(0,0,0,0.06)" : "rgba(255,255,255,0.12)";
   const itemBg = isLight ? "rgba(0,0,0,0.025)" : "rgba(255,255,255,0.04)";
   const itemBgHover = isLight
     ? "rgba(99,102,241,0.07)"

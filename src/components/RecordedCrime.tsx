@@ -32,7 +32,7 @@ function lookOf(isLight: boolean) {
     isLight,
     card: {
       background: isLight ? "#ffffff" : "rgba(255,255,255,0.04)",
-      border: isLight ? "1px solid rgba(0,0,0,0.09)" : "1px solid rgba(255,255,255,0.08)",
+      border: isLight ? "1px solid rgba(0,0,0,0.09)" : "1px solid rgba(255,255,255,0.14)",
       boxShadow: isLight ? "var(--card-glow), 0 1px 10px rgba(0,0,0,0.07)" : "var(--card-glow)",
     } as CSSProperties,
     head: isLight ? "#0f172a" : "#f1f0ff",
@@ -40,7 +40,7 @@ function lookOf(isLight: boolean) {
     accent: isLight ? "#dc2626" : "rgba(248,113,113,0.85)",
     track: isLight ? "rgba(0,0,0,0.06)" : "rgba(255,255,255,0.07)",
     line: isLight ? "rgba(0,0,0,0.1)" : "rgba(255,255,255,0.1)",
-    grid: isLight ? "rgba(0,0,0,0.06)" : "rgba(255,255,255,0.06)",
+    grid: isLight ? "rgba(0,0,0,0.06)" : "rgba(255,255,255,0.12)",
     /** The part of a bar that the source does not break down. */
     rest: isLight ? "#cbd5e1" : "rgba(255,255,255,0.24)",
     tip: isLight ? "#fff" : "#1a1730",
@@ -649,7 +649,7 @@ export function RecordedCrime({ isLight }: { isLight: boolean }) {
             <div
               key={s.l}
               className="rounded-xl px-3 py-1.5 text-center"
-              style={{ background: isLight ? "rgba(255,255,255,0.75)" : "rgba(255,255,255,0.07)", border: isLight ? "1px solid rgba(239,68,68,0.15)" : "1px solid rgba(255,255,255,0.1)" }}
+              style={{ background: isLight ? "rgba(255,255,255,0.75)" : "rgba(255,255,255,0.07)", border: isLight ? "1px solid rgba(239,68,68,0.15)" : "1px solid rgba(255,255,255,0.14)" }}
             >
               <p className="text-sm font-bold font-mono" style={{ color: look.head }}>
                 {s.v}

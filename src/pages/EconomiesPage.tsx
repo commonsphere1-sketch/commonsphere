@@ -2993,7 +2993,7 @@ export function EconomiesPage() {
                                 <Tooltip
                                   contentStyle={{
                                     background: "hsl(222,30%,14%)",
-                                    border: "1px solid rgba(255,255,255,0.1)",
+                                    border: "1px solid rgba(255,255,255,0.14)",
                                     borderRadius: 8,
                                     fontSize: 10,
                                     fontFamily: "Figures, IBM Plex Mono",

@@ -27,10 +27,10 @@ export function useLook() {
     isLight,
     head: isLight ? "#0f172a" : "#f1f0ff",
     muted: isLight ? "rgba(30,41,59,0.64)" : "rgba(255,255,255,0.66)",
-    grid: isLight ? "rgba(0,0,0,0.06)" : "rgba(255,255,255,0.06)",
+    grid: isLight ? "rgba(0,0,0,0.06)" : "rgba(255,255,255,0.12)",
     card: {
       background: isLight ? "#ffffff" : "rgba(255,255,255,0.04)",
-      border: isLight ? "1px solid rgba(0,0,0,0.09)" : "1px solid rgba(255,255,255,0.08)",
+      border: isLight ? "1px solid rgba(0,0,0,0.09)" : "1px solid rgba(255,255,255,0.14)",
       boxShadow: isLight ? "var(--card-glow), 0 1px 10px rgba(0,0,0,0.07)" : "var(--card-glow)",
     },
   };

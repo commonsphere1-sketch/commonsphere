@@ -268,14 +268,14 @@ export function AnalystPage() {
   const cardBg = isLight ? "#ffffff" : "rgba(255,255,255,0.04)";
   const cardBorder = isLight
     ? "1px solid rgba(0,0,0,0.09)"
-    : "1px solid rgba(255,255,255,0.08)";
+    : "1px solid rgba(255,255,255,0.14)";
   const cardShadow = isLight
     ? "var(--card-glow), 0 1px 10px rgba(0,0,0,0.07)"
     : "var(--card-glow)";
   const headText = isLight ? "#0f172a" : "#f1f0ff";
   const bodyText = isLight ? "#1e293b" : "#e2e8f0";
   const mutedText = isLight ? "rgba(30,41,59,0.64)" : "rgba(255,255,255,0.66)";
-  const gridLine = isLight ? "rgba(0,0,0,0.06)" : "rgba(255,255,255,0.06)";
+  const gridLine = isLight ? "rgba(0,0,0,0.06)" : "rgba(255,255,255,0.12)";
   const sidebarBg = isLight ? "#f1f5f9" : "rgba(255,255,255,0.025)";
   const inputBg = isLight ? "#f8fafc" : "rgba(255,255,255,0.06)";
 
@@ -865,7 +865,7 @@ export function AnalystPage() {
                                       : "rgba(255,255,255,0.03)",
                                     border: isLight
                                       ? "1px solid rgba(0,0,0,0.06)"
-                                      : "1px solid rgba(255,255,255,0.06)",
+                                      : "1px solid rgba(255,255,255,0.14)",
                                   }}
                                 >
                                   <div className="flex items-center gap-1.5 mb-1">

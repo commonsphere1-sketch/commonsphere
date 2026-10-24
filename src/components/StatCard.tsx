@@ -423,12 +423,12 @@ export function StatWindow({ s, onClose }: { s: StatCardData; onClose: () => voi
                         <stop offset="100%" stopColor={color} stopOpacity={0.02} />
                       </linearGradient>
                     </defs>
-                    <CartesianGrid stroke={isLight ? "rgba(0,0,0,0.06)" : "rgba(255,255,255,0.07)"} strokeDasharray="3 3" vertical={false} />
+                    <CartesianGrid stroke={isLight ? "rgba(0,0,0,0.06)" : "rgba(255,255,255,0.1)"} strokeDasharray="3 3" vertical={false} />
                     <XAxis dataKey="year" tick={{ fontSize: 9, fill: muted, fontFamily: "monospace" }} axisLine={false} tickLine={false} minTickGap={24} />
                     <YAxis width={56} tick={{ fontSize: 9, fill: muted, fontFamily: "monospace" }} axisLine={false} tickLine={false} tickFormatter={(v: number) => fmt(v)} domain={["auto", "auto"]} />
                     {split && <ReferenceArea x1={String(split)} x2={String(lastOf(series)[0])} fill={isLight ? "rgba(99,102,241,0.07)" : "rgba(129,140,248,0.10)"} fillOpacity={1} ifOverflow="visible" />}
                     <Tooltip
-                      contentStyle={{ background: isLight ? "#ffffff" : "#15151a", border: isLight ? "1px solid rgba(0,0,0,0.1)" : "1px solid rgba(255,255,255,0.1)", borderRadius: 10, fontSize: 11, fontFamily: "monospace", color: ink }}
+                      contentStyle={{ background: isLight ? "#ffffff" : "#15151a", border: isLight ? "1px solid rgba(0,0,0,0.1)" : "1px solid rgba(255,255,255,0.14)", borderRadius: 10, fontSize: 11, fontFamily: "monospace", color: ink }}
                       labelStyle={{ color: muted }}
                       formatter={(v: number, k: string) => [fmt(v), k === "p" ? `${s.label}, projected` : s.label]}
                     />

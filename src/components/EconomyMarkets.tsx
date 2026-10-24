@@ -49,7 +49,7 @@ type LineSpec = { key: string; label: string; color: string; points: Point[] };
 function Chart({ lines, label, zero = false }: { lines: LineSpec[]; label: string; zero?: boolean }) {
   const { theme } = useTheme();
   const muted = theme === "light" ? "rgba(30,41,59,0.64)" : "rgba(255,255,255,0.66)";
-  const grid = theme === "light" ? "rgba(0,0,0,0.08)" : "rgba(255,255,255,0.08)";
+  const grid = theme === "light" ? "rgba(0,0,0,0.08)" : "rgba(255,255,255,0.12)";
   const years = [...new Set(lines.flatMap((l) => l.points.map(([y]) => y)))].sort((a, b) => a - b);
   const data = years.map((y) => {
     const row: Record<string, number | string | null> = { year: String(y) };

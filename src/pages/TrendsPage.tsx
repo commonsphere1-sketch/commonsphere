@@ -110,10 +110,10 @@ function useLook() {
     muted,
     card: {
       background: isLight ? "#ffffff" : "rgba(255,255,255,0.04)",
-      border: isLight ? "1px solid rgba(0,0,0,0.09)" : "1px solid rgba(255,255,255,0.08)",
+      border: isLight ? "1px solid rgba(0,0,0,0.09)" : "1px solid rgba(255,255,255,0.14)",
       boxShadow: isLight ? "var(--card-glow), 0 1px 10px rgba(0,0,0,0.07)" : "var(--card-glow)",
     },
-    grid: isLight ? "rgba(0,0,0,0.06)" : "rgba(255,255,255,0.06)",
+    grid: isLight ? "rgba(0,0,0,0.06)" : "rgba(255,255,255,0.12)",
     track: isLight ? "rgba(0,0,0,0.06)" : "rgba(255,255,255,0.07)",
     /** The wash over the years that are projections. */
     ahead: isLight ? "rgba(99,102,241,0.07)" : "rgba(129,140,248,0.10)",
@@ -121,7 +121,7 @@ function useLook() {
     tooltip: {
       contentStyle: {
         background: isLight ? "#ffffff" : "#15151a",
-        border: isLight ? "1px solid rgba(0,0,0,0.1)" : "1px solid rgba(255,255,255,0.1)",
+        border: isLight ? "1px solid rgba(0,0,0,0.1)" : "1px solid rgba(255,255,255,0.14)",
         borderRadius: 10,
         fontSize: 11,
         fontFamily: "monospace",

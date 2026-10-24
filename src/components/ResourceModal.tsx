@@ -358,11 +358,11 @@ function PriceHistory({ facts, color, unitNote }: { facts: PriceFacts; color: st
                   <stop offset="100%" stopColor={color} stopOpacity={0.02} />
                 </linearGradient>
               </defs>
-              <CartesianGrid stroke={isLight ? "rgba(0,0,0,0.06)" : "rgba(255,255,255,0.07)"} strokeDasharray="3 3" vertical={false} />
+              <CartesianGrid stroke={isLight ? "rgba(0,0,0,0.06)" : "rgba(255,255,255,0.1)"} strokeDasharray="3 3" vertical={false} />
               <XAxis dataKey="m" ticks={januaries} tickFormatter={(m: string) => m.slice(0, 4)} tick={{ fontSize: 9, fill: muted, fontFamily: "monospace" }} axisLine={false} tickLine={false} />
               <YAxis width={46} tick={{ fontSize: 9, fill: muted, fontFamily: "monospace" }} axisLine={false} tickLine={false} tickFormatter={(v: number) => (v >= 10000 ? `${Math.round(v / 1000)}k` : fmtPrice(v))} domain={[0, "auto"]} />
               <Tooltip
-                contentStyle={{ background: isLight ? "#ffffff" : "#15151a", border: isLight ? "1px solid rgba(0,0,0,0.1)" : "1px solid rgba(255,255,255,0.1)", borderRadius: 10, fontSize: 11, fontFamily: "monospace", color: ink }}
+                contentStyle={{ background: isLight ? "#ffffff" : "#15151a", border: isLight ? "1px solid rgba(0,0,0,0.1)" : "1px solid rgba(255,255,255,0.14)", borderRadius: 10, fontSize: 11, fontFamily: "monospace", color: ink }}
                 labelStyle={{ color: muted }}
                 labelFormatter={(m: string) => fmtMonth(m)}
                 formatter={(v: number) => [`${fmtPrice(v)} ${price.unit}`, price.benchmark]}

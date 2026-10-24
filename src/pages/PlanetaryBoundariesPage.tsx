@@ -495,7 +495,7 @@ export function PlanetaryBoundariesPage() {
 
   const mutedText = isLight ? "rgba(30,41,59,0.64)" : "rgba(255,255,255,0.66)";
   const headText = isLight ? "#0f172a" : "#f1f0ff";
-  const gridLine = isLight ? "rgba(0,0,0,0.06)" : "rgba(255,255,255,0.06)";
+  const gridLine = isLight ? "rgba(0,0,0,0.06)" : "rgba(255,255,255,0.12)";
 
   const selected = BOUNDARIES.find((b) => b.id === selectedId) ?? BOUNDARIES[0];
   const co2 = CLIMATE_INDICATORS.find((i) => i.id === "co2-global");

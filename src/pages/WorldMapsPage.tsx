@@ -1744,7 +1744,7 @@ export function WorldMapsPage() {
   /* The place picked out: an orange none of the layers uses, dark enough to read as the chip's text on the light card. */
   const markInk = isLight ? "#c2410c" : "#ff922b";
   const cardBg = isLight ? "#ffffff" : "rgba(255,255,255,0.04)";
-  const cardBorder = isLight ? "1px solid rgba(0,0,0,0.09)" : "1px solid rgba(255,255,255,0.08)";
+  const cardBorder = isLight ? "1px solid rgba(0,0,0,0.09)" : "1px solid rgba(255,255,255,0.14)";
   const cardShadow = isLight
     ? "var(--card-glow), 0 1px 10px rgba(0,0,0,0.07)"
     : "var(--card-glow)";
@@ -4212,7 +4212,7 @@ export function WorldMapsPage() {
                     background: isLight ? "rgba(0,0,0,0.025)" : "rgba(255,255,255,0.04)",
                     border: isLight
                       ? "1px solid rgba(0,0,0,0.06)"
-                      : "1px solid rgba(255,255,255,0.06)",
+                      : "1px solid rgba(255,255,255,0.14)",
                   }}
                 >
                   <p className="text-[9px] font-mono uppercase tracking-wide text-muted-foreground">
@@ -4677,7 +4677,7 @@ export function WorldMapsPage() {
                                       background: isLight ? "rgba(0,0,0,0.025)" : "rgba(255,255,255,0.04)",
                                       border: isLight
                                         ? "1px solid rgba(0,0,0,0.06)"
-                                        : "1px solid rgba(255,255,255,0.06)",
+                                        : "1px solid rgba(255,255,255,0.14)",
                                     }}
                                   >
                                     <span className="text-[10px] font-sans text-muted-foreground shrink-0">{k}</span>

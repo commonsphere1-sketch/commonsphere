@@ -88,7 +88,7 @@ const formsSum = forms.reduce((a, x) => a + x.value, 0);
 export function SlaveryForms({ isLight }: { isLight: boolean }) {
   const card = {
     background: isLight ? "#ffffff" : "rgba(255,255,255,0.04)",
-    border: isLight ? "1px solid rgba(0,0,0,0.09)" : "1px solid rgba(255,255,255,0.08)",
+    border: isLight ? "1px solid rgba(0,0,0,0.09)" : "1px solid rgba(255,255,255,0.14)",
     boxShadow: isLight ? "var(--card-glow), 0 1px 10px rgba(0,0,0,0.07)" : "var(--card-glow)",
   };
   return (
@@ -123,10 +123,10 @@ export function TraffickingAndSlavery({ isLight }: { isLight: boolean }) {
   const muted = isLight ? "rgba(30,41,59,0.64)" : "rgba(255,255,255,0.66)";
   const card = {
     background: isLight ? "#ffffff" : "rgba(255,255,255,0.04)",
-    border: isLight ? "1px solid rgba(0,0,0,0.09)" : "1px solid rgba(255,255,255,0.08)",
+    border: isLight ? "1px solid rgba(0,0,0,0.09)" : "1px solid rgba(255,255,255,0.14)",
     boxShadow: isLight ? "var(--card-glow), 0 1px 10px rgba(0,0,0,0.07)" : "var(--card-glow)",
   };
-  const tile = { background: isLight ? "rgba(0,0,0,0.03)" : "rgba(255,255,255,0.04)", border: isLight ? "1px solid rgba(0,0,0,0.06)" : "1px solid rgba(255,255,255,0.06)" };
+  const tile = { background: isLight ? "rgba(0,0,0,0.03)" : "rgba(255,255,255,0.04)", border: isLight ? "1px solid rgba(0,0,0,0.06)" : "1px solid rgba(255,255,255,0.14)" };
   const Tile = ({ label, value, sub }: { label: string; value: string; sub: string }) => (
     <div className="rounded-xl px-3 py-2.5 min-w-0" style={tile}>
       <p className="text-[9px] font-mono uppercase tracking-widest leading-snug" style={{ color: muted }}>

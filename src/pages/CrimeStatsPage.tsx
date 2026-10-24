@@ -666,14 +666,14 @@ export function CrimeStatsPage() {
   const cardBg = isLight ? "#ffffff" : "rgba(255,255,255,0.04)";
   const cardBorder = isLight
     ? "1px solid rgba(0,0,0,0.09)"
-    : "1px solid rgba(255,255,255,0.08)";
+    : "1px solid rgba(255,255,255,0.14)";
   const cardShadow = isLight
     ? "var(--card-glow), 0 1px 10px rgba(0,0,0,0.07)"
     : "var(--card-glow)";
   const mutedText = isLight ? "rgba(30,41,59,0.64)" : "rgba(255,255,255,0.66)";
   const bodyText = isLight ? "#1e293b" : "#e2e8f0";
   const headText = isLight ? "#0f172a" : "#f1f0ff";
-  const gridLine = isLight ? "rgba(0,0,0,0.06)" : "rgba(255,255,255,0.06)";
+  const gridLine = isLight ? "rgba(0,0,0,0.06)" : "rgba(255,255,255,0.12)";
 
   const homicideData = homicideView === "highest" ? TOP_HIGH : TOP_SAFE;
 
@@ -843,7 +843,7 @@ export function CrimeStatsPage() {
                 style={{
                   border: isLight
                     ? "1px solid rgba(0,0,0,0.1)"
-                    : "1px solid rgba(255,255,255,0.1)",
+                    : "1px solid rgba(255,255,255,0.14)",
                 }}
               >
                 {(["highest", "safest"] as const).map((v) => (
@@ -936,7 +936,7 @@ export function CrimeStatsPage() {
                     background: isLight ? "#fff" : "#1a1730",
                     border: isLight
                       ? "1px solid rgba(0,0,0,0.1)"
-                      : "1px solid rgba(255,255,255,0.1)",
+                      : "1px solid rgba(255,255,255,0.14)",
                     borderRadius: 10,
                     fontSize: 11,
                     fontFamily: "monospace",
@@ -1485,7 +1485,7 @@ export function CrimeStatsPage() {
                     : "rgba(255,255,255,0.07)",
                   border: isLight
                     ? "1px solid rgba(239,68,68,0.15)"
-                    : "1px solid rgba(255,255,255,0.1)",
+                    : "1px solid rgba(255,255,255,0.14)",
                 }}
               >
                 <p
@@ -1594,7 +1594,7 @@ export function CrimeStatsPage() {
                     background: isLight ? "#fff" : "#1a1730",
                     border: isLight
                       ? "1px solid rgba(0,0,0,0.1)"
-                      : "1px solid rgba(255,255,255,0.1)",
+                      : "1px solid rgba(255,255,255,0.14)",
                     borderRadius: 10,
                     fontSize: 11,
                     fontFamily: "monospace",
@@ -1809,7 +1809,7 @@ export function CrimeStatsPage() {
                     background: isLight ? "#fff" : "#1a1730",
                     border: isLight
                       ? "1px solid rgba(0,0,0,0.1)"
-                      : "1px solid rgba(255,255,255,0.1)",
+                      : "1px solid rgba(255,255,255,0.14)",
                     borderRadius: 10,
                     fontSize: 11,
                     fontFamily: "monospace",
@@ -1997,7 +1997,7 @@ export function CrimeStatsPage() {
                     : "rgba(255,255,255,0.07)",
                   border: isLight
                     ? "1px solid rgba(168,85,247,0.15)"
-                    : "1px solid rgba(255,255,255,0.1)",
+                    : "1px solid rgba(255,255,255,0.14)",
                 }}
               >
                 <p
@@ -2423,7 +2423,7 @@ export function CrimeStatsPage() {
                     background: isLight ? "#fff" : "#1a1730",
                     border: isLight
                       ? "1px solid rgba(0,0,0,0.1)"
-                      : "1px solid rgba(255,255,255,0.1)",
+                      : "1px solid rgba(255,255,255,0.14)",
                     borderRadius: 10,
                     fontSize: 11,
                     fontFamily: "monospace",

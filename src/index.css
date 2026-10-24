@@ -77,7 +77,11 @@
   --color-foreground: hsl(40, 16%, 92%);
   --color-card: rgba(255, 255, 255, 0.032);
   --color-card-foreground: hsl(40, 16%, 92%);
-  --color-border: rgba(255, 255, 255, 0.065);
+  /* The site's lines in dark mode - dividers, rules and outlines on every
+     page. They were 0.065, which on the near-black page left a list's
+     dividers all but invisible; 0.14 is the step the headline banners
+     already used, plainly seen and still well below the lettering, as asked. */
+  --color-border: rgba(255, 255, 255, 0.14);
   --color-muted: rgba(255, 255, 255, 0.045);
   /* The site's grey lettering in dark mode. It was 0.46 - 4.5:1, the floor for
      body text - and read as faint at the small sizes most of it is set in; 0.66
@@ -583,7 +587,7 @@ html.light
     rgba(255, 255, 255, 0.035) 0%,
     rgba(255, 255, 255, 0.015) 100%
   );
-  border: 1px solid rgba(255, 255, 255, 0.06);
+  border: 1px solid var(--color-border);
   box-shadow: var(--card-glow), var(--premium-shadow);
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
@@ -632,7 +636,7 @@ html.light
   background: rgba(8, 8, 16, 0.85);
   backdrop-filter: blur(24px) saturate(180%);
   -webkit-backdrop-filter: blur(24px) saturate(180%);
-  border: 1px solid rgba(255, 255, 255, 0.06);
+  border: 1px solid var(--color-border);
 }
 
 /* Gold accent underline for prominent headings */
@@ -1196,7 +1200,7 @@ html.light .avatar-glass {
    it; inside such a panel both are set a step stronger. */
 .cs-on-hue {
   --color-muted-foreground: rgba(255, 255, 255, 0.8);
-  --color-border: rgba(255, 255, 255, 0.14);
+  --color-border: rgba(255, 255, 255, 0.2);
 }
 html.light .cs-on-hue {
   --color-muted-foreground: hsl(38, 12%, 30%);
