@@ -32,7 +32,7 @@
  * it. A country with no divisions held, or a division the maps draw no
  * outline for, is told so.
  */
-import { useEffect, useMemo, useRef, useState } from "react";
+import { memo, useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { ArrowRight } from "@phosphor-icons/react";
 import { PLACE_COUNTRIES, PLACES_SOURCE } from "../data/placesIndex";
@@ -227,7 +227,7 @@ function Atlas({ code: above, country: aboveName, division, color: aboveColor, c
 }
 
 /** The map, once the page has come near it: until then nothing of it is fetched, whatever is pointed at above. */
-export default function DivisionAtlas(props: Props) {
+function DivisionAtlas(props: Props) {
   const box = useRef<HTMLDivElement>(null);
   const [seen, setSeen] = useState(false);
   useEffect(() => {
@@ -240,3 +240,6 @@ export default function DivisionAtlas(props: Props) {
   }, [seen]);
   return <div ref={box}>{seen ? <Atlas {...props} /> : <p className="text-xs font-sans text-muted-foreground">Counties and municipalities · {props.country}: the map is drawn when the page reaches it.</p>}</div>;
 }
+
+/* Redrawn only when what it is given changes: not at every step of a pan of the maps above it. */
+export default memo(DivisionAtlas);

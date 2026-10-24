@@ -678,6 +678,8 @@ export default function WorldviewMap() {
      page's own files, fetched after the map is drawn. A file that does not come leaves the map without that layer. */
   const [inner, setInner] = useState<{ one: { c: string; d: string }[]; two: { c: string; d: string }[] }>({ one: [], two: [] });
   const [cities, setCities] = useState<{ name: string; country: string; cc: string | null; people: number; x: number; y: number; lon: number; lat: number }[]>([]);
+  // The largest first, sorted once: not at every step of a pan.
+  const citiesByPeople = useMemo(() => [...cities].sort((a, b) => b.people - a.people), [cities]);
   /* The names on the map, as asked: the countries' at every zoom; drawn closer, the picked country's divisions, then its
      counties and districts; and the cities once they show - as many as fit in view without meeting (MapLabels). */
   const labels = useMemo(() => {
@@ -687,10 +689,10 @@ export default function WorldviewMap() {
       for (const r of regions.list) if (r.a) cands.push({ key: `r-${r.name}`, text: r.name, ...r.a, size: 8.5, weight: 500, rank: 3 });
     if (countiesShown) for (const c of counties!.list) if (c.a) cands.push({ key: `k-${c.id}`, text: c.name, ...c.a, size: 8, weight: 500, rank: 4 });
     if (view.k >= CITIES_FROM)
-      for (const c of [...cities].sort((a, b) => b.people - a.people))
+      for (const c of citiesByPeople)
         cands.push({ key: `t-${c.name}-${c.country}-${c.x}`, text: c.name, x: c.x + (c.people >= 1e6 ? 2.6 : 1.6) / view.k, y: c.y, size: 8.5, rank: 2, town: true });
     return placeLabels(cands, { x0: view.x - W / (2 * view.k), y0: view.y - H / (2 * view.k), x1: view.x + W / (2 * view.k), y1: view.y + H / (2 * view.k), k: view.k });
-  }, [view, regions, picked, counties, countiesShown, cities]);
+  }, [view, regions, picked, counties, countiesShown, citiesByPeople]);
   useEffect(() => {
     let off = false;
     const lines = (url: string) =>

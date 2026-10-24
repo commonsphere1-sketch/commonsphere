@@ -46,7 +46,7 @@
  * or by the same name within a few kilometres. Nothing is typed in here, and
  * a count is the only thing worked out.
  */
-import { useCallback, useEffect, useMemo, useRef, useState, type MouseEvent, type PointerEvent } from "react";
+import { memo, useCallback, useEffect, useMemo, useRef, useState, type MouseEvent, type PointerEvent } from "react";
 import { useNavigate } from "react-router-dom";
 import { geoEqualEarth, geoPath, type GeoPermissibleObjects } from "d3-geo";
 import { feature, mesh } from "topojson-client";
@@ -183,7 +183,7 @@ function useLoaded<T>(key: string | null, load: () => Promise<T>): { data: T | n
 /** What is picked: a GeoNames place by its id, or a place with a verified head by its Wikidata id. */
 type Pick = { geo: number } | { head: string } | null;
 
-export default function RepresentativesExplorer() {
+function RepresentativesExplorer() {
   const t = useTokens();
   const navigate = useNavigate();
   const [search, setSearch] = useState("");
@@ -929,3 +929,7 @@ export default function RepresentativesExplorer() {
     </div>
   );
 }
+
+/* Kept from redrawing when the page around it does - it takes nothing from the page, and draws tens of thousands of places:
+   redrawn at every step of a pan of the World Maps page's map, it made that map stutter. */
+export default memo(RepresentativesExplorer);
