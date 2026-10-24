@@ -61,7 +61,7 @@ export default function PlaceSearch() {
     navigate(h.to);
   };
   return (
-    <div ref={box} className="relative w-full lg:w-64 shrink-0">
+    <div ref={box} className="relative w-44 sm:w-56 ml-auto shrink-0">
       <label className="flex items-center gap-1.5 rounded-full border border-border px-3 py-1 transition-colors focus-within:border-foreground/40">
         <MagnifyingGlass size={12} className="text-muted-foreground shrink-0" aria-hidden />
         <input
@@ -94,7 +94,7 @@ export default function PlaceSearch() {
         />
       </label>
       {open && q.trim().length >= 2 && (
-        <ul id="place-search-hits" role="listbox" className="absolute right-0 top-full mt-1.5 w-full lg:w-80 max-h-80 overflow-y-auto modal-glass border rounded-xl shadow-lg py-1 z-30">
+        <ul id="place-search-hits" role="listbox" className="absolute right-0 top-full mt-1.5 w-[min(20rem,calc(100vw-2rem))] max-h-80 overflow-y-auto modal-glass border rounded-xl shadow-lg py-1 z-30">
           {hits.map((h, i) => (
             <li key={h.key} role="option" aria-selected={i === at}>
               <button type="button" onClick={() => go(h)} onMouseEnter={() => setAt(i)} className={`w-full text-left px-3 py-1.5 flex items-baseline gap-2 cursor-pointer ${i === at ? "bg-muted/60" : ""}`}>
