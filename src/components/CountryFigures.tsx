@@ -54,6 +54,7 @@ import { AdviceLists } from "./LawAdvice";
 import { useTokens, type Tokens } from "./DataExplorer";
 import { SourceLink } from "./SourceLink";
 import SlimBars, { SlimColumns, gradId } from "./SlimBars";
+import { LegalStatusList } from "./LegalStatusList";
 
 /** The site's colours for the panels, in turn. */
 export const INK = ["#2a78d6", "#10b981", "#f59e0b", "#8b5cf6", "#ef4444", "#06b6d4", "#ec4899", "#84cc16", "#f97316", "#6366f1"];
@@ -954,7 +955,7 @@ export default function CountryFigures({ code, name }: { code: string; name: str
             <None t={t}>No figures of conflict or refuge are held for {name}.</None>
           )}
         </Panel>
-        <Panel t={t} title="Its law" meta="legal system, and what is illegal, restricted and legal" className={local ? "md:!basis-full xl:!basis-full" : ""}>
+        <Panel t={t} title="Its law" meta="legal system, and what is illegal, restricted and legal" className="md:!basis-full xl:!basis-full">
           {legal || local ? (
             <>
               {legal && (
@@ -972,6 +973,8 @@ export default function CountryFigures({ code, name }: { code: string; name: str
               <Note t={t}>Its legal system, in the Factbook's own words. Its constitution and courts are in the country's window, under Laws.</Note>
               </>
               )}
+              {/* The longer list its window gives under Law, subject by subject, as asked; then the Foreign Office's advice. */}
+              <LegalStatusList code={code} name={name} />
               {local && <AdviceLists advice={local} country={name} />}
               <Foot sources={[legal ? JUSTICE_SOURCES.legal : undefined, local ? COUNTRY_LAW_SOURCES.advice : undefined]} />
             </>
