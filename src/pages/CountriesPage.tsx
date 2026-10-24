@@ -1,4 +1,5 @@
 import { na, has, orZero, sortKey } from "../lib/na";
+import { SLIM_TRACK, slimFill } from "../components/SlimBars";
 import { SiteMark } from "../components/SiteMark";
 import { PublicServicesSection, ServiceBadges } from "../components/PublicServices";
 import { ACCENT, ChartNote, ChartTitle, FigureRow, FigureTile, HdiScale, MeasureBars, PartsBar, PartsDonut, worldFor, type MeasureRow } from "../components/ModalCharts";
@@ -16076,8 +16077,8 @@ export function CountriesPage() {
                   </div>
                   {/* On its own scale, 0 to 1, in the country's own colour - its flag's (lib/flagColor) - as asked. The colour
                       says whose bar it is, not how good the figure is: the UNDP's tier is the chip below. */}
-                  <div className="h-1.5 bg-muted rounded-full overflow-hidden">
-                    <div className="h-full rounded-full" style={{ width: `${orZero(country.humanDevelopmentIndex) * 100}%`, background: flagColor(country.code) ?? ACCENT }} />
+                  <div className="h-2 rounded-full overflow-hidden" style={{ background: SLIM_TRACK }}>
+                    <div className="h-full rounded-full" style={{ width: `${orZero(country.humanDevelopmentIndex) * 100}%`, background: slimFill(flagColor(country.code) ?? ACCENT) }} />
                   </div>
                 </div>
                 )}

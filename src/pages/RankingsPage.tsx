@@ -1,4 +1,5 @@
 import { ChipRow } from "../components/ChipRow";
+import { SLIM_TRACK, slimFill } from "../components/SlimBars";
 import { SiteMark } from "../components/SiteMark";
 import React, { useState, useMemo, useCallback, useEffect, useRef, lazy, Suspense } from "react";
 import { COUNTRY_LAW_HELD } from "../data/countryLaw";
@@ -728,15 +729,16 @@ function ScoreBar({
   // non-finite input, which would otherwise draw a half-full bar and read as
   // a middling score rather than as no data.
   if (!isFinite(value)) {
-    return <div className="w-10 h-1.5 bg-muted rounded-full overflow-hidden" />;
+    return <div className="w-10 h-2 rounded-full overflow-hidden" style={{ background: SLIM_TRACK }} />;
   }
   // The placing among the places that have the measure - the share of them it ranks ahead of or level with - as the profile
   // strip draws it. It was the figure's distance between the lowest and the highest, in green, amber or red by thirds.
   const p = placingOf(value, allValues, higherIsBetter);
-  if (!p) return <div className="w-10 h-1.5 bg-muted rounded-full overflow-hidden" />;
+  if (!p) return <div className="w-10 h-2 rounded-full overflow-hidden" style={{ background: SLIM_TRACK }} />;
   return (
-    <div className="w-10 h-1.5 bg-muted rounded-full overflow-hidden" title={`${ordinal(p.rank)} of ${p.of}`}>
-      <div className="h-full rounded-full bg-secondary" style={{ width: `${Math.max(4, p.ahead)}%` }} />
+    <div className="w-10 h-2 rounded-full overflow-hidden" style={{ background: SLIM_TRACK }} title={`${ordinal(p.rank)} of ${p.of}`}>
+      {/* The slim style: a gradient of the accent on the faint track. */}
+      <div className="h-full rounded-full" style={{ width: `${Math.max(4, p.ahead)}%`, background: slimFill("var(--color-secondary)") }} />
     </div>
   );
 }
