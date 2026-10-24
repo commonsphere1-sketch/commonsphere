@@ -419,7 +419,7 @@ function TabBar({ tab, onTab, count }: { tab: WinTab; onTab: (t: WinTab) => void
     { key: "overview", label: "Overview", icon: <ListBullets size={14} /> },
     { key: "laws", label: "Laws", icon: <Scales size={14} /> },
     { key: "history", label: "History", icon: <ClockCounterClockwise size={14} /> },
-    { key: "municipalities", label: count != null ? `Municipalities · ${whole(count)}` : "Municipalities", icon: <Buildings size={14} /> },
+    { key: "municipalities", label: "Municipalities", icon: <Buildings size={14} /> },
   ] as const;
   return (
     <div className="flex gap-1 p-1 bg-muted/40 rounded-xl border border-border/50 modal-tabs" role="group" aria-label="The parts of this window">
@@ -429,10 +429,12 @@ function TabBar({ tab, onTab, count }: { tab: WinTab; onTab: (t: WinTab) => void
           type="button"
           onClick={() => onTab(x.key)}
           aria-pressed={tab === x.key}
-          className={`flex-1 flex items-center justify-center gap-1.5 px-3 py-2 rounded-lg text-xs font-medium font-sans transition-all duration-200 cursor-pointer ${tab === x.key ? "bg-card text-foreground shadow-sm border border-border/60" : "text-muted-foreground hover:text-foreground"}`}
+          className={`flex-1 min-w-0 flex items-center justify-center gap-1 px-2 py-2 rounded-lg text-xs font-medium font-sans whitespace-nowrap transition-all duration-200 cursor-pointer ${tab === x.key ? "bg-card text-foreground shadow-sm border border-border/60" : "text-muted-foreground hover:text-foreground"}`}
         >
           {x.icon}
           {x.label}
+          {/* The count beside the title, small, on the same line: the bar stays the height of every other window's, as asked. */}
+          {x.key === "municipalities" && count != null && <span className="text-[10px] font-mono text-muted-foreground">{whole(count)}</span>}
         </button>
       ))}
     </div>
