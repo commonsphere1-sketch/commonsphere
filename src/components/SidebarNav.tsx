@@ -99,6 +99,7 @@ const analysisNav = [
 ];
 
 const bottomNav = [
+  { to: "/dashboard/news", label: "News", icon: Newspaper, end: false },
   { to: "/dashboard/notes", label: "My Notes", icon: NotePencil, end: false },
   { to: "/dashboard/settings", label: "Settings", icon: GearSix, end: false },
   { to: "/membership", label: "Membership", icon: Crown, end: false },
@@ -140,6 +141,7 @@ const FEATURE_ABOUT: Record<string, string> = {
   "/dashboard/planetary-boundaries": "The state of the planet: emissions, temperature, energy and the limits the earth can bear.",
   "/dashboard/crime": "Crime by type and by country, as the UN Office on Drugs and Crime counts it.",
   "/dashboard/maps": "The world mapped by any measure the site holds.",
+  "/dashboard/news": "The latest headlines from established outlets, for the whole world, between countries, or any continent, country or US state - political, social, environmental, economic, security and industrial.",
   "/dashboard/notes": "Your own notes on any place, person or page.",
 };
 

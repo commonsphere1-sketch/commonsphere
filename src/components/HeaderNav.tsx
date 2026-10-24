@@ -105,6 +105,7 @@ const PAGES: [label: string, to: string, about: string][] = [
   ["Climate", "/dashboard/planetary-boundaries", "The measured state of the climate"],
   ["Crime", "/dashboard/crime", "Crime and justice figures"],
   ["World Maps", "/dashboard/maps", "The world, mapped by measure"],
+  ["News", "/dashboard/news", "The latest headlines, by place and subject"],
 ];
 
 /** What can be searched as soon as the page is up: the pages, the countries, the US states, the profiled cities and the economies. */

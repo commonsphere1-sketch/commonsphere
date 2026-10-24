@@ -536,6 +536,7 @@ export function HeadlineList({
   label,
   items,
   summary,
+  scrollClass = "max-h-[min(26rem,60vh)]",
 }: {
   /** The id the banner's switch points at. */
   id: string;
@@ -544,6 +545,8 @@ export function HeadlineList({
   items: TickerItem[];
   /** The line above the list: how many, and from when. */
   summary: ReactNode;
+  /** How tall the list scrolls: short under a banner, taller on the News page, which is the list. */
+  scrollClass?: string;
 }) {
   const [q, setQ] = useState("");
   const [drawn, setDrawn] = useState(LIST_STEP);
@@ -590,7 +593,7 @@ export function HeadlineList({
           </label>
         )}
       </div>
-      <div className="max-h-[min(26rem,60vh)] overflow-y-auto">
+      <div className={`${scrollClass} overflow-y-auto`}>
         {groups
           .filter((g) => g.items.length > 0)
           .map((g) => (

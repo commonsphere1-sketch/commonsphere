@@ -20,6 +20,9 @@ const CitiesPage = lazy(() =>
 const EconomiesPage = lazy(() =>
   import("./pages/EconomiesPage").then((m) => ({ default: m.EconomiesPage })),
 );
+const NewsPage = lazy(() =>
+  import("./pages/NewsPage").then((m) => ({ default: m.NewsPage })),
+);
 const NotesPage = lazy(() =>
   import("./pages/NotesPage").then((m) => ({ default: m.NotesPage })),
 );
@@ -112,6 +115,7 @@ export default function App() {
             </Route>
             <Route path="/dashboard" element={<DashboardLayout />}>
               <Route index element={<DashboardPage />} />
+              <Route path="news" element={<NewsPage />} />
               <Route path="notes" element={<NotesPage />} />
               <Route path="settings" element={<SettingsPage />} />
               <Route path="states" element={<StatesPage />} />
