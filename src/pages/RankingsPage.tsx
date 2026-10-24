@@ -1785,8 +1785,8 @@ function ComparisonPanel({
                               <span className="text-[9px] font-mono text-muted-foreground">
                                 #{rank} of {poolSize}
                               </span>
-                              <div className="h-1 w-full max-w-[5rem] rounded-full bg-muted overflow-hidden">
-                                <div className="h-full rounded-full" style={{ width: `${Math.max(2, pct)}%`, background: color }} />
+                              <div className="h-1 w-full max-w-[5rem] rounded-full overflow-hidden" style={{ background: SLIM_TRACK }}>
+                                <div className="h-full rounded-full" style={{ width: `${Math.max(2, pct)}%`, background: slimFill(color) }} />
                               </div>
                             </>
                           )}

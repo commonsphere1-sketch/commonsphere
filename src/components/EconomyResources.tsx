@@ -18,6 +18,7 @@ import { CODE_OF_ECONOMY } from "../data/placeIndex";
 import { SourceLink } from "./SourceLink";
 import { PRODUCERS, fmtAmount } from "./ResourceModal";
 import type { Share } from "../data/resourceProducerTypes";
+import { SLIM_TRACK, slimFill } from "./SlimBars";
 
 /** A table's name for a country where the site's differs. */
 const ALIAS: Record<string, string> = { Turkey: "Türkiye", Czechia: "Czech Republic", "Korea, South": "South Korea" };
@@ -77,8 +78,8 @@ export function CommodityStanding({ economyId, name }: { economyId: string; name
                   </span>
                 </div>
                 {c.productionShare && (
-                  <span className="relative block h-1.5 rounded-full bg-muted mt-1.5" aria-hidden>
-                    <span className="absolute inset-y-0 left-0 rounded-full" style={{ width: `${Math.min(100, c.productionShare.pct)}%`, minWidth: 2, background: r.color }} />
+                  <span className="relative block h-1.5 rounded-full mt-1.5" style={{ background: SLIM_TRACK }} aria-hidden>
+                    <span className="absolute inset-y-0 left-0 rounded-full" style={{ width: `${Math.min(100, c.productionShare.pct)}%`, minWidth: 2, background: slimFill(r.color) }} />
                   </span>
                 )}
                 <p className="text-[10px] font-sans text-muted-foreground leading-snug mt-1">

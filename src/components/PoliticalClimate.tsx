@@ -21,6 +21,7 @@ import { COUNTRY_YEAR, COUNTRY_YEAR_LICENCE, COUNTRY_YEAR_PAGES, COUNTRY_YEAR_RE
 import { inSentence } from "./CountryQuality";
 import { ChartNote, ChartTitle } from "./ModalCharts";
 import { SourceLink } from "./SourceLink";
+import { SLIM_TRACK, slimFill } from "./SlimBars";
 
 /** The World Bank's six counts of how a country is governed. */
 const GOVERNANCE: IndexId[] = ["voice", "stability", "effectiveness", "regulation", "ruleOfLaw", "corruption"];
@@ -95,8 +96,8 @@ export default function PoliticalClimate({ code, country, className = "" }: { /*
               <div key={d.id} className="modal-tile rounded-lg p-3">
                 <p className="text-xs text-muted-foreground font-sans">{d.name}</p>
                 <p className="text-base font-bold font-sans text-foreground leading-snug">{f.v}</p>
-                <div className="h-1.5 rounded-full bg-muted/60 overflow-hidden my-1" role="img" aria-label={`${d.name}: ${f.v} of 100`}>
-                  <div className="h-full rounded-full" style={{ width: `${Math.max(1.5, Math.min(100, f.v))}%`, background: COLOR }} />
+                <div className="h-1.5 rounded-full overflow-hidden my-1" style={{ background: SLIM_TRACK }} role="img" aria-label={`${d.name}: ${f.v} of 100`}>
+                  <div className="h-full rounded-full" style={{ width: `${Math.max(1.5, Math.min(100, f.v))}%`, background: slimFill(COLOR) }} />
                 </div>
                 <p className="text-xs text-muted-foreground font-sans leading-snug">
                   {f.place && f.of ? `${f.place.toLocaleString("en-US")} of ${f.of} scored, counted here · ` : ""}

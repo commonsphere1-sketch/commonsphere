@@ -53,6 +53,7 @@ import { COMMUTE_EU, COMMUTE_EUROPE, COMMUTE_SOURCES, COMMUTE_UN_CITIES, COMMUTE
 import { ChartTitle, PartsDonut, worldFor } from "./ModalCharts";
 import { semanticColor } from "../lib/semanticColors";
 import { SourceLink } from "./SourceLink";
+import { SLIM_TRACK, slimFill } from "./SlimBars";
 
 /** Where a bar ends and where the world's tick sits, each as a percentage of the measure's scale. */
 type Bar = { at: number; world?: number; scale: string };
@@ -100,12 +101,13 @@ function QualityTile({ r, color }: { r: Row; /** The subject's colour: its bars 
       <p className="text-lg font-bold font-mono text-foreground leading-tight mt-0.5">{r.value}</p>
       {r.bar && (
         <span
-          className="relative block h-1.5 rounded-full bg-muted mt-1.5"
+          className="relative block h-1.5 rounded-full mt-1.5"
+          style={{ background: SLIM_TRACK }}
           role="img"
           aria-label={`${r.label}: ${r.value}${r.world ? `, against ${r.world} for the world` : ""}, on a scale of ${r.bar.scale}.`}
           title={`On a scale of ${r.bar.scale}${r.world ? ` · the tick is the world, ${r.world}` : ""}`}
         >
-          <span className="absolute inset-y-0 left-0 rounded-full" style={{ width: `${r.bar.at}%`, minWidth: r.bar.at > 0 ? 2 : 0, background: ink }} />
+          <span className="absolute inset-y-0 left-0 rounded-full" style={{ width: `${r.bar.at}%`, minWidth: r.bar.at > 0 ? 2 : 0, background: slimFill(ink) }} />
           {r.bar.world != null && <span className="absolute -top-0.5 -bottom-0.5 w-0.5 -ml-px rounded-full bg-foreground" style={{ left: `${r.bar.world}%` }} />}
         </span>
       )}

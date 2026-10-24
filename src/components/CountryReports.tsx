@@ -29,6 +29,7 @@ import { PRISON_RATES, PRISON_RATES_SOURCE } from "../data/prisonRates";
 import { PUBLIC_SECURITY, PUBLIC_SECURITY_SOURCES } from "../data/publicSecurity";
 import { ACCENT, ChartNote, ChartTitle, worldFor } from "./ModalCharts";
 import { SourceLink } from "./SourceLink";
+import { SLIM_TRACK, slimFill } from "./SlimBars";
 
 const n = (v: number, dp = 0) => v.toLocaleString("en-US", { maximumFractionDigits: dp });
 
@@ -169,8 +170,8 @@ function RateRow({ r }: { r: Rate }) {
       </span>
       {/* A bar needs a scale: the world's figure, or a score's 0 to 100. With neither, the figure stands alone. */}
       {(r.world || r.max) && (
-        <span className="relative block h-1.5 rounded-full bg-muted mt-1" aria-hidden>
-          <span className="absolute inset-y-0 left-0 rounded-full" style={{ width: at(r.value), minWidth: r.value > 0 ? 2 : 0, background: ACCENT }} />
+        <span className="relative block h-1.5 rounded-full mt-1" style={{ background: SLIM_TRACK }} aria-hidden>
+          <span className="absolute inset-y-0 left-0 rounded-full" style={{ width: at(r.value), minWidth: r.value > 0 ? 2 : 0, background: slimFill(ACCENT) }} />
           {r.world && <span className="absolute -top-0.5 -bottom-0.5 w-0.5 -ml-px rounded-full bg-foreground" style={{ left: at(r.world.value) }} title={`World: ${r.world.text}`} />}
         </span>
       )}

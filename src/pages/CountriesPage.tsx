@@ -1498,11 +1498,12 @@ function CountryCrimeStatsPanel({ country }: { country: Country }) {
             </span>
             {/* By rank among the places reporting: the bar ends at the share with a lower rate, the notch is the middle place. */}
             <span
-              className="relative block h-1.5 rounded-full bg-muted mt-1.5"
+              className="relative block h-1.5 rounded-full mt-1.5"
+              style={{ background: SLIM_TRACK }}
               role="img"
               aria-label={`${r.label}: higher than ${Math.round(r.pct)}% of the ${r.places} places reporting; their median is ${n(r.median)}.`}
             >
-              <span className="absolute inset-y-0 left-0 rounded-full" style={{ width: `${r.pct}%`, minWidth: 2, background: semanticColor(r.label) ?? ACCENT }} />
+              <span className="absolute inset-y-0 left-0 rounded-full" style={{ width: `${r.pct}%`, minWidth: 2, background: slimFill(semanticColor(r.label) ?? ACCENT) }} />
               <span className="absolute -top-0.5 -bottom-0.5 w-0.5 -ml-px rounded-full bg-foreground" style={{ left: "50%" }} title={`The middle place: ${n(r.median)}`} />
             </span>
             <span className="flex items-baseline justify-between gap-3 mt-1">

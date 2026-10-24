@@ -29,6 +29,7 @@ import { PLACE_COUNTRIES } from "../data/placesIndex";
 import { Clauses } from "./SaidList";
 import { SourceLink } from "./SourceLink";
 import { StyledSelect } from "./StyledSelect";
+import { SLIM_TRACK, slimFill } from "./SlimBars";
 
 const ACCENT = "#6366f1";
 const MAX = 4;
@@ -194,8 +195,8 @@ const ROWS: { group: string; rows: Row[] }[] = [
                 <p className="text-sm font-bold font-mono text-foreground">
                   {f.v} <span className="text-[10px] font-normal text-muted-foreground">· {f.y}</span>
                 </p>
-                <span className="block h-1 rounded-full bg-muted mt-1 overflow-hidden" aria-hidden>
-                  <span className="block h-full rounded-full" style={{ width: `${Math.max(0, Math.min(100, f.v))}%`, background: ACCENT }} />
+                <span className="block h-1 rounded-full mt-1 overflow-hidden" style={{ background: SLIM_TRACK }} aria-hidden>
+                  <span className="block h-full rounded-full" style={{ width: `${Math.max(0, Math.min(100, f.v))}%`, background: slimFill(ACCENT) }} />
                 </span>
               </>
             );

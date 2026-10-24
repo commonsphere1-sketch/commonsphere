@@ -65,7 +65,6 @@ export const placeDots = (rows: PlaceRow[], most = 300, file?: PlacesFile | null
 
 export function OutlineMap({
   shapes,
-  frame,
   inner,
   parts,
   onPart,
@@ -78,7 +77,7 @@ export function OutlineMap({
 }: {
   /** What is drawn: one outline, or several side by side - a country's divisions. */
   shapes: Outline[];
-  /** What the map is framed on, where that is not all of them: a country without its far-off parts. */
+  /** No longer used: a place in parts that lie apart is shown a part at a time (outlineParts), and one whose parts lie together whole. Kept so that the windows that pass it need not change. */
   frame?: Outline[];
   /** The finer borders inside what is drawn, as lines: those between its second-order divisions. */
   inner?: unknown;
@@ -165,7 +164,8 @@ export function OutlineMap({
     return { dist: Math.hypot(a.x - b.x, a.y - b.y), cx: (a.x + b.x) / 2, cy: (a.y + b.y) / 2 };
   };
   const drawn = useMemo(() => {
-    const on = { type: "FeatureCollection", features: slides ? groups[onSlide].features : frame?.length ? frame : shapes };
+    // The part shown; a place whose parts all lie together is shown whole, as asked - nothing of it is left out of the frame.
+    const on = { type: "FeatureCollection", features: slides ? groups[onSlide].features : shapes };
     if (!on.features.length) return null;
     const [lon, lat] = geoCentroid(on as never);
     const l = Number.isFinite(lon) ? lon : 0;
@@ -194,7 +194,7 @@ export function OutlineMap({
       dots: dots.flatMap(at),
       mark: mark ? at(mark)[0] : undefined,
     };
-  }, [shapes, frame, inner, dots, mark, slides, groups, onSlide]);
+  }, [shapes, inner, dots, mark, slides, groups, onSlide]);
   /* The places inside, each with its outline, its middle and where it lies: worked out when the map is first drawn close enough for them. */
   const wantParts = view.k >= PARTS_FROM && Boolean(parts?.length);
   const partPaths = useMemo(() => {

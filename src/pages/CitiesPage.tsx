@@ -56,6 +56,7 @@ import { SeeAlso } from "../components/SeeAlso";
 import { useFollowedCities } from "../lib/followedCities";
 import { FilterBar } from "../components/FilterBar";
 import { TONE, CHIP_TEXT } from "@/lib/chipTone";
+import { SLIM_TRACK, slimFill } from "../components/SlimBars";
 
 /* Water, energy, transport, safety, business and the economy for the city's country. Loaded when a window opens:
    the figures it reads are the Countries page's, and large. */
@@ -385,11 +386,12 @@ function CityStandings({ row }: { row: Row }) {
             {m.bar && (
               <>
                 <div
-                  className="relative mt-2.5 h-1.5 rounded-full bg-muted"
+                  className="relative mt-2.5 h-1.5 rounded-full"
+                  style={{ background: SLIM_TRACK }}
                   role="img"
                   aria-label={`${row.city.name}: ${m.fmt(s.v)}, ${nth(s.rank)} of ${s.of} cities for ${m.label.toLowerCase()}, on a scale from zero to ${m.fmt(top)}.`}
                 >
-                  <div className="absolute inset-y-0 left-0 rounded-full" style={{ width: at(s.v), minWidth: 2, background: m.color }} />
+                  <div className="absolute inset-y-0 left-0 rounded-full" style={{ width: at(s.v), minWidth: 2, background: slimFill(m.color) }} />
                   <span className="absolute -top-0.5 -bottom-0.5 w-0.5 -ml-px rounded-full bg-foreground" style={{ left: at(s.median) }} title={`The middle of the ${s.of}: ${m.fmt(s.median)}`} />
                 </div>
                 <div className="flex justify-between text-[10px] font-mono text-muted-foreground mt-1">

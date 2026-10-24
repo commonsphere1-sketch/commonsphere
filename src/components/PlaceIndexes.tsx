@@ -15,6 +15,7 @@ import { ChartNote } from "./ModalCharts";
 import { SourceLink } from "./SourceLink";
 import { inSentence } from "./CountryQuality";
 import { COUNTRY_INDEXES, INDEX_DEFS, type IndexDef, type IndexFigure } from "../data/countryIndexes";
+import { SLIM_TRACK, slimFill } from "./SlimBars";
 
 /** A group's colour, as the country's panels have theirs. */
 const GROUP_COLOR: Record<string, string> = { Development: "#10b981", Equality: "#ec4899", Governance: "#6366f1", "Economy & data": "#f59e0b" };
@@ -36,8 +37,8 @@ function Row({ d, f, color }: { d: IndexDef; f: IndexFigure; color: string }) {
         <p className="text-sm font-mono font-bold text-foreground shrink-0">{print(d, f.v)}</p>
       </div>
       {at !== null && (
-        <div className="h-1.5 rounded-full bg-muted mt-1.5 overflow-hidden" role="img" aria-label={`${d.name}: ${print(d, f.v)} on a scale from ${d.scale![0]} to ${d.scale![1]}`}>
-          <div className="h-full rounded-full" style={{ width: `${Math.max(1.5, at * 100)}%`, background: color }} />
+        <div className="h-1.5 rounded-full mt-1.5 overflow-hidden" style={{ background: SLIM_TRACK }} role="img" aria-label={`${d.name}: ${print(d, f.v)} on a scale from ${d.scale![0]} to ${d.scale![1]}`}>
+          <div className="h-full rounded-full" style={{ width: `${Math.max(1.5, at * 100)}%`, background: slimFill(color) }} />
         </div>
       )}
       <p className="text-[10px] font-sans text-muted-foreground leading-snug mt-1">

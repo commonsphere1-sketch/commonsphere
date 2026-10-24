@@ -5,6 +5,7 @@ import { Area, AreaChart, CartesianGrid, ReferenceArea, ResponsiveContainer, Too
 import { ArrowRight, ArrowsIn, ArrowsOut, Minus, TrendDown, TrendUp, X } from "@phosphor-icons/react";
 import { useTheme } from "../contexts/ThemeContext";
 import { SourceLink } from "./SourceLink";
+import { SLIM_TRACK, slimFill } from "./SlimBars";
 
 /**
  * A figure as a card, the way the Economies page shows a commodity: what it
@@ -210,8 +211,8 @@ function TableCard({ t, color, wide }: { t: StatTable; color: string; wide: bool
               </span>
               <span className="text-[11px] font-mono font-semibold text-foreground shrink-0">{r.text}</span>
             </span>
-            <span className="block h-1.5 rounded-full bg-muted overflow-hidden mt-1" aria-hidden>
-              <span className="block h-full rounded-full" style={{ width: `${Math.max(1.5, (100 * Math.max(0, r.value)) / top)}%`, background: color }} />
+            <span className="block h-1.5 rounded-full overflow-hidden mt-1" style={{ background: SLIM_TRACK }} aria-hidden>
+              <span className="block h-full rounded-full" style={{ width: `${Math.max(1.5, (100 * Math.max(0, r.value)) / top)}%`, background: slimFill(color) }} />
             </span>
             {r.note && <span className="block text-[9px] font-mono text-muted-foreground mt-0.5 leading-snug">{r.note}</span>}
           </li>
