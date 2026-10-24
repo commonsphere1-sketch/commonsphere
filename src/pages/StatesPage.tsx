@@ -1,4 +1,5 @@
 import React, { useState, useEffect, lazy, Suspense } from "react";
+import { SLIM_TRACK, slimFill } from "../components/SlimBars";
 import { useNavigate } from "react-router-dom";
 import { SiteMark } from "../components/SiteMark";
 import {
@@ -7381,11 +7382,13 @@ export function StatesPage() {
                 </div>
               </div>
               {/* Voter share mini bars */}
-              <div className="flex gap-1 h-1.5 rounded-full overflow-hidden mb-2">
+              {/* The slim style: each share a rounded bar in a gradient of its party's colour, on the faint track. */}
+              <div className="flex gap-1 h-2 rounded-full overflow-hidden mb-2" style={{ background: SLIM_TRACK }}>
                 {state.voterShare.map((v, i) => (
                   <div
                     key={v.party}
-                    style={{ width: `${v.pct}%`, background: VOTER_COLORS[i] }}
+                    className="h-full rounded-full"
+                    style={{ width: `${v.pct}%`, background: slimFill(VOTER_COLORS[i]) }}
                   />
                 ))}
               </div>

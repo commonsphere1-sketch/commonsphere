@@ -46,6 +46,7 @@
  * map sends its presses here that way.
  */
 import { lazy, Suspense, useEffect, useMemo, useState, type ReactNode } from "react";
+import { SLIM_TRACK, slimFill } from "./SlimBars";
 import { useNavigate } from "react-router-dom";
 import { Area, AreaChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
 import { ArrowLeft, ArrowRight, ArrowsIn, ArrowsOut, ListBullets, MagnifyingGlass, MapPin, MapTrifold, Scales, Star, X } from "@phosphor-icons/react";
@@ -537,8 +538,8 @@ function CountryCard({ row, matching, onOpen }: { row: Row; /** How many of its 
           <span className="text-muted-foreground font-sans">In its largest city</span>
           <span className="font-mono font-semibold text-foreground">{share.toFixed(0)}% of its cities' people</span>
         </div>
-        <div className="h-1.5 bg-muted rounded-full overflow-hidden">
-          <div className="h-full rounded-full" style={{ width: `${share}%`, background: flagColor(row.cc) ?? COLOR }} />
+        <div className="h-2 rounded-full overflow-hidden" style={{ background: SLIM_TRACK }}>
+          <div className="h-full rounded-full" style={{ width: `${share}%`, background: slimFill(flagColor(row.cc) ?? COLOR) }} />
         </div>
       </div>
       <div className="flex items-center gap-2 flex-wrap">

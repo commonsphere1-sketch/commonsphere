@@ -70,6 +70,7 @@
  * sends its presses here that way.
  */
 import { PageHeader } from "../components/PageHeader";
+import { SLIM_TRACK, slimFill } from "../components/SlimBars";
 import { lazy, Suspense, useCallback, useEffect, useMemo, useState, type ReactNode } from "react";
 
 /** The law a place is under, its country's: fetched when a window's Laws tab is opened. */
@@ -1562,8 +1563,8 @@ function CountryCard({ row, matching, onOpen }: { row: CountryRow; /** How many 
             {row.counted} of {row.divisions.length}
           </span>
         </div>
-        <div className="h-1.5 bg-muted rounded-full overflow-hidden">
-          <div className="h-full rounded-full" style={{ width: `${(100 * row.counted) / row.divisions.length}%`, background: flagColor(row.cc) ?? COLOR }} />
+        <div className="h-2 rounded-full overflow-hidden" style={{ background: SLIM_TRACK }}>
+          <div className="h-full rounded-full" style={{ width: `${(100 * row.counted) / row.divisions.length}%`, background: slimFill(flagColor(row.cc) ?? COLOR) }} />
         </div>
       </div>
 

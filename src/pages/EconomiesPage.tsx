@@ -43,7 +43,7 @@ import { ECONOMY_ISO3, type EconomyRents } from "../data/resourceRents";
 import { useResourceRents } from "../hooks/useResourceRents";
 import { useLiveStatus } from "../lib/liveFigures";
 import { SourceLink } from "../components/SourceLink";
-import { gradId } from "../components/SlimBars";
+import { SLIM_TRACK, gradId, slimFill } from "../components/SlimBars";
 import { WindowGroup } from "../components/WindowGroup";
 import EconomyManufacturing from "../components/EconomyManufacturing";
 import TaxPanel from "../components/TaxPanel";
@@ -2760,13 +2760,15 @@ export function EconomiesPage() {
                       </div>
                       {/* On the scale of the largest of its kind: the whole track is the GDP of the largest country - or, for a region or a bloc, the largest of those - and the bar is this economy's own. */}
                       <div
-                        className="h-1.5 bg-muted rounded-full overflow-hidden"
+                        className="h-2 rounded-full overflow-hidden"
+                        style={{ background: SLIM_TRACK }}
                         title={`The full bar is ${(isGroup(economy) ? LARGEST_GDP.group : LARGEST_GDP.place).name}${/s$/.test((isGroup(economy) ? LARGEST_GDP.group : LARGEST_GDP.place).name) ? "'" : "'s"} ${fmtUsdT((isGroup(economy) ? LARGEST_GDP.group : LARGEST_GDP.place).gdpTrillions)}, the largest ${isGroup(economy) ? "region or bloc" : "single economy"} listed`}
                       >
                         {has(economy.gdpTrillions) && (
                           <div
-                            className="h-full rounded-full bg-sky-500"
+                            className="h-full rounded-full"
                             style={{
+                              background: slimFill("#0ea5e9"),
                               width: `${Math.min(100, (economy.gdpTrillions / (isGroup(economy) ? LARGEST_GDP.group : LARGEST_GDP.place).gdpTrillions) * 100)}%`,
                               minWidth: 2,
                             }}
