@@ -11,7 +11,7 @@
  * a country or a US state - and then holds that area's elections and city council
  * meetings too (calendarArea.ts); the default area is chosen in Settings.
  */
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { CalendarBlank, CaretLeft, CaretRight, X } from "@phosphor-icons/react";
 import { CALENDAR_CHECKED } from "../data/calendar2026";
 import { CIVIC_RETRIEVED, COUNCIL_CITIES } from "../data/civicCalendar";
@@ -136,7 +136,7 @@ function MonthCalendar({ wide = false }: { wide?: boolean } = {}) {
               aria-selected={on}
               aria-label={`${DAY.format(d)}${events.length ? `: ${events.length} ${events.length === 1 ? "entry" : "entries"}` : ""}`}
               onClick={() => setPicked(on ? null : k)}
-              className={`relative rounded-lg ${wide ? "h-16 lg:h-20" : "h-11"} flex flex-col items-center justify-start pt-1 cursor-pointer transition-colors hover:bg-muted/50`}
+              className={`relative rounded-lg ${wide ? "h-16 lg:h-20" : "h-9"} flex flex-col items-center justify-start pt-1 cursor-pointer transition-colors hover:bg-muted/50`}
               style={{
                 opacity: here ? 1 : 0.35,
                 background: on ? (t.isLight ? "rgba(0,0,0,0.08)" : "rgba(255,255,255,0.12)") : "transparent",
@@ -211,6 +211,11 @@ function MonthCalendar({ wide = false }: { wide?: boolean } = {}) {
 export function CalendarPopup() {
   const t = useTokens();
   const [open, setOpen] = useState(false);
+  /* Opened, the window starts at its top, so that the whole month is in view, as asked. */
+  const windowRef = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    if (open) windowRef.current?.scrollTo({ top: 0 });
+  }, [open]);
   /* The window has no full-screen button: it was taken off, as asked. */
   const wide = false;
   useEffect(() => {
@@ -229,6 +234,7 @@ export function CalendarPopup() {
 
   return (
     <div
+      ref={windowRef}
       role="dialog"
       aria-label="Calendar and quarter tracker"
       className={`fixed z-50 rounded-2xl shadow-2xl modal-glass border overflow-y-auto transition-all duration-300 ${wide ? "inset-4 top-20" : "top-20 right-4 w-[min(44rem,calc(100vw-2rem))] max-h-[calc(100vh-6rem)]"}`}
