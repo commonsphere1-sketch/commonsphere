@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import { SiteMark } from "../components/SiteMark";
 import { FilterBar } from "../components/FilterBar";
 import { StyledSelect } from "../components/StyledSelect";
+import { NewsTracker } from "../components/NewsTracker";
 import { countriesData } from "../data/countriesData";
 import { usStatesData } from "../data/statesData";
 import {
@@ -11,49 +12,28 @@ import {
   HeadlineList,
   ListToggle,
   SourcesList,
-  SUBJECT,
   allSourcesLabel,
   backTo,
   bannerSources,
   headlineItem,
-  namesAbroad,
   outletList,
   placeName,
   placeTag,
   useFollowedTags,
   useHeadlineRead,
   windowWords,
-  type Headline,
 } from "../components/HeadlinesBanner";
+import { CONTINENTS, EVENTS, SUBJECTS, inWhere, labelOf, wordsOf, type SubjectId, type Where } from "../lib/newsSubjects";
 
 /**
  * The News page, as asked: every headline the news job has read from the
  * outlets' public feeds (supabase/functions/refresh-data/news.ts), for the
  * whole world, for stories between countries, or for one continent, country
- * or US state - and by subject. Nothing here is written by the site: each
- * headline is the outlet's own, linking to it. The places are those the news
- * job tags a headline with; a subject is a match of the headline's words, so
- * one headline can sit under several subjects, or none.
+ * or US state - by subject, or by the kind of event it reports - and, above
+ * the list, the events tracked by region (NewsTracker). Nothing here is
+ * written by the site: each headline is the outlet's own, linking to it.
+ * The places and subjects are set out in lib/newsSubjects.ts.
  */
-
-/* ─── Where ─────────────────────────────────────────────────────────────── */
-
-const CONTINENTS = ["Africa", "Asia", "Europe", "North America", "Oceania", "South America"] as const;
-const CONTINENT_OF = new Map(countriesData.map((c) => [`c:${c.code}`, c.continent]));
-const countriesNamed = (h: Headline) => h.places.filter((p) => p.startsWith("c:") && placeName(p) !== null);
-
-/** "global", "intl", "cont:Asia", "c:JP" or "s:tx". */
-type Where = string;
-const inWhere = (where: Where) => (h: Headline): boolean => {
-  if (where === "global") return true;
-  // Between countries: it names two or more, one of them not the United States - the US desks tag every story with the US.
-  if (where === "intl") return countriesNamed(h).length >= 2 && namesAbroad(h);
-  if (where.startsWith("cont:")) {
-    const c = where.slice(5);
-    return h.places.some((p) => CONTINENT_OF.get(p) === c || (c === "North America" && p.startsWith("s:") && placeName(p) !== null));
-  }
-  return h.places.includes(where);
-};
 
 /* A country or a state, for the picker: the countries by name, then the fifty states. */
 const PLACE_OPTIONS = [
@@ -64,45 +44,6 @@ const PLACE_OPTIONS = [
     .sort((a, b) => a.label.localeCompare(b.label)),
   ...usStatesData.map((s) => ({ value: `s:${s.id}`, label: `${s.name} (US state)` })).sort((a, b) => a.label.localeCompare(b.label)),
 ];
-
-/* ─── Subjects ──────────────────────────────────────────────────────────── */
-
-/*
- * The words that put a headline under a subject: whole words, any case. The
- * ambiguous are left out - "Labour" is also the labour market, "union" the
- * European Union, "rally" a market's, "mines" also landmines, "security"
- * also social security - and deaths are not counted as security, since
- * floods and earthquakes kill too.
- */
-const SUBJECTS = [
-  {
-    id: "political",
-    label: "Political",
-    re: /\b(elections?|electoral|voters?|voting|votes?|ballots?|referendums?|parliament(ary)?|congress(ional)?|senate|senators?|lawmakers?|legislat(ure|ures|ion|ive|ors?)|presiden(t|ts|tial|cy)|prime ministers?|ministers?|ministry|cabinet|governments?|coalition|opposition (leader|party|parties)|political|politics|politicians?|impeach(ment|ed)?|governors?|mayors?|diplomats?|diplomacy|diplomatic|summit|treaty|embassy|White House|Kremlin|Downing Street|Democrats?|Republicans?|Tories|Supreme Court|constitution(al)?)\b/i,
-  },
-  {
-    id: "social",
-    label: "Sociological",
-    re: /\b(protests?|protesters?|demonstrat(ion|ions|ors)|immigra(tion|nts?)|migrants?|migration|refugees?|asylum|education|schools?|teachers?|students?|universit(y|ies)|healthcare|health care|hospitals?|patients?|doctors?|nurses?|poverty|inequality|housing|homeless(ness)?|welfare|pensions?|religio(n|us)|church(es)?|mosques?|synagogues?|racism|racial|discrimination|gender|women|women's|LGBTQ?|transgender|abortion|same-sex|birth rates?|census|families|children|youth|communit(y|ies)|civil rights|human rights|free speech|social media)\b/i,
-  },
-  {
-    id: "environmental",
-    label: "Environmental",
-    re: /\b(climate|emissions?|carbon|CO2|greenhouse|heatwaves?|heat wave|wildfires?|bushfires?|droughts?|floods?|flooding|glaciers?|sea[- ]level|global warming|renewables?|solar|wind (power|farms?|energy)|fossil fuels?|coal|net[- ]zero|COP\d+|El Niño|La Niña|hurricanes?|typhoons?|cyclones?|storms?|tornado(es)?|earthquakes?|quakes?|volcan(o|oes|ic)|eruptions?|tsunamis?|landslides?|pollution|polluted|air quality|smog|plastics?|wildlife|species|extinct(ion)?|endangered|biodiversity|deforestation|forests?|oceans?|coral|conservation|environment(al)?|recycling)\b/i,
-  },
-  { id: "economic", label: "Economic", re: SUBJECT.economy },
-  {
-    id: "security",
-    label: "Security",
-    re: /\b(wars?|warfare|military|militaries|troops|soldiers?|army|armies|navy|naval|air force|missiles?|drones?|air ?strikes?|shelling|bomb(s|ing|ings|ed)?|explosions?|attacks?|attacked|shootings?|gunman|gunmen|gunfire|terror(ism|ist|ists)?|ceasefire|truce|hostages?|invasion|invade[ds]?|rebels?|militants?|insurgents?|jihadists?|NATO|defen[cs]e|weapons?|cyber ?attacks?|hack(s|ers?|ed|ing)?|police|arrest(s|ed)?|crimes?|criminals?|murders?|gangs?|cartels?|security forces|national security|Security Council|border (guards?|patrol)|conflicts?|clashes|violence|coup)\b/i,
-  },
-  {
-    id: "industrial",
-    label: "Industrial",
-    re: /\b(industr(y|ies|ial)|manufactur(ing|ers?)|factor(y|ies)|carmakers?|automakers?|car makers?|electric (cars?|vehicles?)|EVs?|chipmakers?|chips?|semiconductors?|steel|alumin(i)?um|copper|lithium|mining|miners?|oil|natural gas|gas (prices|supplies|supply|fields?)|refiner(y|ies)|pipelines?|shipping|shipbuild(ing|ers?)|airlines?|aerospace|aircraft|Boeing|Airbus|supply chains?|production|output|layoffs|job cuts|workers|trade unions?|labou?r unions?|construction|pharmaceuticals?|drugmakers?|tech (firms?|companies|giants?)|artificial intelligence|AI|data cent(re|er)s?|power plants?|utilities|telecoms?|start-?ups?|compan(y|ies)|firms?|corporat(e|ion|ions))\b/i,
-  },
-] as const;
-type SubjectId = (typeof SUBJECTS)[number]["id"] | "all";
 
 /* ─── Remembered picks ──────────────────────────────────────────────────── */
 
@@ -115,7 +56,7 @@ function readSaved(): Saved {
     const s = JSON.parse(localStorage.getItem(KEY) ?? "null") as Partial<Saved> | null;
     if (!s) return DEFAULTS;
     const where = typeof s.where === "string" && (s.where === "global" || s.where === "intl" || s.where.startsWith("cont:") || placeName(s.where)) ? s.where : DEFAULTS.where;
-    const subject = SUBJECTS.some((x) => x.id === s.subject) ? (s.subject as SubjectId) : "all";
+    const subject = s.subject && wordsOf(s.subject) ? s.subject : "all";
     const days = s.days === 1 || s.days === 2 || s.days === 7 ? s.days : DEFAULTS.days;
     return { where, subject, days };
   } catch {
@@ -151,13 +92,13 @@ export function NewsPage() {
   const { rows, done, capped } = useHeadlineRead(ALL_TOPICS, days, ALL_READ, true);
   const followed = useFollowedTags();
 
-  // How many each place and subject holds, so a pick that would show nothing says so before it is pressed.
+  // How many each place, subject and event holds, so a pick that would show nothing says so before it is pressed.
   const continentCount = useMemo(() => new Map(CONTINENTS.map((c) => [c, rows.filter(inWhere(`cont:${c}`)).length])), [rows]);
   const intlCount = useMemo(() => rows.filter(inWhere("intl")).length, [rows]);
   const here = useMemo(() => rows.filter(inWhere(where)), [rows, where]);
-  const subjectCount = useMemo(() => new Map(SUBJECTS.map((s) => [s.id, here.filter((h) => s.re.test(h.title)).length])), [here]);
+  const wordCount = useMemo(() => new Map([...SUBJECTS, ...EVENTS].map((s) => [s.id, here.filter((h) => s.re.test(h.title)).length])), [here]);
   const shown = useMemo(() => {
-    const re = SUBJECTS.find((s) => s.id === subject)?.re;
+    const re = wordsOf(subject);
     return re ? here.filter((h) => re.test(h.title)) : here;
   }, [here, subject]);
   const items = useMemo(
@@ -178,7 +119,14 @@ export function NewsPage() {
         : where.startsWith("cont:")
           ? `about ${where.slice(5)}`
           : `about ${placeName(where) ?? where}`;
-  const subjectWords = subject === "all" ? "" : ` on ${SUBJECTS.find((s) => s.id === subject)?.label.toLowerCase()} subjects`;
+  const subjectWords = subject === "all" ? "" : ` on ${labelOf(subject)?.toLowerCase()}`;
+
+  // A count pressed in the tracker lists those headlines.
+  const pick = (w: Where, event: SubjectId) => {
+    setWhere(w);
+    setSubject(event);
+    requestAnimationFrame(() => document.getElementById("news-list")?.scrollIntoView({ behavior: "smooth", block: "start" }));
+  };
 
   return (
     <div className="min-h-screen bg-background text-foreground animate-fade-in">
@@ -191,7 +139,7 @@ export function NewsPage() {
         </div>
 
         {/* Where: the whole world, between countries, a continent, or one country or US state. */}
-        <FilterBar label="News by place" className="mb-3" status={done ? `${fmt(rows.length)} headlines read` : "Reading…"}>
+        <FilterBar label="News by place" className="mb-4" status={done ? `${fmt(rows.length)} headlines read` : "Reading…"}>
           <button type="button" onClick={() => setWhere("global")} aria-pressed={where === "global"} className={chip(where === "global")}>
             Global
           </button>
@@ -216,14 +164,26 @@ export function NewsPage() {
           <StyledSelect value={String(days)} onValueChange={(v) => setDays(Number(v))} options={DAY_OPTIONS} ariaLabel="How far back" />
         </FilterBar>
 
-        {/* What: the subject, by the words of the headline. */}
-        <div role="group" aria-label="News by subject" className="flex flex-wrap gap-1.5 mb-1">
+        {/* The events tracked by region: the public bodies' records beside the headlines. */}
+        <NewsTracker rows={rows} days={days} where={where} onPick={pick} />
+
+        {/* What: the subject, or the kind of event, by the words of the headline. */}
+        <div role="group" aria-label="News by subject" className="flex flex-wrap items-center gap-1.5 mb-1.5">
+          <span className="w-16 shrink-0 text-[10px] font-mono uppercase tracking-widest text-muted-foreground">Subject</span>
           <button type="button" onClick={() => setSubject("all")} aria-pressed={subject === "all"} className={chip(subject === "all")}>
-            All subjects · {fmt(here.length)}
+            All · {fmt(here.length)}
           </button>
           {SUBJECTS.map((s) => (
             <button key={s.id} type="button" onClick={() => setSubject(s.id)} aria-pressed={subject === s.id} className={chip(subject === s.id)}>
-              {s.label} · {fmt(subjectCount.get(s.id) ?? 0)}
+              {s.label} · {fmt(wordCount.get(s.id) ?? 0)}
+            </button>
+          ))}
+        </div>
+        <div role="group" aria-label="News by event" className="flex flex-wrap items-center gap-1.5 mb-1">
+          <span className="w-16 shrink-0 text-[10px] font-mono uppercase tracking-widest text-muted-foreground">Events</span>
+          {EVENTS.map((s) => (
+            <button key={s.id} type="button" onClick={() => setSubject(s.id)} aria-pressed={subject === s.id} className={chip(subject === s.id)}>
+              {s.label} · {fmt(wordCount.get(s.id) ?? 0)}
             </button>
           ))}
         </div>
@@ -251,8 +211,9 @@ export function NewsPage() {
           reads the outlets' public feeds every half hour and keeps only the headline, link, outlet and time. A wire story run by
           several outlets is listed once. The places are those a headline names, as the news job tags them; International is a
           headline naming two countries or more, one of them not the United States, whose desks tag every story with it. A subject
-          is a match of the headline's words - "election", "tariffs", "wildfire", "missile", "factory" - so a headline can sit under
-          more than one, or under none. ★ marks a place you follow.
+          or an event is a match of the headline's words - "election", "tariffs", "riot", "coup", "earthquake", "outbreak" - so a
+          headline can sit under more than one, or under none; words that mean something else, such as a trade war or an AI
+          revolution, are kept out. ★ marks a place you follow.
         </p>
       </div>
     </div>
