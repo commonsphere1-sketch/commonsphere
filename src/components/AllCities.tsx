@@ -78,6 +78,7 @@ const CountryQuality = lazy(() => import("./CountryQuality"));
 /** The law a city is under, its country's: fetched when its Laws tab is opened. */
 const PlaceLaws = lazy(() => import("./PlaceLaws"));
 import { SourceLink } from "./SourceLink";
+import { AgainstAverage, stats, type AvgRow } from "./AgainstAverage";
 
 const COLOR = "#10b981";
 const PAGE = 48;
@@ -147,6 +148,25 @@ const Tile = ({ label, value, sub }: { label: string; value: string; sub?: strin
   </div>
 );
 type Tab = "overview" | "laws" | "map";
+
+/* The averages of every city the UN counts, each counted once: worked out here, for the window's comparison. */
+const pctChange = (a: number | null, b: number | null) => (a && b ? (100 * (b - a)) / a : undefined);
+const CITY_AVG = {
+  pop: stats(UN_CITIES.map((x) => x[8])),
+  area: stats(UN_CITIES.map((x) => x[10])),
+  density: stats(UN_CITIES.map((x) => x[11])),
+  change: stats(UN_CITIES.map((x) => pctChange(x[7], x[8]))),
+};
+const UN_RULE = "The United Nations draws every city by one rule - contiguous 1 km² cells of at least 1,500 people, holding 50,000 or more - so the cities are measured alike, but not as their own boundaries draw them: a city's own figure can differ a good deal.";
+function cityAverageRows(c: UnCity): AvgRow[] {
+  const [, , , , , , , p1, p2, , area, density] = c;
+  return [
+    { key: "pop", label: "Population", value: p2, fmt: (v) => Math.round(v).toLocaleString("en-US"), here: `UN estimate · ${Y2}`, ...CITY_AVG.pop, how: `People living in the city as the UN draws it. ${UN_RULE}` },
+    { key: "area", label: "Land area", value: area ?? undefined, fmt: (v) => `${Math.round(v).toLocaleString("en-US")} km²`, here: `UN · ${Y2}`, ...CITY_AVG.area, how: "The built-up land the UN's rule draws for the city, not the land within its own boundary." },
+    { key: "density", label: "People to a km²", value: density ?? undefined, fmt: (v) => Math.round(v).toLocaleString("en-US"), here: `UN · ${Y2}`, ...CITY_AVG.density, how: "Its people over its land, both as the UN draws the city - which is why it is higher than a figure over the whole of a city's own area." },
+    { key: "change", label: `Change since ${Y1}`, value: pctChange(p1, p2), fmt: (v) => `${v > 0 ? "+" : ""}${v.toFixed(0)}%`, here: "worked out here", ...CITY_AVG.change, how: `From the UN's estimates for ${Y1} and ${Y2}. The land the UN draws grows with the city, so a change can include towns it has grown to take in.` },
+  ];
+}
 
 function CityWindow({ c, onBack, onClose }: { c: UnCity; /** Back to its country's window. */ onBack: () => void; /** Out of every window. */ onClose: () => void }) {
   const navigate = useNavigate();
@@ -275,6 +295,9 @@ function CityWindow({ c, onBack, onClose }: { c: UnCity; /** Back to its country
                   <Tile label="Among the UN's cities" value={`#${rank.toLocaleString("en-US")}`} sub={`of ${UN_CITIES.length.toLocaleString("en-US")}, by ${Y2} population`} />
                 </div>
               </Section>
+
+              {/* Each of its figures beside the average of every city the UN counts, with how each is measured, as asked. */}
+              <AgainstAverage rows={cityAverageRows(c)} peers={`the ${UN_CITIES.length.toLocaleString("en-US")} cities the UN counts`} color={flagColor(cc) ?? COLOR} />
 
               <WindowGroup title="The city in figures" bodyClass="space-y-4">
                 {/* The city's own figures, set out and worked through: everything the UN gives for it, year by year. Until its file is in, or where it has none, the four figures the list carries are drawn. */}

@@ -79,6 +79,8 @@ import { CountryOutline } from "@/components/PlaceOutlines";
 import PlaceIndexes from "@/components/PlaceIndexes";
 import TaxPanel from "@/components/TaxPanel";
 import UnPanel from "@/components/UnPanel";
+import { AgainstAverage } from "@/components/AgainstAverage";
+import { COUNTRY_PEERS, countryAverageRows } from "@/lib/placeAverages";
 
 // ── Source citation constants ────────────────────────────────────────────
 // ── Extended per-country data ────────────────────────────────────────────────
@@ -1347,6 +1349,8 @@ function CountryModal({
 
           {activeTab === "overview" && (
             <>
+              {/* Each of its figures beside the average of every country, with how each is measured, as asked. */}
+              {!country.uninhabited && <div className="mb-4"><AgainstAverage rows={countryAverageRows(country.code)} peers={COUNTRY_PEERS} /></div>}
               {!country.uninhabited && <PublicServicesSection code={country.code} name={country.name} />}
               <TerritoriesSection country={country} onOpenCode={onOpenCode} />
               <GeographySection country={country} />

@@ -92,6 +92,8 @@ import { RESOURCES } from "@/data/resourceList";
 import { CommodityStanding } from "@/components/EconomyResources";
 import { EconomyCompanies, EconomyHasNeeds, EconomyTrade, hasEconomyHasNeeds } from "@/components/EconomyStanding";
 import { HeadlinesBanner, SUBJECT } from "@/components/HeadlinesBanner";
+import { AgainstAverage } from "@/components/AgainstAverage";
+import { ECONOMY_PEERS, economyAverageRows } from "@/lib/placeAverages";
 
 
 // Default for economies without specific data
@@ -1236,6 +1238,8 @@ function EconomyModal({
           {/* ── ALL SECTIONS ── */}
           {tab === "overview" && (
           <div className="mt-4 space-y-4 animate-fade-in">
+            {/* Each of its figures beside the average of every country's economy, with how each is measured, as asked. */}
+            {!economy.noFiguresReason && <AgainstAverage rows={economyAverageRows(economy.id)} peers={ECONOMY_PEERS} color="#0ea5e9" />}
             {/* ════════════════════════════════════════
                 SECTION: OVERVIEW
             ════════════════════════════════════════ */}

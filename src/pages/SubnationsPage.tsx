@@ -115,6 +115,7 @@ import { usStatesData } from "../data/statesData";
 import { SUBNATION_FLAG_FILE } from "../data/subnationFlagFiles";
 import { SUBNATIONS, SUBNATIONS_RETRIEVED, SUBNATIONS_SOURCES, type Subnation } from "../data/subnations";
 import type { UsCounty } from "../data/usCounties";
+import { AgainstAverage, stats, type AvgRow } from "../components/AgainstAverage";
 
 type Source = { label: string; url: string };
 type CountyData = typeof import("../data/usCounties");
@@ -786,6 +787,36 @@ function partsOf(s: Subnation, d?: DivisionDetails): { parts: Part[]; sources: S
   return { parts, sources: [...sources.values()] };
 }
 
+/** A division's figures against the average of its country's divisions: each counted once, worked out here. */
+function divisionAverageRows(s: Subnation, peers: Subnation[]): AvgRow[] {
+  const dens = (x: Subnation) => (x.pop && x.areaKm2 ? x.pop[1] / x.areaKm2 : undefined);
+  const fmtWhole = (v: number) => Math.round(v).toLocaleString("en-US");
+  return [
+    { key: "pop", label: "Population", value: s.pop?.[1], fmt: fmtWhole, here: s.pop ? `its record · ${s.pop[0]}` : undefined, ...stats(peers.map((x) => x.pop?.[1])), how: "Its latest dated population, from the census or estimate its record cites. A country's divisions can be counted in different years - one in a census, another in a later estimate - so the average mixes years." },
+    { key: "area", label: "Area", value: s.areaKm2, fmt: (v) => `${fmtWhole(v)} km²`, here: s.areaKm2 ? "its record" : undefined, ...stats(peers.map((x) => x.areaKm2)), how: "The area its record gives within its boundary - most records give land and water together, a few land alone." },
+    { key: "density", label: "People to a km²", value: dens(s), fmt: (v) => v.toFixed(v < 10 ? 1 : 0), here: dens(s) !== undefined ? "worked out here" : undefined, ...stats(peers.map(dens)), how: "Its population over its area, worked out here, so it carries the year of its population." },
+  ];
+}
+/** A US county's figures against the average of every county: each counted once, worked out here. */
+function countyAverageRows(county: UsCounty, data: CountyData): AvgRow[] {
+  const last = data.US_COUNTY_YEARS[data.US_COUNTY_YEARS.length - 1];
+  const first = data.US_COUNTY_YEARS[0];
+  const now = (x: UsCounty) => x[7][x[7].length - 1];
+  const change = (x: UsCounty) => (x[7][0] > 0 ? (100 * (now(x) - x[7][0])) / x[7][0] : undefined);
+  const per1000 = (n: number, x: UsCounty) => (now(x) > 0 ? (1000 * n) / now(x) : undefined);
+  const all = data.US_COUNTIES;
+  const fmtWhole = (v: number) => Math.round(v).toLocaleString("en-US");
+  const signed = (v: number) => `${v > 0 ? "+" : ""}${v.toFixed(1)}`;
+  const CENSUS = "The Census Bureau's estimates, made the same way for every county: the 2020 census carried forward with births, deaths and moves.";
+  return [
+    { key: "pop", label: "Population", value: now(county), fmt: fmtWhole, here: `Census Bureau · 1 July ${last}`, ...stats(all.map(now)), how: CENSUS },
+    { key: "land", label: "Land area", value: county[5] ?? undefined, fmt: (v) => `${fmtWhole(v)} km²`, here: "Census Bureau, Gazetteer", ...stats(all.map((x) => x[5])), how: "Land within the county's boundary, its water left out, from the Census Bureau's boundary files." },
+    { key: "change", label: `Change since ${first}`, value: change(county), fmt: (v) => `${signed(v)}%`, here: "worked out here", ...stats(all.map(change)), how: `From the Census Bureau's estimates for ${first} and ${last}. ${CENSUS}` },
+    { key: "births", label: "Births per 1,000 people", value: per1000(county[8], county), fmt: (v) => v.toFixed(1), here: `the year to 1 July ${last}`, ...stats(all.map((x) => per1000(x[8], x))), how: "Births in the year, from the Census Bureau's estimates, over the county's population: worked out here." },
+    { key: "moves", label: "Net moves in per 1,000", value: per1000(county[10] + county[11], county), fmt: signed, here: `the year to 1 July ${last}`, ...stats(all.map((x) => per1000(x[10] + x[11], x))), how: "People who moved in, from abroad and from the rest of the country, less those who left, over its population: worked out here from the Census Bureau's estimates, which take the moves from tax and other records." },
+  ];
+}
+
 function SubnationWindow({ s, onBack, onClose, onCounties }: { s: Subnation; /** Back to its country's window. */ onBack: () => void; onClose: () => void; onCounties: (abbr: string) => void }) {
   /** Whether one of its places has its window open: this one is then out of sight, until the reader comes back. */
   const [placeOpen, setPlaceOpen] = useState(false);
@@ -846,6 +877,8 @@ function SubnationWindow({ s, onBack, onClose, onCounties }: { s: Subnation; /**
       {/* Overview: all about the division itself - where it stands among its country's, and its own record in its eight parts. */}
       {tab === "overview" && (
         <>
+          {/* Each of its figures beside the average of its country's divisions, with how each is measured, as asked. */}
+          <AgainstAverage rows={divisionAverageRows(s, peers)} peers={`${c?.name ?? s.cc}'s ${peers.length} divisions`} color={flagColor(s.cc) ?? COLOR} />
           {!state && peers.length > 1 && (peopleAt > 0 || areaAt > 0) && (
             <section>
               <div className="flex items-center gap-2 mb-1.5">
@@ -1067,6 +1100,8 @@ function CountyWindow({ county, data, onBack, onClose }: { county: UsCounty; dat
       )}
       {tab === "overview" && (
         <>
+          {/* Each of its figures beside the average of every US county, with how each is measured, as asked. */}
+          <AgainstAverage rows={countyAverageRows(county, data)} peers={`the ${whole(data.US_COUNTIES.length)} US counties`} color="#3b82f6" />
           {inOrder(parts).map((p) => (
             <Section key={p.title} part={p} />
           ))}

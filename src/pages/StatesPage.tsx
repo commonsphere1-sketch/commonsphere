@@ -46,6 +46,8 @@ import { has } from "@/lib/na";
 import { SeeAlso } from "../components/SeeAlso";
 import { StateOutline } from "../components/PlaceOutlines";
 import { PlaceTopics } from "../components/PlaceTopics";
+import { AgainstAverage } from "../components/AgainstAverage";
+import { STATE_PEERS, stateAverageRows } from "../lib/placeAverages";
 
 // ─── Housing and commuting, from the American Community Survey ───────────
 // These panels used to read STATE_HOUSING and STATE_TRANSPORT, hand-written
@@ -6230,6 +6232,11 @@ function StateModal({
               <>
                 {/* The state as the site's maps draw it, with the places listed inside it: the map every window of a place opens on. */}
                 <StateOutline name={state.name} />
+
+                {/* Each of its figures beside the average of the fifty states, with how each is measured, as asked. */}
+                <div className="my-4">
+                  <AgainstAverage rows={stateAverageRows(state.id)} peers={STATE_PEERS} color="#3b82f6" />
+                </div>
 
                 {/* Key Stats — organized by category */}
 
