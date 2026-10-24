@@ -58,6 +58,7 @@ import { GeopoliticsExplorer } from "@/components/GeopoliticsExplorer";
 import { StatCard, splitChange } from "@/components/StatCard";
 import { CategoryCharts, PILLAR_CHARTS } from "@/components/CategoryCharts";
 import { has } from "@/lib/na";
+import { SLIM_TRACK, slimFill } from "../components/SlimBars";
 
 /**
  * Worldview: where the world stands, as a global dashboard in twelve pillars -
@@ -858,9 +859,10 @@ function WorldWheel() {
                 <span className="w-24 shrink-0 text-[11px] font-semibold font-sans truncate" style={{ color: head }}>
                   {r.p.title}
                 </span>
-                <span className="flex-1 flex h-1.5 gap-[2px] min-w-0" aria-hidden>
+                {/* In the slim style, as asked: the improved and the worsened each a slim rounded bar of its own, its colour fading in, and those with no trend the faint track beyond. */}
+                <span className="flex-1 flex h-1.5 gap-[3px] min-w-0" aria-hidden>
                   {(["better", "worse", "none"] as const).map((k) =>
-                    r[k] ? <span key={k} className="h-full first:rounded-l-full last:rounded-r-full" style={{ width: `${(100 * r[k]) / r.total}%`, background: colors[k] }} /> : null,
+                    r[k] ? <span key={k} className="h-full rounded-full" style={{ width: `${(100 * r[k]) / r.total}%`, background: k === "none" ? SLIM_TRACK : slimFill(colors[k]) }} /> : null,
                   )}
                 </span>
                 <span className="shrink-0 w-24 text-right text-[10px] font-mono tabular-nums" style={{ color: muted }} aria-hidden>
