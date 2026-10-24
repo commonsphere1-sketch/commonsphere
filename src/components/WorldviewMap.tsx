@@ -785,8 +785,8 @@ export default function WorldviewMap() {
               drag.current = null;
             }}
           >
-            <path d={SPHERE} vectorEffect="non-scaling-stroke" fill={t.isLight ? "rgba(0,0,0,0.02)" : "rgba(255,255,255,0.015)"} stroke={t.gridLine} />
-            <path d={GRID} vectorEffect="non-scaling-stroke" fill="none" stroke={t.isLight ? "rgba(0,0,0,0.07)" : "rgba(255,255,255,0.07)"} strokeWidth={0.6} />
+            <path strokeWidth={1 / view.k} d={SPHERE} fill={t.isLight ? "rgba(0,0,0,0.02)" : "rgba(255,255,255,0.015)"} stroke={t.gridLine} />
+            <path d={GRID} fill="none" stroke={t.isLight ? "rgba(0,0,0,0.07)" : "rgba(255,255,255,0.07)"} strokeWidth={(0.6) / view.k} />
             {SHAPES.map((s, i) => {
               const on = (hover !== null && hover === s.code) || s.code === picked;
               return (
@@ -794,7 +794,6 @@ export default function WorldviewMap() {
                   key={`${s.name}-${i}`}
                   d={s.d}
                   className={s.code ? "cursor-pointer" : undefined}
-                  vectorEffect="non-scaling-stroke"
                   onClick={() => {
                     if (dragged.current) return;
                     if (s.code) pick(s.code);
@@ -803,7 +802,7 @@ export default function WorldviewMap() {
                   fill={s.code ? inkOf(s.code) : t.isLight ? "#e5e7eb" : "#1a1a20"}
                   fillOpacity={s.code ? (on ? FILL_ON : FILL) : 1}
                   stroke={s.code ? inkOf(s.code) : t.isLight ? "#cbd5e1" : "#3a3a44"}
-                  strokeWidth={0.7}
+                  strokeWidth={0.7 / view.k}
                   onMouseEnter={() => s.code && setHover(s.code)}
                   onMouseLeave={() => setHover(null)}
                 >
@@ -821,9 +820,9 @@ export default function WorldviewMap() {
             </defs>
             <g clipPath="url(#worldview-land)" fill="none" strokeLinejoin="round" pointerEvents="none">
               {view.k >= COUNTIES_FROM &&
-                inner.two.map((l, i) => <path key={`b2-${i}`} d={l.d} stroke={inkOf(l.c)} strokeOpacity={Math.min(0.75, 0.3 + 0.05 * view.k)} strokeWidth={0.35} vectorEffect="non-scaling-stroke" />)}
+                inner.two.map((l, i) => <path key={`b2-${i}`} d={l.d} stroke={inkOf(l.c)} strokeOpacity={Math.min(0.75, 0.3 + 0.05 * view.k)} strokeWidth={(0.35) / view.k} />)}
               {inner.one.map((l, i) => (
-                <path key={`b1-${i}`} d={l.d} stroke={inkOf(l.c)} strokeOpacity={0.6} strokeWidth={0.5} vectorEffect="non-scaling-stroke" />
+                <path key={`b1-${i}`} d={l.d} stroke={inkOf(l.c)} strokeOpacity={0.6} strokeWidth={(0.5) / view.k} />
               ))}
             </g>
             {/* The country picked, by its divisions, once drawn closer: each lit when pointed at and pressed. */}
@@ -839,12 +838,11 @@ export default function WorldviewMap() {
                     <path
                       key={c.id}
                       d={c.d}
-                      vectorEffect="non-scaling-stroke"
                       className="cursor-pointer"
                       fill={inkOf(picked)}
                       fillOpacity={on ? 0.6 : hoverRegion === c.id ? 0.32 : 0}
                       stroke={on ? inkOf(picked) : "none"}
-                      strokeWidth={1.4}
+                      strokeWidth={(1.4) / view.k}
                       onClick={() => {
                         if (!dragged.current) pressCounty(c);
                       }}
@@ -863,12 +861,11 @@ export default function WorldviewMap() {
                   <path
                     key={`${r.name}-${i}`}
                     d={r.d}
-                    vectorEffect="non-scaling-stroke"
                     className="cursor-pointer"
                     fill={inkOf(picked)}
                     fillOpacity={region === r.name ? 0.6 : hoverRegion === r.name ? 0.32 : 0}
                     stroke={region === r.name ? inkOf(picked) : "none"}
-                    strokeWidth={1.4}
+                    strokeWidth={(1.4) / view.k}
                     onClick={() => {
                       if (dragged.current) return;
                       setPressed(null);
@@ -890,7 +887,7 @@ export default function WorldviewMap() {
                 const hh = H / (2 * view.k);
                 if (Math.abs(c.x - view.x) > hw || Math.abs(c.y - view.y) > hh) return null;
                 return (
-                  <circle key={`${c.name}-${c.country}-${c.x}`} cx={c.x} cy={c.y} r={((c.people >= 1e6 ? 2.6 : 1.6) * (pressed?.kind === "city" && pressed.key === `${c.name}-${c.country}` ? 1.8 : 1)) / view.k} fill={pressed?.kind === "city" && pressed.key === `${c.name}-${c.country}` ? inkOf(picked) : t.headText} fillOpacity={0.9} stroke={t.cardBg} strokeWidth={0.6} vectorEffect="non-scaling-stroke" className={c.cc === picked ? "cursor-pointer" : undefined} onClick={() => c.cc === picked && !dragged.current && pressCity(c)} onMouseEnter={() => c.cc === picked && setHoverRegion(`city:${c.name}`)} onMouseLeave={() => setHoverRegion(null)}>
+                  <circle key={`${c.name}-${c.country}-${c.x}`} cx={c.x} cy={c.y} r={((c.people >= 1e6 ? 2.6 : 1.6) * (pressed?.kind === "city" && pressed.key === `${c.name}-${c.country}` ? 1.8 : 1)) / view.k} fill={pressed?.kind === "city" && pressed.key === `${c.name}-${c.country}` ? inkOf(picked) : t.headText} fillOpacity={0.9} stroke={t.cardBg} strokeWidth={0.6 / view.k} className={c.cc === picked ? "cursor-pointer" : undefined} onClick={() => c.cc === picked && !dragged.current && pressCity(c)} onMouseEnter={() => c.cc === picked && setHoverRegion(`city:${c.name}`)} onMouseLeave={() => setHoverRegion(null)}>
                     <title>{`${c.name}, ${c.country}: ${c.people.toLocaleString("en-US")} people (GeoNames)`}</title>
                   </circle>
                 );

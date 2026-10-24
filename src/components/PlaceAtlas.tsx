@@ -124,6 +124,9 @@ const MAX_K = 200;
 const FINER_FROM = 2.5; // its countries from the 1:50m tracing
 const STATES_FROM = 2; // the borders of states and provinces
 const COUNTIES_FROM = 5; // those of counties and districts
+/* The borders drawn, as the World Maps page draws them, as asked: states and provinces from the first view, counties and districts from 2.5 times closer. What a press selects keeps the thresholds above. */
+const STATE_LINES_FROM = 1;
+const COUNTY_LINES_FROM = 2.5;
 const CITIES_FROM = 8; // the cities of a million people or more; more of them further in
 const TOWNS_FROM = 14; // the towns and villages
 /** The projection of the world's map: the whole globe in the card. */
@@ -379,8 +382,8 @@ export default function PlaceAtlas() {
   const [countyLines, setCountyLines] = useState<unknown | null>(null);
   const near = (from: number) => onWorld && view.k >= from * 0.8;
   const wantFiner = near(FINER_FROM) && !fineWorld;
-  const wantStates = near(STATES_FROM) && !stateLines;
-  const wantCountyLines = near(COUNTIES_FROM) && !countyLines;
+  const wantStates = near(STATE_LINES_FROM) && !stateLines;
+  const wantCountyLines = near(COUNTY_LINES_FROM) && !countyLines;
   useEffect(() => {
     if (!wantFiner) return;
     let off = false;
@@ -405,21 +408,29 @@ export default function PlaceAtlas() {
     };
   }, [wantStates, wantCountyLines]);
   const worldPath = useMemo(() => geoPath(WORLD_PROJECTION), []);
-  const stateLinesD = useMemo(() => (stateLines ? (worldPath(stateLines as never) ?? "") : ""), [stateLines, worldPath]);
   /* The file of the districts' lines holds two sets a country: the borders between districts of one division, and those
      between its divisions - the states' borders from the districts' own tracing. Once the map is close enough for the
      districts, a country's states' borders are drawn from that set, so that they meet the districts', and Natural
      Earth's are kept only for the countries that have no districts held. */
   const countySets = useMemo(() => {
     const features = (countyLines as { features?: { properties: { c: string; o: 1 | 2 } }[] } | null)?.features ?? [];
-    const of = (o: 1 | 2) => worldPath({ type: "FeatureCollection", features: features.filter((f) => f.properties.o === o) } as never) ?? "";
-    return { inner: features.length ? of(2) : "", first: features.length ? of(1) : "", held: new Set(features.map((f) => f.properties.c)) };
-  }, [countyLines, worldPath]);
-  const countyLinesD = countySets.inner;
-  const stateLinesRestD = useMemo(() => {
-    const features = (stateLines as { features?: { properties: { c: string } }[] } | null)?.features ?? [];
-    return features.length && countySets.held.size ? (worldPath({ type: "FeatureCollection", features: features.filter((f) => !countySets.held.has(f.properties.c)) } as never) ?? "") : "";
-  }, [stateLines, countySets, worldPath]);
+    // Which countries have their districts' lines held: the lines themselves are drawn a country at a time, below.
+    return { held: new Set(features.map((f) => f.properties.c)) };
+  }, [countyLines]);
+  /* The same lines a country at a time, so that each is drawn in its country's colour, as the World Maps page draws them. */
+  const linesByCountry = useCallback(
+    (fc: unknown, keep: (f: { properties: { c: string; o?: number } }) => boolean) => {
+      const features = (fc as { features?: { properties: { c: string; o?: number } }[] } | null)?.features ?? [];
+      const by = new Map<string, typeof features>();
+      for (const f of features) if (keep(f)) by.set(f.properties.c, [...(by.get(f.properties.c) ?? []), f]);
+      return [...by].map(([c, fs]) => ({ c, d: worldPath({ type: "FeatureCollection", features: fs } as never) ?? "" })).filter((x) => x.d);
+    },
+    [worldPath],
+  );
+  const stateLineSets = useMemo(() => linesByCountry(stateLines, () => true), [stateLines, linesByCountry]);
+  const stateLineRestSets = useMemo(() => linesByCountry(stateLines, (f) => !countySets.held.has(f.properties.c)), [stateLines, countySets, linesByCountry]);
+  const countyInnerSets = useMemo(() => linesByCountry(countyLines, (f) => f.properties.o === 2), [countyLines, linesByCountry]);
+  const countyFirstSets = useMemo(() => linesByCountry(countyLines, (f) => f.properties.o === 1), [countyLines, linesByCountry]);
   /** The world's countries as they are drawn: from the finer tracing once the map is close enough for the coarser to show its corners. */
   const worldDrawn = onWorld && view.k >= FINER_FROM && fineWorld ? fineWorld : WORLD;
 
@@ -1160,9 +1171,8 @@ export default function PlaceAtlas() {
                 fill={inkOf(s.ref)}
                 stroke={inkOf(s.ref)}
                 // Finer where the shapes are counties or districts: there are thousands of them.
-                strokeWidth={onSecond ? 0.45 : 0.9}
+                strokeWidth={(onSecond ? 0.45 : 0.9) / view.k}
                 strokeOpacity={onSecond ? 0.75 : 1}
-                vectorEffect="non-scaling-stroke"
                 strokeLinejoin="round"
                 onClick={s.go}
                 onMouseEnter={() => setHover(s.name)}
@@ -1180,8 +1190,7 @@ export default function PlaceAtlas() {
                 fill={inkOf(s.ref)}
                 stroke={inkOf(s.ref)}
                 strokeOpacity={order === 2 ? 0.6 : 0.8}
-                strokeWidth={order === 2 ? 0.45 : 0.7}
-                vectorEffect="non-scaling-stroke"
+                strokeWidth={(order === 2 ? 0.45 : 0.7) / view.k}
                 strokeLinejoin="round"
                 onClick={s.go}
                 onMouseEnter={() => setHover(s.name)}
@@ -1192,25 +1201,32 @@ export default function PlaceAtlas() {
             ))}
             {/* The lines over the shapes, never pressed: the counties', fine, on the map of the states; the first-order divisions', heavier, on a map of counties or districts - in the country's own colour. */}
             {lines && (
-              <path d={lines} fill="none" stroke={bold ? countryInk(code) : inner} strokeOpacity={bold ? 1 : 0.3} strokeWidth={bold ? 1.4 : 0.45} vectorEffect="non-scaling-stroke" strokeLinejoin="round" pointerEvents="none" />
+              <path d={lines} fill="none" stroke={bold ? countryInk(code) : inner} strokeOpacity={bold ? 1 : 0.3} strokeWidth={(bold ? 1.4 : 0.45) / view.k} strokeLinejoin="round" pointerEvents="none" />
             )}
             {/* The world, drawn closer: the borders of its states and provinces, and closer still those of its counties and districts - fainter than the countries' own, clearer the closer the map is, and never pressed. */}
             {/* Natural Earth's states' borders: for every country until the map is close enough for the districts, and after that only for the countries with no districts held. */}
-            {onWorld && stateLinesD && view.k >= STATES_FROM && order !== 1 && (
-              <path d={view.k >= COUNTIES_FROM && stateLinesRestD ? stateLinesRestD : stateLinesD} fill="none" stroke={inner} strokeOpacity={Math.min(0.5, 0.16 + 0.04 * view.k)} strokeWidth={0.6} vectorEffect="non-scaling-stroke" strokeLinejoin="round" pointerEvents="none" />
-            )}
-            {/* The states' borders from the districts' own tracing, once the districts are drawn: from the very shapes where the counties are the shapes, and from the file of lines otherwise. */}
-            {onWorld && view.k >= COUNTIES_FROM && order !== 1 && (order === 2 ? exactFirstsD : countySets.first) && (
-              <path d={order === 2 ? exactFirstsD : countySets.first} fill="none" stroke={inner} strokeOpacity={Math.min(0.7, 0.3 + 0.03 * view.k)} strokeWidth={0.9} vectorEffect="non-scaling-stroke" strokeLinejoin="round" pointerEvents="none" />
-            )}
-            {onWorld && countyLinesD && view.k >= COUNTIES_FROM && order !== 2 && (
-              <path d={countyLinesD} fill="none" stroke={inner} strokeOpacity={Math.min(0.4, 0.1 + 0.02 * view.k)} strokeWidth={0.35} vectorEffect="non-scaling-stroke" strokeLinejoin="round" pointerEvents="none" />
-            )}
+            {/* Every country's states and provinces from the first view, and closer in its counties and districts - each in its country's colour, as the World Maps page draws them. Where a country's districts are drawn, its states' borders come from the districts' own tracing so that the two meet. */}
+            {onWorld && view.k >= STATE_LINES_FROM && order !== 1 &&
+              (view.k >= COUNTY_LINES_FROM && countySets.held.size ? stateLineRestSets : stateLineSets).map((l) => (
+                <path key={`s1-${l.c}`} d={l.d} fill="none" stroke={countryInk(l.c)} strokeOpacity={Math.min(0.85, 0.55 + 0.04 * view.k)} strokeWidth={(0.45) / view.k} strokeLinejoin="round" pointerEvents="none" />
+              ))}
+            {onWorld && view.k >= COUNTY_LINES_FROM && order !== 1 &&
+              (order === 2 && exactFirstsD ? (
+                <path d={exactFirstsD} fill="none" stroke={inner} strokeOpacity={Math.min(0.7, 0.3 + 0.03 * view.k)} strokeWidth={(0.9) / view.k} strokeLinejoin="round" pointerEvents="none" />
+              ) : (
+                countyFirstSets.map((l) => (
+                  <path key={`c1-${l.c}`} d={l.d} fill="none" stroke={countryInk(l.c)} strokeOpacity={0.85} strokeWidth={(0.7) / view.k} strokeLinejoin="round" pointerEvents="none" />
+                ))
+              ))}
+            {onWorld && view.k >= COUNTY_LINES_FROM && order !== 2 &&
+              countyInnerSets.map((l) => (
+                <path key={`c2-${l.c}`} d={l.d} fill="none" stroke={countryInk(l.c)} strokeOpacity={Math.min(0.75, 0.3 + 0.05 * view.k)} strokeWidth={(0.35) / view.k} strokeLinejoin="round" pointerEvents="none" />
+              ))}
             {/* The place pointed at, picked out as the World Maps page and the windows' maps pick one out: filled in its colour over the land, a casing so that its edge reads on any ground, and an outline in the colour itself. */}
             {litShape && (
               <g pointerEvents="none">
-                <path d={litShape.d} fill={inkOf(litShape.ref)} fillOpacity={0.62} stroke={halo} strokeOpacity={0.55} strokeWidth={3} vectorEffect="non-scaling-stroke" strokeLinejoin="round" />
-                <path d={litShape.d} fill="none" stroke={inkOf(litShape.ref)} strokeWidth={1.8} vectorEffect="non-scaling-stroke" strokeLinejoin="round" />
+                <path d={litShape.d} fill={inkOf(litShape.ref)} fillOpacity={0.62} stroke={halo} strokeOpacity={0.55} strokeWidth={(3) / view.k} strokeLinejoin="round" />
+                <path d={litShape.d} fill="none" stroke={inkOf(litShape.ref)} strokeWidth={(1.8) / view.k} strokeLinejoin="round" />
               </g>
             )}
             {/* The cities and towns. Each is the same size on the screen however close the map is drawn, so that they part
@@ -1228,8 +1244,7 @@ export default function PlaceAtlas() {
                   fillOpacity={0.78}
                   stroke={halo}
                   strokeOpacity={0.85}
-                  strokeWidth={0.9}
-                  vectorEffect="non-scaling-stroke"
+                  strokeWidth={(0.9) / view.k}
                   pointerEvents="none"
                 />
                 <title>{d.name}</title>
@@ -1239,9 +1254,9 @@ export default function PlaceAtlas() {
             {litDot && (
               <g pointerEvents="none">
                 {/* The dot itself solid, and the ring in the dot's own tone - pale on the dark card, dark on the light - inside a casing of the other, so that it stands off land of any colour, its own country's included. */}
-                <circle cx={litDot.x} cy={litDot.y} r={(litDot.r + 1.5) / view.k} fill={inner} stroke={halo} strokeWidth={1.4} vectorEffect="non-scaling-stroke" />
-                <circle cx={litDot.x} cy={litDot.y} r={(litDot.r + 7) / view.k} fill="none" stroke={halo} strokeOpacity={0.7} strokeWidth={4.2} vectorEffect="non-scaling-stroke" />
-                <circle cx={litDot.x} cy={litDot.y} r={(litDot.r + 7) / view.k} fill="none" stroke={inner} strokeWidth={2} vectorEffect="non-scaling-stroke" />
+                <circle cx={litDot.x} cy={litDot.y} r={(litDot.r + 1.5) / view.k} fill={inner} stroke={halo} strokeWidth={(1.4) / view.k} />
+                <circle cx={litDot.x} cy={litDot.y} r={(litDot.r + 7) / view.k} fill="none" stroke={halo} strokeOpacity={0.7} strokeWidth={(4.2) / view.k} />
+                <circle cx={litDot.x} cy={litDot.y} r={(litDot.r + 7) / view.k} fill="none" stroke={inner} strokeWidth={(2) / view.k} />
               </g>
             )}
             {(loading || none) && (
