@@ -40,6 +40,7 @@ import { MILITARY_MEASURED, MILITARY_SOURCES } from "../data/militarySpending";
 import { WORLD, type WorldIndicator } from "../data/worldview";
 import { useTokens, type Tokens } from "./DataExplorer";
 import { SourceLink } from "./SourceLink";
+import { SLIM_TRACK, slimFill } from "./SlimBars";
 
 type Source = { label: string; url: string };
 const ACCENT = "#6366f1";
@@ -201,9 +202,10 @@ function Regimes({ t }: { t: Tokens }) {
       <Kicker t={t}>
         How the world is governed · share of the world's people · {ind.breakdownYear} · V-Dem
       </Kicker>
-      <div className="flex h-3 gap-0.5" role="img" aria-label={`The world's people by the kind of regime they live under, ${ind.breakdownYear}: ${rows.map((r) => `${r.label} ${pct(r.share)}`).join(", ")}.`}>
-        {rows.map((r, i) => (
-          <span key={r.label} className={`h-full min-w-[2px] ${i === 0 ? "rounded-l-full" : ""} ${i === rows.length - 1 ? "rounded-r-full" : ""}`} style={{ flexGrow: r.n, flexBasis: 0, background: r.color }} title={`${r.label}: ${pct(r.share)}`} />
+      {/* In the slim style, as asked: each kind a slim rounded bar of its own, its colour fading in, as the states' vote shares are drawn. */}
+      <div className="flex h-1.5 gap-1" role="img" aria-label={`The world's people by the kind of regime they live under, ${ind.breakdownYear}: ${rows.map((r) => `${r.label} ${pct(r.share)}`).join(", ")}.`}>
+        {rows.map((r) => (
+          <span key={r.label} className="h-full min-w-[2px] rounded-full" style={{ flexGrow: r.n, flexBasis: 0, background: slimFill(r.color) }} title={`${r.label}: ${pct(r.share)}`} />
         ))}
       </div>
       <ul className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 mt-2">
@@ -308,8 +310,8 @@ function Blocs({ t }: { t: Tokens }) {
                         {pct(v)}
                       </span>
                       {/* On a scale of 0 to 100 per cent of the world's. */}
-                      <span className="block h-1.5 rounded-full overflow-hidden mt-1" style={{ background: t.isLight ? "rgba(0,0,0,0.07)" : "rgba(255,255,255,0.08)" }} aria-hidden>
-                        <span className="block h-full rounded-full" style={{ width: `${Math.min(100, Math.max(0, v))}%`, minWidth: v > 0 ? 2 : 0, background: c.color }} />
+                      <span className="block h-1.5 rounded-full overflow-hidden mt-1" style={{ background: SLIM_TRACK }} aria-hidden>
+                        <span className="block h-full rounded-full" style={{ width: `${Math.min(100, Math.max(0, v))}%`, minWidth: v > 0 ? 2 : 0, background: slimFill(c.color) }} />
                       </span>
                     </td>
                   );
