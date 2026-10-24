@@ -15,6 +15,7 @@ import type { ReactNode } from "react";
 import { CORAL_REEFS, EARTH_STATUS_RETRIEVED, EARTH_STATUS_SOURCES as SRC, FORESTS, FRESH_WATER, WILDFIRE } from "../data/earthStatus";
 import { regionName } from "../lib/regionName";
 import { SourceLink } from "./SourceLink";
+import { SLIM_TRACK, slimFill } from "./SlimBars";
 
 const WATER = "#0ea5e9";
 const FOREST = "#16a34a";
@@ -64,8 +65,8 @@ function Bars({ rows, max, color }: { rows: { key: string; label: string; value:
           <span className="text-[11px] font-sans text-foreground w-32 shrink-0 truncate" title={r.label}>
             {r.label}
           </span>
-          <span className="flex-1 h-2 rounded-full bg-muted/50 overflow-hidden" aria-hidden>
-            <span className="block h-full rounded-full" style={{ width: `${Math.max(1, Math.min(100, (r.value / max) * 100))}%`, background: color }} />
+          <span className="flex-1 h-2 rounded-full overflow-hidden" style={{ background: SLIM_TRACK }} aria-hidden>
+            <span className="block h-full rounded-full" style={{ width: `${Math.max(1, Math.min(100, (r.value / max) * 100))}%`, background: slimFill(color) }} />
           </span>
           <span className="text-[11px] font-mono font-bold text-foreground w-24 text-right shrink-0">{r.text}</span>
         </div>
@@ -78,9 +79,14 @@ function Columns({ years, color, label, unit }: { years: [number, number][]; col
   const max = Math.max(...years.map(([, v]) => v));
   return (
     <div role="img" aria-label={`${label}: ${years.map(([y, v]) => `${y} ${unit(v)}`).join(", ")}.`}>
-      <div className="flex items-end gap-0.5 h-20">
+      {/* Slim columns, as the site's charts have them: each year a rounded column on a faint track, filled upward in a gradient of its colour. */}
+      <div className="flex items-end gap-1 h-20">
         {years.map(([y, v]) => (
-          <span key={y} className="flex-1 rounded-t-sm min-w-0" style={{ height: `${Math.max(2, (v / max) * 100)}%`, background: color }} title={`${y}: ${unit(v)}`} />
+          <span key={y} className="flex-1 min-w-0 h-full flex justify-center" title={`${y}: ${unit(v)}`}>
+            <span className="relative w-full max-w-[14px] h-full rounded-full" style={{ background: SLIM_TRACK }}>
+              <span className="absolute inset-x-0 bottom-0 rounded-full" style={{ height: `${Math.max(4, (v / max) * 100)}%`, background: slimFill(color, true) }} />
+            </span>
+          </span>
         ))}
       </div>
       <div className="flex justify-between text-[9px] font-mono text-muted-foreground mt-1">

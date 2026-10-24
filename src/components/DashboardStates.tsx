@@ -21,7 +21,7 @@ import { usStatesData } from "../data/statesData";
 import { Card, Caret, Go, Head, Kicker } from "./DashboardCitiesSectors";
 import { useTokens } from "./DataExplorer";
 import { SourceLink } from "./SourceLink";
-import SlimBars from "./SlimBars";
+import SlimBars, { SLIM_TRACK, slimFill } from "./SlimBars";
 
 const COLOR = "#3b82f6";
 const SHOWN = 10;
@@ -70,7 +70,8 @@ export function StatesContainer() {
   }, []);
   // One state is open at a time: the first, until another is chosen.
   const [open, setOpen] = useState(top[0]?.id);
-  const track = t.isLight ? "rgba(0,0,0,0.07)" : "rgba(255,255,255,0.08)";
+  // The slim bars' faint track, as every bar on the site has it now.
+  const track = SLIM_TRACK;
   const years = top[0].figureYears;
   const chart = top.map((s) => ({ name: s.abbreviation, full: s.name, gdp: Number((s.gdp / 1000).toFixed(2)) }));
   return (
@@ -105,7 +106,7 @@ export function StatesContainer() {
                 </span>
                 {/* On the scale of the largest state: a bar's length is its GDP. */}
                 <span className="w-12 h-1.5 rounded-full overflow-hidden shrink-0" style={{ background: track }} aria-hidden>
-                  <span className="block h-full rounded-full" style={{ width: `${Math.min(100, (100 * s.gdp) / top[0].gdp)}%`, background: COLOR }} />
+                  <span className="block h-full rounded-full" style={{ width: `${Math.min(100, (100 * s.gdp) / top[0].gdp)}%`, background: slimFill(COLOR) }} />
                 </span>
                 <span className="text-[11px] font-mono font-semibold text-right shrink-0 w-14" style={{ color: t.headText }}>
                   {output(s.gdp)}
@@ -125,8 +126,8 @@ export function StatesContainer() {
                           <span className="text-[10px] font-sans flex-1 min-w-0 truncate" style={{ color: t.bodyText }}>
                             {f.label}
                           </span>
-                          <span className="w-20 h-1.5 rounded-full overflow-hidden shrink-0" style={{ background: track }} aria-hidden>
-                            <span className="block h-full rounded-full" style={{ width: `${Math.max(1.5, f.bar)}%`, background: COLOR }} />
+                          <span className="w-20 h-2 rounded-full overflow-hidden shrink-0" style={{ background: track }} aria-hidden>
+                            <span className="block h-full rounded-full" style={{ width: `${Math.max(1.5, f.bar)}%`, background: slimFill(COLOR) }} />
                           </span>
                           <span className="text-[10px] font-mono font-semibold text-right shrink-0 min-w-[4.5rem]" style={{ color: t.headText }}>
                             {f.value}
