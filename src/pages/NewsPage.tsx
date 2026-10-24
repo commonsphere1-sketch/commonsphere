@@ -29,7 +29,7 @@ import { CONTINENTS, EVENTS, SUBJECTS, inWhere, labelOf, wordsOf, type SubjectId
  * The News page, as asked: every headline the news job has read from the
  * outlets' public feeds (supabase/functions/refresh-data/news.ts), for the
  * whole world, for stories between countries, or for one continent, country
- * or US state - by subject, or by the kind of event it reports - and, above
+ * or US state - by subject, or by the kind of event it reports - and, below
  * the list, the events tracked by region (NewsTracker). Nothing here is
  * written by the site: each headline is the outlet's own, linking to it.
  * The places and subjects are set out in lib/newsSubjects.ts.
@@ -164,9 +164,6 @@ export function NewsPage() {
           <StyledSelect value={String(days)} onValueChange={(v) => setDays(Number(v))} options={DAY_OPTIONS} ariaLabel="How far back" />
         </FilterBar>
 
-        {/* The events tracked by region: the public bodies' records beside the headlines. */}
-        <NewsTracker rows={rows} days={days} where={where} onPick={pick} />
-
         {/* What: the subject, or the kind of event, by the words of the headline. */}
         <div role="group" aria-label="News by subject" className="flex flex-wrap items-center gap-1.5 mb-1.5">
           <span className="w-16 shrink-0 text-[10px] font-mono uppercase tracking-widest text-muted-foreground">Subject</span>
@@ -215,6 +212,11 @@ export function NewsPage() {
           headline can sit under more than one, or under none; words that mean something else, such as a trade war or an AI
           revolution, are kept out. ★ marks a place you follow.
         </p>
+
+        {/* The events tracked by region, below the news, as asked: the public bodies' records beside the headlines. */}
+        <div className="mt-8">
+          <NewsTracker rows={rows} days={days} where={where} onPick={pick} />
+        </div>
       </div>
     </div>
   );
