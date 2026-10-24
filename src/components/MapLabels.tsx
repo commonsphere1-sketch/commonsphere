@@ -29,6 +29,24 @@ export type LabelCandidate = {
 
 export type PlacedLabel = LabelCandidate & { fs: number };
 
+/** Where an area's name goes: the middle of its largest piece of land, with that piece's width and height - so that a country's name sits on its mainland and not in the sea between its islands. */
+export type Anchor = { x: number; y: number; w: number; h: number };
+type PathLike = { area(o: never): number; centroid(o: never): [number, number]; bounds(o: never): [[number, number], [number, number]] };
+export function anchorOf(path: PathLike, geo: unknown): Anchor | undefined {
+  const g = ((geo as { geometry?: unknown }).geometry ?? geo) as { type?: string; coordinates?: unknown[] } | null;
+  if (!g?.type) return undefined;
+  const pieces = g.type === "MultiPolygon" ? (g.coordinates ?? []).map((c) => ({ type: "Polygon", coordinates: c })) : [g];
+  let best: (Anchor & { a: number }) | undefined;
+  for (const p of pieces) {
+    const a = path.area(p as never);
+    if (!(a > 0) || (best && a <= best.a)) continue;
+    const [x, y] = path.centroid(p as never);
+    const [[x0, y0], [x1, y1]] = path.bounds(p as never);
+    if (Number.isFinite(x) && Number.isFinite(y)) best = { x, y, w: x1 - x0, h: y1 - y0, a };
+  }
+  return best && { x: best.x, y: best.y, w: best.w, h: best.h };
+}
+
 /** A character's width as a share of the type's size: the site's serif set small. */
 const CHAR = 0.56;
 

@@ -107,6 +107,7 @@ import { Card, Go, Head } from "./DashboardCitiesSectors";
 import { useTokens } from "./DataExplorer";
 import { SourceLink } from "./SourceLink";
 import PlaceSearch from "./PlaceSearch";
+import { MapLabels, anchorOf, placeLabels, type Anchor, type LabelCandidate } from "./MapLabels";
 
 const W = 960;
 const H = 480;
@@ -164,7 +165,7 @@ const people = (v: number) => (v >= 1e9 ? `${(v / 1e9).toFixed(2)}bn` : v >= 1e6
 const countryFlag = (cc: string) => `https://flagcdn.com/w80/${cc.toLowerCase()}.png`;
 const COUNTRY_BY_CODE = new Map(countriesData.map((c) => [c.code, c]));
 /** A shape on the map: its name, its outline, and what a press on it does. */
-type Shape = { key: string; name: string; d: string; go: () => void; /** The colour it lights in when pointed at. */ hot: string; ref: Ref };
+type Shape = { key: string; name: string; d: string; go: () => void; /** The colour it lights in when pointed at. */ hot: string; ref: Ref; /** Where its name is set. */ a?: Anchor };
 /** The shades the places that share one flag are told apart by, in turn: the colour itself, lighter, darker, lighter still, darker still. */
 const STEPS = [0, 0.22, -0.18, 0.38, -0.32];
 const tint = (base: string, i: number) => shade(base, STEPS[i % STEPS.length]);
@@ -511,7 +512,7 @@ export default function PlaceAtlas() {
             const d = worldPath(f.geo as never);
             if (!d) return [];
             const [[a, b], [c, e]] = worldPath.bounds(f.geo as never);
-            return [{ s: shapeOf(f, i, d), x0: a, y0: b, x1: c, y1: e }];
+            return [{ s: { ...shapeOf(f, i, d), a: anchorOf(worldPath, f.geo) }, x0: a, y0: b, x1: c, y1: e }];
           }),
         );
       // Only those in view are drawn: a large country has thousands.
@@ -591,7 +592,7 @@ export default function PlaceAtlas() {
       return {
         shapes: features.flatMap((f, i): Shape[] => {
           const d = path(f as never);
-          return d ? [{ key: `${f.id ?? ""}-${i}`, name: name(f), d, go: go(f, i), hot: hot(f, i), ref: ref(f) }] : [];
+          return d ? [{ key: `${f.id ?? ""}-${i}`, name: name(f), d, go: go(f, i), hot: hot(f, i), ref: ref(f), a: anchorOf(path, f) }] : [];
         }),
         project: (lon: number, lat: number) => projection([lon, lat]),
         lines: "",
@@ -1000,6 +1001,14 @@ export default function PlaceAtlas() {
   const halo = t.isLight ? "#ffffff" : "#000000";
   /** The dots, the largest first, so that a small one is never under a large one and can always be pressed. */
   const dotsDrawn = [...dotsInView].sort((a, b) => b.r - a.r);
+  /* The names on the map, as asked: the shapes' - countries, states, divisions, counties - and the finer ones' at their middles, and the cities' and towns' beside their dots, the largest first: as many as fit in view without meeting (MapLabels). */
+  const labels = useMemo(() => {
+    const cands: LabelCandidate[] = [];
+    for (const s of shapes) if (s.a) cands.push({ key: `s-${s.key}`, text: s.name.split(", ")[0], ...s.a, size: 10, weight: 700, rank: 1 });
+    for (const d of [...dotsInView].sort((a, b) => b.r - a.r)) cands.push({ key: `d-${d.key}`, text: d.name.split(", ")[0], x: d.x + d.r / view.k, y: d.y, size: 9, rank: 2, town: true });
+    for (const s of finerShapes) if (s.a) cands.push({ key: `f-${s.key}`, text: s.name.split(", ")[0], ...s.a, size: 8.5, weight: 500, rank: 3 });
+    return placeLabels(cands, { x0: view.x - W / (2 * view.k), y0: view.y - H / (2 * view.k), x1: view.x + W / (2 * view.k), y1: view.y + H / (2 * view.k), k: view.k });
+  }, [shapes, finerShapes, dotsInView, view]);
   const chip = (on: boolean) =>
     `px-3 py-1 rounded-full text-[11px] font-medium font-sans border transition-colors cursor-pointer shrink-0 whitespace-nowrap ${on ? "chip-selected" : "bg-transparent border-border text-muted-foreground hover:text-foreground hover:bg-muted/60"}`;
   const tool = "w-8 h-8 rounded-full inline-flex items-center justify-center border border-border bg-background/80 backdrop-blur-sm text-foreground hover:bg-muted transition-colors cursor-pointer shadow-sm disabled:opacity-40 disabled:cursor-default";
@@ -1264,6 +1273,8 @@ export default function PlaceAtlas() {
                 {loading ? "Loading the boundaries…" : `No divisions are drawn for ${country?.name ?? "this country"}.`}
               </text>
             )}
+            {/* The names of the places on it, as asked: the shapes' - countries, states, divisions, counties - the finer ones', and the cities' and towns' beside their dots, as many as fit in view without meeting. */}
+            <MapLabels labels={labels} k={view.k} />
           </svg>
           {/* Closer and further, at the map's own corner where they are seen with it: the same as the wheel, a pinch and the + and - keys, and they glide. */}
           <div className="absolute top-2.5 right-2.5 flex items-center gap-1.5">

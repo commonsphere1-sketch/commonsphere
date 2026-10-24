@@ -34,7 +34,7 @@
  * under the map with its own figures (CountryDashboard), as asked; the page
  * opens on the United States.
  */
-import { type ReactNode, useCallback, useEffect, useRef, useState } from "react";
+import { type ReactNode, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { ArrowCounterClockwise, MagnifyingGlassMinus, MagnifyingGlassPlus } from "@phosphor-icons/react";
 import { flagColor } from "../lib/flagColor";
 import { geoArea, geoContains, geoEqualEarth, geoGraticule10, geoPath } from "d3-geo";
@@ -58,6 +58,7 @@ import PlaceFigures, { type PressedPlace } from "./PlaceFigures";
 import { Link } from "react-router-dom";
 import { usStatesData } from "../data/statesData";
 import { citiesData } from "../data/citiesData";
+import { MapLabels, anchorOf, placeLabels, type LabelCandidate } from "./MapLabels";
 
 type Reading = { v: number; y: string };
 type Measure = {
@@ -152,7 +153,7 @@ const SHAPES = WORLD.features.flatMap((f) => {
   const d = PATH(f as never);
   if (!d || f.properties.name === "Antarctica") return [];
   const c = countryForFeature(f.properties.name);
-  return [{ name: c?.name ?? f.properties.name, code: c?.code ?? null, d, b: PATH.bounds(f as never) }];
+  return [{ name: c?.name ?? f.properties.name, code: c?.code ?? null, d, b: PATH.bounds(f as never), a: anchorOf(PATH, f) }];
 });
 /** How many countries the map draws: small islands are too small to draw at this scale, and are not counted. */
 const DRAWN = new Set(SHAPES.flatMap((s) => (s.code ? [s.code] : []))).size;
@@ -488,7 +489,7 @@ export default function WorldviewMap() {
   /** The country whose figures fill the panels under the map. */
   const [picked, setPicked] = useState("US");
   /* The divisions of the country picked - its states, provinces, regions - as the World Maps page's files draw them; the one pressed, and the one pointed at. */
-  const [regions, setRegions] = useState<{ code: string; list: { name: string; d: string; geo: Geo }[] } | null>(null);
+  const [regions, setRegions] = useState<{ code: string; list: { name: string; d: string; geo: Geo; a?: ReturnType<typeof anchorOf> }[] } | null>(null);
   const [region, setRegion] = useState<string | null>(null);
   const [hoverRegion, setHoverRegion] = useState<string | null>(null);
   const [pressed, setPressed] = useState<Pressed | null>(null);
@@ -504,7 +505,7 @@ export default function WorldviewMap() {
         const key = Object.keys(topo.objects)[0];
         const list = (feature(topo, topo.objects[key] as never) as unknown as { features: Geo[] }).features.flatMap((f) => {
           const d = f.properties.n ? PATH(rewind(f) as never) : null;
-          return d ? [{ name: f.properties.n!, d, geo: f }] : [];
+          return d ? [{ name: f.properties.n!, d, geo: f, a: anchorOf(PATH, f) }] : [];
         });
         setRegions({ code: picked, list });
       })
@@ -517,7 +518,7 @@ export default function WorldviewMap() {
   const [view, setView] = useState({ k: 1, x: W / 2, y: H / 2 });
   /* The counties, districts and municipalities of the country picked, fetched once it is drawn close enough to press them: the
      United States' are the Census Bureau's, by us-atlas; every other country's geoBoundaries', as the World Maps page draws them. */
-  type County = { name: string; parent?: string; id: string; d: string; b: [[number, number], [number, number]]; geo: unknown; at?: number };
+  type County = { name: string; parent?: string; id: string; d: string; b: [[number, number], [number, number]]; geo: unknown; at?: number; a?: ReturnType<typeof anchorOf> };
   const [counties, setCounties] = useState<{ code: string; list: County[] } | null>(null);
   const admin2 = useAdmin2Manifest();
   const wantCounties = view.k >= COUNTIES_PICK_FROM;
@@ -526,7 +527,7 @@ export default function WorldviewMap() {
     let off = false;
     const shape = (f: { id?: string | number; geometry: unknown }, name: string, parent?: string, at?: number): County[] => {
       const d = PATH(f as never);
-      return d ? [{ name, parent, id: String(f.id ?? name), d, b: PATH.bounds(f as never) as County["b"], geo: f, at }] : [];
+      return d ? [{ name, parent, id: String(f.id ?? name), d, b: PATH.bounds(f as never) as County["b"], geo: f, at, a: anchorOf(PATH, f) }] : [];
     };
     if (picked === "US") {
       import("us-atlas/counties-10m.json").then((m) => {
@@ -677,6 +678,19 @@ export default function WorldviewMap() {
      page's own files, fetched after the map is drawn. A file that does not come leaves the map without that layer. */
   const [inner, setInner] = useState<{ one: { c: string; d: string }[]; two: { c: string; d: string }[] }>({ one: [], two: [] });
   const [cities, setCities] = useState<{ name: string; country: string; cc: string | null; people: number; x: number; y: number; lon: number; lat: number }[]>([]);
+  /* The names on the map, as asked: the countries' at every zoom; drawn closer, the picked country's divisions, then its
+     counties and districts; and the cities once they show - as many as fit in view without meeting (MapLabels). */
+  const labels = useMemo(() => {
+    const cands: LabelCandidate[] = [];
+    for (const s of SHAPES) if (s.code && s.a) cands.push({ key: `c-${s.name}`, text: s.name, ...s.a, size: 10, weight: 700, rank: 1 });
+    if (!countiesShown && view.k >= REGIONS_FROM && regions?.code === picked)
+      for (const r of regions.list) if (r.a) cands.push({ key: `r-${r.name}`, text: r.name, ...r.a, size: 8.5, weight: 500, rank: 3 });
+    if (countiesShown) for (const c of counties!.list) if (c.a) cands.push({ key: `k-${c.id}`, text: c.name, ...c.a, size: 8, weight: 500, rank: 4 });
+    if (view.k >= CITIES_FROM)
+      for (const c of [...cities].sort((a, b) => b.people - a.people))
+        cands.push({ key: `t-${c.name}-${c.country}-${c.x}`, text: c.name, x: c.x + (c.people >= 1e6 ? 2.6 : 1.6) / view.k, y: c.y, size: 8.5, rank: 2, town: true });
+    return placeLabels(cands, { x0: view.x - W / (2 * view.k), y0: view.y - H / (2 * view.k), x1: view.x + W / (2 * view.k), y1: view.y + H / (2 * view.k), k: view.k });
+  }, [view, regions, picked, counties, countiesShown, cities]);
   useEffect(() => {
     let off = false;
     const lines = (url: string) =>
@@ -892,6 +906,8 @@ export default function WorldviewMap() {
                   </circle>
                 );
               })}
+            {/* The names of the places on it, as asked. */}
+            <MapLabels labels={labels} k={view.k} />
           </svg>
           {/* Closer and further, and the whole map again: the outline map's round buttons, at the map's corner. */}
           <div className="absolute top-5 right-5 flex items-center gap-1">
