@@ -84,7 +84,7 @@ import { TONE } from "@/lib/chipTone";
 import { ADMIN2_SOURCE, useAdmin2, useAdmin2Manifest } from "../lib/admin2";
 import { DIVISION_DETAILS_SOURCES, useDivisionDetails, type DivisionDetails, type Money } from "../lib/divisionDetails";
 import { liveRecord, type LiveRecord } from "../lib/liveRecord";
-import { framed, outlinesOf, placesWithin, useAdmin1, useCountyOutline } from "../lib/outlines";
+import { framed, outlineParts, outlinesOf, placesWithin, useAdmin1, useCountyOutline } from "../lib/outlines";
 import { flagColor } from "../lib/flagColor";
 import { byPeople, countryPeople, peopleSource, peopleSources } from "../lib/countryPeople";
 import { lockScroll } from "../lib/scrollLock";
@@ -1661,13 +1661,15 @@ function CountryWindow({
   /* What lies inside each division, counted from the country's places once they are fetched. */
   const places = usePlaces(row.cc);
   const insides = useMemo(() => (places ? new Map(row.divisions.map((d) => [d.id, insideOf(places, d)])) : null), [places, row]);
-  /* The map at the head of its window: its divisions as the site's maps draw them, framed without its far-off parts, with its largest listed places as dots. */
+  /* The map at the head of its window: its divisions as the site's maps draw them, opening on its main part with its far-off parts a swipe away, with its largest listed places as dots. */
   const drawn = useAdmin1(row.cc);
   const second = useSecondOrder(row.cc);
   /* Its divisions put together from its districts, where they can stand for the ones listed: every border on the map is then of one tracing. */
   const aligned = useMemo(() => alignedTo(second, drawn), [second, drawn]);
   const alignedFrame = useMemo(() => (aligned ? framed(aligned) : undefined), [aligned]);
   const frame = useMemo(() => (drawn ? framed(drawn) : undefined), [drawn]);
+  /* Its parts that lie apart, as the map shows them one at a time. */
+  const apart = useMemo(() => outlineParts(aligned ?? drawn ?? []).length, [aligned, drawn]);
   const dots = useMemo(() => placeDots(places?.places ?? [], 150, places), [places]);
   /** The place whose dot on the map was pressed, or that a link named: its window opens over this one, which steps out of sight. */
   const [picked, setPicked] = useState<PlaceRow | null>(null);
@@ -1700,7 +1702,7 @@ function CountryWindow({
           <p className="text-[10px] font-sans text-muted-foreground leading-snug mt-1">
             {row.name}'s divisions as the site's maps draw them{dots.length ? `, with the ${dots.length} largest places GeoNames lists for it as dots` : ""}
             {second ? "; the finer lines are its " + second.are : ""}
-            {frame && frame.length < drawn.length ? " - framed without its far-off parts, which are in the list below" : ""}.
+            {apart > 1 ? ` - it opens on its main part, and its ${apart - 1} far-off part${apart > 2 ? "s are" : " is"} a swipe away, or the arrows under the map` : ""}.
           </p>
         </div>
       )}

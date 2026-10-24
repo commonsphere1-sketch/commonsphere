@@ -38,6 +38,45 @@ export function framed<T extends Outline>(features: T[]): T[] {
   return near.length < features.length && features.length - near.length <= features.length / 7 ? near : features;
 }
 
+/** A group of outlines that lie together: a country's main body, or one of its far-off parts - Alaska, Hawaii, the Azores. */
+export type OutlinePart<T extends Outline = Outline> = { features: T[]; label: string };
+
+/** How wide a stretch of open sea, in degrees, parts one group of outlines from another: wider than the Corsica or Bass straits, narrower than the sea between Alaska and Washington. */
+const PART_GAP = 2;
+
+/**
+ * The outlines of a map in the groups that lie together, as asked: the largest by area first - the map opens on it -
+ * then the far-off ones, largest first, each a swipe away. Two outlines are of one group where the boxes round them
+ * come within PART_GAP degrees of each other, or of another outline of the group. A map whose outlines all lie
+ * together is one group.
+ */
+export function outlineParts<T extends Outline>(features: T[]): OutlinePart<T>[] {
+  if (features.length < 2) return [{ features, label: features[0]?.properties.n ?? "" }];
+  const box = features.map((f) => {
+    const [[w, s], [e, n]] = geoBounds(f as never);
+    return { w, e: e < w ? e + 360 : e, s, n };
+  });
+  const gap = (a: (typeof box)[number], b: (typeof box)[number]) => {
+    const lat = Math.max(0, Math.max(a.s, b.s) - Math.min(a.n, b.n));
+    // Across 180°, a box can be met from either side.
+    const lon = Math.min(...[-360, 0, 360].map((k) => Math.max(0, Math.max(a.w, b.w + k) - Math.min(a.e, b.e + k))));
+    const mid = Math.min(70, Math.abs((Math.max(a.s, b.s) + Math.min(a.n, b.n)) / 2));
+    return Math.hypot(lon * Math.cos((mid * Math.PI) / 180), lat);
+  };
+  const root = features.map((_, i) => i);
+  const find = (i: number): number => (root[i] === i ? i : (root[i] = find(root[i])));
+  for (let i = 0; i < features.length; i++) for (let j = i + 1; j < features.length; j++) if (find(i) !== find(j) && gap(box[i], box[j]) < PART_GAP) root[find(i)] = find(j);
+  const groups = new Map<number, number[]>();
+  features.forEach((_, i) => groups.set(find(i), [...(groups.get(find(i)) ?? []), i]));
+  const area = (ix: number[]) => ix.reduce((s, i) => s + geoArea(features[i] as never), 0);
+  const sorted = [...groups.values()].sort((a, b) => area(b) - area(a));
+  return sorted.map((ix, n) => {
+    const names = ix.map((i) => features[i].properties.n ?? features[i].properties.name).filter((x): x is string => !!x);
+    const named = names.length && names.length <= 3 ? names.join(" · ") : `${ix.length} divisions`;
+    return { features: ix.map((i) => features[i]), label: n === 0 && sorted.length > 1 ? `Main part · ${named}` : named };
+  });
+}
+
 /** The places of a list whose point lies inside an outline, in the list's own order. */
 export function placesWithin(shape: Outline, places: PlaceRow[]): PlaceRow[] {
   const [[w, s], [e, n]] = geoBounds(shape as never);

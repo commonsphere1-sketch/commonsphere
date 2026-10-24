@@ -3,8 +3,9 @@
  * the place as the site's maps draw it, with the places listed in it as dots,
  * each saying its name and what it belongs to when it is pointed at.
  *
- *   A country     its first-order divisions (Natural Earth), framed without
- *                 its far-off parts, with its largest listed places - or the
+ *   A country     its first-order divisions (Natural Earth), opening on its
+ *                 main part with its far-off parts a swipe away (OutlineMap),
+ *                 with its largest listed places - or the
  *                 dots the window gives instead: the Cities page gives the
  *                 cities the United Nations counts
  *   A US state    its outline among the same divisions, with the places
@@ -21,7 +22,7 @@ import { useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import { PLACES_SOURCE } from "../data/placesIndex";
 import { flagColor } from "../lib/flagColor";
-import { framed, placesWithin, useAdmin1, usePlacesFile } from "../lib/outlines";
+import { framed, outlineParts, placesWithin, useAdmin1, usePlacesFile } from "../lib/outlines";
 import { alignedTo, useSecondOrder } from "../lib/secondOrder";
 import { OutlineMap, placeDots, type MapDot } from "./OutlineMap";
 import { SourceLink } from "./SourceLink";
@@ -60,6 +61,8 @@ export function CountryOutline({
   const aligned = useMemo(() => alignedTo(second, drawn), [second, drawn]);
   const outlines = aligned ?? drawn;
   const frame = useMemo(() => (outlines ? framed(outlines) : undefined), [outlines]);
+  /* Its parts that lie apart, as the map shows them one at a time. */
+  const apart = useMemo(() => (outlines ? outlineParts(outlines).length : 1), [outlines]);
   // Its own places are fetched only where the window gives no dots of its own.
   const file = usePlacesFile(dots || mark ? null : code);
   const own = useMemo(() => placeDots(file?.places ?? [], 150, file), [file]);
@@ -86,7 +89,7 @@ export function CountryOutline({
         {name}'s divisions as the site's maps draw them
         {mark ? `, with ${mark.name} marked` : shown.length ? `, with ${dotsAre ?? `the ${shown.length} largest places GeoNames lists for it`} as dots - point at one for its name and what it belongs to, and press it for its own window` : ""}
         {second ? `; the finer lines are its ${second.are} - draw the map closer to point at one` : ""}
-        {frame && frame.length < drawn.length ? "; framed without its far-off parts" : ""}.
+        {apart > 1 ? `; it opens on its main part, and its ${apart - 1} far-off part${apart > 2 ? "s are" : " is"} a swipe away, or the arrows under the map` : ""}.
       </p>
       <SourceLink sources={[NATURAL_EARTH, ...(second ? [second.source] : []), ...(mark ? [] : [dotsSource ?? GEONAMES])]} className="mt-1" />
     </div>

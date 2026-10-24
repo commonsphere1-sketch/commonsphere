@@ -28,12 +28,18 @@
  * nothing is left to scroll the window, and one finger still scrolls the
  * window over a map that is whole. Lines and dots keep their size on the
  * screen however close it is drawn, so that places part as it closes in.
+ *
+ * A place in parts that lie apart - the United States' Alaska and Hawaii,
+ * Portugal's Azores - opens on its main part, the largest, as asked, with the
+ * others a swipe away: a finger or the mouse drawn sideways across the map,
+ * the arrows under it, or the arrow keys while it is whole. Each part is
+ * framed on its own; the parts are told apart in lib/outlines (outlineParts).
  */
 import { useEffect, useMemo, useRef, useState } from "react";
-import { MagnifyingGlassMinus, MagnifyingGlassPlus } from "@phosphor-icons/react";
+import { CaretLeft, CaretRight, MagnifyingGlassMinus, MagnifyingGlassPlus } from "@phosphor-icons/react";
 import { geoAzimuthalEqualArea, geoCentroid, geoMercator, geoPath } from "d3-geo";
 import type { PlaceRow, PlacesFile } from "../data/placesIndex";
-import type { Outline } from "../lib/outlines";
+import { outlineParts, type Outline } from "../lib/outlines";
 
 const W = 640;
 const H = 260;
@@ -96,6 +102,12 @@ export function OutlineMap({
   const [over, setOver] = useState<string | number | null>(null);
   /** Which of the places inside is pointed at, once the map is drawn closer. */
   const [litPart, setLitPart] = useState<number | null>(null);
+  /* The groups of outlines that lie apart, the main one first, and which of them the map is framed on. */
+  const groups = useMemo(() => outlineParts(shapes), [shapes]);
+  const slides = groups.length > 1;
+  const [slide, setSlide] = useState(0);
+  useEffect(() => setSlide(0), [groups]);
+  const onSlide = Math.min(slide, groups.length - 1);
   /* How close the map is drawn, and where its middle is, in the map's own units: 1 is the whole of it. */
   const [view, setView] = useState({ k: 1, x: W / 2, y: H / 2 });
   /** Kept on the map: no closer than it goes, no further out than the whole, and never past an edge. */
@@ -109,6 +121,11 @@ export function OutlineMap({
   const zoomBy = (factor: number) => setView((v) => held(v.k * factor, v.x, v.y));
   const panBy = (dx: number, dy: number) => setView((v) => held(v.k, v.x + dx, v.y + dy));
   const resetView = () => setView({ k: 1, x: W / 2, y: H / 2 });
+  /** Another of the parts, whole: going on from the last comes round to the first. */
+  const goTo = (i: number) => {
+    setSlide(((i % groups.length) + groups.length) % groups.length);
+    resetView();
+  };
   /** Closer or further about a point of the screen, which stays where it is. */
   const zoomAt = (factor: number, clientX: number, clientY: number, r: DOMRect) =>
     setView((v) => {
@@ -141,12 +158,14 @@ export function OutlineMap({
   const pointers = useRef(new Map<number, { x: number; y: number }>());
   const pinch = useRef<{ dist: number; cx: number; cy: number } | null>(null);
   const drag = useRef<{ x: number; y: number; moved: boolean } | null>(null);
+  /** Where one finger or the mouse went down, for a swipe to another part. */
+  const swipe = useRef<{ x: number; y: number } | null>(null);
   const spread = () => {
     const [a, b] = [...pointers.current.values()];
     return { dist: Math.hypot(a.x - b.x, a.y - b.y), cx: (a.x + b.x) / 2, cy: (a.y + b.y) / 2 };
   };
   const drawn = useMemo(() => {
-    const on = { type: "FeatureCollection", features: frame?.length ? frame : shapes };
+    const on = { type: "FeatureCollection", features: slides ? groups[onSlide].features : frame?.length ? frame : shapes };
     if (!on.features.length) return null;
     const [lon, lat] = geoCentroid(on as never);
     const l = Number.isFinite(lon) ? lon : 0;
@@ -175,7 +194,7 @@ export function OutlineMap({
       dots: dots.flatMap(at),
       mark: mark ? at(mark)[0] : undefined,
     };
-  }, [shapes, frame, inner, dots, mark]);
+  }, [shapes, frame, inner, dots, mark, slides, groups, onSlide]);
   /* The places inside, each with its outline, its middle and where it lies: worked out when the map is first drawn close enough for them. */
   const wantParts = view.k >= PARTS_FROM && Boolean(parts?.length);
   const partPaths = useMemo(() => {
@@ -223,12 +242,14 @@ export function OutlineMap({
         style={{ touchAction: view.k > 1 ? "none" : "pan-y", cursor: view.k > 1 ? "grab" : undefined }}
         role="img"
         tabIndex={0}
-        aria-label={`${label}. The wheel or a pinch draws it closer and further, and a drag moves it; with the map in focus, plus and minus do the same, the arrow keys move it and 0 puts it back.`}
+        aria-label={`${label}. The wheel or a pinch draws it closer and further, and a drag moves it; with the map in focus, plus and minus do the same, the arrow keys move it and 0 puts it back.${slides ? ` It is in ${groups.length} parts that lie apart, shown one at a time, the main one first: swipe across it, or with it whole press the side arrows, for the others.` : ""}`}
         onKeyDown={(e) => {
           const step = 40 / view.k;
           if (e.key === "+" || e.key === "=") zoomBy(1.5);
           else if (e.key === "-" || e.key === "_") zoomBy(1 / 1.5);
           else if (e.key === "0") resetView();
+          // Whole, the side arrows go to the other parts.
+          else if (slides && view.k <= 1 && (e.key === "ArrowLeft" || e.key === "ArrowRight")) goTo(onSlide + (e.key === "ArrowRight" ? 1 : -1));
           else if (e.key === "ArrowLeft") panBy(-step, 0);
           else if (e.key === "ArrowRight") panBy(step, 0);
           else if (e.key === "ArrowUp") panBy(0, -step);
@@ -242,6 +263,7 @@ export function OutlineMap({
             pinch.current = spread();
             drag.current = { x: e.clientX, y: e.clientY, moved: true };
           } else drag.current = { x: e.clientX, y: e.clientY, moved: false };
+          swipe.current = pointers.current.size === 1 ? { x: e.clientX, y: e.clientY } : null;
         }}
         onPointerMove={(e) => {
           if (pointers.current.has(e.pointerId)) pointers.current.set(e.pointerId, { x: e.clientX, y: e.clientY });
@@ -262,6 +284,16 @@ export function OutlineMap({
           drag.current = { x: e.clientX, y: e.clientY, moved: true };
         }}
         onPointerUp={(e) => {
+          // Drawn sideways across a whole map: the next part, or the one before; and the press that ends it is not a press.
+          const s = swipe.current;
+          swipe.current = null;
+          if (s && slides && view.k <= 1) {
+            const dx = e.clientX - s.x;
+            if (Math.abs(dx) > 40 && Math.abs(dx) > 1.5 * Math.abs(e.clientY - s.y)) {
+              goTo(onSlide + (dx < 0 ? 1 : -1));
+              drag.current = { x: e.clientX, y: e.clientY, moved: true };
+            }
+          }
           pointers.current.delete(e.pointerId);
           pinch.current = null;
           const rest = [...pointers.current.values()][0];
@@ -364,6 +396,23 @@ export function OutlineMap({
           </button>
         )}
       </div>
+      {/* The parts that lie apart: which is shown, and the arrows to the others - as a swipe across the map does. */}
+      {slides && (
+        <div className="absolute bottom-2 left-1/2 -translate-x-1/2 flex items-center gap-1.5 max-w-[calc(100%-1rem)]">
+          <button type="button" onClick={() => goTo(onSlide - 1)} aria-label="The part before" title="The part before ( ← )" className={tool}>
+            <CaretLeft size={12} weight="bold" aria-hidden />
+          </button>
+          <span role="status" className="min-w-0 px-2.5 h-7 rounded-full border border-border bg-background/70 flex items-center gap-1.5 text-[10px] font-sans text-foreground">
+            <span className="truncate">{groups[onSlide].label}</span>
+            <span className="shrink-0 font-mono text-muted-foreground">
+              {onSlide + 1}/{groups.length}
+            </span>
+          </span>
+          <button type="button" onClick={() => goTo(onSlide + 1)} aria-label="The next part" title="The next part ( → )" className={tool}>
+            <CaretRight size={12} weight="bold" aria-hidden />
+          </button>
+        </div>
+      )}
       {/* Its name, and what it belongs to: above the dot, turned to the side that keeps it on the map. */}
       {tip && fx >= 0 && fx <= 1 && fy >= 0 && fy <= 1 && (
         <div
