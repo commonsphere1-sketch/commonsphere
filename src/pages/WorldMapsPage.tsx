@@ -80,6 +80,7 @@ import { CITY_PLACES } from "../data/cityPlaces";
 import { CITY_FIGURES, CITY_FIGURES_SOURCE } from "../data/cityFigures";
 import { cityYear } from "../lib/cityFigures";
 import { COUNTRY_CLIMATE, type ClimateZone } from "../data/climateZones";
+import { ADMIN2_UNTILED } from "../data/admin2Untiled";
 
 /**
  * Equal Earth world map and a US state map, both shaded from the site's own
@@ -2419,7 +2420,8 @@ export function WorldMapsPage() {
   );
   /* The countries whose districts are held: once the map is close enough for them, those countries' states' borders are
      drawn from the districts' own tracing, so that the two meet, and Natural Earth's are left out for them. */
-  const withDistricts = useMemo(() => new Set(admin2Lines.map((l) => l.c)), [admin2Lines]);
+  // Those whose divisions' borders come with them: a country whose districts do not fit together has none, and keeps Natural Earth's.
+  const withDistricts = useMemo(() => new Set(admin2Lines.filter((l) => l.o === 1).map((l) => l.c)), [admin2Lines]);
 
   /* Drawn closer, the world is pointed at by smaller places, as the Dashboard's map is: the states and provinces of the
      countries in view, then their counties and districts (their states, where none are held). They are fetched a
@@ -2589,25 +2591,70 @@ export function WorldMapsPage() {
   /* The names on the world map, as asked: the countries' at every zoom; drawn closer, their states' and provinces', then
      their counties' and districts'; and the capitals and, with the cities layer on, the largest cities - the more
      important first, as many as fit in view without meeting, each the same size on the screen at any zoom. */
+  /* The capitals and cities where they fall on the map, worked out once - not at every step of a pan, which with tens of
+     thousands of cities made the map stutter. */
+  const capitalAt = useMemo(
+    () =>
+      (capitalsForFrame.data?.rows ?? []).flatMap((r) => {
+        const p = worldPath.projection([r[2], r[3]]);
+        return p ? [{ key: `cap-${r[1]}-${r[0]}`, text: r[0], x: p[0], y: p[1] }] : [];
+      }),
+    [capitalsForFrame.data, worldPath],
+  );
+  const cityLabelAt = useMemo(
+    () =>
+      (cities.data?.rows ?? []).flatMap((r) => {
+        const p = worldPath.projection([r[3], r[4]]);
+        return p ? [{ key: `city-${r[1]}-${r[0]}`, text: r[0], x: p[0], y: p[1] }] : [];
+      }),
+    [cities.data, worldPath],
+  );
   const worldLabels = useMemo(() => {
     const k = worldZoom.zoom;
     const c = worldZoom.center;
+    // Only what is in view is weighed: the cities are many.
+    const hw = WORLD_W / (2 * k) + 20 / k;
+    const hh = WORLD_H / (2 * k) + 20 / k;
+    const near = (p: { x: number; y: number }) => Math.abs(p.x - c.x) <= hw && Math.abs(p.y - c.y) <= hh;
     const cands: LabelCandidate[] = [];
     for (const a of countryAnchors) cands.push({ key: `c-${a.name}`, text: a.name, x: a.x, y: a.y, w: a.w, h: a.h, size: 10, weight: 700, rank: 1 });
     for (const h of finerHits) cands.push({ key: `f-${h.key}`, text: h.name.split(", ")[0], x: h.cx, y: h.cy, w: h.x1 - h.x0, h: h.y1 - h.y0, size: 8.5, weight: 500, rank: 3 });
-    if (k >= 2)
-      for (const r of capitalsForFrame.data?.rows ?? []) {
-        const p = worldPath.projection([r[2], r[3]]);
-        if (p) cands.push({ key: `cap-${r[1]}-${r[0]}`, text: r[0], x: p[0], y: p[1], size: 9, weight: 600, rank: 2, town: true, dot: true });
+    if (k >= 2) for (const p of capitalAt) if (near(p)) cands.push({ ...p, size: 9, weight: 600, rank: 2, town: true, dot: true });
+    if (k >= 3 && worldLayers.cities) {
+      // The largest first, as the file has them: no more in view than could ever be set.
+      let n = 0;
+      for (const p of cityLabelAt) {
+        if (!near(p)) continue;
+        cands.push({ ...p, size: 8.5, rank: 4, town: true });
+        if (++n >= 600) break;
       }
-    if (k >= 3 && worldLayers.cities)
-      for (const r of cities.data?.rows ?? []) {
-        const p = worldPath.projection([r[3], r[4]]);
-        if (p) cands.push({ key: `city-${r[1]}-${r[0]}`, text: r[0], x: p[0], y: p[1], size: 8.5, rank: 4, town: true });
-      }
+    }
     return placeLabels(cands, { x0: c.x - WORLD_W / (2 * k), y0: c.y - WORLD_H / (2 * k), x1: c.x + WORLD_W / (2 * k), y1: c.y + WORLD_H / (2 * k), k }, 320);
-  }, [countryAnchors, finerHits, capitalsForFrame.data, cities.data, worldLayers.cities, worldPath, worldZoom.zoom, worldZoom.center]);
+  }, [countryAnchors, finerHits, capitalAt, cityLabelAt, worldLayers.cities, worldZoom.zoom, worldZoom.center]);
 
+
+  /* The headlines, made once: they take nothing from the maps, so a pan of the map does not redraw them. */
+  const headlinesBanner = useMemo(
+    () => (
+      <HeadlinesBanner
+        label="Headlines by place"
+        topics={ALL_TOPICS}
+        days={2}
+        read={150}
+        untagged
+        pick={pickPlaced}
+        className="mb-5"
+        note={(outlets) => (
+          <>
+            The last two days' headlines naming a country or US state - the places on these maps - from {outlets} (five at
+            most from each), refreshed every half hour. The tag is the place, violet for more than one. Each links to the
+            outlet.
+          </>
+        )}
+      />
+    ),
+    [],
+  );
 
   const zoom = focusZoom.zoom;
 
@@ -2976,11 +3023,14 @@ export function WorldMapsPage() {
        from - and the districts' ran beside them, a little off, and out past the coast in pieces. */
     const parent = (g: unknown) => (g as { properties?: { p?: string } }).properties?.p;
     const obj = second.topo.objects.a as never;
+    /* A file whose districts do not share their edges would give these borders in scraps (admin2Untiled): its divisions'
+       borders are then Natural Earth's, and every edge of its districts is drawn. */
+    if (focusCode in ADMIN2_UNTILED) return { first: focusMap.interior, finer: focusMap.path(mesh(second.topo, obj) as never) ?? "" };
     return {
       first: focusMap.path(mesh(second.topo, obj, (a, b) => a !== b && parent(a) !== parent(b)) as never) ?? "",
       finer: focusMap.path(mesh(second.topo, obj, (a, b) => a !== b && parent(a) === parent(b)) as never) ?? "",
     };
-  }, [focusMap, second]);
+  }, [focusMap, second, focusCode]);
   /* The colour a country is drawn in on the world map, by its code: what the borders inside it are drawn in too. */
   const countryByCode = useMemo(() => new Map(countriesData.map((c) => [c.code, c])), []);
   const worldInk = (code: string) => {
@@ -3002,7 +3052,8 @@ export function WorldMapsPage() {
   /* The country the third map draws: the one last pointed at on a map above, or the one in focus. */
   const atlasCode = pointed?.code ?? focusCode;
   /* A state's, on the United States' map. */
-  const stateInk = (name: string) => (STATE_LIVING[name] && colourFor(STATE_LIVING[name].score, stateLivingBreaks, livingRamp)) || UNSCORED;
+  // Kept the same from one drawing to the next, so that the atlas below is not redrawn at every step of a pan.
+  const stateInk = useCallback((name: string) => (STATE_LIVING[name] && colourFor(STATE_LIVING[name].score, stateLivingBreaks, livingRamp)) || UNSCORED, [stateLivingBreaks, livingRamp]);
 
   /* ── The same overlays, on whichever country is in focus ──────────────
      The layers are lon/lat, so they can be drawn in any projection; what
@@ -3787,22 +3838,7 @@ export function WorldMapsPage() {
         </div>
 
         {/* ── Headlines by place ── */}
-        <HeadlinesBanner
-          label="Headlines by place"
-          topics={ALL_TOPICS}
-          days={2}
-          read={150}
-          untagged
-          pick={pickPlaced}
-          className="mb-5"
-          note={(outlets) => (
-            <>
-              The last two days' headlines naming a country or US state - the places on these maps - from {outlets} (five at
-              most from each), refreshed every half hour. The tag is the place, violet for more than one. Each links to the
-              outlet.
-            </>
-          )}
-        />
+        {headlinesBanner}
 
         {/* ── Why these projections ── */}
         <div className="bg-secondary/5 border border-secondary/20 rounded-2xl p-4 mb-5">

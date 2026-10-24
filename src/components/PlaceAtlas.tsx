@@ -416,7 +416,8 @@ export default function PlaceAtlas() {
   const countySets = useMemo(() => {
     const features = (countyLines as { features?: { properties: { c: string; o: 1 | 2 } }[] } | null)?.features ?? [];
     // Which countries have their districts' lines held: the lines themselves are drawn a country at a time, below.
-    return { held: new Set(features.map((f) => f.properties.c)) };
+    // A country whose districts do not fit together has no divisions' borders in the file, and keeps Natural Earth's.
+    return { held: new Set(features.filter((f) => f.properties.o === 1).map((f) => f.properties.c)) };
   }, [countyLines]);
   /* The same lines a country at a time, so that each is drawn in its country's colour, as the World Maps page draws them. */
   const linesByCountry = useCallback(

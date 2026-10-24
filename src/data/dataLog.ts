@@ -22,6 +22,22 @@ export interface DataLogEntry {
 
 export const DATA_LOG: DataLogEntry[] = [
   {
+    "what": "What is being warned of in each country now: travel advisories, outbreaks of disease and disaster alerts",
+    "from": "US Department of State, UK Foreign Office, US CDC, GDACS",
+    "page": "/dashboard/countries",
+    "where": "Countries",
+    "read": "2026-10-24",
+    "files": 1
+  },
+  {
+    "what": "Which countries' district boundaries do not fit together, measured",
+    "from": "geoBoundaries, Natural Earth",
+    "page": "/dashboard/maps",
+    "where": "World Maps",
+    "read": "2026-10-24",
+    "files": 1
+  },
+  {
     "what": "Elections by country and US state, and US city council meetings, for the calendar",
     "from": "Wikidata (with the page each date cites); US Code, US Senate, National Governors Association; cities' Legistar calendars",
     "page": "/dashboard",
@@ -200,14 +216,6 @@ export const DATA_LOG: DataLogEntry[] = [
   {
     "what": "The year so far in each country: the dated events of Wikipedia's article for the year, each with the report it cites",
     "from": "Wikipedia",
-    "page": "/dashboard/countries",
-    "where": "Countries",
-    "read": "2026-10-13",
-    "files": 1
-  },
-  {
-    "what": "What is being warned of in each country now: travel advisories, outbreaks of disease and disaster alerts",
-    "from": "US Department of State, UK Foreign Office, US CDC, GDACS",
     "page": "/dashboard/countries",
     "where": "Countries",
     "read": "2026-10-13",
@@ -544,4 +552,4 @@ export const DATA_LOG: DataLogEntry[] = [
 ];
 
 /** How many data files the log covers. */
-export const DATA_LOG_FILES = 85;
+export const DATA_LOG_FILES = 86;

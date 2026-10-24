@@ -27,6 +27,7 @@ import { feature, merge, mesh } from "topojson-client";
 import type { Topology } from "topojson-specification";
 import { ADMIN2_SOURCE, useAdmin2, type Admin2File } from "./admin2";
 import { rewind, type Outline } from "./outlines";
+import { ADMIN2_UNTILED } from "../data/admin2Untiled";
 
 type Source = { label: string; url: string };
 const US_SOURCE: Source = { label: "US Census Bureau — cartographic boundary files, via us-atlas", url: "https://www.census.gov/geographies/mapping-files/time-series/geo/cartographic-boundary.html" };
@@ -88,14 +89,17 @@ function ofCountry(cc: string, second: Admin2File, division?: string): SecondOrd
   const kept = at.map((x) => x.g);
   const collection = { type: "GeometryCollection", geometries: kept };
   const parent = (g: Named) => g.properties?.p;
+  /* A file whose districts do not share their edges (admin2Untiled) gives its borders in scraps: every edge of its districts is
+     drawn instead, and its divisions are not put together from them - Natural Earth's outlines stand. */
+  const loose = cc in ADMIN2_UNTILED;
   // A country's divisions are put together only where every district says which it lies in: otherwise ground would be left out.
-  const whole = Boolean(division) || kept.every((g) => parent(g));
+  const whole = !loose && (Boolean(division) || kept.every((g) => parent(g)));
   const names = division ? [division] : [...new Set(kept.map((g) => parent(g) ?? ""))].filter(Boolean);
   return {
     lines: at.map(({ i }) => second.shapes[i] as unknown as Outline),
     open: (i) => `/dashboard/subnations?open=district:${cc}:${at[i].i}`,
-    inner: mesh(second.topo, collection as never, (a, b) => a !== b && parent(a as Named) === parent(b as Named)),
-    innerAll: mesh(second.topo, collection as never, (a, b) => a !== b),
+    inner: loose ? mesh(second.topo, collection as never) : mesh(second.topo, collection as never, (a, b) => a !== b && parent(a as Named) === parent(b as Named)),
+    innerAll: loose ? mesh(second.topo, collection as never) : mesh(second.topo, collection as never, (a, b) => a !== b),
     outline: whole ? names.map((n) => asOutline(merge(second.topo, kept.filter((g) => parent(g) === n) as never), n)) : undefined,
     are: "districts",
     source: ADMIN2_SOURCE,

@@ -25,7 +25,11 @@
  * Simplification is Douglas-Peucker at TOLERANCE degrees, from
  * geo-simplify.cjs. A line that simplifies to nothing is left out.
  *
- * Run after build-admin2.cjs:  node build-admin2-borders.cjs
+ * A country whose districts do not share their edges (src/data/admin2Untiled.ts, measured by
+ * build-admin2-tiling.cjs) would give its first-order borders in scraps: for it every edge of its districts is kept,
+ * as one set (o 2), and the maps draw its first-order borders from Natural Earth's.
+ *
+ * Run after build-admin2.cjs and build-admin2-tiling.cjs:  node build-admin2-borders.cjs
  */
 const fs = require("fs");
 const path = require("path");
@@ -36,14 +40,22 @@ const { simplify } = require("./geo-simplify.cjs");
 const SRC = path.join(__dirname, "static/geo/admin2");
 const OUT = path.join(__dirname, "static/geo/admin2-borders.json");
 const TOLERANCE = 0.03;
+/* The countries whose districts do not fit together, from the list build-admin2-tiling.cjs writes. */
+const UNTILED = (() => {
+  const m = fs.readFileSync(path.join(__dirname, "src/data/admin2Untiled.ts"), "utf8").match(/ADMIN2_UNTILED: Record<string, number> = ({.*});/);
+  if (!m) throw new Error("admin2Untiled.ts: the list was not found - run build-admin2-tiling.cjs");
+  return new Set(Object.keys(JSON.parse(m[1])));
+})();
 
 const features = [];
 let before = 0;
 let after = 0;
 const add = (code, topo, obj, parent) => {
   let any = false;
-  for (const o of [1, 2]) {
-    const lines = mesh(topo, obj, (a, b) => a !== b && (parent(a) === parent(b)) === (o === 2)).coordinates;
+  const whole = UNTILED.has(code);
+  for (const o of whole ? [2] : [1, 2]) {
+    // Where the districts do not fit together, every edge of them, once each: what they share would be scraps.
+    const lines = (whole ? mesh(topo, obj) : mesh(topo, obj, (a, b) => a !== b && (parent(a) === parent(b)) === (o === 2))).coordinates;
     if (!lines.length) continue;
     before += lines.reduce((n, l) => n + l.length, 0);
     const simplified = lines.map((l) => simplify(l, TOLERANCE)).filter((l) => l.length > 1);
