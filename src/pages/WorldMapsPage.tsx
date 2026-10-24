@@ -33,6 +33,7 @@ import {
   CaretRight,
 } from "@phosphor-icons/react";
 import { Link } from "react-router-dom";
+import { MapLabels, placeLabels, type LabelCandidate } from "../components/MapLabels";
 import { countriesData, type Country } from "../data/countriesData";
 import { flagColor } from "../lib/flagColor";
 import { COUNTRY_LIVING, COUNTRY_LIVING_LEAST, COUNTRY_LIVING_PARTS, LIVING_DARK, LIVING_LIGHT, STATE_LIVING, STATE_LIVING_PARTS, UNSCORED, partsSaid } from "../lib/livingScore";
@@ -2564,6 +2565,49 @@ export function WorldMapsPage() {
     return { major, minor };
   }, [cityPoints, worldZoom.zoom]);
 
+  /* Where each country's name is set: the middle of its largest piece of land, with that piece's size, so that a name is
+     set only where it fits. Worked out once for the map. */
+  const countryAnchors = useMemo(
+    () =>
+      worldDrawn.features.flatMap((fe) => {
+        const g = (fe as unknown as { geometry?: { type: string; coordinates: unknown[] } }).geometry;
+        if (!g) return [];
+        const pieces = g.type === "MultiPolygon" ? g.coordinates.map((p) => ({ type: "Polygon", coordinates: p })) : [g];
+        let best: { x: number; y: number; w: number; h: number; a: number } | null = null;
+        for (const p of pieces) {
+          const a = worldPath.path.area(p as never);
+          if (!(a > 0) || (best && a <= best.a)) continue;
+          const [x, y] = worldPath.path.centroid(p as never);
+          const [[bx0, by0], [bx1, by1]] = worldPath.path.bounds(p as never);
+          best = { x, y, w: bx1 - bx0, h: by1 - by0, a };
+        }
+        const name = countryForFeature(fe.properties.name)?.name ?? fe.properties.name;
+        return best && name ? [{ name, ...best }] : [];
+      }),
+    [worldDrawn, worldPath],
+  );
+  /* The names on the world map, as asked: the countries' at every zoom; drawn closer, their states' and provinces', then
+     their counties' and districts'; and the capitals and, with the cities layer on, the largest cities - the more
+     important first, as many as fit in view without meeting, each the same size on the screen at any zoom. */
+  const worldLabels = useMemo(() => {
+    const k = worldZoom.zoom;
+    const c = worldZoom.center;
+    const cands: LabelCandidate[] = [];
+    for (const a of countryAnchors) cands.push({ key: `c-${a.name}`, text: a.name, x: a.x, y: a.y, w: a.w, h: a.h, size: 10, weight: 700, rank: 1 });
+    for (const h of finerHits) cands.push({ key: `f-${h.key}`, text: h.name.split(", ")[0], x: h.cx, y: h.cy, w: h.x1 - h.x0, h: h.y1 - h.y0, size: 8.5, weight: 500, rank: 3 });
+    if (k >= 2)
+      for (const r of capitalsForFrame.data?.rows ?? []) {
+        const p = worldPath.projection([r[2], r[3]]);
+        if (p) cands.push({ key: `cap-${r[1]}-${r[0]}`, text: r[0], x: p[0], y: p[1], size: 9, weight: 600, rank: 2, town: true, dot: true });
+      }
+    if (k >= 3 && worldLayers.cities)
+      for (const r of cities.data?.rows ?? []) {
+        const p = worldPath.projection([r[3], r[4]]);
+        if (p) cands.push({ key: `city-${r[1]}-${r[0]}`, text: r[0], x: p[0], y: p[1], size: 8.5, rank: 4, town: true });
+      }
+    return placeLabels(cands, { x0: c.x - WORLD_W / (2 * k), y0: c.y - WORLD_H / (2 * k), x1: c.x + WORLD_W / (2 * k), y1: c.y + WORLD_H / (2 * k), k }, 320);
+  }, [countryAnchors, finerHits, capitalsForFrame.data, cities.data, worldLayers.cities, worldPath, worldZoom.zoom, worldZoom.center]);
+
 
   const zoom = focusZoom.zoom;
 
@@ -4166,6 +4210,9 @@ export function WorldMapsPage() {
                 <path d={citiesD.major} fillOpacity={0.9} strokeWidth={0.8 / worldZoom.zoom} />
               </g>
             )}
+
+            {/* The names of the countries, their divisions and their towns, as asked: under the title of the place pointed at. */}
+            <MapLabels labels={worldLabels} k={worldZoom.zoom} ink={labelInk} halo={labelHalo} />
 
             {/* The title under the cursor: the continent while the whole world
                 is in view, the country once zoomed in. Same ink and halo as the

@@ -40,6 +40,7 @@ import { CaretLeft, CaretRight, MagnifyingGlassMinus, MagnifyingGlassPlus } from
 import { geoAzimuthalEqualArea, geoCentroid, geoMercator, geoPath } from "d3-geo";
 import type { PlaceRow, PlacesFile } from "../data/placesIndex";
 import { outlineParts, type Outline } from "../lib/outlines";
+import { MapLabels, placeLabels, type LabelCandidate } from "./MapLabels";
 
 const W = 640;
 const H = 260;
@@ -189,7 +190,8 @@ export function OutlineMap({
         const d = path(s as never);
         if (!d) return [];
         const [cx, cy] = path.centroid(s as never);
-        return [{ key: i, d, cx, cy, name: s.properties.n ?? s.properties.name ?? "", shape: s }];
+        const [[bx0, by0], [bx1, by1]] = path.bounds(s as never);
+        return [{ key: i, d, cx, cy, w: bx1 - bx0, h: by1 - by0, name: s.properties.n ?? s.properties.name ?? "", shape: s }];
       }),
       dots: dots.flatMap(at),
       mark: mark ? at(mark)[0] : undefined,
@@ -207,6 +209,27 @@ export function OutlineMap({
       return [{ i, d, cx, cy, x0, y0, x1, y1, name: [s.properties.n, s.properties.p].filter(Boolean).join(", ") }];
     });
   }, [wantParts, drawn, parts]);
+  /* Where each of the places inside has its name set: worked out once for the map, at any zoom, so that their names show from the first view. */
+  const partAnchors = useMemo(() => {
+    if (!drawn || !parts) return [];
+    return parts.flatMap((s, i) => {
+      const text = s.properties.n ?? "";
+      if (!text) return [];
+      const [cx, cy] = drawn.path.centroid(s as never);
+      const [[bx0, by0], [bx1, by1]] = drawn.path.bounds(s as never);
+      return [{ i, text, cx, cy, w: bx1 - bx0, h: by1 - by0 }];
+    });
+  }, [drawn, parts]);
+  /* The names, as asked: the place marked, then the outlines side by side, the towns, and the places inside - as many as fit in view without meeting, more as the map is drawn closer. */
+  const labels = useMemo(() => {
+    if (!drawn) return [];
+    const cands: LabelCandidate[] = [];
+    if (drawn.mark) cands.push({ key: "mark", text: drawn.mark.name, x: drawn.mark.x, y: drawn.mark.y, size: 11, weight: 700, rank: 0, town: true });
+    if (drawn.paths.length > 1) for (const p of drawn.paths) if (p.name) cands.push({ key: `s${p.key}`, text: p.name, x: p.cx, y: p.cy, w: p.w, h: p.h, size: 10, rank: 1 });
+    for (const d of drawn.dots) cands.push({ key: `d${d.id}`, text: d.name, x: d.x, y: d.y, size: 9, rank: 2, town: true });
+    for (const p of partAnchors) cands.push({ key: `p${p.i}`, text: p.text, x: p.cx, y: p.cy, w: p.w, h: p.h, size: 8.5, weight: 500, rank: 3 });
+    return placeLabels(cands, { x0: view.x - W / (2 * view.k), y0: view.y - H / (2 * view.k), x1: view.x + W / (2 * view.k), y1: view.y + H / (2 * view.k), k: view.k });
+  }, [drawn, partAnchors, view]);
   if (!drawn || !drawn.paths.length) return null;
   // Only those in view are drawn: a country has thousands.
   const vx0 = view.x - W / (2 * view.k);
@@ -379,6 +402,8 @@ export function OutlineMap({
             onMouseLeave={() => setOver(null)}
           />
         )}
+        {/* The names of the places on it, over the lines and under the pointer's ring. */}
+        <MapLabels labels={labels} k={view.k} />
         {/* The dot pointed at: a ring in the place's colour. */}
         {said && <circle cx={said.x} cy={said.y} r={7.5 / view.k} fill="none" stroke={color} strokeWidth={1.8} vectorEffect="non-scaling-stroke" pointerEvents="none" />}
       </svg>
