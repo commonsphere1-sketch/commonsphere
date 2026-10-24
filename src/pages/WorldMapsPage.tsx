@@ -29,6 +29,8 @@ import {
   MagnifyingGlassMinus,
   MagnifyingGlass,
   X,
+  CaretLeft,
+  CaretRight,
 } from "@phosphor-icons/react";
 import { Link } from "react-router-dom";
 import { countriesData, type Country } from "../data/countriesData";
@@ -207,16 +209,17 @@ const CLUSTER_SLACK_DEG = 2;
 
 /* Inset maps for the outlying groups. Each is square and drawn at its own
    scale, so a territory is legible next to a mainland thousands of times its
-   size. Eight fit beside the map; the scattered island places drawn atoll by
-   atoll - the Cook Islands, the Marshall Islands, the Maldives - have more,
-   and the smallest of those are named under the map instead. */
+   size. No longer shown: each outlying group is a slide of the map itself now,
+   as asked; the drawing code is kept. */
 const INSET_SIZE = 100;
 const INSET_PAD = 8;
-const MAX_INSETS = 8;
 
 /** "a", "a and b", "a, b and c". */
 const andList = (xs: string[]) =>
   xs.length < 2 ? xs.join("") : `${xs.slice(0, -1).join(", ")} and ${xs[xs.length - 1]}`;
+
+/** Whether a country's map has no parts apart from its main one. */
+const insetsNone = (m: { slides: string[] } | null | undefined) => !m || m.slides.length <= 1;
 
 /** One outlying group, drawn beside the map at its own scale. */
 type Inset = {
@@ -233,13 +236,13 @@ type Inset = {
    and several others, were blank squares with a name under them. */
 const INSET_DOT_BELOW = 2;
 const INSET_DOT_R = 1.6;
-/* A group whose main island group would draw narrower than INSET_MIN in a
-   single inset, because the rest of its land lies far off - Gough Island is
-   400 km from Tristan da Cunha, Niulakita 530 km from Niutao - is shown as
-   up to INSET_SPLIT insets, one per island group, instead. More groups than
-   that (an archipelago such as the Tuamotus) stay one inset, marked with
-   dots. */
-const INSET_MIN = 12;
+/* A group whose main island group would draw smaller than INSET_MIN of the
+   map's height on a slide of its own, because the rest of its land lies far
+   off - the Selvagens are 280 km from Madeira, Gough Island 400 km from
+   Tristan da Cunha - is shown as up to INSET_SPLIT slides, one per island
+   group, instead. More groups than that (an archipelago such as the Tuamotus)
+   stay one slide, marked with dots. */
+const INSET_MIN = 0.25;
 const INSET_SPLIT = 3;
 const CLUSTER_MIN_COUNT = 0.15;
 const CLUSTER_MIN_AREA = 0.05;
@@ -2378,7 +2381,12 @@ export function WorldMapsPage() {
      canvas, so they share a viewport, and it resets whenever the country
      changes. `zoom` is that shared level, which the label pass depends on. */
   const worldZoom = useMapZoom(WORLD_W, WORLD_H);
-  const focusZoom = useMapZoom(US_W, US_H, focusCode, FOCUS_FIT);
+  /* Which of the focused country's parts that lie apart is shown: 0 its main part. A new country starts on its main part. */
+  const [focusPart, setFocusPart] = useState(0);
+  useEffect(() => setFocusPart(0), [focusCode]);
+  const swipeAt = useRef<{ x: number; y: number } | null>(null);
+  const slideTool = "w-7 h-7 rounded-full border border-border bg-background/70 text-muted-foreground hover:text-foreground flex items-center justify-center cursor-pointer transition-colors";
+  const focusZoom = useMapZoom(US_W, US_H, `${focusCode}:${focusPart}`, FOCUS_FIT);
 
   /* The world map's finer borders - counties and districts - a country at a time, for every country the site holds them
      for. They come in as the map is drawn closer, as on the Dashboard's map, and are fetched a little before that: at the
@@ -2600,31 +2608,40 @@ export function WorldMapsPage() {
       [US_W - PAD, US_H - PAD],
     ];
 
-    /* Island groups left outside the frame by islandFrame: counted by where
+    /* Island groups left outside the frame by islandFrame, largest first: found by where
        each lands once projected, so a group that happens to fall inside the
-       frame is not reported as missing. */
+       frame is not taken for one outside. Each is a slide of the map. */
     const outsideFrame = (
       path: ReturnType<typeof geoPath>,
       groups: AreaGeo[],
     ) =>
-      groups.filter((g) => {
-        const [cx, cy] = path.centroid(g as never);
-        return !(cx >= 0 && cx <= US_W && cy >= 0 && cy <= US_H);
-      }).length;
+      groups
+        .filter((g) => {
+          const [cx, cy] = path.centroid(g as never);
+          return !(cx >= 0 && cx <= US_W && cy >= 0 && cy <= US_H);
+        })
+        .sort((a, b) => geoArea(b as never) - geoArea(a as never));
 
     if (!useAdmin1) {
       if (!worldFeature) return null;
       const { frame, groups } = islandFrame(worldFeature as unknown as AreaGeo, mainBox, focusCapital);
-      const path = geoPath(fitTo(frame, mainBox));
+      const mainPath = geoPath(fitTo(frame, mainBox));
+      // Its island groups outside the main view, each a slide of its own, largest first.
+      const away = outsideFrame(mainPath, groups);
+      const slides = ["Main part", ...away.map((_, k) => `Island group ${k + 2}`)];
+      const on = focusPart > 0 ? away[focusPart - 1] : undefined;
+      const path = on ? geoPath(fitTo(on, mainBox)) : mainPath;
       return {
         outline: path(worldFeature as never) ?? "",
         interior: "",
         parts: [] as Subdivision[],
         insets: [] as Inset[],
         offView: [] as string[],
-        islandsOutside: outsideFrame(path, groups),
+        islandsOutside: 0,
+        slides,
+        dots: "",
         path,
-        geo: worldFeature as unknown,
+        geo: (on ?? worldFeature) as unknown,
       };
     }
 
@@ -2760,7 +2777,7 @@ export function WorldMapsPage() {
       return byNear(here.filter((x) => x[3] === 1)) ?? byNear(here.filter((x) => / island$/i.test(x[2]))) ?? byNear(here);
     };
 
-    type Candidate = { key: string; names: string[]; land: number; draw: () => Inset };
+    type Candidate = { key: string; names: string[]; land: number; draw: () => Inset; label: string; fit: AreaGeo; geo: AreaGeo; group: number[]; borders: boolean };
     const candidates: Candidate[] = [];
     for (const group of insetGroups) {
       const geoms = group.map((i) => obj.geometries[i]);
@@ -2797,8 +2814,8 @@ export function WorldMapsPage() {
       const [frame, ...apart] = clusters;
       let split = false;
       if (apart.length > 0 && clusters.length <= INSET_SPLIT) {
-        const [[x0, y0], [x1, y1]] = geoPath(fitTo(merged, insetBox)).bounds(frame as never);
-        split = Math.max(x1 - x0, y1 - y0) < INSET_MIN;
+        const [[x0, y0], [x1, y1]] = geoPath(fitTo(merged, mainBox)).bounds(frame as never);
+        split = Math.max(x1 - x0, y1 - y0) < INSET_MIN * (US_H - 2 * PAD);
       }
       if (!split) {
         candidates.push({
@@ -2806,27 +2823,88 @@ export function WorldMapsPage() {
           names: group.map((i) => fc.features[i].properties.n ?? ""),
           land: landOf(group),
           draw: () => draw(key, name, merged, merged, true),
+          label: name,
+          fit: merged,
+          geo: merged,
+          group,
+          borders: true,
         });
         continue;
       }
       // The main group, its division's borders and all; the rest are off
       // the edge of this one, each in its own.
       const main = islandName(group, frame, name) ?? name;
-      candidates.push({ key, names: [main], land: geoArea(frame as never), draw: () => draw(key, main, frame, merged, true) });
+      candidates.push({ key, names: [main], land: geoArea(frame as never), draw: () => draw(key, main, frame, merged, true), label: main, fit: frame, geo: merged, group, borders: true });
       apart.forEach((g, k) => {
         const n = islandName(group, g, name) ?? `${name} (outlying)`;
-        candidates.push({ key: `${key}~${k}`, names: [n], land: geoArea(g as never), draw: () => draw(`${key}~${k}`, n, g, g, false) });
+        candidates.push({ key: `${key}~${k}`, names: [n], land: geoArea(g as never), draw: () => draw(`${key}~${k}`, n, g, g, false), label: n, fit: g, geo: g, group, borders: false });
       });
     }
     candidates.sort((a, b) => b.land - a.land);
-    const insets: Inset[] = candidates.slice(0, MAX_INSETS).map((c) => c.draw());
+    /* Every outlying part is a slide of the map, as asked, in place of the boxes beside it (Inset, kept for its drawing
+       code) and the list of those past the boxes' cap. Where none is held apart, the islands left outside the frame are
+       the slides instead. */
+    const insets: Inset[] = [];
+    const looseIslands = offCanvasGroups.length
+      ? []
+      : outsideFrame(path, islandGroups);
+    const extra: Candidate[] = [
+      ...candidates,
+      ...looseIslands.map((g, k) => ({
+        key: `loose-${k}`,
+        names: [] as string[],
+        land: geoArea(g as never),
+        draw: () => ({ key: "", name: "", d: "", interior: "", dots: "" }),
+        label: islandName(keep, g, "\u0000") ?? `Island group ${k + 2}`,
+        fit: g,
+        geo: outlineGeo as unknown as AreaGeo,
+        group: keep,
+        borders: true,
+      })),
+    ];
+    const slides = ["Main part", ...extra.map((c) => c.label)];
+    const on = focusPart > 0 ? extra[focusPart - 1] : undefined;
+    if (on) {
+      const p2 = geoPath(fitTo(on.fit, mainBox));
+      const geoms = on.group.map((i) => obj.geometries[i]);
+      const drawnOutline = p2(on.geo as never) ?? "";
+      const onPage = (i: number) => {
+        const [cx, cy] = p2.centroid(fc.features[i] as never);
+        return cx >= -US_W && cx <= 2 * US_W && cy >= -US_H && cy <= 2 * US_H;
+      };
+      // The small islands of the part marked with a dot, as the boxes did, so that an atoll is not a blank.
+      let dots = "";
+      for (const poly of polysOfGeo(on.geo)) {
+        if (p2.area(poly as never) >= 40) continue;
+        const [cx, cy] = p2.centroid(poly as never);
+        if (!(cx >= 0 && cx <= US_W && cy >= 0 && cy <= US_H)) continue;
+        dots += `M${(cx - 4).toFixed(1)},${cy.toFixed(1)}a4,4 0 1,0 8,0a4,4 0 1,0 -8,0`;
+      }
+      return {
+        outline: drawnOutline,
+        // Its divisions' borders, from the same arcs as its outline, so that the two meet.
+        interior: on.borders && geoms.length > 1 ? (p2(mesh(admin1.topo, { type: "GeometryCollection", geometries: geoms } as never, (a, b) => a !== b) as never) ?? "") : "",
+        parts: on.group
+          .filter(onPage)
+          .map((i) => {
+            const fe = fc.features[i];
+            const [cx, cy] = p2.centroid(fe as never);
+            const [[x0, y0], [x1, y1]] = p2.bounds(fe as never);
+            return { n: fe.properties.n ?? "", d: p2(fe as never) ?? "", cx, cy, w: x1 - x0, h: y1 - y0 };
+          })
+          .filter((x) => x.d.length > 0 && Number.isFinite(x.cx)),
+        insets,
+        offView: [] as string[],
+        islandsOutside: 0,
+        slides,
+        dots,
+        path: p2,
+        geo: on.geo as unknown,
+      };
+    }
 
     /* Anything past the inset cap is still named, never silently dropped. */
-    const offView = candidates
-      .slice(MAX_INSETS)
-      .flatMap((c) => c.names)
-      .filter((n) => n.trim().length > 0)
-      .sort((a, b) => a.localeCompare(b));
+    const offView: string[] = [];
 
     return {
       outline: path(outlineGeo as never) ?? "",
@@ -2834,12 +2912,14 @@ export function WorldMapsPage() {
       parts,
       insets,
       offView,
-      // Everything off the canvas now has an inset, so none is only mentioned.
-      islandsOutside: offCanvasGroups.length ? 0 : outsideFrame(path, islandGroups),
+      // Everything off the canvas is a slide, so none is only mentioned.
+      islandsOutside: 0,
+      slides,
+      dots: "",
       path,
       geo: outlineGeo as unknown,
     };
-  }, [focusCode, featureByCode, admin1, focusCapital]);
+  }, [focusCode, featureByCode, admin1, focusCapital, focusPart]);
 
   /* The finer borders inside the country's divisions - its districts, where the site holds them (lib/admin2) - drawn with
      the map's own projection, as bare lines. The United States' are its counties, on its own map. */
@@ -3176,17 +3256,17 @@ export function WorldMapsPage() {
         : `Natural Earth records a single first-order division for this country, so it is drawn as one outline, from the 1:10m coastline.${islandNote} `;
     }
     const drawn = focusMap?.parts.length ?? 0;
-    if (drawn === 0 && !focusMap?.insets.length) {
+    if (drawn === 0 && insetsNone(focusMap)) {
       return `Loading ${published} ${unit}s from ${
         hi ? (hi.level === "OSM" ? "OpenStreetMap" : hi.level === "NE" ? "Natural Earth" : "geoBoundaries") : "Natural Earth"
       }. `;
     }
-    const insets = focusMap?.insets.length ?? 0;
+    const insets = Math.max(0, (focusMap?.slides.length ?? 1) - 1);
     const off = focusMap?.offView.length ?? 0;
     const framed = insets
-      ? ` The map is framed on the main landmass; ${insets} outlying ${
-          unit === "island" ? `island${insets === 1 ? " is" : "s are"}` : `territor${insets === 1 ? "y is" : "ies are"}`
-        } drawn beside it, each at its own scale.`
+      ? ` The map opens on the main part; ${insets} outlying ${
+          unit === "island" ? `island group${insets === 1 ? " is" : "s are"}` : `part${insets === 1 ? " is" : "s are"}`
+        } a swipe away, or the arrows under the map, each framed on its own with its borders.`
       : "";
     const listed = off
       ? ` ${off} further ${unit === "island" ? "island" : "division"}${off === 1 ? " is" : "s are"} named below.`
@@ -3196,7 +3276,7 @@ export function WorldMapsPage() {
     if (drawn === 0)
       return `Its ${published} ${unit}s are drawn from ${from}. The map is framed on ${
         focusCapital ? "the island group around its capital" : "its largest island group"
-      }, and each ${unit} is drawn beside it at its own scale.${listed} `;
+      }, and each other ${unit} is a swipe away, or the arrows under the map.${listed} `;
     if (unit === "island" || insets || off)
       return `Its ${published} ${unit}s are drawn from ${from}; ${drawn} ${drawn === 1 ? "is" : "are"} in this view.${framed}${listed}${islandNote} `;
     return `Internal borders shown are ${drawn} first-order division${drawn === 1 ? "" : "s"} from ${from}.${framed}${listed}${islandNote} `;
@@ -4702,12 +4782,33 @@ export function WorldMapsPage() {
                       )}
                     </aside>
                   )}
+                  {/* The map, with its far-off parts a swipe away: drawn sideways across it while it is whole. */}
+                  <div
+                    className="relative w-full min-w-0"
+                    style={{ flex: `0 1 ${focusZoom.style.maxWidth}`, maxWidth: focusZoom.style.maxWidth }}
+                    onPointerDownCapture={(e) => {
+                      swipeAt.current = e.isPrimary ? { x: e.clientX, y: e.clientY } : null;
+                    }}
+                    onPointerUpCapture={(e) => {
+                      const s = swipeAt.current;
+                      swipeAt.current = null;
+                      const n = focusMap?.slides.length ?? 1;
+                      if (!s || n < 2 || zoom > 1) return;
+                      const dx = e.clientX - s.x;
+                      if (Math.abs(dx) > 40 && Math.abs(dx) > 1.5 * Math.abs(e.clientY - s.y)) setFocusPart((p) => (p + (dx < 0 ? 1 : -1) + n) % n);
+                    }}
+                    onKeyDownCapture={(e) => {
+                      const n = focusMap?.slides.length ?? 1;
+                      if (n < 2 || zoom > 1 || (e.key !== "ArrowLeft" && e.key !== "ArrowRight")) return;
+                      e.preventDefault();
+                      e.stopPropagation();
+                      setFocusPart((p) => (p + (e.key === "ArrowRight" ? 1 : -1) + n) % n);
+                    }}
+                  >
                   <svg
                     viewBox={focusZoom.viewBox}
                     className="w-full h-auto min-w-0"
-                    /* Its own capped width, neither grown nor shrunk for the
-                       details beside it. */
-                    style={{ ...focusZoom.style, flex: `0 1 ${focusZoom.style.maxWidth}` }}
+                    style={focusZoom.style}
                     {...focusZoom.panProps}
                     {...focusZoom.a11yProps}
                     role="img"
@@ -4783,6 +4884,9 @@ export function WorldMapsPage() {
                             pointerEvents="none"
                           />
                         )}
+
+                        {/* A far-off part's small islands, each marked with a dot so that an atoll is not a blank. */}
+                        {focusMap.dots && <path d={focusMap.dots} fill={focusHue} fillOpacity={0.5} stroke={focusHue} strokeWidth={0.8 / zoom} pointerEvents="none" />}
 
                         {/* The coast again, over the mesh, so the outline stays
                             the crispest line on the map. */}
@@ -4957,6 +5061,24 @@ export function WorldMapsPage() {
                     {/* A city a link named, marked where it stands, over everything else. */}
                     {cityMark(cityAt?.focus ?? null, zoom)}
                   </svg>
+                  {/* The parts that lie apart: which is shown, and the arrows to the others - as in the windows' maps. */}
+                  {focusMap && focusMap.slides.length > 1 && (
+                    <div className="absolute bottom-2 left-1/2 -translate-x-1/2 flex items-center gap-1.5 max-w-[calc(100%-1rem)]">
+                      <button type="button" onClick={() => setFocusPart((p) => (p - 1 + focusMap.slides.length) % focusMap.slides.length)} aria-label="The part before" title="The part before ( ← )" className={slideTool}>
+                        <CaretLeft size={12} weight="bold" aria-hidden />
+                      </button>
+                      <span role="status" className="min-w-0 px-2.5 h-7 rounded-full border border-border bg-background/70 flex items-center gap-1.5 text-[10px] font-sans text-foreground">
+                        <span className="truncate">{focusMap.slides[Math.min(focusPart, focusMap.slides.length - 1)]}</span>
+                        <span className="shrink-0 font-mono text-muted-foreground">
+                          {Math.min(focusPart, focusMap.slides.length - 1) + 1}/{focusMap.slides.length}
+                        </span>
+                      </span>
+                      <button type="button" onClick={() => setFocusPart((p) => (p + 1) % focusMap.slides.length)} aria-label="The next part" title="The next part ( → )" className={slideTool}>
+                        <CaretRight size={12} weight="bold" aria-hidden />
+                      </button>
+                    </div>
+                  )}
+                  </div>
 
                   {focusMap && focusMap.insets.length > 0 && (
                     <div
