@@ -120,6 +120,9 @@ const OVERLAY_URL = {
   infrastructure: "/geo/infrastructure.json",
   capitals: "/geo/capitals.json",
   cities: "/geo/cities.json",
+  /* Undersea cables and oil pipelines, from OpenStreetMap: built by build-osm-lines.cjs. */
+  cables: "/geo/cables.json",
+  pipelines: "/geo/pipelines.json",
 } as const;
 
 /** Rough Köppen-style groupings - tropical, arid, temperate, continental,
@@ -638,6 +641,18 @@ const OVERLAYS: { id: OverlayId; label: string; about: string }[] = [
     label: "Infrastructure",
     about:
       "Trunk roads, principal railways and 893 airports, Natural Earth 1:10m, public domain. The trunk network, not every road — and coverage is uneven, so it is not a measure of how much road or rail a country has.",
+  },
+  {
+    id: "cables",
+    label: "Fibre-optic cables",
+    about:
+      "The undersea communication cables OpenStreetMap maps - most of them fibre-optic, carrying the internet between countries - © OpenStreetMap contributors, ODbL. What its volunteers have mapped: not every cable is there, and a few mapped ones are planned or out of use.",
+  },
+  {
+    id: "pipelines",
+    label: "Oil pipelines",
+    about:
+      "Every oil pipeline OpenStreetMap maps, crude and products - © OpenStreetMap contributors, ODbL. What its volunteers have mapped: coverage is fuller in some countries than others, and a few mapped lines are planned or out of use, so it is not a measure of how much pipeline a country has.",
   },
   {
     id: "pollution",
@@ -1402,7 +1417,9 @@ type Scope = {
 /** The groups of countries the world map's bar has a button for, as asked: the G7, and the UN's developed and developing regions under the names they go by. */
 const BAR_SCOPES: ScopeId[] = ["g7", "north", "south"];
 /** The layers the world map's bar keeps in sight without opening "More", as asked, and what the button of each says: "Resources" is the layer of mineral sites. */
-const BAR_LAYERS: Partial<Record<OverlayId, string>> = { infrastructure: "Infrastructure", ports: "Ports", mines: "Resources" };
+const BAR_LAYERS: Partial<Record<OverlayId, string>> = { infrastructure: "Infrastructure", ports: "Ports", mines: "Resources", cables: "Fibre-optic cables", pipelines: "Oil pipelines" };
+/** The layers that are lines, whose swatch is drawn as a line. */
+const LINE_LAYERS = new Set<OverlayId>(["cables", "pipelines"]);
 
 const SCOPES: Scope[] = [
   {
@@ -1745,6 +1762,9 @@ export function WorldMapsPage() {
     capitals: isLight ? "#d91e63" : "#f06fe5",
     cities: isLight ? "#0066cc" : "#4db8ff",
     climate: isLight ? "#2f8f6f" : "#5fd1a8",
+    // Teal for the cables under the sea, near-black or pale grey for the pipelines - neither a colour another layer uses.
+    cables: isLight ? "#0f766e" : "#2dd4bf",
+    pipelines: isLight ? "#27272a" : "#d4d4d8",
   };
   /* The place picked out: an orange none of the layers uses, dark enough to read as the chip's text on the light card. */
   const markInk = isLight ? "#c2410c" : "#ff922b";
@@ -2054,6 +2074,8 @@ export function WorldMapsPage() {
     capitals: false,
     cities: false,
     climate: false,
+    cables: false,
+    pipelines: false,
   });
   const [focusLayers, setFocusLayers] = useState<Record<OverlayId, boolean>>({
     rivers: false,
@@ -2065,6 +2087,8 @@ export function WorldMapsPage() {
     capitals: false,
     cities: false,
     climate: false,
+    cables: false,
+    pipelines: false,
   });
   const [showAdditionalLayers, setShowAdditionalLayers] = useState(false);
   /** The same for the country and state maps' bar: whether the layers behind "More" are shown. */
@@ -2100,7 +2124,11 @@ export function WorldMapsPage() {
     OVERLAY_URL.cities,
     wanted("cities"),
   );
+  const cables = useOverlay<Topology>(OVERLAY_URL.cables, wanted("cables"));
+  const pipelines = useOverlay<Topology>(OVERLAY_URL.pipelines, wanted("pipelines"));
   const overlayState: Record<OverlayId, { loading: boolean; failed: boolean }> = {
+    cables: { loading: cables.loading, failed: cables.failed },
+    pipelines: { loading: pipelines.loading, failed: pipelines.failed },
     rivers: { loading: rivers.loading, failed: rivers.failed },
     lakes: { loading: lakes.loading, failed: lakes.failed },
     ports: { loading: ports.loading, failed: ports.failed },
@@ -2197,6 +2225,9 @@ export function WorldMapsPage() {
       worldPath.path(feature(d, d.objects[key] as never) as never) ?? undefined;
     return { roads: draw("rd"), rails: draw("rl") };
   }, [infra.data, worldPath]);
+  /* The cables and the pipelines, each one line drawn once. */
+  const cablesD = useMemo(() => (cables.data ? (worldPath.path(feature(cables.data, cables.data.objects.l as never) as never) ?? undefined) : undefined), [cables.data, worldPath]);
+  const pipelinesD = useMemo(() => (pipelines.data ? (worldPath.path(feature(pipelines.data, pipelines.data.objects.l as never) as never) ?? undefined) : undefined), [pipelines.data, worldPath]);
 
   const airportPoints = useMemo(() => {
     if (!infra.data) return null;
@@ -3176,13 +3207,15 @@ export function WorldMapsPage() {
       lakes: clipCollection(lakes.data, "l"),
       roads: clipMerged(infra.data, "rd"),
       rails: clipMerged(infra.data, "rl"),
+      cables: clipMerged(cables.data, "l"),
+      pipelines: clipMerged(pipelines.data, "l"),
       ports: ports.data ? place(ports.data.rows, (r) => r[1], (r) => r[2]) : null,
       airports: infra.data ? place(infra.data.airports, (r) => r[1], (r) => r[2]) : null,
       mines: mines.data ? place(mines.data.rows, (r) => r[5], (r) => r[6]) : null,
       capitals: capitals.data ? place(capitals.data.rows, (r) => r[2], (r) => r[3]) : null,
       cities: cities.data ? place(cities.data.rows, (r) => r[3], (r) => r[4]) : null,
     };
-  }, [focusFrame, lineNear, inBounds, rivers.data, lakes.data, infra.data, ports.data, mines.data, capitals.data, cities.data]);
+  }, [focusFrame, lineNear, inBounds, rivers.data, lakes.data, infra.data, cables.data, pipelines.data, ports.data, mines.data, capitals.data, cities.data]);
 
   /* Marks on the focus map keep the same shapes as on the world map, drawn a
      little larger because there is room for them on one country.
@@ -3447,9 +3480,7 @@ export function WorldMapsPage() {
             <p key={o.id} className="text-[9px] font-sans text-muted-foreground">
               <span
                 aria-hidden
-                className={`inline-block w-1.5 h-1.5 mr-1.5 align-middle ${
-                  o.id === "ports" || o.id === "infrastructure" ? "" : "rounded-full"
-                }`}
+                className={`inline-block mr-1.5 align-middle ${LINE_LAYERS.has(o.id) ? "w-2.5 h-[2px] rounded-full" : `w-1.5 h-1.5 ${o.id === "ports" || o.id === "infrastructure" ? "" : "rounded-full"}`}`}
                 style={
                   o.id === "infrastructure"
                     ? { background: overlayInk[o.id], clipPath: "polygon(50% 0, 100% 100%, 0 100%)" }
@@ -3683,9 +3714,7 @@ export function WorldMapsPage() {
       >
         <span
           aria-hidden
-          className={`w-2 h-2 shrink-0 ${
-            o.id === "ports" || o.id === "infrastructure" ? "" : "rounded-full"
-          }`}
+          className={`shrink-0 ${LINE_LAYERS.has(o.id) ? "w-3 h-[2px] rounded-full" : `w-2 h-2 ${o.id === "ports" || o.id === "infrastructure" ? "" : "rounded-full"}`}`}
           style={{
             background: layers[o.id] ? overlayInk[o.id] : "currentColor",
             opacity: layers[o.id] ? 1 : 0.45,
@@ -3773,7 +3802,7 @@ export function WorldMapsPage() {
           {OVERLAYS.filter((o) => BAR_LAYERS[o.id]).map((o) => layerButton({ ...o, label: BAR_LAYERS[o.id]! }, layers, set))}
           {/* The other layers, on the same line as asked: they follow when "More" is open, and the row moves along to reach the rest. */}
           {showAdditionalLayers && OVERLAYS.filter((o) => !BAR_LAYERS[o.id]).map((o) => layerButton(o, layers, set))}
-          {markChip}
+          {/* The picked-out country's own chip stood here; it gave way to the fibre-optic cables, as asked. A place is still picked out by the search beside the row, or by pressing it on a map. */}
         </ChipRow>
         {/* Which place that is: any country, or a US state. Pressing one on a map chooses it too. It stands beside the row of chips and not in it: a row that scrolls sideways cuts off whatever drops below it, and its list of answers was cut off. */}
         <CountrySearch chip options={markOptions} onPick={pickMark} placeholder="Highlight a country or state" label="Choose the country or US state to pick out on the maps" />
@@ -4149,6 +4178,17 @@ export function WorldMapsPage() {
                   zoom={worldZoom.zoom}
                   dash={`${2.4 / worldZoom.zoom} ${1.6 / worldZoom.zoom}`}
                 />
+              </g>
+            )}
+            {/* The pipelines and the undersea cables: one line each, the same width on the screen at any zoom. */}
+            {worldLayers.pipelines && pipelinesD && (
+              <g pointerEvents="none">
+                <CasedLine d={pipelinesD} ink={overlayInk.pipelines} halo={labelHalo} width={0.45} zoom={worldZoom.zoom} opacity={0.85} />
+              </g>
+            )}
+            {worldLayers.cables && cablesD && (
+              <g pointerEvents="none">
+                <CasedLine d={cablesD} ink={overlayInk.cables} halo={labelHalo} width={0.5} zoom={worldZoom.zoom} opacity={0.9} />
               </g>
             )}
             {worldLayers.lakes && lakePaths && (
@@ -4617,6 +4657,16 @@ export function WorldMapsPage() {
             <g clipPath={usOutlineD ? "url(#clip-us)" : undefined}>
               {/* The same overlays as the world map, in this map's own projection and
                   clipped to the country in view. */}
+              {focusLayers.pipelines && focusOverlays?.pipelines && (
+                <g pointerEvents="none">
+                  <CasedLine d={focusOverlays.pipelines} ink={overlayInk.pipelines} halo={labelHalo} width={0.5} zoom={focusZoom.zoom} opacity={0.85} />
+                </g>
+              )}
+              {focusLayers.cables && focusOverlays?.cables && (
+                <g pointerEvents="none">
+                  <CasedLine d={focusOverlays.cables} ink={overlayInk.cables} halo={labelHalo} width={0.55} zoom={focusZoom.zoom} opacity={0.9} />
+                </g>
+              )}
               {focusLayers.infrastructure && focusOverlays && (
                 <g pointerEvents="none">
                   {focusOverlays.roads && (
@@ -5035,6 +5085,16 @@ export function WorldMapsPage() {
                     <g clipPath={focusMap?.outline ? "url(#clip-focus-country)" : undefined}>
                       {/* The same overlays as the world map, in this map's own projection and
                           clipped to the country in view. */}
+                      {focusLayers.pipelines && focusOverlays?.pipelines && (
+                        <g pointerEvents="none">
+                          <CasedLine d={focusOverlays.pipelines} ink={overlayInk.pipelines} halo={labelHalo} width={0.5} zoom={focusZoom.zoom} opacity={0.85} />
+                        </g>
+                      )}
+                      {focusLayers.cables && focusOverlays?.cables && (
+                        <g pointerEvents="none">
+                          <CasedLine d={focusOverlays.cables} ink={overlayInk.cables} halo={labelHalo} width={0.55} zoom={focusZoom.zoom} opacity={0.9} />
+                        </g>
+                      )}
                       {focusLayers.infrastructure && focusOverlays && (
                         <g pointerEvents="none">
                           {focusOverlays.roads && (
