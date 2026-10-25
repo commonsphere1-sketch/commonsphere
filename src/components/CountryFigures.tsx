@@ -20,7 +20,7 @@
  * how far the government watches, filters, shuts down and arrests for what
  * people say online, and whether the law protects their data.
  */
-import { Children, isValidElement, useEffect, useState, type ReactElement, type ReactNode } from "react";
+import { Children, isValidElement, type ReactElement, type ReactNode } from "react";
 import { Area, AreaChart, CartesianGrid, Cell, Pie, PieChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
 import { COUNTRY_PANELS, PANEL_SOURCES, type PanelField } from "../data/countryPanels";
 import { COUNTRY_INDICATORS, COUNTRY_INDICATORS_SOURCE } from "../data/countryIndicators";
@@ -49,8 +49,6 @@ import { CRITICAL_MINERALS, CRITICAL_MINERALS_SOURCE } from "../data/criticalMin
 import { countryForFeature } from "../data/mapJoin";
 import { ALLIANCES, ALLIANCE_KIND_PLURAL } from "../data/alliances";
 import { SURVEILLANCE, SURVEILLANCE_SCALES, SURVEILLANCE_SOURCE, type SurveillanceMeasure } from "../data/surveillance";
-import { COUNTRY_LAW_HELD, COUNTRY_LAW_SOURCES, type CountryLawAdvice, type CountryLawFile } from "../data/countryLaw";
-import { AdviceLists } from "./LawAdvice";
 import { useTokens, type Tokens } from "./DataExplorer";
 import { SourceLink } from "./SourceLink";
 import SlimBars, { SlimColumns, gradId } from "./SlimBars";
@@ -339,20 +337,6 @@ export default function CountryFigures({ code, name }: { code: string; name: str
   const watch = pick(SURVEILLANCE, code);
   const rights = pick(RIGHTS, code);
   const exportsOf = TOP_EXPORTS[code];
-  // What is illegal, restricted and legal there: the UK Foreign Office's advice, from the law file the site keeps for each country.
-  const [advice, setAdvice] = useState<{ code: string; local: CountryLawAdvice } | null>(null);
-  useEffect(() => {
-    if (!COUNTRY_LAW_HELD.has(code)) return;
-    let off = false;
-    fetch(`/law/${code}.json`)
-      .then((r) => (r.ok ? r.json() : Promise.reject()))
-      .then((j: CountryLawFile) => !off && j.local && setAdvice({ code, local: j.local }))
-      .catch(() => {});
-    return () => {
-      off = true;
-    };
-  }, [code]);
-  const local = advice?.code === code ? advice.local : null;
   const birthsDeaths = ([["birthRate", "Births", INK[1]], ["deathRate", "Deaths", INK[4]]] as [PanelField, string, string][]).flatMap(([f, n, color]) => (P[f] ? [{ n, v: P[f]!.v, color }] : []));
   // Its manufacturing, from the World Bank's figures for its economy.
   const econ = economyForCountry({ code, name });
@@ -956,7 +940,8 @@ export default function CountryFigures({ code, name }: { code: string; name: str
           )}
         </Panel>
         <Panel t={t} title="Its law" meta="legal system, and what is illegal, restricted and legal" className="md:!basis-full xl:!basis-full">
-          {legal || local ? (
+          {/* The UK Foreign Office's "What's legal" list stood here under the longer one; it was taken off, as asked (AdviceLists, in LawAdvice). */}
+          {legal ? (
             <>
               {legal && (
               <>
@@ -973,13 +958,15 @@ export default function CountryFigures({ code, name }: { code: string; name: str
               <Note t={t}>Its legal system, in the Factbook's own words. Its constitution and courts are in the country's window, under Laws.</Note>
               </>
               )}
-              {/* The longer list its window gives under Law, subject by subject, as asked; then the Foreign Office's advice. */}
+              {/* The longer list its window gives under Law, subject by subject, as asked. */}
               <LegalStatusList code={code} name={name} />
-              {local && <AdviceLists advice={local} country={name} />}
-              <Foot sources={[legal ? JUSTICE_SOURCES.legal : undefined, local ? COUNTRY_LAW_SOURCES.advice : undefined]} />
+              <Foot sources={[JUSTICE_SOURCES.legal]} />
             </>
           ) : (
-            <None t={t}>No account of its legal system is held for {name}.</None>
+            <>
+              <None t={t}>No account of its legal system is held for {name}.</None>
+              <LegalStatusList code={code} name={name} />
+            </>
           )}
         </Panel>
         <Panel t={t} title="Surveillance of the public" meta={watch ? `V-Dem · ${watch.y}` : undefined} className="md:!basis-full xl:!basis-full">
