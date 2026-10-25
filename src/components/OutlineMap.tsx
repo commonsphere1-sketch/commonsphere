@@ -426,9 +426,9 @@ export function OutlineMap({
           </button>
         )}
       </div>
-      {/* The parts that lie apart: which is shown, and the arrows to the others - as a swipe across the map does. */}
+      {/* The parts that lie apart: which is shown, and the arrows to the others - as a swipe across the map does. At the map's left-hand corner, as asked, clear of the places in the middle. */}
       {slides && (
-        <div className="absolute bottom-2 left-1/2 -translate-x-1/2 flex items-center gap-1.5 max-w-[calc(100%-1rem)]">
+        <div className="absolute bottom-2 left-2 flex items-center gap-1.5 max-w-[calc(100%-1rem)]">
           <button type="button" onClick={() => goTo(onSlide - 1)} aria-label="The part before" title="The part before ( ← )" className={tool}>
             <CaretLeft size={12} weight="bold" aria-hidden />
           </button>

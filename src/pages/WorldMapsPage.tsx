@@ -5206,7 +5206,7 @@ export function WorldMapsPage() {
                   </svg>
                   {/* The parts that lie apart: which is shown, and the arrows to the others - as in the windows' maps. */}
                   {focusMap && focusMap.slides.length > 1 && (
-                    <div className="absolute bottom-2 left-1/2 -translate-x-1/2 flex items-center gap-1.5 max-w-[calc(100%-1rem)]">
+                    <div className="absolute bottom-2 left-2 flex items-center gap-1.5 max-w-[calc(100%-1rem)]">
                       <button type="button" onClick={() => setFocusPart((p) => (p - 1 + focusMap.slides.length) % focusMap.slides.length)} aria-label="The part before" title="The part before ( ← )" className={slideTool}>
                         <CaretLeft size={12} weight="bold" aria-hidden />
                       </button>
