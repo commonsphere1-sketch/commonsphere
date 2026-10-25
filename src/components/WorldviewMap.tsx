@@ -36,7 +36,6 @@
  */
 import { type ReactNode, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { ArrowCounterClockwise, MagnifyingGlassMinus, MagnifyingGlassPlus } from "@phosphor-icons/react";
-import { flagColor } from "../lib/flagColor";
 import { geoArea, geoContains, geoEqualEarth, geoGraticule10, geoPath } from "d3-geo";
 import type { Subnation } from "../data/subnations";
 import { ADMIN2_SOURCE, loadAdmin2, useAdmin2Manifest } from "../lib/admin2";
@@ -162,8 +161,11 @@ const MAX_K = 12;
 /** How solid a country is drawn, and the one picked or pointed at: the World Maps page's middle neon step, and a step up. */
 const FILL = 0.42;
 const FILL_ON = 0.6;
-/** A country's ink: its flag's colour, or the page's accent where none is held. */
-const inkOf = (code: string | null) => (code && flagColor(code)) || "#22d3ee";
+/* Every country in one colour, as asked: the slate blue Australia was drawn in. The one picked or pointed at is told apart by
+   being drawn more solid (FILL_ON), and its divisions, districts and cities light in the same colour. */
+const MAP_INK = "#6275a2";
+/** A country's ink on this map: the one colour for all. */
+const inkOf = (_code: string | null) => MAP_INK;
 /** Drawn this close, the counties' and districts' borders show; this close, the cities. */
 const COUNTIES_FROM = 2.5;
 const CITIES_FROM = 4;
@@ -947,7 +949,7 @@ export default function WorldviewMap() {
       </div>
       <div className="flex flex-wrap items-center gap-x-4 gap-y-2 px-4 py-3 border-t" style={{ borderColor: t.gridLine }}>
         <p className="text-[10px] font-sans flex-1 min-w-[12rem]" style={{ color: t.mutedText }}>
-          Each country in its flag's colour; press one for its own figures, beside the map and under it. The {DRAWN} countries the map draws; the smallest islands are too small to draw at this scale.
+          Every country in one colour, the one picked drawn more solid; press one for its own figures, beside the map and under it. The {DRAWN} countries the map draws; the smallest islands are too small to draw at this scale.
         </p>
         <SourceLink sources={[{ label: "Natural Earth, via world-atlas — country outlines (public domain)", url: "https://github.com/topojson/world-atlas" }, { label: "geoBoundaries (gbOpen, each country's under its publisher's open licence) and Natural Earth (public domain) — state, province, county and district borders", url: "https://www.geoboundaries.org/" }, { label: "GeoNames — cities of 100,000 or more (CC BY 4.0)", url: "https://www.geonames.org/" }]} />
       </div>
