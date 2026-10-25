@@ -226,6 +226,11 @@ export function OutlineMap({
     const cands: LabelCandidate[] = [];
     if (drawn.mark) cands.push({ key: "mark", text: drawn.mark.name, x: drawn.mark.x, y: drawn.mark.y, size: 11, weight: 700, rank: 0, town: true });
     if (drawn.paths.length > 1) for (const p of drawn.paths) if (p.name) cands.push({ key: `s${p.key}`, text: p.name, x: p.cx, y: p.cy, w: p.w, h: p.h, size: 10, rank: 1 });
+    // A map of one place carries its name across its middle, as asked, where no place in it is marked.
+    else if (!drawn.mark && drawn.paths[0]?.name) {
+      const p = drawn.paths[0];
+      cands.push({ key: "self", text: p.name, x: p.cx, y: p.cy, w: p.w, h: p.h, size: 12, weight: 700, rank: 0 });
+    }
     for (const d of drawn.dots) cands.push({ key: `d${d.id}`, text: d.name, x: d.x, y: d.y, size: 9, rank: 2, town: true });
     for (const p of partAnchors) cands.push({ key: `p${p.i}`, text: p.text, x: p.cx, y: p.cy, w: p.w, h: p.h, size: 8.5, weight: 500, rank: 3 });
     return placeLabels(cands, { x0: view.x - W / (2 * view.k), y0: view.y - H / (2 * view.k), x1: view.x + W / (2 * view.k), y1: view.y + H / (2 * view.k), k: view.k });
