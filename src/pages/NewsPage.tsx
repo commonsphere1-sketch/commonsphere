@@ -139,9 +139,6 @@ export function NewsPage() {
           </h1>
         </div>
 
-        {/* Every headline banner on the site, as asked, each as its own page shows it, with a link to that page. */}
-        <NewsDesks />
-
         {/* Every headline, by place, subject and event. */}
         <div className="flex items-baseline gap-3 px-1 pb-3">
           <h2 className="text-sm font-bold font-sans text-foreground">Every headline</h2>
@@ -226,6 +223,11 @@ export function NewsPage() {
         {/* The events tracked by region, below the news, as asked: the public bodies' records beside the headlines. */}
         <div className="mt-8">
           <NewsTracker rows={rows} days={days} where={where} onPick={pick} />
+        </div>
+
+        {/* Every headline banner on the site, each as its own page shows it, with a link to that page - at the foot of the page, as asked. */}
+        <div className="mt-8">
+          <NewsDesks />
         </div>
       </div>
     </div>
