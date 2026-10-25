@@ -135,6 +135,23 @@ export function useSecondOrder(cc: string | null, division?: string): SecondOrde
  * The outlines put together from the second order, where they can stand for the ones the site lists: every division
  * listed must be among them by name, or one would go missing from the map. Null where they cannot.
  */
+/**
+ * The listed outlines with each division that the second order holds put together from its own districts, the rest as
+ * listed: where not every division can be, those that can still meet their districts' borders. Null where none can.
+ */
+export function matchedTo(second: SecondOrder | null | undefined, listed: Outline[] | null | undefined): Outline[] | null {
+  if (!second?.outline?.length || !listed?.length) return null;
+  const by = new Map(second.outline.map((o) => [o.properties.n, o]));
+  let hit = 0;
+  const out = listed.map((f) => {
+    const own = f.properties.n ? by.get(f.properties.n) : undefined;
+    if (!own) return f;
+    hit++;
+    return own;
+  });
+  return hit ? out : null;
+}
+
 export function alignedTo(second: SecondOrder | null | undefined, listed: Outline[] | null | undefined): Outline[] | null {
   if (!second?.outline?.length || !listed?.length) return null;
   const have = new Set(second.outline.map((o) => o.properties.n));

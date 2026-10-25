@@ -98,7 +98,7 @@ import PostalCodes from "../components/PostalCodes";
 import PlaceIndexes from "../components/PlaceIndexes";
 import TaxPanel, { StateTaxPanel } from "../components/TaxPanel";
 import { usePlacePostal } from "../lib/placePostal";
-import { alignedTo, useSecondOrder } from "../lib/secondOrder";
+import { alignedTo, matchedTo, useSecondOrder } from "../lib/secondOrder";
 import { flagFallback } from "../lib/cardFlag";
 import { OutlineMap, placeDots, type MapDot } from "../components/OutlineMap";
 import { SourceLink } from "../components/SourceLink";
@@ -1668,6 +1668,8 @@ function CountryWindow({
   const second = useSecondOrder(row.cc);
   /* Its divisions put together from its districts, where they can stand for the ones listed: every border on the map is then of one tracing. */
   const aligned = useMemo(() => alignedTo(second, drawn), [second, drawn]);
+  /* Where not all can be, each division that can is drawn from its own districts, so that its edge meets their borders, as asked. */
+  const matched = useMemo(() => (aligned ? null : matchedTo(second, drawn)), [aligned, second, drawn]);
   const alignedFrame = useMemo(() => (aligned ? framed(aligned) : undefined), [aligned]);
   const frame = useMemo(() => (drawn ? framed(drawn) : undefined), [drawn]);
   /* Its parts that lie apart, as the map shows them one at a time. */
@@ -1699,7 +1701,7 @@ function CountryWindow({
 
       {drawn && drawn.length > 0 && (
         <div>
-          <OutlineMap shapes={aligned ?? drawn} frame={alignedFrame ?? frame} inner={aligned ? second?.inner : second?.innerAll} parts={second?.lines} onPart={second ? (i) => navigate(second.open(i)) : undefined} dots={dots} color={flagColor(row.cc) ?? COLOR} label={`${row.name} and its ${drawn.length} divisions, with its ${dots.length} largest listed places`} onDot={(d) => setPicked(places?.places.find((p) => p[6] === d.id) ?? null)} onShape={(f) => { const hit = row.divisions.find((x) => x.name === f.properties.n); if (hit) onOpen(hit); }} />
+          <OutlineMap shapes={aligned ?? matched ?? drawn} frame={alignedFrame ?? frame} inner={aligned ? second?.inner : second?.innerAll} parts={second?.lines} onPart={second ? (i) => navigate(second.open(i)) : undefined} dots={dots} color={flagColor(row.cc) ?? COLOR} label={`${row.name} and its ${drawn.length} divisions, with its ${dots.length} largest listed places`} onDot={(d) => setPicked(places?.places.find((p) => p[6] === d.id) ?? null)} onShape={(f) => { const hit = row.divisions.find((x) => x.name === f.properties.n); if (hit) onOpen(hit); }} />
 
           <p className="text-[10px] font-sans text-muted-foreground leading-snug mt-1">
             {row.name}'s divisions as the site's maps draw them{dots.length ? `, with the ${dots.length} largest places GeoNames lists for it as dots` : ""}

@@ -35,7 +35,7 @@
  * the arrows under it, or the arrow keys while it is whole. Each part is
  * framed on its own; the parts are told apart in lib/outlines (outlineParts).
  */
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useId, useMemo, useRef, useState } from "react";
 import { CaretLeft, CaretRight, MagnifyingGlassMinus, MagnifyingGlassPlus } from "@phosphor-icons/react";
 import { geoAzimuthalEqualArea, geoCentroid, geoMercator, geoPath } from "d3-geo";
 import type { PlaceRow, PlacesFile } from "../data/placesIndex";
@@ -97,6 +97,8 @@ export function OutlineMap({
   /** What a press on one of several outlines does: it opens that division. Left out, an outline pointed at is only picked out and named. */
   onShape?: (shape: Outline) => void;
 }) {
+  /* The outline as a clip, so that the finer borders - traced apart from it - stay inside it, as asked. */
+  const clipId = `om-${useId().replace(/:/g, "")}`;
   /** Which of several outlines is pointed at. */
   const [lit, setLit] = useState<number | null>(null);
   const [over, setOver] = useState<string | number | null>(null);
@@ -358,8 +360,15 @@ export function OutlineMap({
             onClick={many && onShape ? () => onShape(p.shape) : undefined}
           />
         ))}
-        {/* The finer borders, over the fills and under the dots: thinner and fainter than the outlines they lie in. */}
-        {drawn.inner && <path d={drawn.inner} fill="none" stroke={color} strokeOpacity={many ? 0.5 : 0.7} strokeWidth={many ? 0.35 : 0.55} vectorEffect="non-scaling-stroke" strokeLinejoin="round" pointerEvents="none" />}
+        <defs>
+          <clipPath id={clipId}>
+            {drawn.paths.map((p) => (
+              <path key={p.key} d={p.d} />
+            ))}
+          </clipPath>
+        </defs>
+        {/* The finer borders, over the fills and under the dots: thinner and fainter than the outlines they lie in, and kept inside them. */}
+        {drawn.inner && <path d={drawn.inner} clipPath={`url(#${clipId})`} fill="none" stroke={color} strokeOpacity={many ? 0.5 : 0.7} strokeWidth={many ? 0.35 : 0.55} vectorEffect="non-scaling-stroke" strokeLinejoin="round" pointerEvents="none" />}
         {/* The outline pointed at, edged over its neighbours so that the whole of its border shows. */}
         {litPath && !litPartPath && <path d={litPath.d} fill="none" stroke={color} strokeWidth={2} vectorEffect="non-scaling-stroke" strokeLinejoin="round" pointerEvents="none" />}
         {/* Drawn closer, the places inside are what is pointed at: unseen until then, each over the outline it lies in. */}

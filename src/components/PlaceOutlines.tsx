@@ -23,7 +23,7 @@ import { useNavigate } from "react-router-dom";
 import { PLACES_SOURCE } from "../data/placesIndex";
 import { flagColor } from "../lib/flagColor";
 import { framed, outlineParts, placesWithin, useAdmin1, usePlacesFile } from "../lib/outlines";
-import { alignedTo, useSecondOrder } from "../lib/secondOrder";
+import { alignedTo, matchedTo, useSecondOrder } from "../lib/secondOrder";
 import { OutlineMap, placeDots, type MapDot } from "./OutlineMap";
 import { SourceLink } from "./SourceLink";
 
@@ -62,7 +62,9 @@ export function CountryOutline({
   const second = useSecondOrder(code);
   /* Its divisions put together from its districts, where they can stand for the ones listed: the borders inside them are then of one tracing with their edges, and meet. */
   const aligned = useMemo(() => alignedTo(second, drawn), [second, drawn]);
-  const outlines = aligned ?? drawn;
+  /* Where not all can be, each division that can is drawn from its own districts, so that its edge meets their borders, as asked. */
+  const matched = useMemo(() => (aligned ? null : matchedTo(second, drawn)), [aligned, second, drawn]);
+  const outlines = aligned ?? matched ?? drawn;
   const frame = useMemo(() => (outlines ? framed(outlines) : undefined), [outlines]);
   /* Its parts that lie apart, as the map shows them one at a time. */
   const apart = useMemo(() => (outlines ? outlineParts(outlines).length : 1), [outlines]);
