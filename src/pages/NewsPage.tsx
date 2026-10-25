@@ -3,6 +3,7 @@ import { SiteMark } from "../components/SiteMark";
 import { FilterBar } from "../components/FilterBar";
 import { StyledSelect } from "../components/StyledSelect";
 import { NewsTracker } from "../components/NewsTracker";
+import { NewsDesks } from "../components/NewsDesks";
 import { countriesData } from "../data/countriesData";
 import { usStatesData } from "../data/statesData";
 import {
@@ -138,6 +139,15 @@ export function NewsPage() {
           </h1>
         </div>
 
+        {/* Every headline banner on the site, as asked, each as its own page shows it, with a link to that page. */}
+        <NewsDesks />
+
+        {/* Every headline, by place, subject and event. */}
+        <div className="flex items-baseline gap-3 px-1 pb-3">
+          <h2 className="text-sm font-bold font-sans text-foreground">Every headline</h2>
+          <span className="text-[10px] font-sans text-muted-foreground">by place, subject and event</span>
+          <span className="flex-1 h-px bg-border" aria-hidden />
+        </div>
         {/* Where: the whole world, between countries, a continent, or one country or US state. */}
         <FilterBar label="News by place" className="mb-4" status={done ? `${fmt(rows.length)} headlines read` : "Reading…"}>
           <button type="button" onClick={() => setWhere("global")} aria-pressed={where === "global"} className={chip(where === "global")}>

@@ -17647,7 +17647,7 @@ function leadersIn(title: string): Leader[] {
  * country; violet when a story names leaders of more than one. Asked for
  * all, every headline naming one.
  */
-const pickLeaders = (rows: Headline[], all = false): Shown[] => {
+export const pickLeaders = (rows: Headline[], all = false): Shown[] => {
   const n = new Map<string, number>();
   const out: Shown[] = [];
   for (const h of rows) {

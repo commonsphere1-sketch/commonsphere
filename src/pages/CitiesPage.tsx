@@ -829,7 +829,7 @@ const citiesIn = nameMatcher(
  * most-covered do not crowd out the rest. The chip is the city; violet when
  * a story names more than one. Asked for all, every headline naming one.
  */
-const pickCities = (rows: Headline[], all = false): Shown[] => {
+export const pickCities = (rows: Headline[], all = false): Shown[] => {
   const n = new Map<string, number>();
   const out: Shown[] = [];
   for (const h of rows) {

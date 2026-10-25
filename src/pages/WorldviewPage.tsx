@@ -52,13 +52,14 @@ import { COUNTRY_PANELS, PANEL_SOURCES } from "@/data/countryPanels";
 import { GLOBAL_NORTH_CODES, GLOBAL_SOUTH_CODES, DEVELOPMENT_STATUS_SOURCE } from "@/data/developmentStatus";
 import { LAND_USE, LAND_USE_SOURCE } from "@/data/landUse";
 import { useTheme } from "@/contexts/ThemeContext";
-import { HeadlinesBanner, placeName, placeTag, type Headline, type Shown } from "@/components/HeadlinesBanner";
+import { HeadlinesBanner } from "@/components/HeadlinesBanner";
 import { SectionNav, type NavSection } from "@/components/SectionNav";
 import { GeopoliticsExplorer } from "@/components/GeopoliticsExplorer";
 import { StatCard, splitChange } from "@/components/StatCard";
 import { CategoryCharts, PILLAR_CHARTS } from "@/components/CategoryCharts";
 import { has } from "@/lib/na";
 import { SLIM_TRACK, slimFill } from "../components/SlimBars";
+import { pickWorld } from "../lib/headlinePicks";
 
 /**
  * Worldview: where the world stands, as a global dashboard in twelve pillars -
@@ -634,17 +635,7 @@ function Hero() {
 
 // ── World headlines ─────────────────────────────────────────────────────────
 
-/**
- * The world desks' latest headlines naming a country other than the United
- * States. A US-only story is domestic news - it has its own banner on the
- * States page - and a world banner of them was obituaries and state
- * politics. The chip names the countries. The newest thirty, or all of them.
- */
-const pickWorld = (rows: Headline[], all = false): Shown[] =>
-  rows
-    .filter((h) => h.places.some((p) => p !== "c:US" && p.startsWith("c:") && placeName(p)))
-    .slice(0, all ? undefined : 30)
-    .map((h) => ({ h, tag: placeTag(h.places.filter((p) => p.startsWith("c:"))) }));
+/* The world banner's headlines: in lib/headlinePicks, which the News page shares. */
 
 // ── The world wheel ─────────────────────────────────────────────────────────
 
