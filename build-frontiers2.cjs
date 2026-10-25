@@ -89,6 +89,8 @@ function satellites() {
   const year = (s) => (/^\d{4}/.test(s) ? Number(s.slice(0, 4)) : null);
   const active = [];
   const spans = [];
+  /* Every payload by the year it was launched, whose it is and what it does: for the satellites launched each year. */
+  const launched = [];
   for (const c of tsvRows(ps)) {
     const [jcat, , name, ldate, , top, , , program, , , , cls, cat] = c;
     const from = year(ldate);
@@ -96,6 +98,7 @@ function satellites() {
     const working = top === "*";
     const to = working ? Infinity : year(top);
     if (to !== null) spans.push([from, to]);
+    launched.push({ from, state: owner.get(jcat) || "?", cat: cat.replace(/[*?]$/, "").split("/")[0] });
     if (working) active.push({ jcat, name, program, cls: cls[0], cat: cat.replace(/[*?]$/, "").split("/")[0], state: owner.get(jcat) || "?" });
   }
   const count = (key, of = active) => {
@@ -114,7 +117,23 @@ function satellites() {
   const uses = (of) => count((a) => CATEGORY[a.cat] || "Other", of).sort((a, b) => (a[0] === "Other") - (b[0] === "Other") || b[1] - a[1]);
   const byCat = uses(active);
   const militaryUse = uses(active.filter((a) => a.cls === "D"));
-  return { updated, total: active.length, starlink, byState, byClass, byCat, militaryUse, series };
+  // Launched each year, the world's; and in the last full year and this one so far, by owning state and by what they do.
+  const lastFull = thisYear - 1;
+  const launchedSeries = [];
+  for (let y = 1990; y <= lastFull; y++) launchedSeries.push([y, launched.filter((l) => l.from === y).length]);
+  const of = (y) => launched.filter((l) => l.from === y);
+  const stateRows = (rows, n) => count((a) => a.state, rows).slice(0, n).map(([s, k]) => [stateName.get(s) || s, s, k]);
+  const launchedNow = {
+    lastFull,
+    series: launchedSeries,
+    byState: stateRows(of(lastFull), 12),
+    states: new Set(of(lastFull).map((l) => l.state)).size,
+    byUse: uses(of(lastFull)),
+    thisYear,
+    soFar: of(thisYear).length,
+    byStateNow: stateRows(of(thisYear), 10),
+  };
+  return { updated, total: active.length, starlink, byState, byClass, byCat, militaryUse, series, launchedNow };
 }
 
 /* ── Government budgets for R&D: the OECD's GBARD ── */
@@ -224,6 +243,12 @@ export const SATELLITES: { updated: string; total: number; starlink: number; byS
     byUse: S.byCat,
     militaryUse: S.militaryUse,
   })};
+/**
+ * Payloads launched each year, counted here from GCAT's launch dates: the world's each year; in the last full year, the
+ * twelve owning states that launched the most and how many states launched any, and what they were launched to do; and
+ * this year so far, by owning state.
+ */
+export const SATELLITES_LAUNCHED: { lastFull: number; series: [year: number, n: number][]; byState: [name: string, code: string, n: number][]; states: number; byUse: [use: string, n: number][]; thisYear: number; soFar: number; byStateNow: [name: string, code: string, n: number][] } = ${J(S.launchedNow)};
 /** Payloads working at the end of each year, counted here from GCAT's launch and end-of-operations dates. */
 export const SATELLITES_WORKING: [year: number, n: number][] = ${J(S.series)};
 

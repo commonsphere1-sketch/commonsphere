@@ -22,6 +22,14 @@ export interface DataLogEntry {
 
 export const DATA_LOG: DataLogEntry[] = [
   {
+    "what": "Satellites and probes working in space, by owner, class and use; government research budgets by objective; MRI, CT and PET scanners per million people",
+    "from": "GCAT; OECD GBARD; OECD Health Statistics",
+    "page": "/dashboard/trends",
+    "where": "Developments",
+    "read": "2026-10-25",
+    "files": 1
+  },
+  {
     "what": "What is being warned of in each country now: travel advisories, outbreaks of disease and disaster alerts",
     "from": "US Department of State, UK Foreign Office, US CDC, GDACS",
     "page": "/dashboard/countries",
@@ -68,14 +76,6 @@ export const DATA_LOG: DataLogEntry[] = [
     "where": "Crime statistics",
     "read": "2026-10-15",
     "files": 3
-  },
-  {
-    "what": "Satellites and probes working in space, by owner, class and use; government research budgets by objective; MRI, CT and PET scanners per million people",
-    "from": "GCAT; OECD GBARD; OECD Health Statistics",
-    "page": "/dashboard/trends",
-    "where": "Developments",
-    "read": "2026-10-15",
-    "files": 1
   },
   {
     "what": "The frontiers of invention: AI training compute, clean energy costs and capacity, electric cars, robots, supercomputers, nuclear arsenals, the Nobel Prizes in the sciences",

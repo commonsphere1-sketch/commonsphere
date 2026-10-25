@@ -17,7 +17,7 @@ import { Area, AreaChart, Bar, BarChart, CartesianGrid, ResponsiveContainer, Too
 import { ORBITAL_LAUNCHES, LAUNCHES_PARTIAL_YEAR, LAUNCH_AGENCIES, SPACE_OBJECTS, RD_SHARE, RESEARCHERS, ARTICLES, PATENTS, FDA_APPROVALS, INNOVATION_SOURCES } from "../data/innovation";
 import { GENOME_COST } from "../data/technology";
 import { BATTERY_CELL_PRICE } from "../data/renewables";
-import { SATELLITES, SATELLITES_WORKING, RD_BUDGETS, RD_BUDGET_SERIES, RD_OBJECTIVES, SCANNERS, SCANNER_KINDS, FRONTIER2_SOURCES } from "../data/frontiers2";
+import { SATELLITES, SATELLITES_LAUNCHED, SATELLITES_WORKING, RD_BUDGETS, RD_BUDGET_SERIES, RD_OBJECTIVES, SCANNERS, SCANNER_KINDS, FRONTIER2_SOURCES } from "../data/frontiers2";
 import { AI_COMPUTE_MAX, AI_LATEST, AI_COUNTRIES, SOLAR_PRICE, SOLAR_GW, WIND_GW, RENEWABLE_SHARE, RENEWABLE_KINDS, LCOE, EV_SHARE, ROBOTS, FASTEST_SUPERCOMPUTER, NUCLEAR_WARHEADS, NOBEL_SCIENCE, FRONTIER_SOURCES } from "../data/frontiers";
 import { useTokens, type Tokens } from "./DataExplorer";
 import { INK, Panel, Note, Foot, Tiles } from "./CountryFigures";
@@ -621,9 +621,42 @@ function ObjectivePanel({ t, k, title, color, n = 8, wide = false }: { t: Tokens
 function Satellites({ t }: { t: Tokens }) {
   const s = SATELLITES;
   const w = SATELLITES_WORKING;
+  const L = SATELLITES_LAUNCHED;
   return (
     <section id="satellites" className="scroll-mt-36 flex flex-col gap-3">
-      <Head t={t} title="Satellites" kicker="what is working in space, whose it is, and what it does" />
+      <Head t={t} title="Satellites" kicker="how many are launched each year and by whom, what is working in space, whose it is, and what it does" />
+      {/* The satellites launched, as asked: each year, whose they were and what for - above what the working ones do. */}
+      <Row>
+        <Panel t={t} title="Satellites launched each year" meta={`payloads · GCAT · ${L.series[0][0]}–${L.lastFull}`} className="md:!basis-full xl:!basis-[calc(66.666%-0.25rem)]">
+          <Tiles
+            t={t}
+            items={[
+              { label: `Launched in ${L.lastFull}`, text: whole(L.series[L.series.length - 1][1]), y: `owned in ${L.states} countries` },
+              { label: `${L.thisYear} so far`, text: whole(L.soFar), y: s.updated.slice(0, 11) },
+            ]}
+          />
+          <Series t={t} id="ip-sats-launched" rows={L.series} fmt={big} color={SPACEX} height={150} />
+          <Note t={t}>
+            Every payload GCAT's catalogue gives a launch date in the year - satellites, probes and the like, not the rockets that carried them - counted here. The rise since 2019 is
+            mostly the large constellations, Starlink above all.
+          </Note>
+          <Foot sources={[FRONTIER2_SOURCES.satellites]} />
+        </Panel>
+        <Panel t={t} title={`Whose they were, ${L.lastFull}`} meta="payloads launched · by owning state">
+          <SlimBars labelWidth="6.5rem" rows={L.byState.slice(0, 10).map(([n, , v], i) => ({ key: n, label: n, v, color: n === "United States" ? SPACEX : INK[(i + 2) % INK.length] }))} fmt={whole} />
+          <Note t={t}>The state GCAT gives as each payload's owner - where the satellite's operator is, not where it was launched from.</Note>
+          <Foot sources={[FRONTIER2_SOURCES.satellites]} />
+        </Panel>
+        <Panel t={t} title={`What they were launched to do, ${L.lastFull}`} meta="payloads launched · by GCAT's category">
+          <SlimBars labelWidth="7.5rem" rows={L.byUse.slice(0, 10).map(([n, v], i) => ({ key: n, label: n, v, color: INK[(i + 4) % INK.length] }))} fmt={whole} />
+          <Foot sources={[FRONTIER2_SOURCES.satellites]} />
+        </Panel>
+        <Panel t={t} title={`Whose, ${L.thisYear} so far`} meta="payloads launched · by owning state">
+          <SlimBars labelWidth="6.5rem" rows={L.byStateNow.slice(0, 10).map(([n, , v], i) => ({ key: n, label: n, v, color: n === "United States" ? SPACEX : INK[(i + 2) % INK.length] }))} fmt={whole} />
+          <Note t={t}>The year is under way: these are the payloads launched up to GCAT's latest update, {s.updated.slice(0, 11)}.</Note>
+          <Foot sources={[FRONTIER2_SOURCES.satellites]} />
+        </Panel>
+      </Row>
       <Row>
         <Panel t={t} title="Satellites and probes working" meta={`GCAT · ${w[0][0]}–${s.updated.slice(0, 4)}`} className="md:!basis-full xl:!basis-[calc(66.666%-0.25rem)]">
           <Tiles
