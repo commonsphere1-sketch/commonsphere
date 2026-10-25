@@ -9069,10 +9069,10 @@ export function CountriesPage() {
         {/* ── DATA EXPLORER: the Dashboard's countries panel, on its own ── */}
         <DataExplorer only="countries" onOpenCountry={setModalCountry} />
 
-        {/* ── SEARCH + FILTER BAR ── */}
+        {/* ── SEARCH + FILTER BAR: set apart from the explorer above it, as asked, not touching it ── */}
         <FilterBar
           label="Country filters"
-          className="mb-5"
+          className="mt-5 mb-5"
           search={{
             value: search,
             onChange: setSearch,
