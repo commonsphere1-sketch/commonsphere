@@ -58,6 +58,9 @@ import { Link } from "react-router-dom";
 import { usStatesData } from "../data/statesData";
 import { citiesData } from "../data/citiesData";
 import { MapLabels, anchorOf, placeLabels, type LabelCandidate } from "./MapLabels";
+import { CountryOutline, DivisionOutline } from "./PlaceOutlines";
+import { OutlineMap } from "./OutlineMap";
+import type { Outline } from "../lib/outlines";
 
 type Reading = { v: number; y: string };
 type Measure = {
@@ -482,6 +485,35 @@ function PickedColumn({ code, name, t, region, onClearRegion, pressed, onClearPr
       )}
       {sources.length > 0 && <SourceLink sources={sources} />}
     </div>
+  );
+}
+
+/**
+ * A miniature map of what is picked on the Worldview map, as asked, set above its figures: the country with its divisions
+ * (its far-off parts a swipe away), or the state or province pressed with its counties or districts, or the county itself,
+ * or the city marked on its country - as the windows draw their maps, in this map's one colour.
+ */
+function AreaMiniMap({ t, code, country, place, city }: { t: Tokens; code: string; country: string; place: PressedPlace | null; city?: { name: string; lon: number; lat: number } }) {
+  const what =
+    place?.kind === "region" ? place.name : place?.kind === "county" ? [place.name, place.parent].filter(Boolean).join(", ") : place?.kind === "city" ? place.name : country;
+  const countyGeo = place?.kind === "county" ? (place.geo as { geometry?: Outline["geometry"] } | undefined) : undefined;
+  return (
+    <section className="rounded-xl flex flex-col min-w-0" style={{ background: t.cardBg, border: t.cardBorder }} aria-label={`Where ${what} is`}>
+      <div className="flex items-baseline gap-2 px-3.5 pt-3 pb-2 border-b" style={{ borderColor: t.gridLine }}>
+        <h3 className="text-[10px] font-mono uppercase tracking-widest flex-1 min-w-0 truncate" style={{ color: t.headText }}>
+          Where it is · {what}
+        </h3>
+      </div>
+      <div className="p-3.5 w-full max-w-2xl mx-auto">
+        {place?.kind === "region" ? (
+          <DivisionOutline code={code} name={place.name} color={MAP_INK} className="" />
+        ) : place?.kind === "county" && countyGeo?.geometry ? (
+          <OutlineMap shapes={[{ type: "Feature", properties: { n: place.name }, geometry: countyGeo.geometry }]} color={MAP_INK} label={`The outline of ${what}`} />
+        ) : (
+          <CountryOutline code={code} name={country} color={MAP_INK} className="" mark={place?.kind === "city" && city ? { id: city.name, name: city.name, lon: city.lon, lat: city.lat } : undefined} />
+        )}
+      </div>
+    </section>
   );
 }
 
@@ -976,7 +1008,13 @@ export default function WorldviewMap() {
         : region
           ? { kind: "region", cc: picked, name: region, cities: regionShape ? inside(regionShape.geo) : [], geo: regionShape?.geo }
           : null;
-      return place ? <PlaceFigures key={`${place.kind}-${place.name}`} place={place} country={pickedName} /> : null;
+      return (
+        <>
+          {/* A miniature map of what is picked, as asked, above its figures: the country, or the state, county or city pressed in it. */}
+          <AreaMiniMap t={t} code={picked} country={pickedName} place={place} city={cityAt ? { name: cityAt.name, lon: cityAt.lon, lat: cityAt.lat } : undefined} />
+          {place && <PlaceFigures key={`${place.kind}-${place.name}`} place={place} country={pickedName} />}
+        </>
+      );
     })()}
     <CountryDashboard code={picked} name={pickedName} />
     </>

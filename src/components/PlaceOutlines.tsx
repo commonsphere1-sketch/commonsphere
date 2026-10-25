@@ -40,6 +40,7 @@ export function CountryOutline({
   mark,
   className = "mb-4",
   onDot,
+  color,
 }: {
   /** The country's ISO code. */
   code: string;
@@ -53,6 +54,8 @@ export function CountryOutline({
   className?: string;
   /** What a press on one of the window's own dots does. A listed place goes to its window on the Municipalities page without being told. */
   onDot?: (d: MapDot) => void;
+  /** The colour it is drawn in, where not its flag's: a page that draws every country in one colour. */
+  color?: string;
 }) {
   const navigate = useNavigate();
   const drawn = useAdmin1(code);
@@ -83,7 +86,7 @@ export function CountryOutline({
         onPart={second ? (i) => navigate(second.open(i)) : undefined}
         dots={shown}
         mark={mark}
-        color={flagColor(code) ?? COLOR}
+        color={color ?? flagColor(code) ?? COLOR}
  label={`${name} and its ${drawn.length} divisions${mark ? `, with ${mark.name} marked` : shown.length ? `, with ${shown.length} places` : ""}`} />
       <p className="text-[10px] font-sans text-muted-foreground leading-snug mt-1">
         {name}'s divisions as the site's maps draw them
@@ -96,22 +99,31 @@ export function CountryOutline({
   );
 }
 
+/** A US state's outline: a division of the United States. */
 export function StateOutline({ name, className = "mb-4" }: { /** The state's name, as the maps have it. */ name: string; className?: string }) {
+  return <DivisionOutline code="US" name={name} className={className} />;
+}
+
+/**
+ * A first-order division's outline - a state, a province, a region - among its country's, with its counties or districts
+ * where they are held and the places GeoNames lists inside it: as a US state's window shows it, for any country.
+ */
+export function DivisionOutline({ code, name, className = "mb-4", color }: { code: string; /** The division's name, as the maps have it. */ name: string; className?: string; color?: string }) {
   const navigate = useNavigate();
-  const drawn = useAdmin1("US");
-  const second = useSecondOrder("US", name);
+  const drawn = useAdmin1(code);
+  const second = useSecondOrder(code, name);
   /* The state from the same tracing as its counties, once they are in, so that the two meet. */
   const shapes = useMemo(() => second?.outline ?? (drawn ? drawn.filter((f) => f.properties.n === name) : []), [second, drawn, name]);
-  const file = usePlacesFile("US");
+  const file = usePlacesFile(code);
   const rows = useMemo(() => (shapes[0] && file ? placesWithin(shapes[0], file.places) : null), [shapes, file]);
   const dots = useMemo(() => placeDots(rows ?? [], 300, file), [rows, file]);
   if (!shapes.length) return null;
   return (
     <div className={className}>
-      <OutlineMap onDot={(d) => navigate(`/dashboard/subnations?open=place:US:${d.id}`)} shapes={shapes} inner={second?.inner} parts={second?.lines} onPart={second ? (i) => navigate(second.open(i)) : undefined} dots={dots} color={flagColor("US") ?? COLOR} label={`The outline of ${name}, with ${dots.length} of the places listed inside it`} />
+      <OutlineMap onDot={(d) => navigate(`/dashboard/subnations?open=place:${code}:${d.id}`)} shapes={shapes} inner={second?.inner} parts={second?.lines} onPart={second ? (i) => navigate(second.open(i)) : undefined} dots={dots} color={color ?? flagColor(code) ?? COLOR} label={`The outline of ${name}, with ${dots.length} of the places listed inside it`} />
       <p className="text-[10px] font-sans text-muted-foreground leading-snug mt-1">
-        {name} as the site's maps draw it{second ? `, with its ${second.lines.length} counties' borders` : ""}
-        {rows ? `, with the ${rows.length > dots.length ? `${dots.length} largest of the ${rows.length.toLocaleString("en-US")}` : rows.length.toLocaleString("en-US")} places GeoNames lists inside it as dots - point at one for its name and its county, and press it for its own window` : ""}. Which
+        {name} as the site's maps draw it{second ? `, with its ${second.lines.length} ${second.are}' borders` : ""}
+        {rows ? `, with the ${rows.length > dots.length ? `${dots.length} largest of the ${rows.length.toLocaleString("en-US")}` : rows.length.toLocaleString("en-US")} places GeoNames lists inside it as dots - point at one for its name and what it lies in, and press it for its own window` : ""}. Which
 
         places lie inside it is worked out here from the outline, so one at its very edge can fall on the other side.
       </p>
