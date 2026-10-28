@@ -1019,13 +1019,18 @@ function ProfileStrip({
 
   const open = placed.find((x) => x.m.id === (hovered ?? picked)) ?? null;
   return (
-    /* Two columns on a wide window: the heading over the bars on the left; the buttons and, under them, the details of
-       the bar pointed at on the right, upright - they lay across the foot of the panel, a scroll below the bars they
-       are about. On a narrow one the details go under the bars, as they did. */
-    <div className="grid grid-cols-[minmax(0,1fr)_auto] md:grid-cols-[minmax(0,1fr)_17rem] items-start gap-x-4 gap-y-3">
+    /* The heading and the buttons across the top; under them the bars, across the whole width in three rows on a wide
+       window, as asked; and under the bars the details of the one pointed at. On a narrow window the bars wrap as they fit. */
+    <div className="grid grid-cols-[minmax(0,1fr)_auto] items-start gap-x-4 gap-y-3">
       <div className="min-w-0">{head}</div>
       <div className="flex justify-end">{actions}</div>
-      <div className="col-span-2 md:col-span-1 flex flex-wrap items-end gap-x-1 gap-y-3 pb-1" role="group" aria-label={`${row.name}: its placing on each measure`}>
+      <div
+        className="col-span-2 flex flex-wrap md:grid md:[grid-template-columns:repeat(var(--cols),minmax(0,1fr))] items-end gap-x-1 gap-y-3 pb-1"
+        // Three rows on a wide window: as many columns as a third of the measures, and never fewer than eight, so that a place with few measures does not stretch them across the panel.
+        style={{ ["--cols" as string]: Math.max(8, Math.ceil(placed.length / 3)) }}
+        role="group"
+        aria-label={`${row.name}: its placing on each measure`}
+      >
         {placed.map(({ m, val, p }) => {
           const isOpen = open?.m.id === m.id;
           return (
@@ -1045,7 +1050,7 @@ function ProfileStrip({
               // Fixed narrow columns, not flex-1: an entity with three measures
               // would otherwise stretch three bars across the whole panel, which
               // reads as a chart of something rather than a profile.
-              className={`w-[5.25rem] shrink-0 flex flex-col items-center gap-0.5 rounded-lg px-1 py-1.5 cursor-pointer transition-colors ${isOpen ? "bg-muted/70" : "hover:bg-muted/40"}`}
+              className={`w-[5.25rem] md:w-auto min-w-0 shrink-0 flex flex-col items-center gap-0.5 rounded-lg px-1 py-1.5 cursor-pointer transition-colors ${isOpen ? "bg-muted/70" : "hover:bg-muted/40"}`}
             >
               <span className="text-[10px] font-mono font-bold text-foreground truncate max-w-full">{fmtMetric(m, val)}</span>
               {/* The same bar as the list rows and the Public Policy page. */}
@@ -1064,9 +1069,9 @@ function ProfileStrip({
       </div>
 
       {/* The details of the bar pointed at or selected: what it measures, the figure, its rank, and the range it sits in. */}
-      <div className="col-span-2 md:col-span-1 rounded-lg border border-border bg-background/40 px-3 py-3 min-h-[5.5rem]" aria-live="polite">
+      <div className="col-span-2 rounded-lg border border-border bg-background/40 px-3 py-3 min-h-[5.5rem]" aria-live="polite">
         {open ? (
-          <div className="flex flex-col gap-3.5">
+          <div className="flex flex-col gap-3.5 md:grid md:grid-cols-2 md:gap-x-6">
             <div className="min-w-0">
               <p className="text-xs font-bold font-sans text-foreground flex items-center gap-1.5">
                 <span className={`w-2 h-2 rounded-sm shrink-0 ${colorOf(open.m)}`} aria-hidden />
