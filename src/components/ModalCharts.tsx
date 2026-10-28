@@ -170,10 +170,10 @@ export function PartsBar({ parts, colors = PART_COLORS, label, columns = 2 }: { 
       {/* As many columns as fit with every name in full: a name cut short is no legend. */}
       <ul className="grid gap-x-4 gap-y-1 mt-2" style={{ gridTemplateColumns: columns === 1 ? "1fr" : `repeat(auto-fit, minmax(${columns === 3 ? "7.5rem" : "9rem"}, 1fr))` }}>
         {shown.map((p, i) => (
-          <li key={p.label} className="flex items-baseline gap-1.5 min-w-0">
+          <li key={p.label} className="flex flex-wrap items-baseline gap-x-1.5 min-w-0">
             <span className="w-2 h-2 rounded-full shrink-0 translate-y-px" style={{ background: fill(p, i) }} aria-hidden />
-            <span className="text-[11px] font-sans text-foreground min-w-0 leading-snug">{p.label}</span>
-            <span className="text-[11px] font-mono font-semibold text-foreground ml-auto shrink-0">{p.text}</span>
+            <span className="text-[11px] font-sans text-foreground leading-snug">{p.label}</span>
+            <span className="text-[11px] font-mono font-semibold text-foreground ml-auto whitespace-nowrap">{p.text}</span>
           </li>
         ))}
       </ul>
@@ -259,14 +259,15 @@ export function PartsDonut({ parts, colors = PART_COLORS, label }: { parts: Part
         {shown.map((p, i) => (
           <li
             key={p.label}
-            className="flex items-baseline gap-1.5 min-w-0 rounded-sm"
+            // Where the name and its figure do not fit on one line, the figure goes under it, as asked: it was drawn over the name.
+            className="flex flex-wrap items-baseline gap-x-1.5 min-w-0 rounded-sm"
             style={{ opacity: on && on !== p.label ? 0.45 : 1 }}
             onMouseEnter={() => setOn(p.label)}
             onMouseLeave={() => setOn(null)}
           >
             <span className="w-2 h-2 rounded-full shrink-0 translate-y-px" style={{ background: fill(p, i) }} aria-hidden />
-            <span className="text-[11px] font-sans text-foreground min-w-0 leading-snug">{p.label}</span>
-            <span className="text-[11px] font-mono font-semibold text-foreground ml-auto shrink-0">{p.text}</span>
+            <span className="text-[11px] font-sans text-foreground leading-snug">{p.label}</span>
+            <span className="text-[11px] font-mono font-semibold text-foreground ml-auto whitespace-nowrap">{p.text}</span>
           </li>
         ))}
       </ul>
