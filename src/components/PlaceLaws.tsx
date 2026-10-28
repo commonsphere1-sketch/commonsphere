@@ -16,7 +16,7 @@
  * A country's file is fetched when the tab is opened. Where there is none,
  * or it cannot be read, the tab says so.
  */
-import { Bank, Gavel, Globe, IdentificationCard, Scales, Scroll } from "@phosphor-icons/react";
+import { Bank, IdentificationCard, Scales, Scroll } from "@phosphor-icons/react";
 import { useEffect, useState, type ReactNode } from "react";
 import { COUNTRY_LAW_HELD, COUNTRY_LAW_SOURCES as SRC, type CountryLawFile } from "../data/countryLaw";
 import { PUBLIC_SECURITY, PUBLIC_SECURITY_SOURCES } from "../data/publicSecurity";
@@ -164,17 +164,7 @@ export default function PlaceLaws({ code, country, place }: { /** The country's 
         </Card>
       )}
 
-      {law?.courts && (
-        <Card icon={<Gavel size={15} weight="fill" />} title="Courts" sub="Who judges, and how they come to the bench">
-          <div className="space-y-3">
-            {law.courts.highest && <Said label="Highest court" text={law.courts.highest} />}
-            {law.courts.judges && <Said label="How judges are chosen, and for how long" text={law.courts.judges} />}
-            {law.courts.lower && <Said label="The courts under it" text={law.courts.lower} />}
-          </div>
-          {law.courts.note && <ChartNote className="mt-2.5">The Factbook's note: {law.courts.note}.</ChartNote>}
-        </Card>
-      )}
-
+      {/* The country's courts, and whether it answers to the world's, stood here and further down; both were taken off, as asked. */}
       {(c || law?.suffrage) && (
         <Card icon={<IdentificationCard size={15} weight="fill" />} title="Citizens and voters" sub="Who is a citizen, and who may vote">
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
@@ -188,21 +178,11 @@ export default function PlaceLaws({ code, country, place }: { /** The country's 
         </Card>
       )}
 
-      {law?.world && (
-        <Card icon={<Globe size={15} weight="fill" />} title="The world's courts" sub="Whether it answers to them">
-          <Said text={law.world} />
-          <ChartNote className="mt-2.5">
-            ICJ is the International Court of Justice, which hears disputes between states that accept its jurisdiction; ICCt is the International Criminal Court, which tries people for the gravest crimes where a state is
-            party to its statute. Both lists change, and are linked below.
-          </ChartNote>
-        </Card>
-      )}
-
       <div className="flex items-start gap-2 text-[10px] font-sans text-muted-foreground leading-snug">
         <Bank size={12} className="shrink-0 mt-px" aria-hidden />
         <span>The Factbook's last edition was January 2026: a law made or a court changed since is not in it.</span>
       </div>
-      <SourceLink sources={[...(law?.local ? [SRC.advice, SRC.state] : []), ...(law && (law.system || law.constitution || law.courts || law.citizenship || law.suffrage || law.world) ? [SRC.factbook] : []), ...(rule ? [{ label: PUBLIC_SECURITY_SOURCES.wgi.label, url: PUBLIC_SECURITY_SOURCES.wgi.url }] : []), ...(law?.world ? [SRC.icj, SRC.icc] : [])]} />
+      <SourceLink sources={[...(law?.local ? [SRC.advice, SRC.state] : []), ...(law && (law.system || law.constitution || law.citizenship || law.suffrage) ? [SRC.factbook] : []), ...(rule ? [{ label: PUBLIC_SECURITY_SOURCES.wgi.label, url: PUBLIC_SECURITY_SOURCES.wgi.url }] : [])]} />
     </div>
   );
 }
