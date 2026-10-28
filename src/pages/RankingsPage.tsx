@@ -1017,7 +1017,8 @@ function ProfileStrip({
     );
   }
 
-  const open = placed.find((x) => x.m.id === (hovered ?? picked)) ?? null;
+  // A measure pressed is selected and stays, as asked: pointing at another shows it only while none is selected.
+  const open = placed.find((x) => x.m.id === (picked ?? hovered)) ?? null;
   return (
     /* The heading and the buttons across the top; under them the bars, across the whole width in three rows on a wide
        window, as asked; and under the bars the details of the one pointed at. On a narrow window the bars wrap as they fit. */
@@ -1050,7 +1051,7 @@ function ProfileStrip({
               // Fixed narrow columns, not flex-1: an entity with three measures
               // would otherwise stretch three bars across the whole panel, which
               // reads as a chart of something rather than a profile.
-              className={`w-[5.25rem] md:w-auto min-w-0 shrink-0 flex flex-col items-center gap-0.5 rounded-lg px-1 py-1.5 cursor-pointer transition-colors ${isOpen ? "bg-muted/70" : "hover:bg-muted/40"}`}
+              className={`w-[5.25rem] md:w-auto min-w-0 shrink-0 flex flex-col items-center gap-0.5 rounded-lg px-1 py-1.5 cursor-pointer transition-colors border ${picked === m.id ? "bg-muted/70 border-foreground/40 shadow-sm" : isOpen ? "bg-muted/50 border-transparent" : "border-transparent hover:bg-muted/40 hover:border-border"}`}
             >
               <span className="text-[10px] font-mono font-bold text-foreground truncate max-w-full">{fmtMetric(m, val)}</span>
               {/* The same bar as the list rows and the Public Policy page. */}
@@ -1089,6 +1090,11 @@ function ProfileStrip({
                     ? "Ranked highest first: a higher figure places better."
                     : "Ranked lowest first: a lower figure places better."}
               </p>
+              {picked && (
+                <button type="button" onClick={() => setPicked(null)} className="mt-1.5 text-[10px] font-sans font-semibold text-foreground/80 underline hover:text-foreground cursor-pointer">
+                  Selected - press it again, or here, to let it go
+                </button>
+              )}
             </div>
             <div className="min-w-0">
               <p className="text-[9px] font-mono uppercase tracking-widest text-muted-foreground mb-1.5">Where the figure falls, lowest to highest</p>
@@ -1120,7 +1126,7 @@ function ProfileStrip({
           </div>
         ) : (
           <p className="text-[11px] font-sans text-muted-foreground leading-snug">
-            Point at a bar, or select it, for what it measures, {row.name}'s rank on it, and the lowest, middle and highest figures among all the places
+            Point at a bar, or press it to select it, for what it measures, {row.name}'s rank on it, and the lowest, middle and highest figures among all the places
             that have it.
           </p>
         )}
