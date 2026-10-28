@@ -51,6 +51,10 @@ function launches() {
   }
   const byYear = {};
   const agencies = {};
+  /* Each attempt of the last full year and this one: [date, rocket, mission, agency, its state, reached orbit 1 or 0]. */
+  const listYears = [new Date().getFullYear() - 1, new Date().getFullYear()];
+  const listed = {};
+  const MONTH = { Jan: "01", Feb: "02", Mar: "03", Apr: "04", May: "05", Jun: "06", Jul: "07", Aug: "08", Sep: "09", Oct: "10", Nov: "11", Dec: "12" };
   for (const line of tsv.split("\n")) {
     if (!line || line.startsWith("#")) continue;
     const c = line.split("\t");
@@ -63,6 +67,15 @@ function launches() {
     if (code[1] === "S") e.ok++;
     if (ag === "SPX") e.spacex++;
     ((agencies[y] ||= {})[ag] ||= 0), agencies[y][ag]++;
+    if (listYears.includes(y)) {
+      const m = c[2].trim().match(/^(\d{4}) (\w{3}) +(\d{1,2})/);
+      const day = m ? `${m[1]}-${MONTH[m[2]] || "??"}-${m[3].padStart(2, "0")}` : c[2].trim();
+      const dash = (s) => (s && s.trim() !== "-" ? s.trim() : "");
+      const rocket = [dash(c[3]), dash(c[4])].filter(Boolean).join(" ");
+      const mission = dash(c[8]) || dash(c[7]) || c[0].trim();
+      const org = orgName.get(ag);
+      (listed[y] ||= []).push([day, rocket, mission, org?.name ?? ag, org?.state ?? "", code[1] === "S" ? 1 : 0]);
+    }
   }
   const thisYear = new Date().getFullYear();
   const lastFull = thisYear - 1;
@@ -75,7 +88,44 @@ function launches() {
     .filter((y) => y >= 1957)
     .sort((a, b) => a - b)
     .map((y) => [y, byYear[y].total, byYear[y].ok, byYear[y].spacex]);
-  return { series, top, lastFull, thisYear, updated };
+  const list = listYears.filter((y) => listed[y]?.length).map((y) => ({ year: y, rows: listed[y].sort((a, b) => b[0].localeCompare(a[0])) }));
+  return { series, top, lastFull, thisYear, updated, list };
+}
+
+/* ── AI: Epoch AI's notable models ── */
+/** A CSV line's fields, quoted fields and doubled quotes read as written. */
+function csvRows(text) {
+  const rows = [];
+  let row = [], field = "", q = false;
+  for (let i = 0; i < text.length; i++) {
+    const ch = text[i];
+    if (q) {
+      if (ch === '"' && text[i + 1] === '"') { field += '"'; i++; }
+      else if (ch === '"') q = false;
+      else field += ch;
+    } else if (ch === '"') q = true;
+    else if (ch === ",") { row.push(field); field = ""; }
+    else if (ch === "\n" || ch === "\r") {
+      if (ch === "\r" && text[i + 1] === "\n") i++;
+      row.push(field); rows.push(row); row = []; field = "";
+    } else field += ch;
+  }
+  if (field || row.length) { row.push(field); rows.push(row); }
+  return rows;
+}
+function aiModels() {
+  const [head, ...rows] = csvRows(get("https://epoch.ai/data/notable_ai_models.csv", "epoch_notable.csv"));
+  const col = (n) => { const i = head.indexOf(n); if (i < 0) throw new Error(`Epoch: no "${n}" column`); return i; };
+  const [M, O, D, DOM, C] = ["Model", "Organization", "Publication date", "Domain", "Country (of organization)"].map(col);
+  const years = [new Date().getFullYear() - 1, new Date().getFullYear()];
+  const by = {};
+  for (const r of rows) {
+    const d = (r[D] || "").trim();
+    const y = Number(d.slice(0, 4));
+    if (!years.includes(y) || !r[M]) continue;
+    (by[y] ||= []).push([r[M].trim(), (r[O] || "").trim(), d.slice(0, 10), (r[DOM] || "").trim(), (r[C] || "").trim()]);
+  }
+  return years.filter((y) => by[y]?.length).map((y) => ({ year: y, rows: by[y].sort((a, b) => b[2].localeCompare(a[2])) }));
 }
 
 /* ── Space: UNOOSA via Our World in Data ── */
@@ -147,6 +197,8 @@ function approvals() {
   const aggregates = new Set(countries.filter((c) => c.region?.value === "Aggregates").map((c) => c.id));
 
   const L = launches();
+  const AI = aiModels();
+  if (!AI.length || AI[0].rows.length < 20) throw new Error(`Epoch: only ${AI[0]?.rows.length ?? 0} notable models read for the last full year`);
   const O = objects();
   const rd = wb("GB.XPD.RSDV.GD.ZS", "rd");
   const rdTop = wbTop("GB.XPD.RSDV.GD.ZS", "rd", aggregates);
@@ -164,6 +216,7 @@ function approvals() {
   const f24 = fda.find(([y]) => y === 2024);
   if (f24 && f24[1] !== 50) throw new Error(`FDA 2024 approvals ${f24[1]}: the table was not read right`);
   for (const [y, n] of fda) if (drugsOf[y] && drugsOf[y].length !== n) throw new Error(`FDA ${y}: ${drugsOf[y].length} medicines read of ${n} rows`);
+  for (const { year, rows } of L.list) { const s = L.series.find(([y]) => y === year); if (!s || s[1] !== rows.length) throw new Error(`launches ${year}: ${rows.length} listed of ${s && s[1]} counted`); }
 
   const pat = patRes.map(([y, r]) => [y, r, patNon.find(([x]) => x === y)?.[1] ?? null]);
   const today = new Date().toISOString().slice(0, 10);
@@ -191,11 +244,16 @@ export const INNOVATION_SOURCES = {
   articles: { label: "World Bank — World Development Indicators: scientific and technical journal articles (National Science Foundation), IP.JRN.ARTC.SC (CC BY 4.0)", url: "https://data.worldbank.org/indicator/IP.JRN.ARTC.SC" },
   patents: { label: "World Bank — World Development Indicators: patent applications, residents and non-residents (WIPO), IP.PAT.RESD and IP.PAT.NRES (CC BY 4.0)", url: "https://data.worldbank.org/indicator/IP.PAT.RESD" },
   fda: { label: "US Food and Drug Administration — Novel Drug Approvals, by year (public domain)", url: "https://www.fda.gov/drugs/development-approval-process-drugs/novel-drug-approvals-fda" },
+  epoch: { label: "Epoch AI — Notable AI Models (CC BY 4.0)", url: "https://epoch.ai/data/notable-ai-models" },
 };
 
 /** Orbital launch attempts by year: [year, all attempts, those that reached orbit, SpaceX's]. The last year is under way. */
 export const ORBITAL_LAUNCHES: [year: number, total: number, success: number, spacex: number][] = ${J(L.series)};
 export const LAUNCHES_PARTIAL_YEAR = ${L.thisYear};
+/** Every orbital launch attempt of the last full year and this one so far, newest first: [date, rocket, mission, launch agency, its state code, reached orbit 1 or 0]. */
+export const LAUNCH_LIST: { year: number; rows: [date: string, rocket: string, mission: string, agency: string, state: string, ok: number][] }[] = ${J(L.list)};
+/** Every notable AI model Epoch AI lists for the last full year and this one so far, newest first: [model, organisation, publication date, domain, country of the organisation]. */
+export const AI_MODELS: { year: number; rows: [model: string, organisation: string, date: string, domain: string, country: string][] }[] = ${J(AI)};
 /** The ten launch agencies with the most orbital launch attempts in ${L.lastFull}: [name, GCAT's state code, attempts]. */
 export const LAUNCH_AGENCIES: { year: number; rows: [name: string, state: string, n: number][] } = { year: ${L.lastFull}, rows: ${J(L.top)} };
 

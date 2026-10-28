@@ -14,7 +14,7 @@
  */
 import { useState, type ReactNode } from "react";
 import { Area, AreaChart, Bar, BarChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
-import { ORBITAL_LAUNCHES, LAUNCHES_PARTIAL_YEAR, LAUNCH_AGENCIES, SPACE_OBJECTS, RD_SHARE, RESEARCHERS, ARTICLES, PATENTS, FDA_APPROVALS, FDA_DRUGS, INNOVATION_SOURCES } from "../data/innovation";
+import { ORBITAL_LAUNCHES, LAUNCHES_PARTIAL_YEAR, LAUNCH_AGENCIES, SPACE_OBJECTS, RD_SHARE, RESEARCHERS, ARTICLES, PATENTS, FDA_APPROVALS, FDA_DRUGS, LAUNCH_LIST, AI_MODELS, INNOVATION_SOURCES } from "../data/innovation";
 import { GENOME_COST } from "../data/technology";
 import { BATTERY_CELL_PRICE } from "../data/renewables";
 import { SATELLITES, SATELLITES_LAUNCHED, SATELLITES_WORKING, RD_BUDGETS, RD_BUDGET_SERIES, RD_OBJECTIVES, SCANNERS, SCANNER_KINDS, FRONTIER2_SOURCES } from "../data/frontiers2";
@@ -130,6 +130,7 @@ function Space({ t }: { t: Tokens }) {
           <SlimBars labelWidth="6.5rem" rows={SPACE_OBJECTS.top.map(([n, v], i) => ({ key: n, label: n, v, color: INK[i % INK.length] }))} fmt={whole} />
           <Foot sources={[INNOVATION_SOURCES.unoosa]} />
         </Panel>
+        <Launches t={t} />
       </Row>
     </section>
   );
@@ -211,43 +212,95 @@ function Medicine({ t }: { t: Tokens }) {
   );
 }
 
+/** One item of a named list: its name, a word after it, its date, and a line under it. */
+type Named = { key: string; name: string; sub?: string; date: string; line: string; faint?: boolean };
+
 /**
- * The new medicines themselves, as asked: each the FDA approved in a year, by name, with its active ingredient, the day it
- * was approved and the use the FDA approved it for, in the FDA's own words - the rows of its table. Filtered by any word.
+ * A named list, as the new medicines' is and as asked for every field: the items of a year, a year at a time, each by its
+ * name with its date and a line on what it is, newest first, filtered by any word. The items are the source's own rows.
  */
-function NewMedicines({ t }: { t: Tokens }) {
-  const [year, setYear] = useState(FDA_DRUGS[0]?.year);
+function NamedList({ t, title, meta, groups, note, sources, filter }: { t: Tokens; title: string; meta: string; groups: { year: number; rows: Named[] }[]; note: ReactNode; sources: { label: string; url: string }[]; filter: string }) {
+  const [year, setYear] = useState(groups[0]?.year);
   const [q, setQ] = useState("");
-  const list = FDA_DRUGS.find((d) => d.year === year)?.rows ?? [];
+  if (!groups.length) return null;
+  const list = groups.find((g) => g.year === year)?.rows ?? [];
   const needle = q.trim().toLowerCase();
-  const shown = needle ? list.filter((r) => r.join(" ").toLowerCase().includes(needle)) : list;
-  if (!FDA_DRUGS.length) return null;
+  const shown = needle ? list.filter((r) => `${r.name} ${r.sub ?? ""} ${r.line}`.toLowerCase().includes(needle)) : list;
   const thisYear = new Date().getFullYear();
   return (
-    <Panel t={t} title="The new medicines, by name" meta={`FDA · novel drug approvals · ${year}${year === thisYear ? " so far" : ""}`} className="md:!basis-full xl:!basis-full">
+    <Panel t={t} title={title} meta={`${meta} · ${year}${year === thisYear ? " so far" : ""}`} className="md:!basis-full xl:!basis-full">
       <div className="flex flex-wrap items-center gap-1.5">
-        {FDA_DRUGS.map((d) => (
-          <button key={d.year} type="button" onClick={() => setYear(d.year)} aria-pressed={year === d.year} className={`px-3 py-1 rounded-full text-[11px] font-medium font-sans border transition-colors cursor-pointer ${year === d.year ? "chip-selected" : "bg-transparent border-border text-muted-foreground hover:text-foreground hover:bg-muted/60"}`}>
-            {d.year}{d.year === thisYear ? " so far" : ""} · {d.rows.length}
+        {groups.map((g) => (
+          <button key={g.year} type="button" onClick={() => setYear(g.year)} aria-pressed={year === g.year} className={`px-3 py-1 rounded-full text-[11px] font-medium font-sans border transition-colors cursor-pointer ${year === g.year ? "chip-selected" : "bg-transparent border-border text-muted-foreground hover:text-foreground hover:bg-muted/60"}`}>
+            {g.year}{g.year === thisYear ? " so far" : ""} · {whole(g.rows.length)}
           </button>
         ))}
-        <input type="search" value={q} onChange={(e) => setQ(e.target.value)} placeholder="Filter by name or use…" aria-label="Filter the medicines" className="ml-auto w-48 rounded-full border border-border bg-transparent px-3 py-1 text-[11px] font-sans text-foreground outline-none placeholder:text-muted-foreground" />
+        <input type="search" value={q} onChange={(e) => setQ(e.target.value)} placeholder={filter} aria-label={`Filter: ${title}`} className="ml-auto w-48 rounded-full border border-border bg-transparent px-3 py-1 text-[11px] font-sans text-foreground outline-none placeholder:text-muted-foreground" />
       </div>
       <ul className="max-h-[26rem] overflow-y-auto divide-y divide-border rounded-lg border border-border">
-        {shown.map(([name, ingredient, date, use]) => (
-          <li key={`${name}-${date}`} className="px-3 py-2 flex flex-col gap-0.5">
+        {shown.map((r) => (
+          <li key={r.key} className={`px-3 py-2 flex flex-col gap-0.5 ${r.faint ? "opacity-70" : ""}`}>
             <p className="text-xs font-sans text-foreground">
-              <span className="font-semibold">{name}</span> <span className="text-muted-foreground">({ingredient})</span>
-              <span className="float-right text-[10px] font-mono text-muted-foreground">{date}</span>
+              <span className="font-semibold">{r.name}</span>
+              {r.sub && <span className="text-muted-foreground"> ({r.sub})</span>}
+              <span className="float-right text-[10px] font-mono text-muted-foreground">{r.date}</span>
             </p>
-            <p className="text-[11px] font-sans text-muted-foreground leading-snug">{use}</p>
+            <p className="text-[11px] font-sans text-muted-foreground leading-snug">{r.line}</p>
           </li>
         ))}
-        {!shown.length && <li className="px-3 py-4 text-center text-[11px] font-sans text-muted-foreground">No medicine matches.</li>}
+        {!shown.length && <li className="px-3 py-4 text-center text-[11px] font-sans text-muted-foreground">Nothing matches.</li>}
       </ul>
-      <Note t={t}>Each medicine the FDA's Center for Drug Evaluation and Research approved as new that year, with the use it approved on that day, in the FDA's own words: a use approved later is not added.</Note>
-      <Foot sources={[INNOVATION_SOURCES.fda]} />
+      <Note t={t}>{note}</Note>
+      <Foot sources={sources} />
     </Panel>
+  );
+}
+
+/** The new medicines themselves, as asked: each the FDA approved in a year, by name, ingredient, date and approved use. */
+function NewMedicines({ t }: { t: Tokens }) {
+  return (
+    <NamedList
+      t={t}
+      title="The new medicines, by name"
+      meta="FDA · novel drug approvals"
+      filter="Filter by name or use…"
+      groups={FDA_DRUGS.map((g) => ({ year: g.year, rows: g.rows.map(([name, ingredient, date, use]) => ({ key: `${name}-${date}`, name, sub: ingredient, date, line: use })) }))}
+      note="Each medicine the FDA's Center for Drug Evaluation and Research approved as new that year, with the use it approved on that day, in the FDA's own words: a use approved later is not added."
+      sources={[INNOVATION_SOURCES.fda]}
+    />
+  );
+}
+
+/** Every orbital launch attempt of the year, by its mission, rocket and launcher, as GCAT lists it. */
+function Launches({ t }: { t: Tokens }) {
+  return (
+    <NamedList
+      t={t}
+      title="The launches, by name"
+      meta="GCAT · orbital launch attempts"
+      filter="Filter by mission, rocket or launcher…"
+      groups={LAUNCH_LIST.map((g) => ({
+        year: g.year,
+        rows: g.rows.map(([date, rocket, mission, agency, state, ok], i) => ({ key: `${date}-${mission}-${i}`, name: mission, sub: rocket, date, line: `${agency}${state ? ` · ${state}` : ""} · ${ok ? "reached orbit" : "did not reach orbit"}`, faint: !ok })),
+      }))}
+      note="Each orbital launch attempt GCAT lists for the year, successful or not, by its mission or payload, the rocket, and the launch agency with the state code GCAT gives it. A failed launch is set fainter."
+      sources={[INNOVATION_SOURCES.gcat]}
+    />
+  );
+}
+
+/** Every notable AI model of the year, by its maker, field and country, as Epoch AI lists it. */
+function AiModels({ t }: { t: Tokens }) {
+  return (
+    <NamedList
+      t={t}
+      title="The AI models, by name"
+      meta="Epoch AI · notable models"
+      filter="Filter by model, maker or field…"
+      groups={AI_MODELS.map((g) => ({ year: g.year, rows: g.rows.map(([model, org, date, domain, country], i) => ({ key: `${model}-${date}-${i}`, name: model, sub: org, date, line: [domain, country].filter(Boolean).join(" · ") })) }))}
+      note="Each AI model Epoch AI counts as notable that year - one that set a record, was widely used or cited, or mattered historically, by its own criteria - with the organisation that made it, the field it works in and the organisation's country."
+      sources={[INNOVATION_SOURCES.epoch]}
+    />
   );
 }
 
@@ -458,6 +511,7 @@ function AI({ t }: { t: Tokens }) {
           <Note t={t}>Each system's training computation in petaFLOP, as Epoch AI estimates it from what its makers published.</Note>
           <Foot sources={[FRONTIER_SOURCES.aiCompute]} />
         </Panel>
+        <AiModels t={t} />
       </Row>
     </section>
   );
