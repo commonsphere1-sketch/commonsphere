@@ -74,7 +74,8 @@ const TABS: TabDef[] = [
   { id: "countries", label: "Countries", color: "#6366f1", path: "/dashboard/countries", Icon: Globe },
   { id: "economies", label: "Economies", color: "#f59e0b", path: "/dashboard/economies", Icon: ChartBar },
   { id: "resources", label: "Resources", color: "#059669", path: "/dashboard/economies?view=resources", Icon: Tree },
-  { id: "trends", label: "Developments", color: "#0ea5e9", path: "/dashboard/trends", Icon: ChartLine },
+  // The Developments page was taken off: its figures stay here, with no page to open.
+  { id: "trends", label: "Developments", color: "#0ea5e9", path: "", Icon: ChartLine },
   // The explorers added since: power; political theories and forms of governance; revolutions, protests and boycotts; the climate.
   // Geopolitics and the ideologies were one tab, and are two as asked: each is a half of the Worldview page's explorer.
   { id: "geopolitics", label: "Geopolitics", color: "#6366f1", path: "/dashboard/worldview", Icon: GlobeHemisphereWest },
@@ -266,7 +267,7 @@ export function DataExplorer({
           {tab === "resources" ? (
             <ResourcesTab action={toPage} />
           ) : tab === "trends" ? (
-            <TrendsTab embedded action={toPage} />
+            <TrendsTab embedded />
           ) : tab === "geopolitics" ? (
             <GeopoliticsTab embedded only="geopolitics" />
           ) : tab === "ideologies" ? (
@@ -354,7 +355,7 @@ export function DataExplorer({
         <span className="text-[10px] font-mono" style={{ color: t.mutedText }}>
           {footer}
         </span>
-        {pathname !== cur.path && (
+        {cur.path && pathname !== cur.path && (
           <button
             type="button"
             onClick={() => navigate(cur.path)}

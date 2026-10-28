@@ -2588,7 +2588,7 @@ export function DashboardPage() {
             </div>
           }
         >
-          <EnergyOutlook action={{ label: "Full analysis", onClick: () => navigate("/dashboard/trends") }} />
+          <EnergyOutlook />
         </Suspense>
 
         {/* The four drop-down cards - industries, funding, alliances, research - each the full width of the page.

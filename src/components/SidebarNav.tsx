@@ -82,7 +82,6 @@ const analysisNav = [
     end: false,
   },
   // What is changing, field by field: the week's headlines, and the projections and trends behind them. It was "Trends".
-  { to: "/dashboard/trends", label: "Developments", icon: ChartLine, end: false },
   {
     to: "/dashboard/planetary-boundaries",
     label: "Climate",
@@ -137,7 +136,6 @@ const FEATURE_ABOUT: Record<string, string> = {
   "/dashboard/world-leaders": "Who holds office in each country, and the alliances and blocs countries belong to.",
   "/dashboard/policy": "What governments spend and on what, and a calculator to move it from one area to another.",
   "/dashboard/rankings": "Countries, states and systems side by side.",
-  "/dashboard/trends": "Space, AI, clean energy, science, medicine, military technology and the great projects, with what governments budget for research.",
   "/dashboard/planetary-boundaries": "The state of the planet: emissions, temperature, energy and the limits the earth can bear.",
   "/dashboard/crime": "Crime by type and by country, as the UN Office on Drugs and Crime counts it.",
   "/dashboard/maps": "The world mapped by any measure the site holds.",

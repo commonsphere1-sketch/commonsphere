@@ -73,9 +73,6 @@ const WorldviewPage = lazy(() =>
 const CrimeStatsPage = lazy(() =>
   import("./pages/CrimeStatsPage").then((m) => ({ default: m.CrimeStatsPage })),
 );
-const TrendsPage = lazy(() =>
-  import("./pages/TrendsPage").then((m) => ({ default: m.TrendsPage })),
-);
 const RankingsPage = lazy(() =>
   import("./pages/RankingsPage").then((m) => ({ default: m.RankingsPage })),
 );
@@ -141,7 +138,8 @@ export default function App() {
                 element={<PlanetaryBoundariesPage />}
               />
               <Route path="worldview" element={<WorldviewPage />} />
-              <Route path="trends" element={<TrendsPage />} />
+              {/* The Developments page was taken off, as asked (pages/TrendsPage, kept unmounted): a link to it lands on the Dashboard. */}
+              <Route path="trends" element={<Navigate to="/dashboard" replace />} />
               <Route path="crime" element={<CrimeStatsPage />} />
               <Route path="rankings" element={<RankingsPage />} />
               <Route path="indexes" element={<GlobalIndexesPage />} />

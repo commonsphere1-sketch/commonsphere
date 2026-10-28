@@ -63,7 +63,7 @@ export function Card({ t, children, className = "" }: { t: Tokens; children: Rea
   );
 }
 
-export function Head({ t, icon, label, badge, color, cta, to }: { t: Tokens; icon: ReactNode; label: string; badge: string; color: string; cta: string; to: string }) {
+export function Head({ t, icon, label, badge, color, cta, to }: { t: Tokens; icon: ReactNode; label: string; badge: string; color: string; /** The link to the page with the rest, where there is one. */ cta?: string; to?: string }) {
   const navigate = useNavigate();
   return (
     <div className="flex items-center justify-between mb-4">
@@ -76,9 +76,11 @@ export function Head({ t, icon, label, badge, color, cta, to }: { t: Tokens; ico
           {badge}
         </span>
       </div>
-      <button type="button" onClick={() => navigate(to)} className="flex items-center gap-1 text-[11px] font-semibold transition-opacity hover:opacity-70 cursor-pointer shrink-0" style={{ color }}>
-        {cta} <ArrowRight size={11} weight="bold" />
-      </button>
+      {cta && to && (
+        <button type="button" onClick={() => navigate(to)} className="flex items-center gap-1 text-[11px] font-semibold transition-opacity hover:opacity-70 cursor-pointer shrink-0" style={{ color }}>
+          {cta} <ArrowRight size={11} weight="bold" />
+        </button>
+      )}
     </div>
   );
 }
@@ -312,7 +314,7 @@ export function SectorOutlook() {
   const sources = [...new Map(SECTOR_ROWS.map((r) => [r.source.url, { label: publisher(r.source.label), url: r.source.url }])).values()];
   return (
     <Card t={t}>
-      <Head t={t} icon={<ChartLineUp size={14} weight="fill" />} label="Sector Outlook" badge="latest year" color={color} cta="Full Trends" to="/dashboard/trends" />
+      <Head t={t} icon={<ChartLineUp size={14} weight="fill" />} label="Sector Outlook" badge="latest year" color={color} />
       <p className="text-[10px] font-sans leading-snug -mt-2 mb-2" style={{ color: t.mutedText }}>
         What each sector's published series did: its latest year's figure, the year before's, the change between them and on ten years before, and the series itself - what
         happened, not a forecast. Under each, why the figure matters and what it is used for.
