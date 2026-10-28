@@ -18,7 +18,6 @@ import { PlaceTopics } from "../components/PlaceTopics";
 /* Every country's parties and chambers: loaded when a Politics tab opens, not with the page. */
 const PoliticalParties = lazy(() => import("../components/PoliticalParties"));
 /** What public bodies are warning of in the country now: travel advisories, outbreaks, disasters, and the last counts of conflict. */
-const StatusReport = lazy(() => import("../components/StatusReport"));
 /** How the country is governed as the World Bank scores it, and the year there day by day, each line with its report. */
 const PoliticalClimate = lazy(() => import("../components/PoliticalClimate"));
 /** The rows that fill a country's "Politics and government" tile: its legislature and elections, from the records. */
@@ -909,7 +908,7 @@ function CountryModal({
               reported about it now. They stood in the overview and under Governance, the tab now labelled Law; they are one category here. ── */}
           {activeTab === "politics" && (
             <Suspense fallback={null}>
-              <StatusReport code={country.code} country={country.name} className="mb-5" />
+              {/* The status report - travel advisories, health notices, disaster alerts, conflict deaths and refugees - stood first here; it was taken off, as asked (components/StatusReport, unmounted). */}
               <PoliticalClimate code={country.code} country={country.name} className="mb-5" />
               <PoliticalParties code={country.code} name={country.name} className="" />
               <SovereigntyReport country={country} />
