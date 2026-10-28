@@ -145,11 +145,12 @@ export default function EconomyManufacturing({ economy }: { economy: Economy }) 
         </div>
       )}
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 mt-2">
+      {/* Each across the whole width, as the share of GDP above it is, as asked. */}
+      <div className="grid grid-cols-1 gap-2 mt-2">
         {m.value && m.value.length > 2 && (
           <div className="modal-tile rounded-xl p-4" role="img" aria-label={`Manufacturing value added in ${economy.name}: ${m.value.map(([y, v]) => `${y} ${usd(v)}`).join(", ")}.`}>
             <ChartTitle>Value added · current US$</ChartTitle>
-            <ResponsiveContainer width="100%" height={160}>
+            <ResponsiveContainer width="100%" height={190}>
               <AreaChart data={m.value.map(([year, v]) => ({ year, v }))} margin={{ top: 6, right: 8, left: 0, bottom: 0 }}>
                 <CartesianGrid stroke="currentColor" strokeOpacity={0.08} vertical={false} />
                 <XAxis dataKey="year" type="number" domain={["dataMin", "dataMax"]} tick={tick} axisLine={false} tickLine={false} tickCount={5} allowDecimals={false} />
