@@ -6566,10 +6566,7 @@ function StateParties({ state }: { state: USState }) {
               {state.party} · term ends {o.governor.termEnds}
             </p>
           </div>
-          <div>
-            <ChartTitle>US Senate · {o.senators.length} seats</ChartTitle>
-            <PartsBar label={`${state.name}'s seats in the US Senate by party`} columns={3} parts={seats(o.senators, "seat")} />
-          </div>
+          {/* The state's US Senate seats by party stood here; taken off, as asked. */}
           <div>
             <ChartTitle>US House · {o.representatives.length} seat{o.representatives.length === 1 ? "" : "s"}</ChartTitle>
             <PartsBar label={`${state.name}'s seats in the US House by party`} columns={3} parts={seats(o.representatives, "seat")} />
