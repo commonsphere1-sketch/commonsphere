@@ -14,7 +14,7 @@
  */
 import { useState, type ReactNode } from "react";
 import { Area, AreaChart, Bar, BarChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
-import { ORBITAL_LAUNCHES, LAUNCHES_PARTIAL_YEAR, LAUNCH_AGENCIES, SPACE_OBJECTS, RD_SHARE, RESEARCHERS, ARTICLES, PATENTS, FDA_APPROVALS, INNOVATION_SOURCES } from "../data/innovation";
+import { ORBITAL_LAUNCHES, LAUNCHES_PARTIAL_YEAR, LAUNCH_AGENCIES, SPACE_OBJECTS, RD_SHARE, RESEARCHERS, ARTICLES, PATENTS, FDA_APPROVALS, FDA_DRUGS, INNOVATION_SOURCES } from "../data/innovation";
 import { GENOME_COST } from "../data/technology";
 import { BATTERY_CELL_PRICE } from "../data/renewables";
 import { SATELLITES, SATELLITES_LAUNCHED, SATELLITES_WORKING, RD_BUDGETS, RD_BUDGET_SERIES, RD_OBJECTIVES, SCANNERS, SCANNER_KINDS, FRONTIER2_SOURCES } from "../data/frontiers2";
@@ -189,7 +189,7 @@ function Medicine({ t }: { t: Tokens }) {
   const thisYear = new Date().getFullYear();
   return (
     <section id="medicine-figures" className="scroll-mt-36 flex flex-col gap-3">
-      <Head t={t} title="Medicine and biology" kicker="new medicines, and what it costs to read a human genome" />
+      <Head t={t} title="Medicine and biology" kicker="new medicines - how many, and each by name and what it treats - and what it costs to read a human genome" />
       <Row>
         <Panel t={t} title="New medicines approved in the United States" meta={`FDA · ${FDA_APPROVALS[0]?.[0]}–${FDA_APPROVALS[FDA_APPROVALS.length - 1]?.[0]}`}>
           <SlimColumns height={170} label="Novel drugs the FDA approved each year" rows={FDA_APPROVALS.map(([y, n]) => ({ key: String(y), label: y === thisYear ? `${y}*` : String(y), v: n, faint: y === thisYear }))} fmt={whole} up={INK[6]} />
@@ -205,8 +205,49 @@ function Medicine({ t }: { t: Tokens }) {
           </Note>
           <Foot sources={[GENOME_COST.source]} />
         </Panel>
+        <NewMedicines t={t} />
       </Row>
     </section>
+  );
+}
+
+/**
+ * The new medicines themselves, as asked: each the FDA approved in a year, by name, with its active ingredient, the day it
+ * was approved and the use the FDA approved it for, in the FDA's own words - the rows of its table. Filtered by any word.
+ */
+function NewMedicines({ t }: { t: Tokens }) {
+  const [year, setYear] = useState(FDA_DRUGS[0]?.year);
+  const [q, setQ] = useState("");
+  const list = FDA_DRUGS.find((d) => d.year === year)?.rows ?? [];
+  const needle = q.trim().toLowerCase();
+  const shown = needle ? list.filter((r) => r.join(" ").toLowerCase().includes(needle)) : list;
+  if (!FDA_DRUGS.length) return null;
+  const thisYear = new Date().getFullYear();
+  return (
+    <Panel t={t} title="The new medicines, by name" meta={`FDA · novel drug approvals · ${year}${year === thisYear ? " so far" : ""}`} className="md:!basis-full xl:!basis-full">
+      <div className="flex flex-wrap items-center gap-1.5">
+        {FDA_DRUGS.map((d) => (
+          <button key={d.year} type="button" onClick={() => setYear(d.year)} aria-pressed={year === d.year} className={`px-3 py-1 rounded-full text-[11px] font-medium font-sans border transition-colors cursor-pointer ${year === d.year ? "chip-selected" : "bg-transparent border-border text-muted-foreground hover:text-foreground hover:bg-muted/60"}`}>
+            {d.year}{d.year === thisYear ? " so far" : ""} · {d.rows.length}
+          </button>
+        ))}
+        <input type="search" value={q} onChange={(e) => setQ(e.target.value)} placeholder="Filter by name or use…" aria-label="Filter the medicines" className="ml-auto w-48 rounded-full border border-border bg-transparent px-3 py-1 text-[11px] font-sans text-foreground outline-none placeholder:text-muted-foreground" />
+      </div>
+      <ul className="max-h-[26rem] overflow-y-auto divide-y divide-border rounded-lg border border-border">
+        {shown.map(([name, ingredient, date, use]) => (
+          <li key={`${name}-${date}`} className="px-3 py-2 flex flex-col gap-0.5">
+            <p className="text-xs font-sans text-foreground">
+              <span className="font-semibold">{name}</span> <span className="text-muted-foreground">({ingredient})</span>
+              <span className="float-right text-[10px] font-mono text-muted-foreground">{date}</span>
+            </p>
+            <p className="text-[11px] font-sans text-muted-foreground leading-snug">{use}</p>
+          </li>
+        ))}
+        {!shown.length && <li className="px-3 py-4 text-center text-[11px] font-sans text-muted-foreground">No medicine matches.</li>}
+      </ul>
+      <Note t={t}>Each medicine the FDA's Center for Drug Evaluation and Research approved as new that year, with the use it approved on that day, in the FDA's own words: a use approved later is not added.</Note>
+      <Foot sources={[INNOVATION_SOURCES.fda]} />
+    </Panel>
   );
 }
 

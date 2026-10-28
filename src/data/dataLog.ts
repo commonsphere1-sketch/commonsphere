@@ -22,6 +22,14 @@ export interface DataLogEntry {
 
 export const DATA_LOG: DataLogEntry[] = [
   {
+    "what": "The space race, science and invention, and new medicines: orbital launches by year and by agency, objects launched, R&D spending, researchers, journal articles, patents, novel drug approvals",
+    "from": "GCAT; UNOOSA via Our World in Data; World Bank; US FDA",
+    "page": "/dashboard/trends",
+    "where": "Developments",
+    "read": "2026-10-28",
+    "files": 1
+  },
+  {
     "what": "Satellites and probes working in space, by owner, class and use; government research budgets by objective; MRI, CT and PET scanners per million people",
     "from": "GCAT; OECD GBARD; OECD Health Statistics",
     "page": "/dashboard/trends",
@@ -80,14 +88,6 @@ export const DATA_LOG: DataLogEntry[] = [
   {
     "what": "The frontiers of invention: AI training compute, clean energy costs and capacity, electric cars, robots, supercomputers, nuclear arsenals, the Nobel Prizes in the sciences",
     "from": "Epoch AI, IRENA, Ember, IEA, IFR, TOP500, FAS via Our World in Data; the Nobel Prize",
-    "page": "/dashboard/trends",
-    "where": "Developments",
-    "read": "2026-10-15",
-    "files": 1
-  },
-  {
-    "what": "The space race, science and invention, and new medicines: orbital launches by year and by agency, objects launched, R&D spending, researchers, journal articles, patents, novel drug approvals",
-    "from": "GCAT; UNOOSA via Our World in Data; World Bank; US FDA",
     "page": "/dashboard/trends",
     "where": "Developments",
     "read": "2026-10-15",

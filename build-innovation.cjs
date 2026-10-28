@@ -107,6 +107,21 @@ function wbTop(indicator, name, aggregates) {
 }
 
 /* ── Medicine: the FDA ── */
+/* The medicines of a year's table: [name, active ingredient, approval date as YYYY-MM-DD, the use the FDA approved].
+   The use cell carries the names of links after it - "Drug Trials Snapshot", "Press Release" - which are not its words. */
+const drugsOf = {};
+function rowsOf(table) {
+  const cell = (s) => s.replace(/<[^>]+>/g, " ").replace(/&nbsp;/g, " ").replace(/&amp;/g, "&").replace(/&#039;|&rsquo;/g, "'").replace(/\s+/g, " ").trim();
+  return (table.match(/<tr[\s\S]*?<\/tr>/g) || [])
+    .map((r) => [...r.matchAll(/<td[^>]*>([\s\S]*?)<\/td>/g)].map((m) => cell(m[1])))
+    .filter((c) => c.length >= 5)
+    .map(([, name, ingredient, date, use]) => {
+      const m = date.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})$/);
+      const iso = m ? `${m[3]}-${m[1].padStart(2, "0")}-${m[2].padStart(2, "0")}` : date;
+      const clean = use.replace(/\s*(Drug Trials Snapshot|Press Release|Snapshot)\s*/gi, " ").replace(/\s+/g, " ").trim();
+      return [name, ingredient, iso, clean];
+    });
+}
 function approvals() {
   const out = [];
   for (let y = 2018; y <= new Date().getFullYear(); y++) {
@@ -119,7 +134,10 @@ function approvals() {
     // The approvals are the rows of the page's one table, less its heading.
     const table = (html.match(/<table[\s\S]*?<\/table>/) || [""])[0];
     const rows = (table.match(/<tr[\s>]/g) || []).length - 1;
-    if (rows > 0 && /Novel Drug Approvals for \d{4}/.test(html)) out.push([y, rows]);
+    if (rows > 0 && /Novel Drug Approvals for \d{4}/.test(html)) {
+      out.push([y, rows]);
+      drugsOf[y] = rowsOf(table);
+    }
   }
   return out;
 }
@@ -145,6 +163,7 @@ function approvals() {
   if (!sx24 || sx24[3] < 100) throw new Error(`SpaceX 2024 launches ${sx24 && sx24[3]}: wrong column?`);
   const f24 = fda.find(([y]) => y === 2024);
   if (f24 && f24[1] !== 50) throw new Error(`FDA 2024 approvals ${f24[1]}: the table was not read right`);
+  for (const [y, n] of fda) if (drugsOf[y] && drugsOf[y].length !== n) throw new Error(`FDA ${y}: ${drugsOf[y].length} medicines read of ${n} rows`);
 
   const pat = patRes.map(([y, r]) => [y, r, patNon.find(([x]) => x === y)?.[1] ?? null]);
   const today = new Date().toISOString().slice(0, 10);
@@ -194,6 +213,8 @@ export const PATENTS: { world: [year: number, residents: number, nonResidents: n
 
 /** Novel drugs the FDA's Center for Drug Evaluation and Research approved each year. */
 export const FDA_APPROVALS: [year: number, n: number][] = ${J(fda)};
+/** The medicines themselves, the rows of the FDA's own tables for the last full year and this one so far: [name, active ingredient, approval date, the use it approved on that date]. */
+export const FDA_DRUGS: { year: number; rows: [name: string, ingredient: string, date: string, use: string][] }[] = ${J([new Date().getFullYear() - 1, new Date().getFullYear()].filter((y) => drugsOf[y]?.length).map((y) => ({ year: y, rows: drugsOf[y] })))};
 `,
   );
   console.log(`wrote ${path.relative(__dirname, OUT)}`);

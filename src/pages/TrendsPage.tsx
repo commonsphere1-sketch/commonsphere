@@ -2223,6 +2223,43 @@ export function TrendsPage() {
               )}
               {/* ── Explorer: every figure of the page, by group, beside its detail - as the
                   Countries and Economies pages have their own ── */}
+              {/* Every kind of advancement, innovation and technology the page follows, as asked: field by field, each pressed to open its figures. */}
+              {field.id === "overview" && (
+                <section aria-labelledby="dev-kinds" className="rounded-2xl p-4" style={look.card}>
+                  <div className="flex items-baseline gap-3 pb-3">
+                    <h3 id="dev-kinds" className="text-sm font-bold font-sans" style={{ color: head }}>
+                      Every kind of development here
+                    </h3>
+                    <span className="text-[10px] font-sans" style={{ color: muted }}>
+                      the advancements, innovations and technologies the page follows - press one for its figures
+                    </span>
+                  </div>
+                  <div className="grid gap-x-6 gap-y-3 sm:grid-cols-2 xl:grid-cols-3">
+                    {FIELDS.filter((f) => f.id !== "overview" && f.parts.length).map((f) => (
+                      <div key={f.id} className="min-w-0">
+                        <p className="text-[10px] font-mono uppercase tracking-widest mb-1.5" style={{ color: muted }}>
+                          {f.label}
+                        </p>
+                        <div className="flex flex-wrap gap-1.5">
+                          {f.parts.map((p) => (
+                            <button
+                              key={p.id}
+                              type="button"
+                              onClick={() => {
+                                setParts((w) => ({ ...w, [f.id]: p.id }));
+                                requestAnimationFrame(() => document.getElementById(f.id)?.scrollIntoView({ behavior: "smooth", block: "start" }));
+                              }}
+                              className="px-2.5 py-1 rounded-full text-[11px] font-medium font-sans border border-border text-foreground/85 hover:text-foreground hover:bg-muted/60 transition-colors cursor-pointer"
+                            >
+                              {p.label}
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </section>
+              )}
               {field.id === "overview" && <TrendsExplorer />}
               {/* The Dashboard's drop-down card for the field, under its headlines and over its figures. */}
               {FIELD_DROPS[field.id] && <div className="flex flex-col gap-4">{<DashboardDrops only={FIELD_DROPS[field.id]} />}</div>}
