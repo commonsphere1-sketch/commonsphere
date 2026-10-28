@@ -4,6 +4,7 @@ import { FilterBar } from "../components/FilterBar";
 import { StyledSelect } from "../components/StyledSelect";
 import { NewsTracker } from "../components/NewsTracker";
 import { NewsDesks } from "../components/NewsDesks";
+import { BLUE_HUE } from "../lib/blueHue";
 import { countriesData } from "../data/countriesData";
 import { usStatesData } from "../data/statesData";
 import {
@@ -192,6 +193,8 @@ export function NewsPage() {
           ))}
         </div>
 
+        {/* The headlines in the blue hue of the site's banners, as asked. */}
+        <section aria-label="Every headline" className={`cs-on-hue bg-card ${BLUE_HUE} border border-border rounded-2xl px-4 pb-4 pt-1`}>
         <HeadlineList
           id="news-list"
           label="News"
@@ -219,6 +222,7 @@ export function NewsPage() {
           headline can sit under more than one, or under none; words that mean something else, such as a trade war or an AI
           revolution, are kept out. ★ marks a place you follow.
         </p>
+        </section>
 
         {/* The events tracked by region, below the news, as asked: the public bodies' records beside the headlines. */}
         <div className="mt-8">
