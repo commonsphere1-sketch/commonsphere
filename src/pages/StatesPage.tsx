@@ -5903,10 +5903,7 @@ function StateLawsTab({ state }: { state: USState }) {
       {/* Legal Status Grid — full focus */}
       <LegalStatusGrid state={state} />
 
-      {/* The fuller account, which is the country's: what is illegal and legal in the United States as the UK Foreign Office's travel advice tells it, where much is said to differ from state to state. */}
-      <Suspense fallback={null}>
-        <LegalAndIllegal code="US" country="United States" place={state.name} />
-      </Suspense>
+      {/* What is illegal and legal in the United States as the UK Foreign Office's travel advice tells it stood here; it was taken off, as asked. */}
     </div>
   );
 }
@@ -6037,7 +6034,6 @@ type Holder = { kind: "governor" | "senator" | "representative"; name: string; d
 /** The country's religions, in a state's window: no survey of religion by state is held, and the panel says whose they are. */
 const PeoplePanel = lazy(() => import("../components/PeoplePanel"));
 /** What is illegal and legal in the United States, as the UK Foreign Office's travel advice tells it: under a state's own list. */
-const LegalAndIllegal = lazy(() => import("../components/PlaceLaws").then((m) => ({ default: m.LegalAndIllegal })));
 
 function StateModal({
   state,
@@ -6561,7 +6557,8 @@ function StateParties({ state }: { state: USState }) {
       </div>
       <div className="modal-tile rounded-lg p-4">
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-4">
-          <div>
+          {/* The governor across the top; the seats in the House and the vote for president side by side under it, as asked. */}
+          <div className="sm:col-span-2">
             <ChartTitle>Governor</ChartTitle>
             <p className="text-[12px] font-sans font-semibold text-foreground">{state.governor}</p>
             <p className="text-[11px] font-mono text-muted-foreground mt-0.5 flex items-center gap-1.5">
