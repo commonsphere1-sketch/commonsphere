@@ -54,7 +54,6 @@ import { LAND_USE, LAND_USE_SOURCE } from "@/data/landUse";
 import { useTheme } from "@/contexts/ThemeContext";
 import { HeadlinesBanner } from "@/components/HeadlinesBanner";
 import { SectionNav, type NavSection } from "@/components/SectionNav";
-import { GeopoliticsExplorer } from "@/components/GeopoliticsExplorer";
 import { StatCard, splitChange } from "@/components/StatCard";
 import { CategoryCharts, PILLAR_CHARTS } from "@/components/CategoryCharts";
 import { has } from "@/lib/na";
@@ -894,7 +893,8 @@ function Pill({ label, value, sub, d }: { label: string; value: string; sub: str
   );
 }
 
-function HeadlinePills() {
+/* Taken off the page as asked; kept, and not drawn. */
+export function HeadlinePills() {
   const warming = climateOf("warming");
   const pill = (id: string, label: string, sub?: string) => {
     const ind = WORLD[id];
@@ -1615,7 +1615,6 @@ const SECTIONS: NavSection[] = [
   { id: "place-standing", label: "Standing" },
   { id: "place-history", label: "History" },
   { id: "overview", label: "The world" },
-  { id: "geopolitics", label: "Geopolitics" },
 ];
 
 /** How many of a pillar's measures improved, worsened, or have no verdict, over about ten years. */
@@ -3221,11 +3220,9 @@ export function WorldviewPage() {
           <WorldviewMap />
         </Suspense>
 
-        {/* ── Overview: the wheel of the pillars beside the headline figures, on a wide screen ── */}
-        {/* Side by side on a wide screen, the figures stretched to the wheel's height so that no gap is left beneath them, as asked. */}
-        <section id="overview" className="scroll-mt-36 grid grid-cols-1 xl:grid-cols-2 gap-4 items-stretch">
+        {/* ── Overview: the wheel of the pillars. The headline figures beside it (HeadlinePills) were taken off, as asked. ── */}
+        <section id="overview" className="scroll-mt-36">
           <WorldWheel />
-          <HeadlinePills />
         </section>
 
         <HeadlinesBanner
@@ -3242,10 +3239,7 @@ export function WorldviewPage() {
           )}
         />
 
-        {/* ── Geopolitics: the world's measures of power and conflict, and its alliances, as an explorer ── */}
-        <div id="geopolitics" className="scroll-mt-36">
-          <GeopoliticsExplorer />
-        </div>
+        {/* The Geopolitics explorer stood here and was taken off this page, as asked; the Dashboard keeps it under its Geopolitics and Ideologies tabs. */}
 
         {/* The twelve pillars, the rankings and the note on their sources stood here, and were taken off as asked: the page is
             the map, the place picked on it with every figure held for it, the overview, the headlines and the explorer. The
