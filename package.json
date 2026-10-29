@@ -71,5 +71,8 @@
   },
   "alias": {
     "@/*": "./src/components/ui/$1"
+  },
+  "allowScripts": {
+    "esbuild": true
   }
 }

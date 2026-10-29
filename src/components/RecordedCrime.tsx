@@ -119,18 +119,17 @@ function Head({ look, sub, title, children }: { look: Look; sub: string; title: 
   );
 }
 
-function Toggle<T extends string>({ look, value, onChange, options, color = "#ef4444", label }: { look: Look; value: T; onChange: (v: T) => void; options: { value: T; label: string }[]; color?: string; label: string }) {
+/** The site's chips: the one chosen black in light mode and white in dark, as on every page's switches. */
+const chipClass = (on: boolean) =>
+  `inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-semibold font-sans border transition-colors cursor-pointer whitespace-nowrap ${
+    on ? "chip-selected" : "bg-transparent border-border text-muted-foreground hover:text-foreground hover:bg-muted/60"
+  }`;
+
+function Toggle<T extends string>({ value, onChange, options, label }: { look: Look; value: T; onChange: (v: T) => void; options: { value: T; label: string }[]; color?: string; label: string }) {
   return (
-    <div role="group" aria-label={label} className="flex rounded-lg overflow-hidden text-[10px] font-semibold shrink-0" style={{ border: `1px solid ${look.line}` }}>
+    <div role="group" aria-label={label} className="flex items-center gap-1 shrink-0">
       {options.map((o) => (
-        <button
-          key={o.value}
-          type="button"
-          aria-pressed={value === o.value}
-          onClick={() => onChange(o.value)}
-          className="px-2.5 py-1 transition-colors"
-          style={{ background: value === o.value ? color : "transparent", color: value === o.value ? "#fff" : look.muted }}
-        >
+        <button key={o.value} type="button" aria-pressed={value === o.value} onClick={() => onChange(o.value)} className={chipClass(value === o.value)}>
           {o.label}
         </button>
       ))}
@@ -160,7 +159,7 @@ function Legend({ look, items }: { look: Look; items: { label: string; color: st
     <div className="flex flex-wrap items-center gap-x-4 gap-y-1 mt-3">
       {items.map((l) => (
         <span key={l.label} className="inline-flex items-center gap-1.5 text-[10px] font-sans" style={{ color: look.muted }}>
-          <span className="w-2.5 h-2.5 rounded-sm shrink-0" style={{ background: l.color }} />
+          <span className="w-2 h-2 rounded-full shrink-0" style={{ background: l.color }} />
           {l.label}
         </span>
       ))}
@@ -194,10 +193,10 @@ function StackList({ look, rows, restLabel, totalHead, extraHead }: { look: Look
             <span className="text-[11px] font-sans truncate" style={{ color: look.head }}>
               {r.name}
             </span>
-            <span className="h-3 rounded-full overflow-hidden" style={{ background: SLIM_TRACK }}>
-              <span className="flex h-full gap-px sm:gap-[2px]" style={{ width: `${Math.max(1.5, (100 * r.total) / top)}%` }}>
-                {r.segs.map((s) => (s.value > 0 ? <span key={s.label} className="h-full first:rounded-l-full last:rounded-r-full" style={{ width: `${(100 * s.value) / of}%`, background: s.color }} /> : null))}
-                {rest > 0 && <span className="h-full first:rounded-l-full last:rounded-r-full" style={{ width: `${(100 * rest) / of}%`, background: look.rest }} aria-label={restLabel} />}
+            <span className="h-2.5 rounded-full overflow-hidden" style={{ background: SLIM_TRACK }}>
+              <span className="flex h-full gap-[2px]" style={{ width: `${Math.max(1.5, (100 * r.total) / top)}%` }}>
+                {r.segs.map((s) => (s.value > 0 ? <span key={s.label} className="h-full rounded-full" style={{ width: `${(100 * s.value) / of}%`, background: slimFill(s.color) }} /> : null))}
+                {rest > 0 && <span className="h-full rounded-full" style={{ width: `${(100 * rest) / of}%`, background: look.rest }} aria-label={restLabel} />}
               </span>
             </span>
             <span className="text-[11px] font-mono font-bold text-right tabular-nums" style={{ color: look.head }}>
@@ -248,10 +247,9 @@ function OffenceExplorer({ look }: { look: Look }) {
                 if (first) setKey(first.key);
                 setAll(false);
               }}
-              className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-semibold transition-colors"
-              style={{ border: `1px solid ${on ? g.color : look.line}`, background: on ? g.color : "transparent", color: on ? "#fff" : look.muted }}
+              className={chipClass(on)}
             >
-              {!on && <span className="w-2 h-2 rounded-full" style={{ background: g.color }} />}
+              <span className="w-2 h-2 rounded-full" style={{ background: g.color }} />
               {g.label}
             </button>
           );
@@ -577,10 +575,9 @@ function Wildlife({ look }: { look: Look }) {
               type="button"
               aria-pressed={on}
               onClick={() => setName(x.group)}
-              className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-semibold transition-colors"
-              style={{ border: `1px solid ${on ? c : look.line}`, background: on ? c : "transparent", color: on ? "#fff" : look.muted }}
+              className={chipClass(on)}
             >
-              {!on && <span className="w-2 h-2 rounded-full" style={{ background: c }} />}
+              <span className="w-2 h-2 rounded-full" style={{ background: c }} />
               {x.group}
             </button>
           );
