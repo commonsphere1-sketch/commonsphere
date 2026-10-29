@@ -18,9 +18,11 @@
  *                          their members, each checked against the body's
  *                          own page (alliances.ts).
  *
- *   Political theories     the ideologies and philosophies, and the forms of
- *   and forms of           government and political systems, that more than
- *   governance             one work of reference has an entry for
+ *   Political theories,    the ideologies, the forms of government and
+ *   forms of governance,   political systems, and - added as asked - the
+ *   philosophies and       philosophies and the doctrines (political, foreign
+ *   doctrines              policy, military, legal and religious), that more
+ *                          than one work of reference has an entry for
  *                          (politicalTheories.ts): each described by the
  *                          opening of its Wikipedia article, with the
  *                          Stanford and Internet encyclopedias of philosophy
@@ -70,7 +72,13 @@ const KIND_COLOR: Record<AllianceKind, string> = {
 
 type Item = { key: string; group: string; color: string; name: string; said: string; find: string } & ({ m: WorldIndicator } | { a: Alliance } | { p: PoliticalIdea });
 /** The two kinds of political idea, each under its own heading and colour. */
-const IDEA_GROUP = { theory: { group: "Political theories", color: "#d946ef" }, governance: { group: "Forms of governance", color: "#14b8a6" } } as const;
+const IDEA_GROUP = {
+  theory: { group: "Political theories", color: "#d946ef" },
+  governance: { group: "Forms of governance", color: "#14b8a6" },
+  // Added as asked, by the same test of more than one work of reference.
+  philosophy: { group: "Philosophies", color: "#0ea5e9" },
+  doctrine: { group: "Doctrines", color: "#f59e0b" },
+} as const;
 
 const places = new Intl.DisplayNames(["en"], { type: "region" });
 const placeName = (code: string) => {
@@ -131,7 +139,7 @@ export type GeopoliticsHalf = "geopolitics" | "ideas";
 const HALF: Record<GeopoliticsHalf | "all", { items: Item[]; title: string; search: string; placeholder: string; none: string }> = {
   all: { items: ITEMS, title: "Geopolitics", search: "Search the geopolitical measures, alliances and political ideas", placeholder: "Search measures, alliances, blocs, member countries, ideologies…", none: "No measure, alliance or political idea matches the search." },
   geopolitics: { items: ITEMS.filter((x) => !("p" in x)), title: "Geopolitics", search: "Search the geopolitical measures and alliances", placeholder: "Search measures, alliances, blocs, member countries…", none: "No measure or alliance matches the search." },
-  ideas: { items: ITEMS.filter((x) => "p" in x), title: "Ideologies", search: "Search the political theories and forms of governance", placeholder: "Search ideologies, forms of government, figures, countries…", none: "No political theory or form of governance matches the search." },
+  ideas: { items: ITEMS.filter((x) => "p" in x), title: "Ideologies", search: "Search the political theories, forms of governance, philosophies and doctrines", placeholder: "Search ideologies, philosophies, doctrines, forms of government, figures…", none: "No political theory, form of governance, philosophy or doctrine matches the search." },
 };
 
 /** A name in a pill: a figure, an organization, a place. */

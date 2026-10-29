@@ -38,6 +38,14 @@ export const DATA_LOG: DataLogEntry[] = [
     "files": 1
   },
   {
+    "what": "Political theories, forms of governance, philosophies and doctrines, each described and with works to read; where each began, its figures, history, countries and parties",
+    "from": "Wikidata, CIA World Factbook, Wikipedia; links to Britannica, the Stanford and Internet encyclopedias of philosophy",
+    "page": "/dashboard",
+    "where": "Dashboard",
+    "read": "2026-10-29",
+    "files": 1
+  },
+  {
     "what": "The space race, science and invention, and new medicines: orbital launches by year and by agency, objects launched, R&D spending, researchers, journal articles, patents, novel drug approvals",
     "from": "GCAT; UNOOSA via Our World in Data; World Bank; US FDA",
     "page": "/dashboard/trends",
@@ -120,14 +128,6 @@ export const DATA_LOG: DataLogEntry[] = [
   {
     "what": "How far each government watches and restricts its people online: social media monitoring, filtering, shutdowns, arrests, privacy law",
     "from": "V-Dem Institute, Digital Society Project",
-    "page": "/dashboard/worldview",
-    "where": "Worldview",
-    "read": "2026-10-14",
-    "files": 1
-  },
-  {
-    "what": "Political theories and forms of governance, each described and with works to read; where each began, its figures, history, countries and parties",
-    "from": "Wikidata, CIA World Factbook, Wikipedia; links to Britannica, the Stanford and Internet encyclopedias of philosophy",
     "page": "/dashboard/worldview",
     "where": "Worldview",
     "read": "2026-10-14",
