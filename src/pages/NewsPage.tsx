@@ -33,7 +33,8 @@ import { CONTINENTS, EVENTS, SUBJECTS, inWhere, labelOf, wordsOf, type SubjectId
  * outlets' public feeds (supabase/functions/refresh-data/news.ts), for the
  * whole world, for stories between countries, or for one continent, country
  * or US state - by subject, or by the kind of event it reports - and, below
- * the list, the events tracked by region (NewsTracker). Nothing here is
+ * the list, the historic accounts of those events by country (NewsHistory)
+ * and the events tracked by region (NewsTracker). Nothing here is
  * written by the site: each headline is the outlet's own, linking to it.
  * The places and subjects are set out in lib/newsSubjects.ts.
  */
@@ -225,13 +226,13 @@ export function NewsPage() {
         </p>
         </section>
 
+        {/* The historic accounts of these events, country by country, under the headline list, as asked. */}
+        <NewsHistory initial={where.startsWith("c:") ? where.slice(2) : where.startsWith("s:") ? "US" : undefined} />
+
         {/* The events tracked by region, below the news, as asked: the public bodies' records beside the headlines. */}
         <div className="mt-8">
           <NewsTracker rows={rows} days={days} where={where} onPick={pick} />
         </div>
-
-        {/* The historic accounts of these events, country by country, under the tracker, as asked. */}
-        <NewsHistory initial={where.startsWith("c:") ? where.slice(2) : where.startsWith("s:") ? "US" : undefined} />
 
         {/* Every headline banner on the site, each as its own page shows it, with a link to that page - at the foot of the page, as asked. */}
         <div className="mt-8">

@@ -4,7 +4,7 @@ import { countriesData } from "../data/countriesData";
 import type { UnrestEvent } from "../data/unrest";
 
 /**
- * The historic accounts of the News page's events, country by country, as asked: under the tracker, each kind of event
+ * The historic accounts of the News page's events, country by country, as asked: under the headline list, each kind of event
  * the tracker follows as the records hold it for the country picked - its deaths in armed conflict year by year (UCDP),
  * each disaster alert that touched it (GDACS), and the protests, boycotts, revolutions and internal conflicts of the
  * site's record of them, each with its account and the works it cites. Terrorism and epidemics have no record a
@@ -202,7 +202,7 @@ export function NewsHistory({ initial }: { /** The country the page has picked, 
                 <>
                   <p className="text-[11px] font-sans text-muted-foreground leading-snug">
                     Not held: no body whose terms let a commercial site use its record publishes attacks country by country, year by year. Where a country&#39;s US travel advisory
-                    gives terrorism as a reason now, the tracker above says so.
+                    gives terrorism as a reason now, the tracker below says so.
                   </p>
                 </>
               ),
@@ -256,7 +256,7 @@ export function NewsHistory({ initial }: { /** The country the page has picked, 
                 <>
                   <p className="text-[11px] font-sans text-muted-foreground leading-snug">
                     Not held: no body whose terms let a commercial site use its record publishes a country&#39;s outbreaks year by year. The CDC&#39;s travel health notices in
-                    force now are in the tracker above.
+                    force now are in the tracker below.
                   </p>
                 </>
               ),
