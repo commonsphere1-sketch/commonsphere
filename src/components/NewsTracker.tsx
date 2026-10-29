@@ -1,4 +1,5 @@
 import { useMemo, useState, type ReactNode } from "react";
+import { BLUE_HUE } from "../lib/blueHue";
 import { SLIM_TRACK, slimFill } from "./SlimBars";
 import { placeName, type Headline } from "./HeadlinesBanner";
 import { COUNTRY_STATUS, COUNTRY_STATUS_RETRIEVED, COUNTRY_STATUS_SOURCES, WORLD_HEALTH_NOTICES, type CountryStatus } from "../data/countryStatus";
@@ -261,7 +262,7 @@ export function NewsTracker({
           const years = hist && overYears[e.id];
           const histTop = hist ? Math.max(...CONTINENTS.flatMap((c) => hist.data.byContinent[c] ?? []), 0) : 0;
           return (
-            <div key={e.id} className="rounded-xl border border-border bg-card p-4 flex flex-col gap-2.5">
+            <div key={e.id} className={`cs-on-hue rounded-xl border border-border bg-card ${BLUE_HUE} p-4 flex flex-col gap-2.5`}>
               <div>
                 <div className="flex items-center gap-2">
                   <h3 className="text-sm font-semibold font-sans text-foreground flex items-center gap-2 flex-1 min-w-0">
