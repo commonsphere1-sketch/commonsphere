@@ -20,6 +20,7 @@ import {
   ArrowsOut,
   CaretDown,
   X,
+  Briefcase,
 } from "@phosphor-icons/react";
 // Bookmark feature removed
 import { STATE_OFFICES, STATE_OFFICES_SOURCES } from "../data/stateOffices";
@@ -143,6 +144,9 @@ function TransportationPanel({ state }: { state: USState }) {
 const SRC_BLS = [STATE_SOURCES.bls, STATE_SOURCES.population];
 const SRC_BEA = [STATE_SOURCES.bea];
 const SRC_CONGRESS = [STATE_SOURCES.congress, STATE_SOURCES.apportionment, STATE_SOURCES.governors];
+
+/** Each Census region's chip, as each continent has its own on the Countries page's cards. */
+const REGION_TONE: Record<string, string> = { West: TONE.blue, South: TONE.amber, Northeast: TONE.violet, Midwest: TONE.emerald };
 
 const partyColor = {
   Democrat: TONE.blue,
@@ -7412,6 +7416,54 @@ export function StatesPage() {
                   </span>
                 ))}
               </div>
+              {/* Chips as the Countries page's cards carry, as asked: the region as the continent is there, the year of admission
+                  as the form of government is, and the published figures - median household income and the poverty rate, the
+                  Census Bureau's - as the HDI and CPI are; then, as free schooling is there, a minimum wage the state sets above
+                  the federal one. */}
+              {(() => {
+                const ind = STATE_INDICATORS[state.id];
+                const poor = ind?.poverty.groups.find((g) => g.label === "Below poverty line");
+                const own = state.minimumWage > 7.25;
+                return (
+                  <>
+                    <div className="flex items-center gap-2 flex-wrap mt-3">
+                      <span className={`text-[10px] border px-2 py-0.5 rounded-full font-sans ${REGION_TONE[state.region] ?? TONE.slate}`}>{state.region}</span>
+                      <span className="text-[10px] text-muted-foreground font-sans px-2 py-0.5 rounded-full border border-border/60 bg-muted/40" title={`Admitted to the Union in ${state.statehood}`}>
+                        Admitted {state.statehood}
+                      </span>
+                      <div className="flex items-center gap-1.5 flex-wrap">
+                        {ind?.medianIncome && (
+                          <span
+                            className="text-[10px] font-mono px-2 py-0.5 rounded-full border border-border text-foreground"
+                            title={`Median household income: $${ind.medianIncome.v.toLocaleString("en-US")} (US Census Bureau, American Community Survey, ${ind.medianIncome.y})`}
+                          >
+                            Income ${(ind.medianIncome.v / 1000).toFixed(1)}K
+                          </span>
+                        )}
+                        {poor && (
+                          <span
+                            className="text-[10px] font-mono px-2 py-0.5 rounded-full border border-border text-foreground"
+                            title={`People below the poverty line: ${poor.pct}% (US Census Bureau, American Community Survey, ${ind!.poverty.y})`}
+                          >
+                            Poverty {poor.pct}%
+                          </span>
+                        )}
+                      </div>
+                    </div>
+                    {own && (
+                      <div className="flex flex-wrap items-center gap-1.5 mt-2">
+                        <span
+                          className="inline-flex items-center gap-1 text-[10px] font-sans px-2 py-0.5 rounded-full border text-success border-success/30 bg-success/10 whitespace-nowrap"
+                          title={`The state's minimum wage, above the federal $7.25: $${state.minimumWage.toFixed(2)} an hour (US Department of Labor${state.figureYears?.minimumWage ? `, ${state.figureYears.minimumWage}` : ""})`}
+                        >
+                          <Briefcase size={11} weight="fill" aria-hidden />
+                          Minimum wage · ${state.minimumWage.toFixed(2)}
+                        </span>
+                      </div>
+                    )}
+                  </>
+                );
+              })()}
             </article>
           ))}
 
