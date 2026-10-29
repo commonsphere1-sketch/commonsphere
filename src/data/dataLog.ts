@@ -22,6 +22,14 @@ export interface DataLogEntry {
 
 export const DATA_LOG: DataLogEntry[] = [
   {
+    "what": "Conflict deaths and disaster alerts by continent, year by year",
+    "from": "UCDP (via Our World in Data), GDACS",
+    "page": "/dashboard/news",
+    "where": "News",
+    "read": "2026-10-28",
+    "files": 1
+  },
+  {
     "what": "The space race, science and invention, and new medicines: orbital launches by year and by agency, objects launched, R&D spending, researchers, journal articles, patents, novel drug approvals",
     "from": "GCAT; UNOOSA via Our World in Data; World Bank; US FDA",
     "page": "/dashboard/trends",
@@ -552,4 +560,4 @@ export const DATA_LOG: DataLogEntry[] = [
 ];
 
 /** How many data files the log covers. */
-export const DATA_LOG_FILES = 86;
+export const DATA_LOG_FILES = 87;

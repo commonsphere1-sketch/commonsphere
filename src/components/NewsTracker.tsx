@@ -1,8 +1,9 @@
-import { useMemo, type ReactNode } from "react";
+import { useMemo, useState, type ReactNode } from "react";
 import { SLIM_TRACK, slimFill } from "./SlimBars";
 import { placeName, type Headline } from "./HeadlinesBanner";
 import { COUNTRY_STATUS, COUNTRY_STATUS_RETRIEVED, COUNTRY_STATUS_SOURCES, WORLD_HEALTH_NOTICES, type CountryStatus } from "../data/countryStatus";
 import { PUBLIC_SECURITY, PUBLIC_SECURITY_SOURCES } from "../data/publicSecurity";
+import { CONFLICT_HISTORY, DISASTER_HISTORY, NEWS_HISTORY_SOURCES } from "../data/newsHistory";
 import { CONTINENTS, CONTINENT_OF_CODE, EVENTS, inWhere, type Continent, type EventId, type Where } from "../lib/newsSubjects";
 
 /**
@@ -186,6 +187,25 @@ function ownRecord(id: EventId, cc: string): ReactNode {
   return "No body's record is used for these; headlines only.";
 }
 
+/* The events with a yearly record, as asked: each continent's figure a year at a time. The rest have none from a body
+   whose terms let a commercial site use it. */
+const HISTORY: Partial<Record<EventId, { data: { years: number[]; byContinent: Record<string, number[]> }; what: string; unit: string; source: { label: string; url: string } }>> = {
+  war: { data: CONFLICT_HISTORY, what: "Deaths in armed conflict each year, by where they took place - UCDP's best estimates, added up here by continent", unit: "deaths", source: NEWS_HISTORY_SOURCES.ucdp },
+  disaster: { data: DISASTER_HISTORY, what: "Orange and red disaster alerts each year, each counted once in each continent it touched; GDACS has added hazards over the years, so later years can count kinds earlier ones did not", unit: "alerts", source: NEWS_HISTORY_SOURCES.gdacs },
+};
+
+/** A continent's figures year by year as a line, on the card's one scale, so that the continents can be set against each other. */
+function Spark({ values, top, color, label }: { values: number[]; top: number; color: string; label: string }) {
+  const n = values.length;
+  const pts = values.map((v, i) => `${((i / Math.max(1, n - 1)) * 100).toFixed(2)},${(17 - (top ? (v / top) * 15 : 0)).toFixed(2)}`);
+  return (
+    <svg viewBox="0 0 100 18" preserveAspectRatio="none" className="w-full h-[18px]" role="img" aria-label={label}>
+      <polyline points={`0,17 ${pts.join(" ")} 100,17`} fill={color} fillOpacity={0.14} stroke="none" />
+      <polyline points={pts.join(" ")} fill="none" stroke={color} strokeWidth={1.4} vectorEffect="non-scaling-stroke" strokeLinejoin="round" />
+    </svg>
+  );
+}
+
 function Bar({ share, color }: { share: number; color: string }) {
   return (
     <div className="h-1.5 rounded-full overflow-hidden" style={{ background: SLIM_TRACK }} aria-hidden>
@@ -216,6 +236,8 @@ export function NewsTracker({
     for (const e of EVENTS) out.set(e.id, new Map(CONTINENTS.map((c) => [c, byContinent.get(c)!.filter((h) => e.re.test(h.title)).length])));
     return out;
   }, [rows]);
+  /* Which cards show their figures over the years. */
+  const [overYears, setOverYears] = useState<Partial<Record<EventId, boolean>>>({});
   const picked = where.startsWith("c:") ? where.slice(2) : where.startsWith("s:") ? "US" : null;
   const pickedName = picked ? (where.startsWith("s:") ? `${placeName(where)} (the United States' record)` : nameOf(picked)) : null;
   const window = days === 1 ? "the last day" : days === 2 ? "the last two days" : "the last week";
@@ -235,15 +257,29 @@ export function NewsTracker({
           const heads = counts.get(e.id)!;
           const top = off ? Math.max(...[...off.rows.values()].map((r) => r.value), 0) : Math.max(...heads.values(), 0);
           const total = [...heads.values()].reduce((s, n) => s + n, 0);
+          const hist = HISTORY[e.id];
+          const years = hist && overYears[e.id];
+          const histTop = hist ? Math.max(...CONTINENTS.flatMap((c) => hist.data.byContinent[c] ?? []), 0) : 0;
           return (
             <div key={e.id} className="rounded-xl border border-border bg-card p-4 flex flex-col gap-2.5">
               <div>
-                <h3 className="text-sm font-semibold font-sans text-foreground flex items-center gap-2">
-                  <span className="w-2 h-2 rounded-full shrink-0" style={{ background: COLOR[e.id] }} aria-hidden />
-                  {e.label}
-                </h3>
+                <div className="flex items-center gap-2">
+                  <h3 className="text-sm font-semibold font-sans text-foreground flex items-center gap-2 flex-1 min-w-0">
+                    <span className="w-2 h-2 rounded-full shrink-0" style={{ background: COLOR[e.id] }} aria-hidden />
+                    {e.label}
+                  </h3>
+                  {hist && (
+                    <div className="flex items-center gap-1 shrink-0" role="group" aria-label={`${e.label}: now or over the years`}>
+                      {([[false, "Now"], [true, "Over the years"]] as const).map(([v, l]) => (
+                        <button key={l} type="button" aria-pressed={!!years === v} onClick={() => setOverYears((o) => ({ ...o, [e.id]: v }))} className={`px-2 py-0.5 rounded-full text-[10px] font-medium font-sans border transition-colors cursor-pointer ${!!years === v ? "chip-selected" : "bg-transparent border-border text-muted-foreground hover:text-foreground hover:bg-muted/60"}`}>
+                          {l}
+                        </button>
+                      ))}
+                    </div>
+                  )}
+                </div>
                 <p className="mt-1 text-[10px] font-sans text-muted-foreground leading-snug">
-                  {off ? off.measure : "The site holds no running count of these from a body whose terms let a commercial site use it, so the bars are headlines."}
+                  {years && hist ? `${hist.what}, ${hist.data.years[0]}–${hist.data.years[hist.data.years.length - 1]}.` : off ? off.measure : "The site holds no running count of these from a body whose terms let a commercial site use it, so the bars are headlines."}
                 </p>
               </div>
               {pickedName && picked && (
@@ -252,6 +288,25 @@ export function NewsTracker({
                   {ownRecord(e.id, picked)}
                 </p>
               )}
+              {years && hist ? (
+                <ul className="flex flex-col gap-1.5">
+                  {CONTINENTS.map((c) => {
+                    const v = hist.data.byContinent[c] ?? [];
+                    const y0 = hist.data.years[0];
+                    const y1 = hist.data.years[hist.data.years.length - 1];
+                    const peak = v.reduce((b, x, i) => (x > v[b] ? i : b), 0);
+                    return (
+                      <li key={c} className="grid grid-cols-[6.5rem_1fr_auto] items-center gap-x-2 text-[11px] font-sans" title={`${c}: ${hist.data.years.map((y, i) => `${y} ${fmt(v[i] ?? 0)}`).join(", ")}`}>
+                        <span className="text-foreground truncate">{c}</span>
+                        <Spark values={v} top={histTop} color={COLOR[e.id]} label={`${c}, ${y0} to ${y1}: from ${fmt(v[0] ?? 0)} to ${fmt(v[v.length - 1] ?? 0)} ${hist.unit}, the most ${fmt(v[peak] ?? 0)} in ${hist.data.years[peak]}`} />
+                        <span className="text-right whitespace-nowrap tabular-nums text-foreground">
+                          {fmt(v[v.length - 1] ?? 0)} <span className="text-[10px] text-muted-foreground">in {y1} · most {fmt(v[peak] ?? 0)}, {hist.data.years[peak]}</span>
+                        </span>
+                      </li>
+                    );
+                  })}
+                </ul>
+              ) : (
               <ul className="flex flex-col gap-1.5">
                 {CONTINENTS.map((c) => {
                   const r = off?.rows.get(c);
@@ -278,7 +333,19 @@ export function NewsTracker({
                   );
                 })}
               </ul>
+              )}
               <p className="mt-auto pt-1 text-[10px] font-sans text-muted-foreground leading-snug">
+                {years && hist ? (
+                  <>
+                    Each line is a continent's {hist.unit} a year from {hist.data.years[0]} to {hist.data.years[hist.data.years.length - 1]}, all on one scale; hover a row for every year.{" "}
+                    <a href={hist.source.url} target="_blank" rel="noopener noreferrer" className="underline hover:text-foreground">
+                      {hist.source.label}
+                    </a>
+                    .
+                  </>
+                ) : (
+                <>
+                {!hist && <>No yearly record of these is held from a body whose terms let a commercial site use it, so they are tracked as they stand now. </>}
                 {off && <>World: {off.world}. </>}
                 {fmt(total)} headlines name a continent's place in {window}; one naming two continents counts in both.{" "}
                 {off && (
@@ -294,6 +361,8 @@ export function NewsTracker({
                     ))}
                     .
                   </>
+                )}
+                </>
                 )}
               </p>
             </div>
