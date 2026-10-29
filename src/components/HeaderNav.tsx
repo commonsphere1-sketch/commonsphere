@@ -546,7 +546,7 @@ export function HeaderNav({ onMenuToggle, mobileSidebarOpen }: HeaderNavProps) {
           </DropdownMenuTrigger>
           <DropdownMenuContent
             align="end"
-            className="bg-card border-border text-card-foreground w-48"
+            className="dropdown-glass border-border text-card-foreground w-48"
           >
             {user?.email && (
               <>

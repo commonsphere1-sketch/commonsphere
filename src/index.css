@@ -556,8 +556,8 @@ html.light
 .rounded-xl,
 .rounded-2xl,
 .rounded-3xl,
-.bg-card:not(.modal-glass *),
-.rounded-lg:not(:has(img)):not(.modal-glass *) {
+.bg-card:not(.modal-glass *):not(.dropdown-glass *),
+.rounded-lg:not(:has(img)):not(.modal-glass *):not(.dropdown-glass *) {
   box-shadow: var(--card-glow);
 }
 
@@ -970,31 +970,32 @@ html.dark .modal-tile.cursor-pointer:hover {
 }
 
 /* ── Dropdown panels ──────────────────────────────────────
-   Floating lists cannot use bg-card. That token is translucent in dark mode
-   (rgba(255,255,255,0.03)) because cards sit on the page and borrow its
-   colour; a dropdown floats over arbitrary content, so the same fill lets
-   the text underneath show straight through the options.
-
-   This keeps the site's glass language — blur and saturate over what is
-   behind — but on a fill opaque enough to read against, since a dropdown
-   has no dimming scrim under it the way .modal-glass does. */
+   The same transparent glass as the modals (.modal-glass), as asked: a
+   faint fill that is only an edge sheen, with legibility coming from
+   backdrop-filter brightness(), which pushes whatever is behind the list
+   toward dark (dark mode) or light (light mode). The heavy blur keeps the
+   text underneath from reading through the options, so no opaque fill is
+   needed even though a dropdown has no scrim under it. */
 .dropdown-glass {
-  background: rgba(16, 16, 26, 0.88) !important;
-  backdrop-filter: blur(24px) saturate(170%) !important;
-  -webkit-backdrop-filter: blur(24px) saturate(170%) !important;
-  border-color: rgba(255, 255, 255, 0.12) !important;
+  background: rgba(255, 255, 255, 0.05) !important;
+  backdrop-filter: blur(44px) saturate(190%) brightness(0.5) !important;
+  -webkit-backdrop-filter: blur(44px) saturate(190%) brightness(0.5) !important;
+  border-color: rgba(255, 255, 255, 0.16) !important;
   box-shadow:
-    0 12px 32px rgba(0, 0, 0, 0.5),
-    inset 0 1px 0 rgba(255, 255, 255, 0.08) !important;
+    0 32px 100px rgba(0, 0, 0, 0.55),
+    0 8px 32px rgba(0, 0, 0, 0.32),
+    inset 0 1px 0 rgba(255, 255, 255, 0.16),
+    inset 0 0 0 1px rgba(255, 255, 255, 0.05) !important;
 }
 html.light .dropdown-glass {
-  background: rgba(255, 255, 255, 0.9) !important;
-  backdrop-filter: blur(24px) saturate(160%) !important;
-  -webkit-backdrop-filter: blur(24px) saturate(160%) !important;
-  border-color: rgba(15, 23, 42, 0.12) !important;
+  background: rgba(255, 255, 255, 0.46) !important;
+  backdrop-filter: blur(44px) saturate(165%) brightness(1.18) !important;
+  -webkit-backdrop-filter: blur(44px) saturate(165%) brightness(1.18) !important;
+  border-color: rgba(120, 100, 70, 0.22) !important;
   box-shadow:
-    0 12px 32px rgba(15, 23, 42, 0.14),
-    inset 0 1px 0 rgba(255, 255, 255, 0.9) !important;
+    0 32px 100px rgba(0, 0, 0, 0.16),
+    0 8px 32px rgba(0, 0, 0, 0.08),
+    inset 0 1px 0 rgba(255, 255, 255, 0.75) !important;
 }
 
 /* ── Value bars ───────────────────────────────────────────
