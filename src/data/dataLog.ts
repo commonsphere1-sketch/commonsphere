@@ -38,6 +38,14 @@ export const DATA_LOG: DataLogEntry[] = [
     "files": 1
   },
   {
+    "what": "Elections by country and US state, and US city council meetings, for the calendar",
+    "from": "Wikidata (with the page each date cites); US Code, US Senate, National Governors Association; cities' Legistar calendars",
+    "page": "/dashboard",
+    "where": "Calendar",
+    "read": "2026-10-29",
+    "files": 1
+  },
+  {
     "what": "Political theories, forms of governance, philosophies and doctrines, each described and with works to read; where each began, its figures, history, countries and parties",
     "from": "Wikidata, CIA World Factbook, Wikipedia; links to Britannica, the Stanford and Internet encyclopedias of philosophy",
     "page": "/dashboard",
@@ -75,14 +83,6 @@ export const DATA_LOG: DataLogEntry[] = [
     "page": "/dashboard/maps",
     "where": "World Maps",
     "read": "2026-10-24",
-    "files": 1
-  },
-  {
-    "what": "Elections by country and US state, and US city council meetings, for the calendar",
-    "from": "Wikidata (with the page each date cites); US Code, US Senate, National Governors Association; cities' Legistar calendars",
-    "page": "/dashboard",
-    "where": "Calendar",
-    "read": "2026-10-23",
     "files": 1
   },
   {

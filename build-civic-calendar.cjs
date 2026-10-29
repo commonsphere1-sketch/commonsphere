@@ -3,8 +3,9 @@
  * meetings - so that a reader can set the calendar to a country or a US state and see what is coming there.
  *
  *   Elections   Outside the United States: Wikidata's elections (CC0), read through the QLever endpoint, kept only where the
- *               date is given to the day and its statement cites a page - the page is the date's first source, Wikidata's item
- *               the second. A date whose only citation is the Inter-Parliamentary Union's database is left out: that database
+ *               date is given to the day and its statement cites a page, or names the source it is stated in - an official
+ *               gazette, an electoral commission - given then by its own website where Wikidata has one. That source is the
+ *               date's first, Wikidata's item the second. A date whose only citation is the Inter-Parliamentary Union's database is left out: that database
  *               is for non-commercial use. In the United States: the general election of 3 November 2026 in every state,
  *               fixed by federal law (2 U.S.C. 7), with what is on its ballot from the bodies' own records - every House seat
  *               (the Constitution), the Senate's Class II seats (the Senate's own list), and the governorships the National
@@ -91,17 +92,41 @@ SELECT ?e ?name ?anyName ?date ?prec ?cc ?sub ?ref WHERE {
   const by = new Map();
   for (const r of rows) {
     const id = r.e.value.split("/").pop();
-    const o = by.get(id) || { id, name: "", other: "", date: r.date.value.slice(0, 10), prec: +r.prec.value, cc: r.cc.value, subs: new Set(), refs: new Set() };
+    const o = by.get(id) || { id, name: "", other: "", date: r.date.value.slice(0, 10), prec: +r.prec.value, cc: r.cc.value, subs: new Set(), refs: new Set(), stated: new Map() };
     if (r.name && !o.name) o.name = tidy(r.name.value);
     if (r.anyName && !o.other) o.other = tidy(r.anyName.value);
     if (r.sub) o.subs.add(r.sub.value);
     if (r.ref) o.refs.add(r.ref.value);
     by.set(id, o);
   }
+  // The sources each date is stated in, asked for apart - in the one query with the rest it runs past the endpoint's time - each
+  // by its own website where Wikidata gives one; never the IPU's database (non-commercial) or Wikipedia.
+  const qs = `${q.slice(0, q.indexOf("SELECT"))}SELECT DISTINCT ?e ?si ?siName ?siUrl WHERE {
+  ?e wdt:P31/wdt:P279* wd:Q40231 .
+  ?e p:P585 ?st . ?st psv:P585 ?dv . ?dv wikibase:timeValue ?date ; wikibase:timePrecision ?prec .
+  FILTER(?prec >= 11 && ?date >= "${today}T00:00:00Z"^^xsd:dateTime && ?date < "${Number(today.slice(0, 4)) + 2}-01-01T00:00:00Z"^^xsd:dateTime)
+  ?st prov:wasDerivedFrom ?r2 . ?r2 pr:P248 ?si .
+  OPTIONAL { ?si rdfs:label ?siName . FILTER(LANG(?siName) = "en") }
+  OPTIONAL { ?si wdt:P856 ?siUrl }
+}`;
+  let stated = parse(curl(["-H", "Accept: application/sparql-results+json", "--data-urlencode", "query=" + qs, "https://qlever.dev/api/wikidata"], `elections-stated-${today}.json`));
+  if (!stated) {
+    fs.rmSync(path.join(CACHE, `elections-stated-${today}.json`), { force: true });
+    stated = parse(curl(["-H", "Accept: application/sparql-results+json", "--data-urlencode", "query=" + qs, "https://qlever.dev/api/wikidata"], `elections-stated-${today}.json`));
+  }
+  if (!stated) {
+    fs.rmSync(path.join(CACHE, `elections-stated-${today}.json`), { force: true });
+    console.log("  the sources dates are stated in could not be read today: only dates citing a page are kept");
+  }
+  for (const r of stated ?? []) {
+    const o = by.get(r.e.value.split("/").pop());
+    if (!o || !r.siName || /inter-parliamentary|parline|wikipedia/i.test(r.siName.value) || /ipu\.org/.test(r.siUrl?.value ?? "")) continue;
+    o.stated.set(r.si.value, { name: tidy(r.siName.value), url: r.siUrl?.value ?? "", qid: r.si.value.split("/").pop() });
+  }
   return [...by.values()]
     .filter((o) => o.cc !== "US" && o.prec >= 11 && o.date >= today)
     .map((o) => ({ ...o, refs: [...o.refs].filter((u) => !/(^|\.)ipu\.org\//.test(u.replace(/^https?:\/\//, ""))) }))
-    .filter((o) => o.refs.length && (o.name || o.other))
+    .filter((o) => (o.refs.length || o.stated.size) && (o.name || o.other))
     .map((o) => {
       const host = (u) => u.replace(/^https?:\/\/(www\.)?/, "").split("/")[0];
       const subs = [...o.subs];
@@ -113,7 +138,11 @@ SELECT ?e ?name ?anyName ?date ?prec ?cc ?sub ?ref WHERE {
         cc: o.cc,
         region: subs.length === 1 ? subs[0] : "",
         level: subs.length === 1 ? "Regional" : "National",
-        sources: [...o.refs.slice(0, 2).map((u) => ({ label: `${host(u)} - the page Wikidata cites for the date`, url: u })), { label: `Wikidata - ${o.id} (CC0)`, url: `https://www.wikidata.org/wiki/${o.id}` }],
+        sources: [
+          ...o.refs.slice(0, 2).map((u) => ({ label: `${host(u)} - the page Wikidata cites for the date`, url: u })),
+          ...[...o.stated.values()].slice(0, 2).map((s) => ({ label: `${s.name} - the source Wikidata cites for the date`, url: s.url || `https://www.wikidata.org/wiki/${s.qid}` })),
+          { label: `Wikidata - ${o.id} (CC0)`, url: `https://www.wikidata.org/wiki/${o.id}` },
+        ],
       };
     })
     .sort((a, b) => a.date.localeCompare(b.date) || a.name.localeCompare(b.name));
@@ -204,8 +233,8 @@ fs.writeFileSync(
  *
  * GENERATED by build-civic-calendar.cjs on ${today} - do not edit by hand; change the script and re-run it.
  *
- * Elections outside the United States are Wikidata's, kept only where the date is given to the day and cites a page, which is
- * listed first; a date cited only to the Inter-Parliamentary Union's database is left out. US elections are the general election
+ * Elections outside the United States are Wikidata's, kept only where the date is given to the day and cites a page or names the
+ * source it is stated in, which is listed first; a date cited only to the Inter-Parliamentary Union's database is left out. US elections are the general election
  * of 3 November 2026 in every state, with what is on its ballot from the Senate's and the National Governors Association's own
  * records; special elections for appointed Senate seats are not given. Council meetings are those the cities listed in
  * Legistar on ${today}, to 75 days on; cities move and cancel meetings, and the city's own page is the record.
