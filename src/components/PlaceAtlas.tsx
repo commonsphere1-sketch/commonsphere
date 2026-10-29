@@ -1021,24 +1021,25 @@ export default function PlaceAtlas() {
 
       {/* Where the map is, each step a way back; and the place it is on, to open. */}
       <div className="flex flex-wrap items-center justify-between gap-x-4 gap-y-2 -mt-1 mb-2">
+        {/* On the world map the trail is not shown, as asked; in a country it is, with the world as the way back out. */}
+        {level.kind !== "world" ? (
         <nav aria-label="Where the map is" className="flex flex-wrap items-center gap-1.5">
-          <button type="button" onClick={() => setLevel({ kind: "world" })} className={crumb} style={{ background: level.kind === "world" ? COLOR : t.tile, color: level.kind === "world" ? "#ffffff" : t.bodyText, border: `1px solid ${level.kind === "world" ? COLOR : t.gridLine}` }}>
+          <button type="button" onClick={() => setLevel({ kind: "world" })} className={crumb} style={{ background: t.tile, color: t.bodyText, border: `1px solid ${t.gridLine}` }}>
             World
           </button>
-          {level.kind !== "world" && (
-            <>
-              <CaretRight size={10} weight="bold" style={{ color: t.mutedText }} aria-hidden />
-              <button
-                type="button"
-                onClick={() => setLevel({ kind: "country", code: level.code })}
-                className={crumb}
-                style={{ background: level.kind === "country" ? COLOR : t.tile, color: level.kind === "country" ? "#ffffff" : t.bodyText, border: `1px solid ${level.kind === "country" ? COLOR : t.gridLine}` }}
-              >
-                {country?.name ?? level.code}
-              </button>
-            </>
-          )}
+          <CaretRight size={10} weight="bold" style={{ color: t.mutedText }} aria-hidden />
+          <button
+            type="button"
+            onClick={() => setLevel({ kind: "country", code: level.code })}
+            className={crumb}
+            style={{ background: COLOR, color: "#ffffff", border: `1px solid ${COLOR}` }}
+          >
+            {country?.name ?? level.code}
+          </button>
         </nav>
+        ) : (
+          <span aria-hidden />
+        )}
         <div className="flex flex-wrap items-center gap-x-4 gap-y-1">
           {level.kind === "country" && country && (
             <Go color={COLOR} onClick={() => navigate(`/dashboard/countries?open=${country.id}`)}>
