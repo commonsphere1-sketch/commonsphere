@@ -4,6 +4,7 @@ import { FilterBar } from "../components/FilterBar";
 import { StyledSelect } from "../components/StyledSelect";
 import { NewsTracker } from "../components/NewsTracker";
 import { NewsDesks } from "../components/NewsDesks";
+import { NewsHistory } from "../components/NewsHistory";
 import { BLUE_HUE } from "../lib/blueHue";
 import { countriesData } from "../data/countriesData";
 import { usStatesData } from "../data/statesData";
@@ -228,6 +229,9 @@ export function NewsPage() {
         <div className="mt-8">
           <NewsTracker rows={rows} days={days} where={where} onPick={pick} />
         </div>
+
+        {/* The historic accounts of these events, country by country, under the tracker, as asked. */}
+        <NewsHistory initial={where.startsWith("c:") ? where.slice(2) : where.startsWith("s:") ? "US" : undefined} />
 
         {/* Every headline banner on the site, each as its own page shows it, with a link to that page - at the foot of the page, as asked. */}
         <div className="mt-8">

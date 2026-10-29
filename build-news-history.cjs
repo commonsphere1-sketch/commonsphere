@@ -14,6 +14,10 @@
  * the page says so. Nothing is estimated: a country or an alert with no continent the site knows is counted out and
  * printed.
  *
+ * It writes each country's own accounts too (src/data/newsCountryHistory.ts), for the page's historic accounts: its
+ * conflict deaths a year, each disaster alert that touched it, and the events of the site's record of revolutions,
+ * protests, boycotts and internal conflicts (unrest.ts) whose place - or failing that, whose title - names it.
+ *
  *   node build-news-history.cjs
  */
 const fs = require("fs");
@@ -52,7 +56,34 @@ const continentOf = new Map();
 }
 const missed = new Set();
 
+/* Each country's name as the site has it, and the other names a record may give it, for finding it in an event's place. */
+const nameToCode = new Map();
+{
+  const src = fs.readFileSync(path.join(__dirname, "src/data/countriesData.ts"), "utf8");
+  for (const m of src.matchAll(/\bname:\s*"([^"]+)"[^}]*?\bcode:\s*"([A-Z]{2})"/gs)) if (continentOf.has(m[2])) nameToCode.set(m[1], m[2]);
+  const ALSO = {
+    "United States of America": "US", USA: "US", "U.S.": "US", America: "US", "United Kingdom": "GB", Britain: "GB", "Great Britain": "GB", England: "GB", Scotland: "GB", Wales: "GB",
+    "Northern Ireland": "GB", Turkey: "TR", Burma: "MM", "Ivory Coast": "CI", "Côte d'Ivoire": "CI", "Czech Republic": "CZ", "Democratic Republic of the Congo": "CD",
+    "Republic of the Congo": "CG", "South Korea": "KR", "North Korea": "KP", Persia: "IR", Holland: "NL", "East Timor": "TL", Swaziland: "SZ", "Cape Verde": "CV",
+  };
+  for (const [n, c] of Object.entries(ALSO)) if (continentOf.has(c)) nameToCode.set(n, c);
+}
+/** The countries a text names: the longest names first, each taken out of the text once found, so that "Republic of the Congo" is not also "Congo". */
+function countriesIn(text) {
+  let s = ` ${text} `;
+  const found = new Set();
+  for (const n of [...nameToCode.keys()].sort((a, b) => b.length - a.length)) {
+    const re = new RegExp(`(^|[^\\p{L}])${n.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}(?![\\p{L}])`, "u");
+    if (re.test(s)) {
+      found.add(nameToCode.get(n));
+      s = s.replace(re, (m, pre) => pre + " ".repeat(m.length - pre.length));
+    }
+  }
+  return [...found];
+}
+
 /* ── UCDP via Our World in Data ── */
+const countryConflict = {};
 function conflict() {
   const wb = JSON.parse(get("https://api.worldbank.org/v2/country?format=json&per_page=400", "wb-countries.json"))[1];
   const iso2Of = {};
@@ -77,6 +108,7 @@ function conflict() {
     }
     const y = +r.year;
     const deaths = kinds.reduce((s, c) => s + Math.round(+r[k + c] || 0), 0);
+    if (deaths > 0 && y >= 1989) (countryConflict[iso2] ||= []).push([y, deaths]);
     ((by[y] ||= {})[cont] ||= 0), (by[y][cont] += deaths);
     last = Math.max(last, y);
   }
@@ -86,6 +118,8 @@ function conflict() {
 }
 
 /* ── GDACS ── */
+const countryDisasters = {};
+const HAZARD = { EQ: "Earthquake", TC: "Tropical cyclone", FL: "Flood", VO: "Volcanic eruption", DR: "Drought", WF: "Wildfire", TS: "Tsunami" };
 function disasters() {
   const years = [];
   for (let y = DISASTERS_FROM; y < THIS_YEAR; y++) years.push(y);
@@ -105,6 +139,7 @@ function disasters() {
         const touched = new Set();
         for (const c of p.affectedcountries ?? []) {
           const cont = continentOf.get(c.iso2);
+          if (cont) (countryDisasters[c.iso2] ||= []).push([String(p.fromdate).slice(0, 10), HAZARD[p.eventtype] || p.eventtype, String(p.eventname || "").trim(), p.alertlevel]);
           if (cont) touched.add(cont);
           else if (c.countryname) missed.add(`GDACS: ${c.countryname}`);
         }
@@ -119,6 +154,39 @@ function disasters() {
 
 const C = conflict();
 const D = disasters();
+const unrestByCountry = {};
+{
+  const src = fs.readFileSync(path.join(__dirname, "src/data/unrest.ts"), "utf8");
+  const head = "export const UNREST_EVENTS: UnrestEvent[] = ";
+  const body = src.slice(src.indexOf(head) + head.length).replace(/;\s*$/, "");
+  const events = new Function(`return ${body}`)();
+  if (events.length < 300) throw new Error(`unrest.ts: only ${events.length} events read`);
+  let placed = 0;
+  events.forEach((e, i) => {
+    const codes = (e.where && countriesIn(e.where).length ? countriesIn(e.where) : countriesIn(e.title));
+    if (codes.length) placed++;
+    for (const c of codes) (unrestByCountry[c] ||= []).push(i);
+  });
+  console.log(`  events record: ${placed} of ${events.length} events placed in a country`);
+}
+for (const v of Object.values(countryDisasters)) v.sort((a, b) => b[0].localeCompare(a[0]));
+fs.writeFileSync(
+  path.join(__dirname, "src/data/newsCountryHistory.ts"),
+  `/**
+ * Each country's historic accounts, for the News page: its deaths in armed conflict a year (UCDP, via Our World in Data),
+ * each orange or red disaster alert that touched it since ${DISASTERS_FROM} (GDACS), and the events of the site's record of
+ * revolutions, protests, boycotts and internal conflicts (unrest.ts) whose place - or failing that, whose title - names it.
+ *
+ * GENERATED by build-news-history.cjs on ${TODAY} — do not edit by hand; change the script and re-run it.
+ */
+/** Each country's years with deaths in armed conflict: [year, deaths], UCDP's best estimates summed over its three kinds. */
+export const COUNTRY_CONFLICT: Record<string, [year: number, deaths: number][]> = ${JSON.stringify(countryConflict)};
+/** Each disaster alert that touched the country, newest first: [date it began, kind, GDACS's name for it, alert]. */
+export const COUNTRY_DISASTERS: Record<string, [date: string, kind: string, name: string, alert: string][]> = ${JSON.stringify(countryDisasters)};
+/** The events of UNREST_EVENTS (unrest.ts) that took place in the country, by their place in that list. */
+export const COUNTRY_UNREST: Record<string, number[]> = ${JSON.stringify(unrestByCountry)};
+`,
+);
 const J = (x) => JSON.stringify(x);
 fs.writeFileSync(
   OUT,
