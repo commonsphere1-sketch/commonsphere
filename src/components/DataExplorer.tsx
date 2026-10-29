@@ -138,8 +138,19 @@ export function DataExplorer({
 }) {
   const t = useTokens();
   const navigate = useNavigate();
-  const { pathname } = useLocation();
+  const { pathname, search: urlSearch } = useLocation();
   const [picked, setTab] = useState<Tab>("countries");
+  /* A link to one of its tabs (?explore=) - the header's search sends one - opens it and brings the explorer into view. */
+  const rootRef = useRef<HTMLDivElement | null>(null);
+  useEffect(() => {
+    const want = new URLSearchParams(urlSearch).get("explore");
+    if (only || !want || !TABS.some((x) => x.id === want)) return;
+    setTab(want as Tab);
+    // Again once the Dashboard's cards above it have loaded and moved it down.
+    const go = () => rootRef.current?.scrollIntoView({ block: "start" });
+    const timers = [150, 900, 2000].map((ms) => window.setTimeout(go, ms));
+    return () => timers.forEach(clearTimeout);
+  }, [urlSearch, only]);
   const tab: Tab = only ?? picked;
   const [search, setSearch] = useState("");
   const q = search.trim().toLowerCase();
@@ -211,7 +222,7 @@ export function DataExplorer({
        width and the window's height, the list keeps a column of its own and
        the detail sets its parts side by side (index.css, "The explorers on a
        wide window"): what stretched across the page was one column, not this. */
-    <div className="explorer flex flex-col rounded-2xl overflow-hidden w-full max-w-6xl mx-auto" style={{ background: t.cardBg, border: t.cardBorder, boxShadow: t.cardShadow }}>
+    <div ref={rootRef} className="explorer scroll-mt-24 flex flex-col rounded-2xl overflow-hidden w-full max-w-6xl mx-auto" style={{ background: t.cardBg, border: t.cardBorder, boxShadow: t.cardShadow }}>
       {/* One category alone is headed by its name; all three are tabs. */}
       {only ? (
         <div className="flex items-center gap-1.5 px-4 py-3 border-b" style={{ borderColor: t.gridLine, color: cur.color }}>

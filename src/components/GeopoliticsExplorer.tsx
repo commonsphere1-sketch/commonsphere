@@ -46,7 +46,8 @@
  * under one tab and the political ideas under another, as asked; the
  * Worldview page has them together.
  */
-import { useMemo, useState, type ReactNode } from "react";
+import { useEffect, useMemo, useState, type ReactNode } from "react";
+import { useLocation } from "react-router-dom";
 import { Globe, MagnifyingGlass, X } from "@phosphor-icons/react";
 import { WORLD, type WorldIndicator } from "../data/worldview";
 import { EXPLAIN } from "../data/worldviewExplain";
@@ -201,6 +202,15 @@ export function GeopoliticsExplorer({
   const [search, setSearch] = useState("");
   const [group, setGroup] = useState<string | null>(null);
   const [pickedKey, setPickedKey] = useState<string | null>(null);
+  // An item a link names (?pick=) - the header's search sends one - is opened, with nothing narrowing the list.
+  const { search: urlSearch } = useLocation();
+  useEffect(() => {
+    const want = new URLSearchParams(urlSearch).get("pick");
+    if (!want || !pool.some((x) => x.key === want)) return;
+    setGroup(null);
+    setSearch("");
+    setPickedKey(want);
+  }, [urlSearch, pool]);
   const q = search.trim().toLowerCase();
   const list = useMemo(() => pool.filter((x) => (!group || x.group === group) && (!q || x.find.toLowerCase().includes(q))), [pool, q, group]);
   const shown = (pickedKey ? pool.find((x) => x.key === pickedKey) : null) ?? list[0] ?? null;

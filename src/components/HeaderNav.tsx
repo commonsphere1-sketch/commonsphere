@@ -19,6 +19,8 @@ import {
   Crown,
   Handshake,
   ChartBar,
+  Lightbulb,
+  Tree,
 } from "@phosphor-icons/react";
 import { useTheme } from "@/contexts/ThemeContext";
 import { Input } from "@/components/ui/input";
@@ -49,7 +51,7 @@ interface HeaderNavProps {
   mobileSidebarOpen: boolean;
 }
 
-type SearchType = "Page" | "Country" | "State" | "City" | "Division" | "Economy" | "County" | "Town" | "Person" | "Family" | "Group" | "Index";
+type SearchType = "Page" | "Country" | "State" | "City" | "Division" | "Economy" | "County" | "Town" | "Person" | "Family" | "Group" | "Index" | "Idea" | "Resource";
 
 interface SearchResult {
   id: string;
@@ -72,7 +74,7 @@ const fold = (s: string) =>
 const entry = (r: Omit<SearchResult, "key" | "subkey">): SearchResult => ({ ...r, key: fold(r.label), subkey: fold(r.sublabel) });
 
 /** Which kind comes first where two answer equally well. */
-const TYPE_ORDER: Record<SearchType, number> = { Page: 0, Country: 1, State: 2, Person: 3, City: 4, Division: 5, Group: 6, Economy: 7, County: 8, Town: 9, Family: 10, Index: 11 };
+const TYPE_ORDER: Record<SearchType, number> = { Page: 0, Country: 1, State: 2, Person: 3, City: 4, Division: 5, Group: 6, Idea: 6.5, Economy: 7, Resource: 7.5, County: 8, Town: 9, Family: 10, Index: 11 };
 
 const TYPE_ICON: Record<SearchType, React.ReactNode> = {
   Page: <SquaresFour size={14} weight="fill" className="text-secondary shrink-0" />,
@@ -87,7 +89,12 @@ const TYPE_ICON: Record<SearchType, React.ReactNode> = {
   Family: <Crown size={14} weight="fill" className="text-secondary shrink-0" />,
   Group: <Handshake size={14} weight="fill" className="text-secondary shrink-0" />,
   Index: <ChartBar size={14} weight="fill" className="text-secondary shrink-0" />,
+  Idea: <Lightbulb size={14} weight="fill" className="text-secondary shrink-0" />,
+  Resource: <Tree size={14} weight="fill" className="text-secondary shrink-0" />,
 };
+
+/** What each kind of political idea is called in an answer's line. */
+const IDEA_KIND: Record<string, string> = { theory: "Political theory", governance: "Form of governance", philosophy: "Philosophy", doctrine: "Doctrine" };
 
 /** The site's pages, by the names the side menu gives them. */
 const PAGES: [label: string, to: string, about: string][] = [
@@ -104,7 +111,12 @@ const PAGES: [label: string, to: string, about: string][] = [
   ["Climate", "/dashboard/planetary-boundaries", "The measured state of the climate"],
   ["Crime", "/dashboard/crime", "Crime and justice figures"],
   ["World Maps", "/dashboard/maps", "The world, mapped by measure"],
-  ["News", "/dashboard/news", "The latest headlines, by place and subject"],
+  ["News", "/dashboard/news", "The latest headlines, by place and subject, and each country's historic accounts"],
+  ["My Notes", "/dashboard/notes", "A note on any place or page"],
+  ["Settings", "/dashboard/settings", "Your profile, the calendar, the watch list and the theme"],
+  ["Membership", "/dashboard/membership", "The plans, and what each holds"],
+  ["Terms & Policies", "/dashboard/legal", "The site's terms, its privacy and its sources"],
+  ["About", "/dashboard/about", "What the site is, and where its figures come from"],
 ];
 
 /** What can be searched as soon as the page is up: the pages, the countries, the US states, the profiled cities and the economies. */
@@ -135,8 +147,9 @@ const SEARCH_INDEX = buildSearchIndex();
  *            found inside its country's or its division's window on the Municipalities page.
  *   people   the leaders the World Leaders page profiles, every country's head of state and of government as the
  *            Maps page lists them, each US state's governor and senators, and the royal houses' members.
- *   others   the alliances and blocs of the Worldview page, and the published indexes. The wealthiest families were
- *            here too, and went with their tab of the World Leaders page.
+ *   others   the alliances and blocs and the political theories, forms of governance, philosophies and doctrines of
+ *            the Dashboard's explorer, each opening on its own entry there; the commodities; and the published indexes.
+ *            The wealthiest families were here too, and went with their tab of the World Leaders page.
  *
  * Once they are in, the UN's cities stand for the few profiled ones, which they include, and a town that is one of
  * the UN's cities by the same name in the same country is not listed twice. Each answer goes to the window or the
@@ -154,12 +167,14 @@ const more = () =>
     import("@/data/royalFamiliesData"),
     import("@/data/alliances"),
     import("@/data/countryIndexes"),
+    import("@/data/politicalTheories"),
+    import("@/data/resourceList"),
     // The towns: a file of its own, and the search goes on without it should it not come.
     fetch("/search/towns.json")
       .then((r) => (r.ok && /json/.test(r.headers.get("content-type") ?? "") ? (r.json() as Promise<{ towns: [name: string, cc: string, id: number, people: number, region: string][] }>) : { towns: [] }))
       .catch(() => ({ towns: [] as [name: string, cc: string, id: number, people: number, region: string][] })),
   ])
-    .then(([sub, un, us, leaders, reps, states, royals, groups, indexes, towns]) => {
+    .then(([sub, un, us, leaders, reps, states, royals, groups, indexes, ideas, resources, towns]) => {
       const country = new Map(countriesData.map((c) => [c.code, c.name]));
       const countryId = new Map(countriesData.map((c) => [c.code, c.id]));
       /* ── People ── */
@@ -213,11 +228,26 @@ const more = () =>
         ...towns.towns
           .filter((t) => !cityNames.has(`${t[1]}|${fold(t[0])}`))
           .map((t) => entry({ id: `town-${t[2]}`, label: t[0], sublabel: `${[t[4], country.get(t[1]) ?? t[1]].filter(Boolean).join(" · ")} · ${people_(t[3])} people (GeoNames)`, type: "Town", to: `/dashboard/subnations?open=place:${t[1]}:${t[2]}` })),
-        ...groups.ALLIANCES.flatMap((a) => [
-          entry({ id: `group-${a.id}`, label: a.name, sublabel: `${a.kind}${a.short && a.short !== a.name ? ` · ${a.short}` : ""}`, type: "Group", to: "/dashboard/worldview" }),
-          // By its short name too: "NATO" answers as well as its full name.
-          ...(a.short && a.short !== a.name ? [entry({ id: `group-${a.id}-short`, label: a.short, sublabel: `${a.kind} · ${a.name}`, type: "Group", to: "/dashboard/worldview" })] : []),
-        ]),
+        // The alliances and blocs open on their own entry in the Dashboard's Geopolitics tab: the Worldview page no longer carries them.
+        ...groups.ALLIANCES.flatMap((a) => {
+          const to = `/dashboard?explore=geopolitics&pick=${encodeURIComponent(`a-${a.id}`)}`;
+          return [
+            entry({ id: `group-${a.id}`, label: a.name, sublabel: `${a.kind}${a.short && a.short !== a.name ? ` · ${a.short}` : ""}`, type: "Group", to }),
+            // By its short name too: "NATO" answers as well as its full name.
+            ...(a.short && a.short !== a.name ? [entry({ id: `group-${a.id}-short`, label: a.short, sublabel: `${a.kind} · ${a.name}`, type: "Group", to })] : []),
+          ];
+        }),
+        // The political theories, forms of governance, philosophies and doctrines, each opening on its entry in the Ideologies tab.
+        ...ideas.POLITICAL_IDEAS.map((p) =>
+          entry({
+            id: `idea-${p.kind}-${p.name}`,
+            label: p.name,
+            sublabel: `${IDEA_KIND[p.kind] ?? "Idea"} · ${p.classed}`,
+            type: "Idea",
+            to: `/dashboard?explore=ideologies&pick=${encodeURIComponent(`p-${p.kind}-${p.name}`)}`,
+          }),
+        ),
+        ...resources.RESOURCES.map((r) => entry({ id: `resource-${r.name}`, label: r.name, sublabel: "Commodity · its prices, producers and holders", type: "Resource", to: "/dashboard/economies?view=resources" })),
         ...indexes.INDEX_DEFS.map((d) => entry({ id: `index-${d.id}`, label: d.name, sublabel: `${d.by} · ${d.what}`, type: "Index", to: "/dashboard/indexes" })),
       ];
     })
