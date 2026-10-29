@@ -12,7 +12,8 @@ import { CIVIC_ELECTIONS, COUNCIL_MEETINGS, type CivicSource } from "../data/civ
 import { countriesData } from "../data/countriesData";
 import { usStatesData } from "../data/statesData";
 
-export type EntryKind = CalendarEvent["theme"] | "Election" | "Council";
+/* "Quarter" is the quarter tracker's: where each calendar and US federal fiscal quarter begins and ends, worked out from the date (CalendarPopup). */
+export type EntryKind = CalendarEvent["theme"] | "Election" | "Council" | "Quarter";
 /** An entry of the calendar, whatever it came from. */
 export interface CalendarEntry {
   id: string;

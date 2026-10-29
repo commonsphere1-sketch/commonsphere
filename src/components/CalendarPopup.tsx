@@ -12,7 +12,7 @@
  * meetings too (calendarArea.ts); the default area is chosen in Settings.
  */
 import { useEffect, useMemo, useRef, useState } from "react";
-import { CalendarBlank, CaretLeft, CaretRight, X } from "@phosphor-icons/react";
+import { CalendarBlank, CaretDown, CaretLeft, CaretRight, X } from "@phosphor-icons/react";
 import { CALENDAR_CHECKED } from "../data/calendar2026";
 import { CIVIC_RETRIEVED, COUNCIL_CITIES } from "../data/civicCalendar";
 import { AREA_OPTIONS, CALENDAR_ENTRIES, areaLabel, inArea, useCalendarArea, type CalendarEntry, type EntryKind } from "../lib/calendarArea";
@@ -21,7 +21,38 @@ import { useTokens } from "./DataExplorer";
 import { QuarterTracker } from "./QuarterTracker";
 import { SourceLink } from "./SourceLink";
 
-const KIND_COLOR: Record<EntryKind, string> = { Political: "#6366f1", Economic: "#f59e0b", Social: "#10b981", Election: "#ef4444", Council: "#0ea5e9" };
+const KIND_COLOR: Record<EntryKind, string> = { Political: "#6366f1", Economic: "#f59e0b", Social: "#10b981", Election: "#ef4444", Council: "#0ea5e9", Quarter: "#64748b" };
+
+/**
+ * The quarter tracker's quarters on the calendar, as asked: the first and the last day of each calendar quarter of a
+ * year, with the US federal fiscal quarter it is - the fiscal year runs from 1 October and is named for the year it
+ * ends in. Worked out from the date, as the tracker's are, so they hold for any year and every area.
+ */
+function quarterEntries(year: number): CalendarEntry[] {
+  const out: CalendarEntry[] = [];
+  const range = ["1 Jan – 31 Mar", "1 Apr – 30 Jun", "1 Jul – 30 Sept", "1 Oct – 31 Dec"];
+  for (let i = 0; i < 4; i++) {
+    const fy = i === 3 ? year + 1 : year;
+    const fq = ((i + 1) % 4) + 1;
+    const last = new Date(year, i * 3 + 3, 0);
+    const base = { kind: "Quarter" as const, place: "", org: "", sources: [], cc: "" };
+    out.push({
+      ...base,
+      id: `q-${year}-${i + 1}-begins`,
+      name: `Q${i + 1} ${year} begins${i === 3 ? ` · US federal fiscal year ${fy} begins` : ""}`,
+      start: keyOf(new Date(year, i * 3, 1)),
+      what: `Calendar quarter Q${i + 1}, ${range[i]}; US federal fiscal year ${fy}, Q${fq}.`,
+    });
+    out.push({
+      ...base,
+      id: `q-${year}-${i + 1}-ends`,
+      name: `Q${i + 1} ${year} ends${i === 2 ? ` · US federal fiscal year ${year} ends` : ""}`,
+      start: keyOf(last),
+      what: `The last day of calendar Q${i + 1} and of fiscal Q${fq}; Q${((i + 1) % 4) + 1} begins the next day.`,
+    });
+  }
+  return out;
+}
 const WEEKDAYS = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
 const MONTH = new Intl.DateTimeFormat("en-GB", { month: "long", year: "numeric" });
 const DAY = new Intl.DateTimeFormat("en-GB", { weekday: "long", day: "numeric", month: "long", year: "numeric" });
@@ -51,7 +82,11 @@ function MonthCalendar({ wide = false }: { wide?: boolean } = {}) {
   const [month, setMonth] = useState(() => new Date(today.getFullYear(), today.getMonth(), 1));
   const [picked, setPicked] = useState<string | null>(null);
   const [area, setArea] = useCalendarArea();
-  const entries = useMemo(() => CALENDAR_ENTRIES.filter((e) => inArea(e, area)), [area]);
+  // The area's entries, and the quarters of the years in view, which belong to every area.
+  const entries = useMemo(
+    () => [...CALENDAR_ENTRIES.filter((e) => inArea(e, area)), ...[month.getFullYear() - 1, month.getFullYear(), month.getFullYear() + 1].flatMap(quarterEntries)],
+    [area, month],
+  );
   const byDay = useMemo(() => {
     const m = new Map<string, CalendarEntry[]>();
     for (const e of entries) for (const k of daysOf(e)) m.set(k, [...(m.get(k) ?? []), e]);
@@ -161,14 +196,14 @@ function MonthCalendar({ wide = false }: { wide?: boolean } = {}) {
         {kinds.map((kd) => (
           <span key={kd} className="inline-flex items-center gap-1.5 text-[10px] font-sans" style={{ color: t.mutedText }}>
             <span className="w-1.5 h-1.5 rounded-full" style={{ background: KIND_COLOR[kd] }} aria-hidden />
-            {kd === "Council" ? "City council" : kd}
+            {kd === "Council" ? "City council" : kd === "Quarter" ? "Quarter begins or ends" : kd}
           </span>
         ))}
       </div>
 
       <div className="mt-4 pt-3 border-t" style={{ borderColor: t.gridLine }}>
         <p className="text-[10px] font-mono uppercase tracking-widest mb-2" style={{ color: t.mutedText }}>
-          {picked ? DAY.format(fromKey(picked)) : `${MONTH.format(month)} · ${areaLabel(area)} · ${inMonth.length + monthOnly.length} scheduled`}
+          {picked ? DAY.format(fromKey(picked)) : `${MONTH.format(month)} · ${areaLabel(area)} · ${inMonth.filter((e) => e.kind !== "Quarter").length + monthOnly.length} scheduled`}
         </p>
         {list.length === 0 && (picked || monthOnly.length === 0) ? (
           <p className="text-[11px] font-sans" style={{ color: t.mutedText }}>
@@ -184,14 +219,14 @@ function MonthCalendar({ wide = false }: { wide?: boolean } = {}) {
                     {e.name}
                   </p>
                   <p className="text-[10.5px] font-sans leading-snug" style={{ color: t.mutedText }}>
-                    {when(e)} · {e.place} · {e.org}
+                    {[when(e), e.place, e.org].filter(Boolean).join(" · ")}
                   </p>
                   {e.what && (
                     <p className="text-[11px] font-sans leading-snug mt-0.5" style={{ color: t.bodyText }}>
                       {e.what}
                     </p>
                   )}
-                  <SourceLink sources={e.sources} className="mt-1" />
+                  {e.sources.length > 0 && <SourceLink sources={e.sources} className="mt-1" />}
                 </div>
               </li>
             ))}
@@ -201,7 +236,7 @@ function MonthCalendar({ wide = false }: { wide?: boolean } = {}) {
           Meetings and conferences are taken from the convening body's own page, checked on {CALENDAR_CHECKED}. Elections outside the United States are Wikidata's, kept where a date
           cites a page, which is listed first; US elections are the general election of 3 November 2026 in every state, with its ballot from the Senate's and the National Governors
           Association's records - special elections for appointed seats are not given. City council meetings are those {COUNCIL_CITIES.length} US cities listed on {CIVIC_RETRIEVED}; the
-          city's own page is the record. Town halls are not listed: no open source gathers them. Scheduled dates can move.
+          city's own page is the record. Town halls are not listed: no open source gathers them. Scheduled dates can move. The quarters are the quarter tracker's, worked out from the date: the calendar year's, and the US federal fiscal year's, which begins on 1 October.
         </p>
       </div>
     </section>
@@ -213,6 +248,8 @@ export function CalendarPopup() {
   const [open, setOpen] = useState(false);
   /* Opened, the window starts at its top, so that the whole month is in view, as asked. */
   const windowRef = useRef<HTMLDivElement>(null);
+  /* The quarter tracker, under the calendar: the button in the title goes straight to it, as asked. */
+  const trackerRef = useRef<HTMLDivElement>(null);
   useEffect(() => {
     if (open) windowRef.current?.scrollTo({ top: 0 });
   }, [open]);
@@ -248,6 +285,14 @@ export function CalendarPopup() {
             <span className="text-xs font-medium font-sans text-foreground/80">and the quarter tracker</span>
           </div>
           <div className="flex items-center gap-1.5 shrink-0">
+            <button
+              type="button"
+              onClick={() => trackerRef.current?.scrollIntoView({ behavior: "smooth", block: "start" })}
+              className="inline-flex items-center gap-1 text-[11px] font-semibold font-sans px-3 py-1.5 rounded-full border border-border text-foreground hover:bg-muted/60 transition-colors cursor-pointer"
+            >
+              Quarter tracker
+              <CaretDown size={11} weight="bold" aria-hidden />
+            </button>
             <button onClick={() => setOpen(false)} className="p-2 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted/60 transition-colors cursor-pointer" aria-label="Close the calendar">
               <X size={18} />
             </button>
@@ -256,7 +301,9 @@ export function CalendarPopup() {
         {/* Full screen, the calendar takes the wide column and the quarter tracker the narrow one beside it, as asked. */}
         <div className={`grid gap-4 ${wide ? "lg:grid-cols-[minmax(0,1fr)_minmax(0,24rem)] items-start" : "grid-cols-1"}`}>
           <MonthCalendar wide={wide} />
-          <QuarterTracker isLight={t.isLight} cardBg={t.cardBg} cardBorder={t.cardBorder} headText={t.headText} mutedText={t.mutedText} gridLine={t.gridLine} />
+          <div ref={trackerRef} className="scroll-mt-4">
+            <QuarterTracker isLight={t.isLight} cardBg={t.cardBg} cardBorder={t.cardBorder} headText={t.headText} mutedText={t.mutedText} gridLine={t.gridLine} />
+          </div>
         </div>
       </div>
     </div>
