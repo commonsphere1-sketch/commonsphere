@@ -7282,7 +7282,8 @@ export function StatesPage() {
               key={state.id}
               onClick={() => setModalState(state)}
               // Lit in its flag's colour when pointed at, as asked: the state's own flag, read off it (subnationFlagColors), lifted where too dark to show.
-              className="cs-glow-card modal-tile relative isolate overflow-hidden rounded-xl p-5 cursor-pointer transition-all duration-200 hover:scale-[1.01]"
+              // As tall as the Countries page's cards, as asked (most of those stand 317 to 354 pixels), its vote shares at the foot.
+              className="cs-glow-card modal-tile relative isolate overflow-hidden rounded-xl p-5 cursor-pointer transition-all duration-200 hover:scale-[1.01] flex flex-col min-h-[21.5rem]"
               style={{ "--glow": SUBNATION_FLAG_COLOR.US?.[state.name] ? seen(SUBNATION_FLAG_COLOR.US[state.name]) : undefined } as React.CSSProperties}
             >
               {/* Card header. The flag behind it runs the whole height of the card, dimmed, under everything the card carries. */}
@@ -7398,6 +7399,7 @@ export function StatesPage() {
               </div>
               {/* Voter share mini bars */}
               {/* The slim style: each share a rounded bar in a gradient of its party's colour, on the faint track. */}
+              <div className="mt-auto">
               <div className="flex gap-1 h-2 rounded-full overflow-hidden mb-2" style={{ background: SLIM_TRACK }}>
                 {state.voterShare.map((v, i) => (
                   <div
@@ -7413,6 +7415,7 @@ export function StatesPage() {
                     {v.party.slice(0, 3)} {v.pct}%
                   </span>
                 ))}
+              </div>
               </div>
             </article>
           ))}
