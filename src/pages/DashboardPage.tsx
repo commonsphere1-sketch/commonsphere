@@ -28,8 +28,7 @@ import { DashboardDrops } from "../components/DashboardDrops";
 import { hdiHex } from "../lib/hdiTier";
 import { CommodityMovers } from "../components/CommodityMovers";
 import { GlobalAnalytics } from "../components/DashboardGlobal";
-import { CitiesContainer, SectorOutlook } from "../components/DashboardCitiesSectors";
-import { StatesContainer } from "../components/DashboardStates";
+import { SectorOutlook } from "../components/DashboardCitiesSectors";
 import { CountryLeaders, PlanetNow, WorldLiving } from "../components/DashboardSignals";
 
 /** Energy to 2050, the panel kept of the Trends & Projections desk, with the projections it draws on: loaded after the page. */
@@ -2563,9 +2562,8 @@ export function DashboardPage() {
             The cards stand two to a row, each as tall as the one beside it. A card with a long list opens one of
             its rows at a time, so no card runs pages past its neighbour as the Cities and Commodity cards did. ── */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-          {/* Places: the largest state economies and the largest cities, laid out alike. */}
-          <StatesContainer />
-          <CitiesContainer />
+          {/* The places - the largest state economies and the largest cities - stood here and were taken off, as asked;
+              their cards are kept (StatesContainer, CitiesContainer) and not drawn. */}
 
           {/* Markets: each sector's published series, back where it stood, and the published commodity prices. */}
           <SectorOutlook />
