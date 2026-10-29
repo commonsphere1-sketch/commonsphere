@@ -718,7 +718,7 @@ function WorldWheel() {
           { key: "none", label: "No verdict - neither way is plainly better", Icon: Minus },
         ].map((x) => (
           <span key={x.key} className="inline-flex items-center gap-1.5 text-[10px] font-sans text-muted-foreground">
-            <span className="w-2.5 h-2.5 rounded-sm shrink-0" style={{ background: colors[x.key as keyof typeof colors] }} aria-hidden />
+            <span className="w-2 h-2 rounded-full shrink-0" style={{ background: x.key === "none" ? SLIM_TRACK : colors[x.key as keyof typeof colors], boxShadow: x.key === "none" ? "inset 0 0 0 1px var(--color-border)" : undefined }} aria-hidden />
             <x.Icon size={10} weight="bold" aria-hidden />
             {x.label}
           </span>
@@ -734,14 +734,17 @@ function WorldWheel() {
             role="img"
             aria-label={`The world's ${rows.length} pillars: of ${all.better + all.worse + all.none} measures, ${all.better} improved and ${all.worse} worsened over about ten years, and ${all.none} have no verdict.`}
           >
+            {/* The slim style, as the bars beside it are drawn: each colour fading in from faint at the centre to full at the rim. */}
             <defs>
-              <radialGradient id="wwCoreGrad" cx="50%" cy="50%" r="50%">
-                <stop offset="0%" stopColor={isLight ? "#ffffff" : "#27272a"} />
-                <stop offset="100%" stopColor={isLight ? "#e4e4e7" : "#18181b"} />
-              </radialGradient>
+              {(["better", "worse"] as const).map((k) => (
+                <radialGradient key={k} id={`ww-${k}`} gradientUnits="userSpaceOnUse" cx={cx} cy={cy} r={edge}>
+                  <stop offset={core / edge} stopColor={colors[k]} stopOpacity={0.35} />
+                  <stop offset={1} stopColor={colors[k]} stopOpacity={1} />
+                </radialGradient>
+              ))}
             </defs>
             {/* Half of a pillar's measures, by area. */}
-            <circle cx={cx} cy={cy} r={areaRadius(0.5)} fill="none" stroke={isLight ? "#71717a" : "#a1a1aa"} strokeWidth={1} strokeDasharray="3 4" opacity={0.5} />
+            <circle cx={cx} cy={cy} r={areaRadius(0.5)} fill="none" stroke={muted} strokeWidth={1} strokeDasharray="3 4" opacity={0.6} />
 
             {rows.map((r, i) => {
               const start = i * step;
@@ -771,9 +774,9 @@ function WorldWheel() {
                   style={{ transition: "opacity 150ms" }}
                 >
                   {/* The whole pillar: its measures with no verdict show as this grey. */}
-                  <path d={wedge(start, start + step, core, edge)} fill={colors.none} opacity={0.55} />
-                  <path d={wedge(start, start + step, core, areaRadius(f1))} fill={colors.better} opacity={0.9} />
-                  <path d={wedge(start, start + step, areaRadius(f1), areaRadius(f2))} fill={colors.worse} opacity={0.85} />
+                  <path d={wedge(start, start + step, core, edge)} style={{ fill: SLIM_TRACK }} />
+                  <path d={wedge(start, start + step, core, areaRadius(f1))} fill="url(#ww-better)" />
+                  <path d={wedge(start, start + step, areaRadius(f1), areaRadius(f2))} fill="url(#ww-worse)" />
                   {/* The pillar's own colour, as a band round the rim. */}
                   <path d={wedge(start, start + step, edge + 4, edge + 9)} fill={r.p.color} opacity={0.9} />
                   {hover === r.p.id && (
@@ -783,7 +786,7 @@ function WorldWheel() {
               );
             })}
 
-            <circle cx={cx} cy={cy} r={core} fill="url(#wwCoreGrad)" stroke={isLight ? "#d4d4d8" : "#3f3f46"} />
+            <circle cx={cx} cy={cy} r={core} style={{ fill: "var(--color-background)", stroke: "var(--color-border)" }} />
             <text x={cx} y={cy - 22} textAnchor="middle" fontSize="9" fontFamily="monospace" letterSpacing="1" fill={shown ? shown.p.color : muted}>
               {(shown ? shown.p.title : "The world").toUpperCase()}
             </text>
@@ -814,7 +817,7 @@ function WorldWheel() {
                   fontSize="10"
                   fontFamily="sans-serif"
                   fontWeight={lit ? "700" : "600"}
-                  fill={lit ? r.p.color : isLight ? "#334155" : "#cbd5e1"}
+                  fill={lit ? r.p.color : head}
                   className="select-none cursor-pointer"
                   onClick={() => open(r.p)}
                   onMouseEnter={() => setHover(r.p.id)}
@@ -866,7 +869,7 @@ function WorldWheel() {
 
       <p className="mt-4 text-[10px] font-sans leading-relaxed max-w-4xl" style={{ color: muted }}>
         Each wedge is a pillar and holds all its measures: from the centre, those that improved over about ten years, then those that
-        worsened; the grey beyond is those with no verdict. {VERDICT_RULE} Each part's area matches its number of measures, and the dashed
+        worsened, each fading in from the centre; the faint track beyond is those with no verdict. {VERDICT_RULE} Each part's area matches its number of measures, and the dashed
         ring marks half. Hover a pillar to read it in the centre; pick one to open it.
       </p>
     </div>
