@@ -35,6 +35,7 @@ import { COUNTRY_INDICATOR_FALLBACKS, COUNTRY_INDICATORS, COUNTRY_INDICATORS_SOU
 import { BOUNDARIES, PHC_2026, TRANSGRESSED, type Zone } from "../data/planetaryBoundaries";
 import { WORLD, type WorldIndicator } from "../data/worldview";
 import { Card, Go, Head, Kicker } from "./DashboardCitiesSectors";
+import { SLIM_TRACK, slimFill } from "./SlimBars";
 import { useTokens, type Tokens } from "./DataExplorer";
 import { SourceLink } from "./SourceLink";
 
@@ -48,7 +49,6 @@ const compact = (v: number) => {
 };
 /** The publisher as its source names it, without the "(via ...)" that says where the site read it, or what follows a dash. */
 const publisher = (label: string) => label.replace(/ \(via [^)]*\)$/, "").split(" — ")[0];
-const track = (t: Tokens) => (t.isLight ? "rgba(0,0,0,0.07)" : "rgba(255,255,255,0.08)");
 
 const Note = ({ t, children }: { t: Tokens; children: ReactNode }) => (
   <p className="text-[9px] font-sans leading-snug mt-2" style={{ color: t.mutedText }}>
@@ -330,8 +330,9 @@ export function CountryLeaders() {
               role="tab"
               aria-selected={on}
               onClick={() => setId(x.id)}
-              className="text-[10px] font-semibold font-sans px-2.5 py-1 rounded-full transition-opacity hover:opacity-80 cursor-pointer"
-              style={{ background: on ? color : t.tile, color: on ? "#ffffff" : t.bodyText, border: `1px solid ${on ? color : t.gridLine}` }}
+              className={`text-[10px] font-semibold font-sans px-2.5 py-1 rounded-full border transition-colors cursor-pointer ${
+                on ? "chip-selected" : "bg-transparent border-border text-muted-foreground hover:text-foreground hover:bg-muted/60"
+              }`}
             >
               {x.label}
             </button>
@@ -342,15 +343,16 @@ export function CountryLeaders() {
         <p className="text-[9px] font-mono min-w-0" style={{ color: t.mutedText }}>
           {m.unit} · figures for {years} · {ranked} countries in the order
         </p>
-        <div className="flex rounded-full overflow-hidden shrink-0" style={{ border: `1px solid ${t.gridLine}` }} role="group" aria-label="Which end of the order is shown">
+        <div className="flex rounded-full overflow-hidden shrink-0 border border-border" role="group" aria-label="Which end of the order is shown">
           {(["highest", "lowest"] as const).map((e) => (
             <button
               key={e}
               type="button"
               aria-pressed={end === e}
               onClick={() => setEnd(e)}
-              className="text-[10px] font-semibold font-sans px-2.5 py-0.5 capitalize transition-opacity hover:opacity-80 cursor-pointer"
-              style={{ background: end === e ? color : "transparent", color: end === e ? "#ffffff" : t.bodyText }}
+              className={`text-[10px] font-semibold font-sans px-2.5 py-0.5 capitalize transition-colors cursor-pointer ${
+                end === e ? "chip-selected" : "text-muted-foreground hover:text-foreground hover:bg-muted/60"
+              }`}
             >
               {e}
             </button>
@@ -380,8 +382,8 @@ export function CountryLeaders() {
                 </span>
               </span>
               {bars && (
-                <span className="w-12 h-1.5 rounded-full overflow-hidden shrink-0" style={{ background: track(t) }} aria-hidden>
-                  <span className="block h-full rounded-full" style={{ width: `${Math.max(1.5, (100 * r.v) / top)}%`, background: color }} />
+                <span className="w-12 h-1.5 rounded-full overflow-hidden shrink-0" style={{ background: SLIM_TRACK }} aria-hidden>
+                  <span className="block h-full rounded-full" style={{ width: `${Math.max(1.5, (100 * r.v) / top)}%`, background: slimFill(color) }} />
                 </span>
               )}
               <span className="text-[11px] font-mono font-bold text-right shrink-0 w-20" style={{ color: t.headText }}>

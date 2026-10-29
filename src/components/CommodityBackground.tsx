@@ -18,6 +18,7 @@ import { RESOURCE_DETAILS } from "../data/resourceDetails";
 import type { Tokens } from "./DataExplorer";
 import { leadingHolders, leadingProducers, producerFacts, producerSources } from "./ResourceModal";
 import { SourceLink } from "./SourceLink";
+import { SLIM_TRACK, slimFill } from "./SlimBars";
 
 type Bar = { name: string; value: number; amount: string; share: string | null };
 
@@ -31,8 +32,8 @@ function Bars({ t, rows, color, label }: { t: Tokens; rows: Bar[]; color: string
           <span className={`text-[10px] font-sans flex-1 min-w-0 truncate ${i === 0 ? "font-bold" : ""}`} style={{ color: t.headText }}>
             {r.name}
           </span>
-          <span className="w-20 h-1.5 rounded-full overflow-hidden shrink-0" style={{ background: t.isLight ? "rgba(0,0,0,0.07)" : "rgba(255,255,255,0.08)" }} aria-hidden>
-            <span className="block h-full rounded-full" style={{ width: `${top > 0 ? Math.max(1.5, (100 * r.value) / top) : 0}%`, background: color, opacity: i === 0 ? 1 : 0.6 }} />
+          <span className="w-20 h-1.5 rounded-full overflow-hidden shrink-0" style={{ background: SLIM_TRACK }} aria-hidden>
+            <span className="block h-full rounded-full" style={{ width: `${top > 0 ? Math.max(1.5, (100 * r.value) / top) : 0}%`, background: slimFill(color) }} />
           </span>
           <span className="text-[10px] font-mono text-right shrink-0 min-w-[6.5rem]" style={{ color: t.headText }}>
             {r.amount}
