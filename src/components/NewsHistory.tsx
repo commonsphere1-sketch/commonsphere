@@ -130,7 +130,7 @@ export function NewsHistory({ initial }: { /** The country the page has picked, 
         </h2>
         <span className="text-[10px] font-sans text-muted-foreground">each kind of event in one country, as the records hold it</span>
         <span className="flex-1 h-px bg-border" aria-hidden />
-        <StyledSelect value={code} onValueChange={setCode} options={OPTIONS} ariaLabel="The country whose history is shown" triggerClassName="text-foreground font-semibold" />
+        <StyledSelect value={code} onValueChange={setCode} options={OPTIONS} ariaLabel="The country whose history is shown" triggerClassName="px-3 py-1.5 rounded-full border border-foreground/30 bg-muted/60 hover:bg-muted hover:border-foreground/50 text-foreground font-semibold shadow-sm" />
       </div>
       {!of ? (
         <p className="px-1 text-[11px] font-sans text-muted-foreground">Reading the records…</p>
