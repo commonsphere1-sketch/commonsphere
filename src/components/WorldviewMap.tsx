@@ -54,6 +54,7 @@ import { useTokens, type Tokens } from "./DataExplorer";
 import { SourceLink } from "./SourceLink";
 import CountryDashboard, { headlineOf } from "./CountryDashboard";
 import PlaceFigures, { type PressedPlace } from "./PlaceFigures";
+import { NewsHistory } from "./NewsHistory";
 import { Link } from "react-router-dom";
 import { usStatesData } from "../data/statesData";
 import { citiesData } from "../data/citiesData";
@@ -1017,6 +1018,8 @@ export default function WorldviewMap() {
       );
     })()}
     <CountryDashboard code={picked} name={pickedName} />
+    {/* The News page's historic accounts, for the country picked here, as asked: its unrest, revolutions, wars, terrorism, disasters and epidemics as the records hold them. */}
+    <NewsHistory id="place-history" initial={picked} under='nav[aria-label="Worldview sections"]' />
     </>
   );
 }

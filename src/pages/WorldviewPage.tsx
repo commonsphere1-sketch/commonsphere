@@ -1613,6 +1613,7 @@ const SECTIONS: NavSection[] = [
   { id: "place-security", label: "Security" },
   { id: "place-infrastructure", label: "Infrastructure" },
   { id: "place-standing", label: "Standing" },
+  { id: "place-history", label: "History" },
   { id: "overview", label: "The world" },
   { id: "geopolitics", label: "Geopolitics" },
 ];
