@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { SiteMark } from "../components/SiteMark";
 import { useProfile } from "@/contexts/ProfileContext";
 import { useAuth } from "@/contexts/AuthContext";
 import { sanitizeText, validateEmail, LIMITS } from "@/lib/security";
@@ -15,7 +16,6 @@ import {
   Star,
   GraduationCap,
   ArrowRight,
-  ArrowLeft,
   EnvelopeSimple,
   Sparkle,
   CreditCard,
@@ -125,9 +125,10 @@ const PLANS = [
       `${COUNTS.economies} economies with figures refreshed from the World Bank, and each one's tax rates and revenue over the years`,
       `Composite rankings across ${COUNTS.ranked} entities and 7 categories`,
       `World leaders and ${COUNTS.royals} royal family profiles`,
-      "The law of each country: what is illegal and legal there, its courts, its constitution and who may vote",
+      "The law of each country: what is illegal and legal there, its constitution and who may vote",
       "World and regional maps: the G7, the Global North and South, ports, infrastructure and resources, to the county and the district",
-      "Climate, crime, policy, trends and worldview pages",
+      "Climate, crime, policy and worldview pages",
+      "The news: every headline, the events tracked by region and each country's historic accounts",
       "Compare up to six countries and states side by side, on their figures or on how they are governed",
       "Follow any country, state, city or municipality, and take a note on any place or page",
       "Light and dark themes",
@@ -267,9 +268,9 @@ const FEATURE_GRID = [
     label: "World & Regional Maps",
     desc: "G7, G20, BRICS, North and South",
   },
-  { icon: Flag, label: "Active Conflicts", desc: "Military & conflict data" },
+  { icon: Newspaper, label: "News", desc: "Headlines, events by region, each country's history" },
   {
-    icon: Newspaper,
+    icon: Flag,
     label: "World Leaders",
     desc: `Profiles and ${COUNTS.royals} royal families`,
   },
@@ -280,15 +281,15 @@ const FEATURE_GRID = [
   },
   {
     icon: Fingerprint,
-    label: "Crime Statistics",
+    label: "Crime",
     desc: "UNODC, Numbeo & prison data",
   },
   {
     icon: Atom,
-    label: "Planetary Boundaries",
-    desc: "Nine Earth-system processes",
+    label: "Climate",
+    desc: "Planetary boundaries and the climate news",
   },
-  { icon: Scales, label: "Policy Hub", desc: "Public policy deep-dives" },
+  { icon: Scales, label: "Policy", desc: "Policy by area, for countries and US states" },
 ];
 
 
@@ -314,7 +315,7 @@ const COMPARISON_ROWS: FeatureRow[] = [
     team: true,
   },
   {
-    label: "Conflicts, crime, planetary boundaries",
+    label: "News, crime and climate",
     free: true,
     supporter: true,
     professional: true,
@@ -644,55 +645,14 @@ export function MembershipsPage() {
   return (
     <div className="min-h-screen bg-background text-foreground animate-fade-in">
       <div className="px-6 py-8 max-w-5xl mx-auto space-y-8">
-        {/* ── Page Header ── */}
-        <section className="bg-card border border-border rounded-xl p-6">
-          <div className="flex items-center gap-3 mb-1">
-            <button
-              onClick={() => navigate(-1)}
-              className="flex items-center gap-1.5 text-xs text-muted-foreground hover:text-secondary transition-colors"
-            >
-              <ArrowLeft size={14} weight="bold" /> Back
-            </button>
-          </div>
-          <div className="mt-2">
-            <span className="text-xs font-semibold uppercase tracking-widest text-warning">
-              Support
-            </span>
-            <h1 className="text-3xl font-bold font-sans text-foreground mt-1">
-              Memberships
-            </h1>
-            <p className="text-muted-foreground text-sm mt-2 max-w-xl">
-              Three plans built around how you engage with the world&#39;s data
-              — whether you&#39;re studying, staying informed, or doing serious
-              research.
-            </p>
-            <div className="flex flex-wrap gap-1.5 mt-4">
-              {[
-                "Countries",
-                "US States",
-                "Cities",
-                "Economies",
-                "Conflicts",
-                "Crime Stats",
-                "Congress",
-                "Planetary Boundaries",
-                "Rankings",
-                "Policies",
-                "World Map",
-                "Research Notes",
-                "API Access",
-                "Alerts",
-              ].map((tag) => (
-                <span
-                  key={tag}
-                  className="text-[10px] font-medium bg-muted/50 border border-border rounded-full px-2.5 py-1 text-muted-foreground"
-                >
-                  {tag}
-                </span>
-              ))}
-            </div>
-          </div>
-        </section>
+        {/* The page head every page has: the globe, and the page's name as the side menu gives it. It was a card with a
+            Back link, a kicker, a sentence and a list of pages, some of which the site no longer has. */}
+        <div className="flex items-center gap-3">
+          <h1 className="text-2xl font-bold font-sans text-foreground flex items-center gap-3">
+            <SiteMark />
+            Membership
+          </h1>
+        </div>
 
         {/* ── Tabs ── */}
         <div className="flex items-center gap-2 flex-wrap">
@@ -702,7 +662,7 @@ export function MembershipsPage() {
               onClick={() => setTab(t.id)}
               className={`flex items-center gap-2 px-5 py-2 rounded-full text-sm font-semibold transition-all border ${
                 tab === t.id
-                  ? "bg-secondary border-secondary text-secondary-foreground shadow-lg shadow-secondary/20"
+                  ? "chip-selected shadow-sm"
                   : "border-border text-muted-foreground hover:text-foreground hover:border-muted bg-card"
               }`}
             >

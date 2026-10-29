@@ -103,7 +103,8 @@ export default function App() {
         <Suspense fallback={<PageFallback />}>
           <Routes>
             <Route path="/" element={<Navigate to="/dashboard" replace />} />
-            <Route path="/membership" element={<MembershipsPage />} />
+            {/* Membership now opens inside the dashboard, beside the other Account pages; its old address lands there. */}
+            <Route path="/membership" element={<Navigate to="/dashboard/membership" replace />} />
             <Route path="/edu" element={<EduSignInPage />} />
             {/* Where auth emails link back to, inside the usual chrome. */}
             <Route element={<DashboardLayout />}>
@@ -132,6 +133,7 @@ export default function App() {
               <Route path="comparisons" element={<ComparisonsPage />} />
               <Route path="about" element={<AboutPage />} />
               <Route path="legal" element={<LegalPage />} />
+              <Route path="membership" element={<MembershipsPage />} />
               <Route path="maps" element={<WorldMapsPage />} />
               <Route
                 path="planetary-boundaries"

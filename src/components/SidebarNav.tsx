@@ -101,7 +101,7 @@ const bottomNav = [
   { to: "/dashboard/news", label: "News", icon: Newspaper, end: false },
   { to: "/dashboard/notes", label: "My Notes", icon: NotePencil, end: false },
   { to: "/dashboard/settings", label: "Settings", icon: GearSix, end: false },
-  { to: "/membership", label: "Membership", icon: Crown, end: false },
+  { to: "/dashboard/membership", label: "Membership", icon: Crown, end: false },
   { to: "/dashboard/legal", label: "Terms & Policies", icon: Scroll, end: false },
 ];
 
@@ -226,7 +226,7 @@ function AboutModal({ onClose }: { onClose: () => void }) {
                 </h3>
                 <p className="text-sm text-muted-foreground font-sans leading-relaxed">
                   CommonSphere sets the world's nations, economies, people,
-                  climate, law and new developments side by side - for researchers,
+                  climate, law and the news side by side - for researchers,
                   journalists and anyone who wants to understand how the world is
                   governed and how it is changing, without wading through dozens of
                   disconnected sources.

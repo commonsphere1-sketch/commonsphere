@@ -250,10 +250,10 @@ const SITE_PAGES = [
   { icon: <Flag size={18} weight="fill" />, label: "World Leaders", desc: "Who governs, and the royal houses", color: "text-indigo-400", bg: "bg-indigo-500/10" },
   { icon: <Article size={18} weight="fill" />, label: "Policy", desc: "What governments spend, with a calculator", color: "text-violet-400", bg: "bg-violet-500/10" },
   { icon: <Ranking size={18} weight="fill" />, label: "Compare", desc: "Figures and systems of government, side by side", color: "text-secondary", bg: "bg-secondary/10" },
-  { icon: <Lightning size={18} weight="fill" />, label: "Developments", desc: "What the world is inventing and building", color: "text-yellow-400", bg: "bg-yellow-500/10" },
+  { icon: <Newspaper size={18} weight="fill" />, label: "News", desc: "Every headline, the events tracked by region and each country's historic accounts", color: "text-yellow-400", bg: "bg-yellow-500/10" },
   { icon: <Globe size={18} weight="fill" />, label: "Worldview", desc: "The world as a whole", color: "text-teal-400", bg: "bg-teal-500/10" },
   { icon: <Leaf size={18} weight="fill" />, label: "Climate", desc: "Disasters now, and the state of the living world", color: "text-green-400", bg: "bg-green-500/10" },
-  { icon: <Gavel size={18} weight="fill" />, label: "Crime Statistics", desc: "Crime and justice", color: "text-rose-400", bg: "bg-rose-500/10" },
+  { icon: <Gavel size={18} weight="fill" />, label: "Crime", desc: "Crime and justice", color: "text-rose-400", bg: "bg-rose-500/10" },
   { icon: <MapPin size={18} weight="fill" />, label: "World Maps", desc: "Maps to the county and the district", color: "text-lime-400", bg: "bg-lime-500/10" },
   { icon: <BookOpen size={18} weight="fill" />, label: "My Notes", desc: "A note on any place or page", color: "text-purple-400", bg: "bg-purple-500/10" },
 ];
@@ -338,10 +338,9 @@ export function AboutPage() {
               <p className="text-sm text-muted-foreground font-sans leading-relaxed">
                 Our goal is a single, authoritative, always-current window into
                 how every country, state, city, and economy on Earth is governed
-                — economically, politically, and socially — alongside deep
-                tracking of conflicts, crime statistics, planetary
-                boundaries, political ideologies, and
-                global wealth.
+                — economically, politically, and socially — alongside the
+                news and each country's history of it, crime statistics and
+                the climate.
               </p>
             </div>
           </section>
@@ -497,7 +496,7 @@ export function AboutPage() {
                 Go to Dashboard
               </button>
               <button
-                onClick={() => navigate("/membership")}
+                onClick={() => navigate("/dashboard/membership")}
                 className="flex items-center gap-2 px-6 py-3 border border-border rounded-full font-semibold text-sm font-sans text-foreground hover:bg-muted transition-colors"
               >
                 View Memberships

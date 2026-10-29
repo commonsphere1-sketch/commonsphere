@@ -6,7 +6,6 @@ import { voiceNoteUrl } from "@/lib/supabaseData";
 import {
   NotePencil,
   Trash,
-  MagnifyingGlass,
   Spinner,
   Tag,
   CalendarBlank,
@@ -15,13 +14,12 @@ import {
   Play,
   Pause,
 } from "@phosphor-icons/react";
-import { Input } from "@/components/ui/input";
 import { FollowedPlaces } from "@/components/FollowedPlaces";
 import { HeadlinesBanner, ALL_TOPICS, followedFirst, namesPlace, useFollowedTags } from "@/components/HeadlinesBanner";
 import type { EntityType } from "@/lib/watchlist";
 import { useNavigate } from "react-router-dom";
 import { ArrowRight, Plus, Star } from "@phosphor-icons/react";
-import { ChipRow } from "@/components/ChipRow";
+import { FilterBar } from "@/components/FilterBar";
 import { useNotes } from "@/contexts/NotesContext";
 import { useFollowedCities } from "@/lib/followedCities";
 import { NOTE_KINDS, SITE_SECTIONS, followedFallback, followedKind, followedLink } from "@/lib/noteKinds";
@@ -49,7 +47,7 @@ export function NotesPage() {
     .map((id) => ({ id, kind: followedKind(id), name: local.about(id)?.name, to: local.about(id)?.to ?? followedLink(id) }))
     .filter((f) => (filterType === "All" || filterType === f.kind) && (!search || (f.name ?? "").toLowerCase().includes(search.toLowerCase())));
   /** How many notes are about each page of the site. */
-  const aboutPage = (label: string) => notes.filter((n: Note) => n.entityType === "Page" && n.entityName === label).length;
+  const aboutPage = (s: { label: string; was?: string[] }) => notes.filter((n: Note) => n.entityType === "Page" && (n.entityName === s.label || (n.entityName != null && !!s.was?.includes(n.entityName)))).length;
   const followTypes: EntityType[] =
     filterType === "All" ? ["country", "state"] : filterType === "Country" ? ["country"] : filterType === "State" ? ["state"] : [];
 
@@ -156,24 +154,23 @@ export function NotesPage() {
           </p>
         )}
 
-        {/* Filters */}
-        <div className="flex flex-col sm:flex-row gap-3 mb-6">
-          <div className="relative flex-1 max-w-sm mx-auto">
-            <MagnifyingGlass size={16} weight="bold" className="absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground pointer-events-none" />
-            <Input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Search notes…" className="pl-10 bg-card border-border text-foreground placeholder:text-muted-foreground h-9 text-sm rounded-full" />
-          </div>
-          <div className="min-w-0 sm:flex-1">
-            <ChipRow>
-              {entityTypes.map((t) => (
-                <button key={t} onClick={() => setFilterType(t)} aria-pressed={filterType === t}
-                  className={`px-3 py-1.5 rounded-full text-xs font-sans transition-colors duration-150 shrink-0 ${filterType === t ? "bg-secondary text-secondary-foreground" : "bg-card border border-border text-muted-foreground hover:text-foreground"}`}>
-                  {t}
-                  {t !== "All" && notes.some((n: Note) => n.entityType === t) ? ` · ${notes.filter((n: Note) => n.entityType === t).length}` : ""}
-                </button>
-              ))}
-            </ChipRow>
-          </div>
-        </div>
+        {/* The search and the kinds, in the site's sticky bar. */}
+        <FilterBar label="Notes by kind" className="mb-6" search={{ value: search, onChange: setSearch, placeholder: "Search notes…" }}>
+          {entityTypes.map((t) => (
+            <button
+              key={t}
+              type="button"
+              onClick={() => setFilterType(t)}
+              aria-pressed={filterType === t}
+              className={`px-3 py-1 rounded-full text-[11px] font-medium font-sans border transition-colors cursor-pointer shrink-0 whitespace-nowrap ${
+                filterType === t ? "chip-selected" : "bg-transparent border-border text-muted-foreground hover:text-foreground hover:bg-muted/60"
+              }`}
+            >
+              {t}
+              {t !== "All" && notes.some((n: Note) => n.entityType === t) ? ` · ${notes.filter((n: Note) => n.entityType === t).length}` : ""}
+            </button>
+          ))}
+        </FilterBar>
 
         {/* The countries and states you follow, kept here beside your notes.
             The type buttons and the search narrow these too; a city or an
@@ -242,7 +239,7 @@ export function NotesPage() {
             </div>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-2">
               {SITE_SECTIONS.map((s) => {
-                const n = aboutPage(s.label);
+                const n = aboutPage(s);
                 return (
                   <div key={s.to} className="flex items-center gap-2 rounded-xl border border-border bg-card px-3 py-2 min-w-0">
                     <button type="button" onClick={() => navigate(s.to)} className="flex-1 min-w-0 text-left cursor-pointer group" title={`Open ${s.label}`}>

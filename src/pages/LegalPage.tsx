@@ -344,7 +344,7 @@ export function LegalPage() {
               publishers.
             </P>
             <P>
-              A country's legal system, constitution, courts, executive and
+              A country's legal system, constitution, executive and
               legislature are the CIA World Factbook's, from its final edition of
               January 2026 (public domain). What is illegal and legal in a
               country, and where travel is advised against, is the UK Foreign,

@@ -14,7 +14,8 @@ export const NOTE_KINDS = ["Country", "State", "Municipality", "City", "Economy"
 export type NoteKind = (typeof NOTE_KINDS)[number];
 
 /** The pages of the site a note can be about, in the sidebar's order. */
-export const SITE_SECTIONS: { to: string; label: string; holds: string }[] = [
+/* Each page as the side menu names it; a page renamed keeps its old name in `was`, so the notes taken under it still count. */
+export const SITE_SECTIONS: { to: string; label: string; holds: string; was?: string[] }[] = [
   { to: "/dashboard", label: "Dashboard", holds: "the world at a glance" },
   { to: "/dashboard/states", label: "US States", holds: "the fifty states" },
   { to: "/dashboard/countries", label: "Countries", holds: "every country" },
@@ -26,8 +27,9 @@ export const SITE_SECTIONS: { to: string; label: string; holds: string }[] = [
   { to: "/dashboard/rankings", label: "Compare", holds: "places side by side" },
   { to: "/dashboard/worldview", label: "Worldview", holds: "the world as a whole" },
   { to: "/dashboard/planetary-boundaries", label: "Climate", holds: "the climate and the living world" },
-  { to: "/dashboard/crime", label: "Crime Statistics", holds: "crime and justice" },
+  { to: "/dashboard/crime", label: "Crime", holds: "crime and justice", was: ["Crime Statistics"] },
   { to: "/dashboard/maps", label: "World Maps", holds: "the maps" },
+  { to: "/dashboard/news", label: "News", holds: "every headline, and each country's history" },
 ];
 
 /** The page a path is on: the longest of the pages' paths that it begins with. */
