@@ -1,4 +1,4 @@
-import { useMemo, useState, useRef, useLayoutEffect } from "react";
+import { useState, useRef, useLayoutEffect } from "react";
 import { SiteMark } from "../components/SiteMark";
 import { useAuth } from "@/contexts/AuthContext";
 import { useNotesStore, type Note } from "@/lib/notesStore";
@@ -15,7 +15,6 @@ import {
   Pause,
 } from "@phosphor-icons/react";
 import { FollowedPlaces } from "@/components/FollowedPlaces";
-import { HeadlinesBanner, ALL_TOPICS, followedFirst, namesPlace, useFollowedTags } from "@/components/HeadlinesBanner";
 import type { EntityType } from "@/lib/watchlist";
 import { useNavigate } from "react-router-dom";
 import { ArrowRight, Plus, Star } from "@phosphor-icons/react";
@@ -25,9 +24,6 @@ import { useFollowedCities } from "@/lib/followedCities";
 import { NOTE_KINDS, SITE_SECTIONS, followedFallback, followedKind, followedLink } from "@/lib/noteKinds";
 
 export function NotesPage() {
-  // The banner leads with the places the reader follows.
-  const followedTags = useFollowedTags();
-  const notesPick = useMemo(() => followedFirst(followedTags, namesPlace), [followedTags]);
   const [search, setSearch] = useState("");
   const [filterType, setFilterType] = useState<string>("All");
   const { isConfigured, openAuth } = useAuth();
@@ -95,23 +91,7 @@ export function NotesPage() {
           </div>
         </div>
 
-        {/* The news about the places you follow */}
-        <HeadlinesBanner
-          label="Your places in the news"
-          topics={ALL_TOPICS}
-          days={2}
-          read={300}
-          untagged
-          pick={notesPick}
-          className="mb-6"
-          note={(outlets) => (
-            <>
-              The last two days' headlines about the countries and states you follow, starred and first, then the latest
-              naming any place - from {outlets} (five at most from each), refreshed every half hour. Follow a place with the
-              ☆ on its card. Each links to the outlet.
-            </>
-          )}
-        />
+        {/* The banner of headlines about the places you follow stood here; it was taken off, as asked. */}
 
         {/* Where these notes live, and how to move them. */}
         {mode === "device" ? (
