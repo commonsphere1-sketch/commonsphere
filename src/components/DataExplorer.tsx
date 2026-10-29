@@ -1,8 +1,8 @@
 /**
  * The data explorer: countries, the world's economies, and policy news, each
  * as a list beside a detail pane. The Dashboard has countries and economies
- * as tabs, and with them the explorers the Economies and Trends pages have -
- * industries, resources and trends - each loaded when its tab is first
+ * as tabs, and with them the explorers of other pages - the resources,
+ * geopolitics, ideologies, unrest and the climate - each loaded when its tab is first
  * opened; the Countries, Economies and Policy pages each have their own alone
  * (`only`), with no tabs. Policies was a tab of the Dashboard's too; Industries
  * stands there now, as asked, and the Policy page keeps the policy explorer.
@@ -34,7 +34,7 @@ import { lazy, Suspense, useEffect, useMemo, useRef, useState, type ReactNode } 
 import { useLocation, useNavigate } from "react-router-dom";
 import { Area, AreaChart, CartesianGrid, Line, LineChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
 import { SlimColumns } from "./SlimBars";
-import { ArrowRight, ArrowSquareOut, ChartBar, ChartLine, Globe, GlobeHemisphereWest, Heart, Leaf, Lightbulb, MagnifyingGlass, MapPin, Megaphone, Scales, Tree, Users, X } from "@phosphor-icons/react";
+import { ArrowRight, ArrowSquareOut, ChartBar, Globe, GlobeHemisphereWest, Heart, Leaf, Lightbulb, MagnifyingGlass, MapPin, Megaphone, Scales, Tree, Users, X } from "@phosphor-icons/react";
 import { useTheme } from "../contexts/ThemeContext";
 import { useLiveCountries } from "../contexts/LiveDataContext";
 import type { Country, DataSource, ReferenceField } from "../data/countriesData";
@@ -46,7 +46,6 @@ import { hdiHex } from "../lib/hdiTier";
 import { ago, placeName, useHeadlines, type Headline } from "./HeadlinesBanner";
 import type { TopicHit } from "./PolicyContext";
 import { RESOURCES } from "../data/resourceList";
-import { TREND_FIGURES } from "../data/trendGroups";
 
 /** A policy headline's fuller detail, with the data it draws on: loaded when one is first shown. */
 const PolicyContext = lazy(() => import("./PolicyContext"));
@@ -56,9 +55,8 @@ const CountryRecord = lazy(() => import("./PolicyContext").then((m) => ({ defaul
 const RegionFigures = lazy(() => import("./RegionFigures"));
 /** Every topic a country's record has figures for, in the order a country's detail gives them. */
 const RECORD_TOPICS = ["Trade", "Energy", "Climate", "Tech", "Jobs & pay", "Defence"];
-/** The explorers of the Economies page's resources and of the Trends page, each with its data: loaded when its tab is opened. */
+/** The explorer of the Economies page's resources, with its data: loaded when its tab is opened. */
 const ResourcesTab = lazy(() => import("./ResourceExplorerTab"));
-const TrendsTab = lazy(() => import("../pages/TrendsPage").then((m) => ({ default: m.TrendsExplorer })));
 /** The explorers of the Worldview, Crime and Climate pages, each with its data: loaded when its tab is opened. The Industries tab stood here and was taken off as asked. */
 const GeopoliticsTab = lazy(() => import("./GeopoliticsExplorer"));
 const UnrestTab = lazy(() => import("./UnrestExplorer"));
@@ -67,15 +65,14 @@ const ClimateTab = lazy(() => import("./ClimateNowExplorer"));
 
 export type ExplorerTab = "countries" | "economies" | "policies";
 /** The Dashboard's tabs: countries and economies, and the explorers that come from other pages. */
-type Tab = ExplorerTab | "resources" | "trends" | "geopolitics" | "ideologies" | "unrest" | "climate";
+type Tab = ExplorerTab | "resources" | "geopolitics" | "ideologies" | "unrest" | "climate";
 type TabDef = { id: Tab; label: string; color: string; path: string; Icon: typeof Globe };
 
 const TABS: TabDef[] = [
   { id: "countries", label: "Countries", color: "#6366f1", path: "/dashboard/countries", Icon: Globe },
   { id: "economies", label: "Economies", color: "#f59e0b", path: "/dashboard/economies", Icon: ChartBar },
   { id: "resources", label: "Resources", color: "#059669", path: "/dashboard/economies?view=resources", Icon: Tree },
-  // The Developments page was taken off: its figures stay here, with no page to open.
-  { id: "trends", label: "Developments", color: "#0ea5e9", path: "", Icon: ChartLine },
+  // The Developments tab stood here, the figures of a page that was taken off; it was taken off too, as asked.
   // The explorers added since: power; political theories and forms of governance; revolutions, protests and boycotts; the climate.
   // Geopolitics and the ideologies were one tab, and are two as asked: each is a half of the Worldview page's explorer.
   { id: "geopolitics", label: "Geopolitics", color: "#6366f1", path: "/dashboard/worldview", Icon: GlobeHemisphereWest },
@@ -194,7 +191,6 @@ export function DataExplorer({
     economies: `${regions.length}`,
     policies: `${headlines.length}${capped ? "+" : ""}`,
     resources: `${RESOURCES.length}`,
-    trends: `${TREND_FIGURES}`,
     // Their counts are in their data, which is loaded only when the tab is opened: no number is shown on the tab.
     geopolitics: "",
     ideologies: "",
@@ -266,8 +262,6 @@ export function DataExplorer({
         <Suspense fallback={<Empty t={t}>Loading…</Empty>}>
           {tab === "resources" ? (
             <ResourcesTab action={toPage} />
-          ) : tab === "trends" ? (
-            <TrendsTab embedded />
           ) : tab === "geopolitics" ? (
             <GeopoliticsTab embedded only="geopolitics" />
           ) : tab === "ideologies" ? (
