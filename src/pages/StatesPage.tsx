@@ -1,4 +1,6 @@
 import * as Popover from "@radix-ui/react-popover";
+import { SUBNATION_FLAG_COLOR } from "../data/subnationFlagColors";
+import { seen } from "../lib/flagColor";
 import React, { useState, useEffect, lazy, Suspense } from "react";
 import { SLIM_TRACK, slimFill } from "../components/SlimBars";
 import { useNavigate } from "react-router-dom";
@@ -7279,7 +7281,9 @@ export function StatesPage() {
             <article
               key={state.id}
               onClick={() => setModalState(state)}
-              className="modal-tile relative isolate overflow-hidden rounded-xl p-5 cursor-pointer transition-all duration-200 hover:scale-[1.01] hover:shadow-lg hover:border-secondary/40"
+              // Lit in its flag's colour when pointed at, as asked: the state's own flag, read off it (subnationFlagColors), lifted where too dark to show.
+              className="cs-glow-card modal-tile relative isolate overflow-hidden rounded-xl p-5 cursor-pointer transition-all duration-200 hover:scale-[1.01]"
+              style={{ "--glow": SUBNATION_FLAG_COLOR.US?.[state.name] ? seen(SUBNATION_FLAG_COLOR.US[state.name]) : undefined } as React.CSSProperties}
             >
               {/* Card header. The flag behind it runs the whole height of the card, dimmed, under everything the card carries. */}
               <div className="flex items-start justify-between mb-3 -mx-5 -mt-5 px-5 pt-5 pb-4">

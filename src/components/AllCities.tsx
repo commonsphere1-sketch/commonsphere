@@ -521,7 +521,9 @@ function CountryCard({ row, matching, onOpen }: { row: Row; /** How many of its 
         }
       }}
       aria-label={`${row.name}: its ${row.cities.length} cities`}
-      className="modal-tile relative isolate overflow-hidden rounded-xl p-5 cursor-pointer transition-all duration-200 hover:scale-[1.01] hover:shadow-lg hover:border-secondary/40"
+      // Lit in its country's flag colour when pointed at, as asked: the flag the card is drawn on.
+      className="cs-glow-card modal-tile relative isolate overflow-hidden rounded-xl p-5 cursor-pointer transition-all duration-200 hover:scale-[1.01]"
+      style={{ "--glow": flagColor(row.cc) ?? undefined } as React.CSSProperties}
     >
       {/* The country's flag behind the whole card, top to bottom, dimmed as it was behind the head alone: under the writing, which stays as it was, and over the card's own ground. */}
       <img src={flag(row.cc, 640)} alt="" aria-hidden="true" className="absolute inset-0 -z-10 w-full h-full object-cover card-flag scale-105 select-none pointer-events-none" onError={(e) => (e.currentTarget.style.display = "none")} />

@@ -943,6 +943,23 @@ html.dark article.cursor-pointer:hover {
     0 12px 30px rgba(255, 255, 255, 0.11) !important;
 }
 
+/* ── Place cards that light up in their flag's colour ────
+   A place's card - a country's, a state's, a country's divisions or cities -
+   lit when pointed at, as the Dashboard's commodity rows light in theirs: a
+   fine edge and a soft halo in its flag's colour (--glow, set on the card).
+   A card whose flag has no colour lights in the page's ink. !important, and
+   the theme's class in the selector, because .modal-tile and the light
+   theme's card shadow set the border and shadow that way. */
+.cs-glow-card.modal-tile:hover,
+html.light .cs-glow-card.modal-tile:hover {
+  border-color: color-mix(in srgb, var(--glow, var(--color-foreground)) 70%, transparent) !important;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.25),
+    0 0 0 1px color-mix(in srgb, var(--glow, var(--color-foreground)) 55%, transparent),
+    0 0 32px -6px var(--glow, var(--color-foreground)),
+    0 12px 32px -14px rgba(0, 0, 0, 0.55) !important;
+}
+
 /* .modal-tile cards keep the sheen along their top edge. */
 html.light .modal-tile.cursor-pointer {
   box-shadow:

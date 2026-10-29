@@ -9147,7 +9147,9 @@ export function CountriesPage() {
               <article
                 key={country.id}
                 onClick={() => setModalCountry(country)}
-                className="modal-tile relative isolate overflow-hidden rounded-xl p-5 cursor-pointer transition-all duration-200 hover:scale-[1.01] hover:shadow-lg hover:border-secondary/40"
+                // Lit in its flag's colour when pointed at, as asked.
+                className="cs-glow-card modal-tile relative isolate overflow-hidden rounded-xl p-5 cursor-pointer transition-all duration-200 hover:scale-[1.01]"
+                style={{ "--glow": flagColor(country.code) ?? undefined } as React.CSSProperties}
               >
                 {/* Card header. The flag behind it runs the whole height of the card, dimmed, under everything the card carries. */}
                 <div className="flex items-start justify-between mb-3 -mx-5 -mt-5 px-5 pt-5 pb-4">
