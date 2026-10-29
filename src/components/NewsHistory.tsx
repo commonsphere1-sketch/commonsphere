@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import { CaretDown, CaretRight, MagnifyingGlass } from "@phosphor-icons/react";
 import { StyledSelect } from "./StyledSelect";
 import { countriesData } from "../data/countriesData";
+import { BLUE_HUE } from "../lib/blueHue";
 
 /**
  * The historic accounts of the News page's events, country by country, as asked: under the headline list, every event
@@ -239,10 +240,10 @@ export function NewsHistory({ initial }: { /** The country the page has picked, 
           onValueChange={setCode}
           options={OPTIONS}
           ariaLabel="The country whose history is shown"
-          triggerClassName="px-3 py-1.5 rounded-full border border-foreground/30 bg-muted/60 hover:bg-muted hover:border-foreground/50 text-foreground font-semibold shadow-sm"
+          triggerClassName="chip-selected px-3 py-1.5 rounded-full border font-semibold shadow-sm"
         />
       </div>
-      <div className="rounded-2xl border border-border bg-card p-4 flex flex-col gap-3 min-w-0">
+      <div className={`cs-on-hue rounded-2xl border border-border bg-card ${BLUE_HUE} p-4 flex flex-col gap-3 min-w-0`}>
         <div role="tablist" aria-label="The kind of event" className="flex flex-wrap items-center gap-1.5">
           {TABS.map((t) => (
             <button key={t.id} type="button" role="tab" aria-selected={t.id === kind} onClick={() => setKind(t.id)} className={chip(t.id === kind)}>

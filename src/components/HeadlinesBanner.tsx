@@ -537,6 +537,7 @@ export function HeadlineList({
   items,
   summary,
   scrollClass = "max-h-[min(26rem,60vh)]",
+  panelClass = "bg-background dark:bg-black/40",
 }: {
   /** The id the banner's switch points at. */
   id: string;
@@ -547,6 +548,8 @@ export function HeadlineList({
   summary: ReactNode;
   /** How tall the list scrolls: short under a banner, taller on the News page, which is the list. */
   scrollClass?: string;
+  /** The list's own fill: a banner's dark panel, or clear on the News page so its blue hue runs through the list. */
+  panelClass?: string;
 }) {
   const [q, setQ] = useState("");
   const [drawn, setDrawn] = useState(LIST_STEP);
@@ -568,7 +571,7 @@ export function HeadlineList({
   });
   const left = shown.length - Math.min(drawn, shown.length);
   return (
-    <div id={id} role="region" aria-label={`All ${label.toLowerCase()}`} className="mt-3 rounded-xl overflow-hidden border border-border bg-background dark:bg-black/40">
+    <div id={id} role="region" aria-label={`All ${label.toLowerCase()}`} className={`mt-3 rounded-xl overflow-hidden border border-border ${panelClass}`}>
       <div className="flex flex-wrap items-center justify-between gap-x-3 gap-y-2 px-3 py-2 border-b border-border">
         <p className="text-[10px] font-sans text-muted-foreground leading-snug">
           {summary}

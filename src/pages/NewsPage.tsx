@@ -202,6 +202,7 @@ export function NewsPage() {
           label="News"
           items={items}
           scrollClass="max-h-[min(48rem,75vh)]"
+          panelClass="bg-transparent"
           summary={
             <>
               <HeadlineCount n={items.length} /> {whereWords}
