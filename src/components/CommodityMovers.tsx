@@ -89,12 +89,25 @@ export function CommodityMovers() {
         {MOVERS.map((m, i) => (
           <li
             key={m.name}
-            className="py-2"
+            className="py-1"
             style={{ borderBottom: i < MOVERS.length - 1 ? `1px solid ${t.gridLine}` : "none" }}
             title={m.before ? `${m.name}: ${price(m.before.value)} ${m.unit} in ${monthName(m.before.month)}, ${price(m.value)} in ${monthName(m.month)}` : `${m.name}: ${price(m.value)} ${m.unit} in ${monthName(m.month)}`}
           >
-            <button type="button" aria-expanded={open === m.name} onClick={() => setOpen(m.name)} className="flex items-center gap-2 w-full text-left hover:opacity-80 transition-opacity cursor-pointer">
-            <span className="w-1.5 h-1.5 rounded-full shrink-0" style={{ background: RESOURCE_COLOR.get(m.name) ?? COLOR }} aria-hidden />
+            {/* Lit in its own colour when pointed at - a tint, a fine edge and a glowing dot - and kept lit while it is open. */}
+            <button
+              type="button"
+              aria-expanded={open === m.name}
+              onClick={() => setOpen(m.name)}
+              className={`group flex items-center gap-2 w-[calc(100%+1rem)] -mx-2 px-2 py-1.5 rounded-[0.5rem] text-left transition-[background-color,box-shadow] duration-200 cursor-pointer hover:bg-[color-mix(in_srgb,var(--row)_12%,transparent)] hover:shadow-[inset_0_0_0_1px_color-mix(in_srgb,var(--row)_40%,transparent),0_0_14px_-4px_var(--row)] ${
+                open === m.name ? "bg-[color-mix(in_srgb,var(--row)_10%,transparent)] shadow-[inset_0_0_0_1px_color-mix(in_srgb,var(--row)_35%,transparent)]" : ""
+              }`}
+              style={{ "--row": RESOURCE_COLOR.get(m.name) ?? COLOR } as React.CSSProperties}
+            >
+            <span
+              className={`w-1.5 h-1.5 rounded-full shrink-0 transition-shadow duration-200 group-hover:shadow-[0_0_6px_1px_var(--row)] ${open === m.name ? "shadow-[0_0_6px_1px_var(--row)]" : ""}`}
+              style={{ background: "var(--row)" }}
+              aria-hidden
+            />
             <span className="flex-1 min-w-0">
               <span className="block text-xs font-semibold font-sans truncate" style={{ color: t.headText }}>
                 {m.name}
