@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { SiteMark } from "../components/SiteMark";
 import { FilterBar } from "../components/FilterBar";
 import { StyledSelect } from "../components/StyledSelect";
@@ -93,19 +93,6 @@ export function NewsPage() {
     }
   }, [where, subject, days]);
 
-  // How far down the page's sticky bar of places reaches, so the historic accounts' bar of kinds sticks under it.
-  const pageRef = useRef<HTMLDivElement | null>(null);
-  const [placesBottom, setPlacesBottom] = useState(64 + 52);
-  useEffect(() => {
-    const bar = pageRef.current?.querySelector<HTMLElement>('[role="group"][aria-label="News by place"]');
-    if (!bar) return;
-    const measure = () => setPlacesBottom(64 + bar.offsetHeight + 8);
-    measure();
-    const ro = new ResizeObserver(measure);
-    ro.observe(bar);
-    return () => ro.disconnect();
-  }, []);
-
   const { rows, done, capped } = useHeadlineRead(ALL_TOPICS, days, ALL_READ, true);
   const followed = useFollowedTags();
 
@@ -147,7 +134,7 @@ export function NewsPage() {
 
   return (
     <div className="min-h-screen bg-background text-foreground animate-fade-in">
-      <div ref={pageRef} className="px-6 py-8 max-w-screen-2xl mx-auto">
+      <div className="px-6 py-8 max-w-screen-2xl mx-auto">
         <div className="flex items-center gap-3 mb-6">
           <h1 className="text-2xl font-bold font-sans text-foreground flex items-center gap-3">
             <SiteMark />
@@ -155,7 +142,8 @@ export function NewsPage() {
           </h1>
         </div>
 
-        {/* Every headline, by place, subject and event. */}
+        {/* Every headline, by place, subject and event. The bar of places sticks only while this part of the page is in view, as asked. */}
+        <div>
         <div className="flex items-baseline gap-3 px-1 pb-3">
           <h2 className="text-sm font-bold font-sans text-foreground">Every headline</h2>
           <span className="text-[10px] font-sans text-muted-foreground">by place, subject and event</span>
@@ -239,9 +227,10 @@ export function NewsPage() {
           revolution, are kept out. ★ marks a place you follow.
         </p>
         </section>
+        </div>
 
         {/* The historic accounts of these events, country by country, under the headline list, as asked. */}
-        <NewsHistory initial={where.startsWith("c:") ? where.slice(2) : where.startsWith("s:") ? "US" : undefined} stickyTop={placesBottom} />
+        <NewsHistory initial={where.startsWith("c:") ? where.slice(2) : where.startsWith("s:") ? "US" : undefined} />
 
         {/* The events tracked by region, below the news, as asked: the public bodies' records beside the headlines. */}
         <div className="mt-8">

@@ -147,7 +147,7 @@ export function NewsHistory({
   stickyTop = 64,
 }: {
   /** The country the page has picked, where it has one. */ initial?: string;
-  /** Where the kinds' bar sticks: under the page's own sticky bar. */ stickyTop?: number;
+  /** Where the kinds' bar sticks: under the site's header, as the page's bar of places does. */ stickyTop?: number;
 }) {
   const [code, setCode] = useState(initial && COUNTRIES.some((c) => c.code === initial) ? initial : "US");
   useEffect(() => {
@@ -268,7 +268,7 @@ export function NewsHistory({
         />
       </div>
       <div className={`cs-on-hue rounded-2xl border border-border bg-card ${BLUE_HUE} p-4 flex flex-col gap-3 min-w-0`}>
-        {/* The kinds, in a sticky bar of the page's own shape, under its bar of places while this section is in view. */}
+        {/* The kinds, in a sticky bar of the page's own shape, while this section is in view. */}
         <div role="tablist" aria-label="The kind of event" className="search-sticky sticky z-20 border border-border/60 rounded-2xl px-3 py-2" style={{ top: stickyTop }}>
           <ChipRow>
             {TABS.map((t) => (
