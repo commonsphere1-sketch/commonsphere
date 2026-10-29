@@ -33,6 +33,7 @@ const OUT = path.join(DATA, "dataLog.ts");
  */
 /* The publishers named are those each file itself cites in its sources; where a file cites more than fit, the line ends "and others". */
 const SETS = [
+  { files: ["eventHistoryIndex.ts"], what: "Each country's historic events of six kinds, past and present (with eventHistory/*.json)", from: "Wikidata, UCDP/PRIO, NOAA NCEI, GDACS", page: "/dashboard/news", where: "News" },
   { files: ["newsHistory.ts", "newsCountryHistory.ts"], what: "Conflict deaths and disaster alerts by continent and by country, year by year", from: "UCDP (via Our World in Data), GDACS", page: "/dashboard/news", where: "News" },
   { files: ["admin2Untiled.ts"], what: "Which countries' district boundaries do not fit together, measured", from: "geoBoundaries, Natural Earth", page: "/dashboard/maps", where: "World Maps" },
   { files: ["worldview.ts", "regionSeries.ts"], what: "The world's figures, year by year, and by region", from: "World Bank, V-Dem, UNDP, IMF, UCDP and others", page: "/dashboard/worldview", where: "Worldview" },

@@ -30,6 +30,14 @@ export const DATA_LOG: DataLogEntry[] = [
     "files": 2
   },
   {
+    "what": "Each country's historic events of six kinds, past and present (with eventHistory/*.json)",
+    "from": "Wikidata, UCDP/PRIO, NOAA NCEI, GDACS",
+    "page": "/dashboard/news",
+    "where": "News",
+    "read": "2026-10-29",
+    "files": 1
+  },
+  {
     "what": "The space race, science and invention, and new medicines: orbital launches by year and by agency, objects launched, R&D spending, researchers, journal articles, patents, novel drug approvals",
     "from": "GCAT; UNOOSA via Our World in Data; World Bank; US FDA",
     "page": "/dashboard/trends",
@@ -560,4 +568,4 @@ export const DATA_LOG: DataLogEntry[] = [
 ];
 
 /** How many data files the log covers. */
-export const DATA_LOG_FILES = 88;
+export const DATA_LOG_FILES = 89;
