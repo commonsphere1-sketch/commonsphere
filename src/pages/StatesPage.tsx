@@ -1,3 +1,4 @@
+import * as Popover from "@radix-ui/react-popover";
 import React, { useState, useEffect, lazy, Suspense } from "react";
 import { SLIM_TRACK, slimFill } from "../components/SlimBars";
 import { useNavigate } from "react-router-dom";
@@ -6977,6 +6978,8 @@ function USNationalBanner() {
           </div>
 
           {/* Inline Election countdown */}
+          <Popover.Root open={datesOpen} onOpenChange={setDatesOpen}>
+          <Popover.Anchor asChild>
           <div className="flex items-center gap-3 bg-background/60 dark:bg-black/40 backdrop-blur-sm border border-border dark:border-white/10 rounded-2xl px-4 py-2.5 shadow-sm">
             <div className="flex items-center justify-center w-7 h-7 rounded-lg bg-yellow-400/15 dark:bg-yellow-400/20 border border-yellow-400/30 shrink-0">
               <Timer
@@ -6986,18 +6989,48 @@ function USNationalBanner() {
               />
             </div>
             <div>
-              {/* The date counted to, as a drop-down: the midterms, the presidential election and each change of office after them. */}
+              {/* The date counted to, as a drop-down: the midterms, the presidential election and each change of office after them.
+                  The list opens outside the countdown, in the site's glass, drawn above the page so the banner does not cut it off. */}
+              <Popover.Trigger asChild>
               <button
                 type="button"
-                onClick={() => setDatesOpen((v) => !v)}
-                aria-expanded={datesOpen}
-                aria-controls="us-civic-dates"
                 title="Choose the date the countdown runs to"
                 className="flex items-center gap-1.5 text-[9px] font-semibold text-muted-foreground hover:text-foreground font-sans uppercase tracking-widest mb-1 transition-colors cursor-pointer"
               >
                 {picked.short} · {picked.date.toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" })}
                 <CaretDown size={10} weight="bold" className={`transition-transform ${datesOpen ? "rotate-180" : ""}`} aria-hidden />
               </button>
+              </Popover.Trigger>
+              <Popover.Portal>
+                <Popover.Content side="bottom" align="start" sideOffset={10} collisionPadding={12} className="dropdown-glass z-50 rounded-xl border p-1.5 w-[19rem] max-w-[calc(100vw-1.5rem)] animate-fade-in focus:outline-none">
+                <ul id="us-civic-dates" role="listbox" aria-label="The date the countdown runs to" className="flex flex-col gap-0.5">
+                  {dates.map((d) => (
+                    <li key={d.id} role="option" aria-selected={d.id === picked.id}>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setPickedId(d.id);
+                          setDatesOpen(false);
+                        }}
+                        title={d.what}
+                        className={`w-full text-left rounded-lg px-2 py-1.5 transition-colors cursor-pointer ${d.id === picked.id ? "bg-muted/70" : "hover:bg-muted/40"}`}
+                      >
+                        <span className="flex items-baseline justify-between gap-3">
+                          <span className="text-[11px] font-sans font-semibold text-foreground">{d.short}</span>
+                          <span className="text-[10px] font-mono text-muted-foreground shrink-0">{inDays(d.date)}</span>
+                        </span>
+                        <span className="block text-[10px] font-mono text-muted-foreground">
+                          {civicDay(d.date)} · {d.law.label}
+                        </span>
+                      </button>
+                    </li>
+                  ))}
+                  <li className="text-[9px] font-sans text-muted-foreground leading-snug px-2 pt-1.5">
+                    Each day follows from the law named beside it. States set their own primaries, which are not here.
+                  </li>
+                </ul>
+                </Popover.Content>
+              </Popover.Portal>
               <div className="flex items-end gap-1">
                 {[
                   { val: String(days).padStart(3, "0"), label: "days" },
@@ -7028,36 +7061,10 @@ function USNationalBanner() {
                   </span>
                 ))}
               </div>
-              {datesOpen && (
-                <ul id="us-civic-dates" role="listbox" aria-label="The date the countdown runs to" className="mt-2.5 pt-2 border-t border-border flex flex-col gap-0.5 w-[19rem] max-w-full">
-                  {dates.map((d) => (
-                    <li key={d.id} role="option" aria-selected={d.id === picked.id}>
-                      <button
-                        type="button"
-                        onClick={() => {
-                          setPickedId(d.id);
-                          setDatesOpen(false);
-                        }}
-                        title={d.what}
-                        className={`w-full text-left rounded-lg px-2 py-1.5 transition-colors cursor-pointer ${d.id === picked.id ? "bg-muted/70" : "hover:bg-muted/40"}`}
-                      >
-                        <span className="flex items-baseline justify-between gap-3">
-                          <span className="text-[11px] font-sans font-semibold text-foreground">{d.short}</span>
-                          <span className="text-[10px] font-mono text-muted-foreground shrink-0">{inDays(d.date)}</span>
-                        </span>
-                        <span className="block text-[10px] font-mono text-muted-foreground">
-                          {civicDay(d.date)} · {d.law.label}
-                        </span>
-                      </button>
-                    </li>
-                  ))}
-                  <li className="text-[9px] font-sans text-muted-foreground leading-snug px-2 pt-1.5">
-                    Each day follows from the law named beside it. States set their own primaries, which are not here.
-                  </li>
-                </ul>
-              )}
             </div>
           </div>
+          </Popover.Anchor>
+          </Popover.Root>
         </div>
       </div>
 
