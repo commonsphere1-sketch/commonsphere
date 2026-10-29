@@ -31,6 +31,7 @@ import { STATE_FINANCE, STATE_FINANCE_SOURCE, STATE_FINANCE_YEAR, type StateFina
 import { STATE_ENERGY, STATE_ENERGY_SOURCE, STATE_ENERGY_YEAR } from "./stateEnergy";
 import { has } from "../lib/na";
 import { usdFromBillions } from "../lib/money";
+import { GDP_HISTORY, GDP_HISTORY_SOURCE } from "./gdpHistory";
 
 export type PolicyArea = "Climate" | "Healthcare" | "Infrastructure" | "Education" | "Economy" | "Defense" | "Technology" | "Social";
 
@@ -84,6 +85,33 @@ const count = (v: number) => new Intl.NumberFormat("en-US", { notation: "compact
 
 /** The country behind a code, as the site's country data has it; undefined where it has none. */
 export const policyCountry = (code: string): Country | undefined => COUNTRY_BY_CODE.get(code.toLowerCase());
+
+/**
+ * A country's government spending in US dollars, for the year of the IMF's figures: its spending as a share of GDP
+ * times the World Bank's GDP for that same year - worked out here. Null where either is missing for that year.
+ */
+export function countrySpendingUsd(code: string): { billions: number; year: string; sources: DataSource[] } | null {
+  const c = policyCountry(code);
+  const b = c ? COUNTRY_BUDGET[c.code] : undefined;
+  if (!c || !b || b.spendingPctGdp === undefined) return null;
+  const g = GDP_HISTORY[c.code]?.find((r) => r.year === b.y);
+  if (!g) return null;
+  return {
+    billions: (g.gdp * b.spendingPctGdp) / 100,
+    year: b.y,
+    sources: [
+      { label: `${BUDGET_SOURCE.label}, ${b.y}`, url: BUDGET_SOURCE.url },
+      { label: `${GDP_HISTORY_SOURCE.label}, ${b.y}`, url: GDP_HISTORY_SOURCE.url },
+    ],
+  };
+}
+
+/** A country's military spending in US dollars, as SIPRI publishes it, with its year. */
+export function countryMilitaryUsd(code: string): { billions: number; when: string; source: DataSource } | null {
+  const c = policyCountry(code);
+  const m = c ? MILITARY_MEASURED[c.id]?.spendUSDm : null;
+  return m ? { billions: m.v / 1000, when: m.y, source: MILITARY_SOURCES.sipri } : null;
+}
 
 export function countryPolicyFigures(code: string, area: PolicyArea): PolicyFigures {
   const c = policyCountry(code);

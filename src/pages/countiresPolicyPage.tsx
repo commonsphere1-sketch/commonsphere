@@ -20,7 +20,9 @@ import {
   X,
 } from "@phosphor-icons/react";
 import { usStatesData } from "../data/statesData";
-import { countryPolicyFigures, policyCountry, statePolicyFigures, type PolicyFigures } from "../data/policyFigures";
+import { countryMilitaryUsd, countryPolicyFigures, countrySpendingUsd, policyCountry, statePolicyFigures, type PolicyFigures } from "../data/policyFigures";
+import { usdFromBillions } from "../lib/money";
+import type { DataSource } from "../data/countriesData";
 import { has } from "../lib/na";
 import { SourceLink } from "../components/SourceLink";
 import { FilterBar } from "../components/FilterBar";
@@ -10401,11 +10403,29 @@ function totalSpending(group: EntityGroup) {
   const fig = group.entityType === "country" ? countryPolicyFigures(economy.code, "Economy") : statePolicyFigures(economy.code, "Economy");
   const head = fig.head;
   if (!head) return null;
+  const country = group.entityType === "country";
+  // The whole in dollars: a state's is the Census Bureau's own; a country's is worked out from its share of GDP and that year's GDP.
+  const whole = country ? countrySpendingUsd(economy.code) : null;
+  const extra: DataSource[] = [...(whole?.sources ?? [])];
   const parts = group.policies.flatMap((card) => {
     const h = figuresOf(card).head;
-    return h?.spending && h.share !== undefined ? [{ cat: card.category, share: h.share, cfg: CATEGORY_CONFIG[card.category] }] : [];
+    if (!h?.spending || h.share === undefined) return [];
+    // Each area in dollars: a state's as published; a country's defence as SIPRI publishes it, in its year; the rest its share of the whole.
+    let usd: string | null = null;
+    let when: string | null = null;
+    if (!country) usd = h.value;
+    else if (card.category === "Defense") {
+      const m = countryMilitaryUsd(card.code);
+      if (m) {
+        usd = usdFromBillions(m.billions);
+        when = m.when;
+        extra.push(m.source);
+      }
+    } else if (whole) usd = usdFromBillions((whole.billions * h.share) / 100);
+    return [{ cat: card.category, share: h.share, cfg: CATEGORY_CONFIG[card.category], card, usd, when }];
   });
-  return { fig, head, parts, sum: parts.reduce((n, p) => n + p.share, 0), source: fig.figures[0]?.source };
+  const sources = [...(fig.figures[0]?.source ? [fig.figures[0].source] : []), ...extra].filter((s, i, all) => all.findIndex((x) => x.label === s.label) === i);
+  return { fig, head, parts, sum: parts.reduce((n, p) => n + p.share, 0), whole, sources };
 }
 
 /** The bar of the areas' shares, each in its colour, the rest in grey. */
@@ -10454,7 +10474,8 @@ function TotalSpendingCard({ group, open, onToggle, panelId }: { group: EntityGr
 function TotalSpendingDetails({ group, id, onClose }: { group: EntityGroup; id: string; onClose: () => void }) {
   const total = totalSpending(group);
   if (!total) return null;
-  const { fig, head, parts, sum, source } = total;
+  const { fig, head, parts, sum, whole, sources } = total;
+  const written = parts.some((p) => p.card.written);
   return (
     <div id={id} role="region" aria-label={`Total spending details for ${group.entityName}`} className="mt-3 bg-card rounded-2xl border border-border/50 overflow-hidden animate-fade-in">
       <SpendingBar parts={parts} className="h-1 !rounded-none !gap-0" />
@@ -10473,27 +10494,54 @@ function TotalSpendingDetails({ group, id, onClose }: { group: EntityGroup; id: 
             <p className="text-[12px] text-foreground/90 leading-relaxed">
               <span className="font-semibold text-foreground">{head.value}</span> {head.label} · {head.when}
             </p>
+            {whole && (
+              <p className="text-[12px] text-foreground/90 leading-relaxed">
+                <span className="font-semibold text-foreground">{usdFromBillions(whole.billions)}</span> spent by government in {whole.year} - worked out here from that share of GDP and
+                the World Bank&#39;s GDP for the year.
+              </p>
+            )}
             {fig.covers && (
               <p className="text-[11px] text-muted-foreground leading-relaxed">
                 <span className="font-semibold text-foreground">What the figure covers.</span> {fig.covers.text}
               </p>
             )}
-            {parts.length > 0 && <p className="text-[10px] text-muted-foreground leading-snug">Each area's share of all government spending, its own year; everything else is worked out here.</p>}
+            {parts.length > 0 && (
+              <p className="text-[10px] text-muted-foreground leading-snug">
+                Each area&#39;s share of all government spending, its own year; everything else is worked out here.
+                {group.entityType === "country"
+                  ? " Each area's dollars are its share of the whole, worked out here; defence is SIPRI's own figure, in its year."
+                  : " Each area's dollars are the Census Bureau's own."}
+                {written ? " What is said of each area is CommonSphere's own summary, not taken from a source." : ""}
+              </p>
+            )}
           </div>
           <div className="min-w-0">
             {parts.length > 0 ? (
               <ul className="grid grid-cols-1 sm:grid-cols-2 gap-x-4">
-                {parts.map((p) => (
-                  <li key={p.cat} className="flex items-center gap-1.5 py-1.5 border-t border-border/40 text-[12px]">
-                    <span className={`w-2 h-2 rounded-full shrink-0 ${p.cfg.bar}`} aria-hidden />
-                    <span className="text-muted-foreground flex-1">{p.cat}</span>
-                    <span className="font-semibold text-foreground">{p.share.toFixed(1)}%</span>
-                  </li>
-                ))}
+                {parts.map((p) => {
+                  const said = p.card.written ? `${p.card.policyName}${p.card.description ? ` - ${p.card.description}` : ""}` : p.card.description;
+                  return (
+                    <li key={p.cat} className="py-1.5 border-t border-border/40 min-w-0">
+                      <span className="flex items-center gap-1.5 text-[12px]">
+                        <span className={`w-2 h-2 rounded-full shrink-0 ${p.cfg.bar}`} aria-hidden />
+                        <span className="text-muted-foreground flex-1 min-w-0 truncate">{p.cat}</span>
+                        {p.usd && (
+                          <span className="text-[11px] font-mono text-muted-foreground whitespace-nowrap">
+                            {p.usd}
+                            {p.when ? ` · ${p.when}` : ""}
+                          </span>
+                        )}
+                        <span className="font-semibold text-foreground">{p.share.toFixed(1)}%</span>
+                      </span>
+                      {said && <span className="block mt-0.5 pl-3.5 text-[10px] text-muted-foreground leading-snug line-clamp-2" title={said}>{said}</span>}
+                    </li>
+                  );
+                })}
                 {sum < 100 && (
                   <li className="flex items-center gap-1.5 py-1.5 border-t border-border/40 text-[12px]">
                     <span className="w-2 h-2 rounded-full shrink-0 bg-muted-foreground/40" aria-hidden />
                     <span className="text-muted-foreground flex-1">Everything else</span>
+                    {whole && <span className="text-[11px] font-mono text-muted-foreground whitespace-nowrap">{usdFromBillions((whole.billions * (100 - sum)) / 100)}</span>}
                     <span className="font-semibold text-foreground">{(100 - sum).toFixed(1)}%</span>
                   </li>
                 )}
@@ -10501,7 +10549,7 @@ function TotalSpendingDetails({ group, id, onClose }: { group: EntityGroup; id: 
             ) : (
               <p className="text-[11px] text-muted-foreground leading-snug">No area's share of the whole is held here.</p>
             )}
-            {source && <SourceLink sources={source} className="mt-2" />}
+            {sources.length > 0 && <SourceLink sources={sources} className="mt-2" />}
           </div>
         </div>
       </div>
