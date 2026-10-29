@@ -10395,9 +10395,8 @@ const CATEGORY_FILTERS: ("All" | PolicyCategory)[] = [
  * government spends against the size of its economy, with the share of it each area in the row takes, the rest worked out
  * here; a state's is its government's general spending in dollars. The figures are the Economy card's.
  */
-function TotalSpendingCard({ group }: { group: EntityGroup }) {
-  // The breakdown, folded away: the card stays the size of the others in its row until it is opened, as asked.
-  const [open, setOpen] = useState(false);
+/** The place's whole spending, and what the areas in its row take of it: each a share of all government spending. */
+function totalSpending(group: EntityGroup) {
   const economy = group.policies.find((p) => p.category === "Economy") ?? group.policies[0];
   const fig = group.entityType === "country" ? countryPolicyFigures(economy.code, "Economy") : statePolicyFigures(economy.code, "Economy");
   const head = fig.head;
@@ -10406,62 +10405,106 @@ function TotalSpendingCard({ group }: { group: EntityGroup }) {
     const h = figuresOf(card).head;
     return h?.spending && h.share !== undefined ? [{ cat: card.category, share: h.share, cfg: CATEGORY_CONFIG[card.category] }] : [];
   });
-  const sum = parts.reduce((n, p) => n + p.share, 0);
-  const source = fig.figures[0]?.source;
+  return { fig, head, parts, sum: parts.reduce((n, p) => n + p.share, 0), source: fig.figures[0]?.source };
+}
+
+/** The bar of the areas' shares, each in its colour, the rest in grey. */
+function SpendingBar({ parts, className = "" }: { parts: { cat: string; share: number; cfg: { bar: string } }[]; className?: string }) {
   return (
-    <div className="bg-card rounded-2xl border p-4 flex flex-col gap-2.5 transition-all duration-200 hover:scale-[1.01] hover:shadow-lg w-64 shrink-0 snap-start border-border/50 hover:border-secondary/40">
+    <div className={`flex gap-[2px] rounded-full overflow-hidden bg-muted shrink-0 ${className}`} role="img" aria-label={parts.map((p) => `${p.cat} ${p.share.toFixed(1)}%`).join(", ")}>
+      {parts.map((p) => (
+        <span key={p.cat} className={`h-full rounded-full ${p.cfg.bar}`} style={{ width: `${p.share}%` }} title={`${p.cat}: ${p.share.toFixed(1)}% of spending`} />
+      ))}
+    </div>
+  );
+}
+
+/* The whole of what the place spends, after its areas. Pressed, it opens its breakdown under the row, as the other cards open their details. */
+function TotalSpendingCard({ group, open, onToggle, panelId }: { group: EntityGroup; open: boolean; onToggle: () => void; panelId: string }) {
+  const total = totalSpending(group);
+  if (!total) return null;
+  const { head, parts } = total;
+  return (
+    <div
+      onClick={onToggle}
+      className={`bg-card rounded-2xl border p-4 flex flex-col gap-2.5 transition-all duration-200 hover:scale-[1.01] hover:shadow-lg w-64 shrink-0 snap-start cursor-pointer ${
+        open ? "border-foreground shadow-sm" : "border-border/50 hover:border-secondary/40"
+      }`}
+    >
       <div className="flex items-center gap-2">
         <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-muted flex-shrink-0">
           <span className="text-[11px] font-semibold text-foreground">Total spending</span>
         </div>
         <span className="ml-auto text-[15px] font-bold text-foreground leading-none">{head.value}</span>
       </div>
-      {/* What the areas in the row take of it, each in its colour, the rest in grey: a share of all spending. */}
-      <div className="flex h-1.5 gap-[2px] rounded-full overflow-hidden bg-muted shrink-0" role="img" aria-label={parts.map((p) => `${p.cat} ${p.share.toFixed(1)}%`).join(", ")}>
-        {parts.map((p) => (
-          <span key={p.cat} className={`h-full rounded-full ${p.cfg.bar}`} style={{ width: `${p.share}%` }} title={`${p.cat}: ${p.share.toFixed(1)}% of spending`} />
-        ))}
-      </div>
+      <SpendingBar parts={parts} className="h-1.5" />
       <p className="text-[12px] font-semibold leading-snug text-foreground">{group.entityType === "country" ? "All government spending" : "All state government spending"}</p>
       <p className="text-[11px] text-muted-foreground leading-snug">
         <span className="text-foreground font-semibold">{head.value}</span> {head.label} · {head.when}
       </p>
-      <button
-        type="button"
-        onClick={() => setOpen((v) => !v)}
-        aria-expanded={open}
-        className="mt-auto self-start inline-flex items-center gap-1 text-[11px] font-semibold text-foreground px-2.5 py-1 rounded-full border border-border hover:bg-muted/60 transition-colors cursor-pointer"
-      >
-        {open ? "Hide the breakdown" : "Breakdown"}
+      <button type="button" aria-expanded={open} aria-controls={panelId} className="mt-auto pt-1 flex items-center gap-1 text-[11px] font-semibold text-foreground cursor-pointer select-none self-start">
         <CaretDown size={11} weight="bold" className={`transition-transform ${open ? "rotate-180" : ""}`} />
+        {open ? "Hide details" : "Details"}
       </button>
-      {open && (
-        <div className="flex flex-col gap-2.5">
-          {parts.length > 0 && (
-            <ul className="flex flex-col gap-1">
-              {parts.map((p) => (
-                <li key={p.cat} className="flex items-center gap-1.5 text-[11px]">
-                  <span className={`w-2 h-2 rounded-full shrink-0 ${p.cfg.bar}`} aria-hidden />
-                  <span className="text-muted-foreground flex-1">{p.cat}</span>
-                  <span className="font-semibold text-foreground">{p.share.toFixed(1)}%</span>
-                </li>
-              ))}
-              {sum < 100 && (
-                <li className="flex items-center gap-1.5 text-[11px]">
-                  <span className="w-2 h-2 rounded-full shrink-0 bg-muted-foreground/40" aria-hidden />
-                  <span className="text-muted-foreground flex-1">Everything else</span>
-                  <span className="font-semibold text-foreground">{(100 - sum).toFixed(1)}%</span>
-                </li>
-              )}
-            </ul>
-          )}
-          <p className="text-[10px] text-muted-foreground leading-snug mt-auto">
-            {parts.length > 0 ? "Each area's share of all government spending, its own year; everything else is worked out here. " : ""}
-            {fig.covers?.text ?? ""}
-          </p>
-          {source && <SourceLink sources={source} className="!mt-0" />}
+    </div>
+  );
+}
+
+/** The breakdown of the whole, under the row of cards and the full width of it, as the other cards' details are. */
+function TotalSpendingDetails({ group, id, onClose }: { group: EntityGroup; id: string; onClose: () => void }) {
+  const total = totalSpending(group);
+  if (!total) return null;
+  const { fig, head, parts, sum, source } = total;
+  return (
+    <div id={id} role="region" aria-label={`Total spending details for ${group.entityName}`} className="mt-3 bg-card rounded-2xl border border-border/50 overflow-hidden animate-fade-in">
+      <SpendingBar parts={parts} className="h-1 !rounded-none !gap-0" />
+      <div className="p-4">
+        <div className="flex items-start gap-3">
+          <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-muted flex-shrink-0">
+            <span className="text-[11px] font-semibold text-foreground">Total spending</span>
+          </div>
+          <p className="text-[13px] font-semibold leading-snug flex-1 min-w-0 text-foreground">{group.entityType === "country" ? "All government spending" : "All state government spending"}</p>
+          <button type="button" onClick={onClose} className="p-1.5 -m-1 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted/60 transition-colors cursor-pointer shrink-0" aria-label="Hide details">
+            <X size={14} />
+          </button>
         </div>
-      )}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-x-6 gap-y-3 mt-3">
+          <div className="flex flex-col gap-2.5 min-w-0">
+            <p className="text-[12px] text-foreground/90 leading-relaxed">
+              <span className="font-semibold text-foreground">{head.value}</span> {head.label} · {head.when}
+            </p>
+            {fig.covers && (
+              <p className="text-[11px] text-muted-foreground leading-relaxed">
+                <span className="font-semibold text-foreground">What the figure covers.</span> {fig.covers.text}
+              </p>
+            )}
+            {parts.length > 0 && <p className="text-[10px] text-muted-foreground leading-snug">Each area's share of all government spending, its own year; everything else is worked out here.</p>}
+          </div>
+          <div className="min-w-0">
+            {parts.length > 0 ? (
+              <ul className="grid grid-cols-1 sm:grid-cols-2 gap-x-4">
+                {parts.map((p) => (
+                  <li key={p.cat} className="flex items-center gap-1.5 py-1.5 border-t border-border/40 text-[12px]">
+                    <span className={`w-2 h-2 rounded-full shrink-0 ${p.cfg.bar}`} aria-hidden />
+                    <span className="text-muted-foreground flex-1">{p.cat}</span>
+                    <span className="font-semibold text-foreground">{p.share.toFixed(1)}%</span>
+                  </li>
+                ))}
+                {sum < 100 && (
+                  <li className="flex items-center gap-1.5 py-1.5 border-t border-border/40 text-[12px]">
+                    <span className="w-2 h-2 rounded-full shrink-0 bg-muted-foreground/40" aria-hidden />
+                    <span className="text-muted-foreground flex-1">Everything else</span>
+                    <span className="font-semibold text-foreground">{(100 - sum).toFixed(1)}%</span>
+                  </li>
+                )}
+              </ul>
+            ) : (
+              <p className="text-[11px] text-muted-foreground leading-snug">No area's share of the whole is held here.</p>
+            )}
+            {source && <SourceLink sources={source} className="mt-2" />}
+          </div>
+        </div>
+      </div>
     </div>
   );
 }
@@ -10818,10 +10861,11 @@ function EntityRow({ group }: { group: EntityGroup }) {
               <PolicyCardItem key={card.id} card={card} open={detail === card.id} onToggle={() => setDetail((d) => (d === card.id ? null : card.id))} panelId={panelId} />
             ))}
             {/* The whole of what it spends, after its areas, as asked. */}
-            <TotalSpendingCard group={group} />
+            <TotalSpendingCard group={group} open={detail === "total"} onToggle={() => setDetail((d) => (d === "total" ? null : "total"))} panelId={panelId} />
           </div>
           {/* Outside the sideways-scrolling row, so nothing cuts it off. */}
           {detailCard && <PolicyDetails card={detailCard} id={panelId} onClose={() => setDetail(null)} />}
+          {detail === "total" && <TotalSpendingDetails group={group} id={panelId} onClose={() => setDetail(null)} />}
         </div>
       )}
     </div>
