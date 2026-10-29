@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { CaretDown, CaretRight, MagnifyingGlass } from "@phosphor-icons/react";
 import { StyledSelect } from "./StyledSelect";
+import { ChipRow } from "./ChipRow";
 import { countriesData } from "../data/countriesData";
 import { BLUE_HUE } from "../lib/blueHue";
 
@@ -58,6 +59,9 @@ const fmt = (n: number) => n.toLocaleString("en-US");
 const COUNTRIES = countriesData.filter((c) => !c.uninhabited).sort((a, b) => a.name.localeCompare(b.name));
 const OPTIONS = COUNTRIES.map((c) => ({ value: c.code, label: c.name }));
 const PAGE = 40;
+/* The span of each kind's chart of events a year: from 1900 to this year. */
+const YEARS_FROM = 1900;
+const THIS_YEAR = new Date().getFullYear();
 
 type Kind = "unrest" | "revolutions" | "war" | "terror" | "disaster" | "epidemic";
 /* The tabs, in the page's order; each kind's words are what its records list. */
@@ -138,7 +142,13 @@ function Within({ ids, file }: { ids: number[]; file: File }) {
   );
 }
 
-export function NewsHistory({ initial }: { /** The country the page has picked, where it has one. */ initial?: string }) {
+export function NewsHistory({
+  initial,
+  stickyTop = 64,
+}: {
+  /** The country the page has picked, where it has one. */ initial?: string;
+  /** Where the kinds' bar sticks: under the page's own sticky bar. */ stickyTop?: number;
+}) {
   const [code, setCode] = useState(initial && COUNTRIES.some((c) => c.code === initial) ? initial : "US");
   useEffect(() => {
     if (initial && COUNTRIES.some((c) => c.code === initial)) setCode(initial);
@@ -219,6 +229,20 @@ export function NewsHistory({ initial }: { /** The country the page has picked, 
     return ids;
   }, [ready, g, query, sub, oldest]);
   const flat = query.trim() !== "" || sub !== "all";
+  // The kind's events by the year each began, from 1900, each counted once with those listed within it - worked out here.
+  const yearly = useMemo(() => {
+    if (!ready || !g) return null;
+    const by = new Map<number, number>();
+    let before = 0;
+    let undated = 0;
+    for (const i of g.top) {
+      const y = ready.events[i].y;
+      if (y == null) undated++;
+      else if (y < YEARS_FROM) before++;
+      else if (y <= THIS_YEAR) by.set(y, (by.get(y) ?? 0) + 1);
+    }
+    return { rows: [...by].sort((a, b) => a[0] - b[0]), before, undated };
+  }, [ready, g]);
   const tab = TABS.find((t) => t.id === kind)!;
   const toggle = (i: number) =>
     setOpen((s) => {
@@ -244,14 +268,17 @@ export function NewsHistory({ initial }: { /** The country the page has picked, 
         />
       </div>
       <div className={`cs-on-hue rounded-2xl border border-border bg-card ${BLUE_HUE} p-4 flex flex-col gap-3 min-w-0`}>
-        <div role="tablist" aria-label="The kind of event" className="flex flex-wrap items-center gap-1.5">
-          {TABS.map((t) => (
-            <button key={t.id} type="button" role="tab" aria-selected={t.id === kind} onClick={() => setKind(t.id)} className={chip(t.id === kind)}>
-              <span className="w-2 h-2 rounded-full shrink-0" style={{ background: t.color }} aria-hidden />
-              {t.title}
-              {of && <> · {fmt(count(t.id))}</>}
-            </button>
-          ))}
+        {/* The kinds, in a sticky bar of the page's own shape, under its bar of places while this section is in view. */}
+        <div role="tablist" aria-label="The kind of event" className="search-sticky sticky z-20 border border-border/60 rounded-2xl px-3 py-2" style={{ top: stickyTop }}>
+          <ChipRow>
+            {TABS.map((t) => (
+              <button key={t.id} type="button" role="tab" aria-selected={t.id === kind} onClick={() => setKind(t.id)} className={chip(t.id === kind)}>
+                <span className="w-2 h-2 rounded-full shrink-0" style={{ background: t.color }} aria-hidden />
+                {t.title}
+                {of && <> · {fmt(count(t.id))}</>}
+              </button>
+            ))}
+          </ChipRow>
         </div>
         {ready === undefined ? (
           <p className="text-[11px] font-sans text-muted-foreground">Reading the records…</p>
@@ -263,7 +290,14 @@ export function NewsHistory({ initial }: { /** The country the page has picked, 
             </p>
             {kind === "war" && extra && (extra.conflict[code]?.length ? (
               <>
-                <ConflictYears rows={extra.conflict[code]} name={name} to={extra.ucdpTo} />
+                <YearColumns
+                  rows={extra.conflict[code]}
+                  from={1989}
+                  to={extra.ucdpTo}
+                  color={tab.color}
+                  label={`Deaths in armed conflict in ${name}`}
+                  words={(total, peak, last) => `${fmt(total)} in all, worked out here · the most ${fmt(peak[1])} in ${peak[0]} · ${fmt(last)} in ${extra.ucdpTo}`}
+                />
                 <p className="text-[10px] font-sans text-muted-foreground">
                   <a href={extra.ucdp.url} target="_blank" rel="noopener noreferrer" className="underline hover:text-foreground">
                     {extra.ucdp.label}
@@ -273,6 +307,23 @@ export function NewsHistory({ initial }: { /** The country the page has picked, 
             ) : (
               <p className="text-[11px] font-sans text-muted-foreground">UCDP records no deaths in armed conflict in {name} since 1989.</p>
             ))}
+            {kind !== "war" && yearly && yearly.rows.length > 0 && (
+              <div>
+                <p className="mb-1 text-[10px] font-sans text-muted-foreground">
+                  How many of these the records list for {name} each year from {YEARS_FROM}, by the year each began - a count of the records, not of every event.
+                </p>
+                <YearColumns
+                  rows={yearly.rows}
+                  from={YEARS_FROM}
+                  to={THIS_YEAR}
+                  color={tab.color}
+                  label={`The ${tab.title.toLowerCase()} the records list for ${name} each year`}
+                  words={(total, peak, last) =>
+                    `${fmt(total)} from ${YEARS_FROM} to ${THIS_YEAR}, counted here · the most ${fmt(peak[1])} in ${peak[0]} · ${fmt(last)} in ${THIS_YEAR}${yearly.before ? ` · ${fmt(yearly.before)} before ${YEARS_FROM}` : ""}${yearly.undated ? ` · ${fmt(yearly.undated)} with no date` : ""}`
+                  }
+                />
+              </div>
+            )}
             {g && g.all.length > 0 ? (
               <>
                 <div className="flex flex-wrap items-center gap-2">
@@ -367,9 +418,23 @@ export function NewsHistory({ initial }: { /** The country the page has picked, 
   );
 }
 
-/** A country's deaths in armed conflict year by year, 1989 to the last year UCDP gives for any country, as slim columns with the peak named. */
-function ConflictYears({ rows, name, to }: { rows: [number, number][]; name: string; /** The last year UCDP gives for any country. */ to: number }) {
-  const from = 1989;
+/** A figure year by year as slim columns, every year of the span drawn (a year with none as a faint stub), with the peak named. */
+function YearColumns({
+  rows,
+  from,
+  to,
+  color,
+  label,
+  words,
+}: {
+  rows: [number, number][];
+  from: number;
+  to: number;
+  color: string;
+  label: string;
+  /** The line under the columns, from the total, the peak [year, value] and the last year's value. */
+  words: (total: number, peak: [number, number], last: number) => string;
+}) {
   const by = new Map(rows);
   const years = Array.from({ length: to - from + 1 }, (_, i) => from + i);
   const top = Math.max(...rows.map(([, v]) => v), 1);
@@ -377,7 +442,7 @@ function ConflictYears({ rows, name, to }: { rows: [number, number][]; name: str
   const total = rows.reduce((s, [, v]) => s + v, 0);
   return (
     <div>
-      <div className="flex items-end gap-px h-16" role="img" aria-label={`Deaths in armed conflict in ${name}, ${from} to ${to}: the most ${fmt(peak[1])} in ${peak[0]}.`}>
+      <div className="flex items-end gap-px h-16" role="img" aria-label={`${label}, ${from} to ${to}: the most ${fmt(peak[1])} in ${peak[0]}.`}>
         {years.map((y) => {
           const v = by.get(y) ?? 0;
           return (
@@ -387,7 +452,7 @@ function ConflictYears({ rows, name, to }: { rows: [number, number][]; name: str
               title={`${y}: ${fmt(v)}`}
               style={{
                 height: `${v ? Math.max(4, (v / top) * 100) : 2}%`,
-                background: v ? "linear-gradient(0deg, color-mix(in srgb, #ef4444 35%, transparent), #ef4444)" : "color-mix(in srgb, currentColor 7%, transparent)",
+                background: v ? `linear-gradient(0deg, color-mix(in srgb, ${color} 35%, transparent), ${color})` : "color-mix(in srgb, currentColor 7%, transparent)",
               }}
             />
           );
@@ -397,9 +462,7 @@ function ConflictYears({ rows, name, to }: { rows: [number, number][]; name: str
         <span>{from}</span>
         <span>{to}</span>
       </p>
-      <p className="text-[11px] font-sans text-foreground">
-        {fmt(total)} in all, worked out here · the most {fmt(peak[1])} in {peak[0]} · {fmt(by.get(to) ?? 0)} in {to}
-      </p>
+      <p className="text-[11px] font-sans text-foreground">{words(total, peak, by.get(to) ?? 0)}</p>
     </div>
   );
 }
