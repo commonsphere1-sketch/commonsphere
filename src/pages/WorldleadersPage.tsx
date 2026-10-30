@@ -15164,7 +15164,8 @@ function LeaderDetail({
       >
         <div className="p-6">
           {/* Its name and the window's buttons: one bar across the top of the window, in sight as it is scrolled - the same in every window of the site. */}
-          <WindowTitle title={leader.name} where={leader.country}>
+          {/* Its country, and the region of the world the page sets it in, as asked. */}
+          <WindowTitle title={leader.name} where={leader.region ? `${leader.country} · ${leader.region}` : leader.country}>
             <button
               onClick={() => setIsExpanded((v) => !v)}
               className="p-2 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted/60 transition-colors cursor-pointer"
