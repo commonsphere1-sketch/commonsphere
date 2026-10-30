@@ -1528,8 +1528,19 @@ html.light .window-title {
   opacity: 0.3;
   filter: saturate(1.1);
 }
+/* In the light theme the flag sat under the tile's white glass and read as a
+   pale frost; it is as clear there as in the dark theme now, as asked: drawn
+   stronger, and the glass over a flag card thinned, so its colours come
+   through. */
 html.light .card-flag {
-  opacity: 0.28;
+  opacity: 0.5;
+  filter: saturate(1.3);
+}
+html.light .modal-tile:has(> .card-flag),
+html.light .modal-tile:has(> div > .card-flag) {
+  background: rgba(255, 255, 255, 0.32) !important;
+  /* A faint pale halo, so the card's smaller grey writing still reads over a flag's darker bands. */
+  text-shadow: 0 0 6px rgba(255, 255, 255, 0.7);
 }
 
 /* A row of tiles that leaves no gap: each tile grows to fill its line, so a
