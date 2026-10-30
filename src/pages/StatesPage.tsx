@@ -7283,8 +7283,9 @@ export function StatesPage() {
               key={state.id}
               onClick={() => setModalState(state)}
               // Lit in its flag's colour when pointed at, as asked: the state's own flag, read off it (subnationFlagColors), lifted where too dark to show.
-              // As tall as the Countries page's cards, as asked (most of those stand 317 to 354 pixels); the vote shares stay under the figures.
-              className="cs-glow-card modal-tile relative isolate overflow-hidden rounded-xl p-5 cursor-pointer transition-all duration-200 hover:scale-[1.01] flex flex-col min-h-[21.5rem]"
+              // The dimensions of the Countries page's cards at every width, with the side menu open or not, as asked: the same rows,
+              // spaced as theirs are, and as tall as its content, as theirs is.
+              className="cs-glow-card modal-tile relative isolate overflow-hidden rounded-xl p-5 cursor-pointer transition-all duration-200 hover:scale-[1.01]"
               style={{ "--glow": SUBNATION_FLAG_COLOR.US?.[state.name] ? seen(SUBNATION_FLAG_COLOR.US[state.name]) : undefined } as React.CSSProperties}
             >
               {/* Card header. The flag behind it runs the whole height of the card, dimmed, under everything the card carries. */}
@@ -7400,21 +7401,24 @@ export function StatesPage() {
               </div>
               {/* Voter share mini bars */}
               {/* The slim style: each share a rounded bar in a gradient of its party's colour, on the faint track. */}
-              <div className="flex gap-1 h-2 rounded-full overflow-hidden mt-3 mb-2" style={{ background: SLIM_TRACK }}>
-                {state.voterShare.map((v, i) => (
-                  <div
-                    key={v.party}
-                    className="h-full rounded-full"
-                    style={{ width: `${v.pct}%`, background: slimFill(VOTER_COLORS[i]) }}
-                  />
-                ))}
-              </div>
-              <div className="flex justify-between text-[10px] text-muted-foreground font-sans">
-                {state.voterShare.map((v) => (
-                  <span key={v.party}>
-                    {v.party.slice(0, 3)} {v.pct}%
-                  </span>
-                ))}
+              {/* Spaced as the country card's Human Development block is: the bar, its line, and the same room under them. */}
+              <div className="mb-2">
+                <div className="flex gap-1 h-2 rounded-full overflow-hidden mb-1" style={{ background: SLIM_TRACK }}>
+                  {state.voterShare.map((v, i) => (
+                    <div
+                      key={v.party}
+                      className="h-full rounded-full"
+                      style={{ width: `${v.pct}%`, background: slimFill(VOTER_COLORS[i]) }}
+                    />
+                  ))}
+                </div>
+                <div className="flex justify-between text-[10px] text-muted-foreground font-sans">
+                  {state.voterShare.map((v) => (
+                    <span key={v.party}>
+                      {v.party.slice(0, 3)} {v.pct}%
+                    </span>
+                  ))}
+                </div>
               </div>
               {/* Chips as the Countries page's cards carry, as asked: the region as the continent is there, the year of admission
                   as the form of government is, and the published figures - median household income and the poverty rate, the
@@ -7426,7 +7430,7 @@ export function StatesPage() {
                 const own = state.minimumWage > 7.25;
                 return (
                   <>
-                    <div className="flex items-center gap-2 flex-wrap mt-3">
+                    <div className="flex items-center gap-2 flex-wrap">
                       <span className={`text-[10px] border px-2 py-0.5 rounded-full font-sans ${REGION_TONE[state.region] ?? TONE.slate}`}>{state.region}</span>
                       <span className="text-[10px] text-muted-foreground font-sans px-2 py-0.5 rounded-full border border-border/60 bg-muted/40" title={`Admitted to the Union in ${state.statehood}`}>
                         Admitted {state.statehood}
