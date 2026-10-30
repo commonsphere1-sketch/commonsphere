@@ -16,6 +16,7 @@
  * against, and its source. A change on ten years before is the only thing
  * worked out, from the two readings the source gives.
  */
+import { SLIM_TRACK, slimFill } from "./SlimBars";
 import { useMemo, useState } from "react";
 import { Leaf, MagnifyingGlass, X } from "@phosphor-icons/react";
 import { CLIMATE_INDICATORS, CLIMATE_RETRIEVED, type ClimateIndicator } from "../data/climateIndicators";
@@ -315,8 +316,8 @@ export function ClimateExplorer({
                                 {r.display}
                               </span>
                             </div>
-                            <div className="relative h-1.5 rounded-full overflow-hidden mt-1" style={{ background: t.isLight ? "rgba(0,0,0,0.07)" : "rgba(255,255,255,0.08)" }} aria-hidden>
-                              <div className="h-full rounded-full" style={{ width: `${Math.min(100, Math.max(1, (100 * r.value) / shown.f.bars!.max))}%`, background: r.color }} />
+                            <div className="relative h-1.5 rounded-full overflow-hidden mt-1" style={{ background: SLIM_TRACK }} aria-hidden>
+                              <div className="h-full rounded-full" style={{ width: `${Math.min(100, Math.max(1, (100 * r.value) / shown.f.bars!.max))}%`, background: slimFill(r.color) }} />
                             </div>
                           </div>
                         ))}

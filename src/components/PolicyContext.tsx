@@ -22,6 +22,7 @@
  * tab shows under a country's headline figures - there in full, with every
  * topic's figures and its people, health, schooling and public services.
  */
+import { SLIM_TRACK, slimFill } from "./SlimBars";
 import { createContext, useContext, useEffect, useMemo, useState, type ReactNode } from "react";
 import { useNavigate } from "react-router-dom";
 import { ArrowRight, ArrowSquareOut } from "@phosphor-icons/react";
@@ -138,8 +139,9 @@ function Bars({ t, rows }: { t: Tokens; rows: Bar[] }) {
           <span className={`text-[10px] font-sans flex-1 min-w-0 truncate ${r.strong ? "font-bold" : ""}`} style={{ color: t.headText }}>
             {r.label}
           </span>
-          <span className="w-20 h-1.5 rounded-full overflow-hidden shrink-0" style={{ background: t.isLight ? "rgba(0,0,0,0.07)" : "rgba(255,255,255,0.08)" }}>
-            <span className="block h-full rounded-full" style={{ width: `${top > 0 ? (100 * r.value) / top : 0}%`, background: semanticColor(r.label) ?? accent, opacity: r.strong || semanticColor(r.label) ? 1 : 0.55 }} />
+          {/* The slim style: the faint track, and the share a gradient of its colour, as the site's other bars. */}
+          <span className="w-20 h-1.5 rounded-full overflow-hidden shrink-0" style={{ background: SLIM_TRACK }}>
+            <span className="block h-full rounded-full" style={{ width: `${top > 0 ? (100 * r.value) / top : 0}%`, background: slimFill(semanticColor(r.label) ?? accent) }} />
           </span>
           <span className={`text-[10px] font-mono w-11 text-right shrink-0 ${r.strong ? "font-bold" : ""}`} style={{ color: r.strong ? t.headText : t.mutedText }}>
             {r.text}

@@ -8,6 +8,7 @@
  * a file of its own and the button does not load the Dashboard to show it.
  * Nothing in it changed in the move.
  */
+import { SLIM_TRACK } from "./SlimBars";
 import React, { useEffect, useMemo, useState } from "react";
 import { SourceLink } from "./SourceLink";
 import { Figures, COUNTER_FIGURES, COUNTER_UNIT } from "./Figures";
@@ -301,7 +302,7 @@ export function QuarterTracker({
         <div>
           <div
             className="h-2 rounded-full overflow-hidden"
-            style={{ background: isLight ? "rgba(0,0,0,0.07)" : "rgba(255,255,255,0.08)" }}
+            style={{ background: SLIM_TRACK }}
           >
             <div
               className="h-full rounded-full transition-all duration-700"

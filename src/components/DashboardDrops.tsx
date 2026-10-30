@@ -38,6 +38,7 @@
  * of its "impact", from alliances.ts. An industry's bar is in the colour of
  * its category - the colours the Sector Outlook card beside it uses.
  */
+import { SLIM_TRACK, slimFill } from "./SlimBars";
 import { useMemo, useState, type ReactNode } from "react";
 import { useNavigate } from "react-router-dom";
 import { ArrowRight, Atom, Bank, Handshake, Sparkle } from "@phosphor-icons/react";
@@ -127,8 +128,8 @@ const Note = ({ t, children }: { t: Tokens; children: ReactNode }) => (
     {children}
   </p>
 );
-const Track = ({ t, children }: { t: Tokens; children: ReactNode }) => (
-  <div className="relative h-1.5 rounded-full overflow-hidden mt-1" style={{ background: t.isLight ? "rgba(0,0,0,0.07)" : "rgba(255,255,255,0.08)" }} aria-hidden>
+const Track = ({ children }: { t: Tokens; children: ReactNode }) => (
+  <div className="relative h-1.5 rounded-full overflow-hidden mt-1" style={{ background: SLIM_TRACK }} aria-hidden>
     {children}
   </div>
 );
@@ -332,7 +333,7 @@ function Industries({ t, accent }: { t: Tokens; accent: string }) {
               </div>
               {/* On the scale of the fastest shown: a bar's length is its growth against that one's. Its colour is its category's. */}
               <Track t={t}>
-                <div className="h-full rounded-full" style={{ width: `${Math.max(2, (100 * r.growth) / top)}%`, background: color }} />
+                <div className="h-full rounded-full" style={{ width: `${Math.max(2, (100 * r.growth) / top)}%`, background: slimFill(color) }} />
               </Track>
               <p className="text-[10px] font-mono leading-snug mt-1" style={{ color: t.mutedText }}>
                 {r.print(r.now)} in {r.year}, from {r.print(r.before)} in {r.year - 1} · {r.what} · <Credit source={r.source} />
@@ -386,7 +387,7 @@ function Funding({ t, accent }: { t: Tokens; accent: string }) {
             </div>
             {/* On the scale of the world's total: a bar is the place's part of it. */}
             <Track t={t}>
-              <div className="h-full rounded-full" style={{ width: `${Math.max(1, (100 * r.v) / p.world)}%`, background: accent }} />
+              <div className="h-full rounded-full" style={{ width: `${Math.max(1, (100 * r.v) / p.world)}%`, background: slimFill(accent) }} />
             </Track>
           </li>
         ))}

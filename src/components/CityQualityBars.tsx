@@ -18,6 +18,7 @@
  *
  * Loaded when the card is shown: the country panels it reads are large.
  */
+import { SLIM_TRACK, slimFill } from "./SlimBars";
 import { semanticColor } from "../lib/semanticColors";
 import { inSentence, qualityHeadlines } from "./CountryQuality";
 import type { Tokens } from "./DataExplorer";
@@ -49,8 +50,8 @@ export default function CityQualityBars({ t, code, country, city, name }: Qualit
                   {r.label}
                 </span>
                 {r.bar && (
-                  <span className="relative w-20 h-1.5 rounded-full shrink-0" style={{ background: t.isLight ? "rgba(0,0,0,0.07)" : "rgba(255,255,255,0.08)" }} aria-hidden>
-                    <span className="absolute inset-y-0 left-0 rounded-full" style={{ width: `${Math.max(1.5, r.bar.at)}%`, background: semanticColor(r.label) ?? r.color }} />
+                  <span className="relative w-20 h-1.5 rounded-full shrink-0" style={{ background: SLIM_TRACK }} aria-hidden>
+                    <span className="absolute inset-y-0 left-0 rounded-full" style={{ width: `${Math.max(1.5, r.bar.at)}%`, background: slimFill(semanticColor(r.label) ?? r.color) }} />
                     {r.bar.world != null && <span className="absolute -top-0.5 -bottom-0.5 w-0.5 -ml-px rounded-full" style={{ left: `${r.bar.world}%`, background: t.headText }} />}
                   </span>
                 )}

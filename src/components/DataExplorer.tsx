@@ -33,7 +33,7 @@
 import { lazy, Suspense, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { Area, AreaChart, CartesianGrid, Line, LineChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
-import { SlimColumns } from "./SlimBars";
+import { SLIM_TRACK, SlimColumns, slimFill } from "./SlimBars";
 import { ArrowRight, ArrowSquareOut, ChartBar, Globe, GlobeHemisphereWest, Heart, Leaf, Lightbulb, MagnifyingGlass, MapPin, Megaphone, Scales, Tree, Users, X } from "@phosphor-icons/react";
 import { useTheme } from "../contexts/ThemeContext";
 import { useLiveCountries } from "../contexts/LiveDataContext";
@@ -738,8 +738,8 @@ function CountryDetail({ t, c, all, onOpen }: { t: Tokens; c: Country; all: Coun
                 <span className="text-[10px] font-sans truncate flex-1" style={{ color: t.headText }}>
                   {ind.name}
                 </span>
-                <span className="w-16 h-1.5 rounded-full overflow-hidden" style={{ background: t.isLight ? "rgba(0,0,0,0.07)" : "rgba(255,255,255,0.08)" }}>
-                  <span className="block h-full rounded-full" style={{ width: `${ind.gdpShare}%`, background: ind.color }} />
+                <span className="w-16 h-1.5 rounded-full overflow-hidden" style={{ background: SLIM_TRACK }}>
+                  <span className="block h-full rounded-full" style={{ width: `${ind.gdpShare}%`, background: slimFill(ind.color) }} />
                 </span>
                 <span className="text-[10px] font-mono w-9 text-right shrink-0" style={{ color: t.headText }}>
                   {ind.gdpShare}%
@@ -781,8 +781,8 @@ function CountryDetail({ t, c, all, onOpen }: { t: Tokens; c: Country; all: Coun
               {total}/100
             </span>
           </div>
-          <div className="w-full h-2.5 rounded-full overflow-hidden" style={{ background: t.isLight ? "rgba(0,0,0,0.07)" : "rgba(255,255,255,0.08)" }}>
-            <div className="h-full rounded-full" style={{ width: `${total}%`, background: `linear-gradient(90deg, ${scoreColor}99, ${scoreColor})` }} />
+          <div className="w-full h-2.5 rounded-full overflow-hidden" style={{ background: SLIM_TRACK }}>
+            <div className="h-full rounded-full" style={{ width: `${total}%`, background: slimFill(scoreColor) }} />
           </div>
           <div className="grid grid-cols-4 gap-1 mt-2">
             {[
