@@ -128,7 +128,30 @@ const KIND_OF = (r) => {
   return /^Government of /.test(r[col.side_a]) && /^Government of /.test(r[col.side_b]) ? 0 : 1;
 };
 const FORMER = / \((?:North Yemen|Burma|Soviet Union|Zaire|Kampuchea|Rhodesia|Yugoslavia|Malagasy|Upper Volta|Dahomey|Ceylon)\)/g;
-/* Each pair of sides UCDP codes - a dyad - with the conflict it belongs to: [conflict, side A, side B, kind]. */
+
+/* The site's country for each name UCDP gives a country or a government, so that a country picked on a map can be given every
+   event inside it and every one its government is a side to beyond it. By the site's own names, then UCDP's that differ. */
+const CODE = new Map();
+for (const m of fs.readFileSync(path.join(__dirname, "src/data/countriesData.ts"), "utf8").matchAll(/name: "([^"]+)",\s*code: "([A-Z]{2})"/g)) CODE.set(m[1], m[2]);
+for (const [name, code] of Object.entries({
+  "United States of America": "US", Turkey: "TR", Russia: "RU", Iran: "IR", Syria: "SY", "DR Congo": "CD", Congo: "CG", Yemen: "YE",
+  Venezuela: "VE", "Ivory Coast": "CI", Laos: "LA", "South Korea": "KR", "North Korea": "KP", Cambodia: "KH", Palestine: "PS",
+  "Bosnia-Herzegovina": "BA", "United Kingdom": "GB", "Czech Republic": "CZ", Kyrgyzstan: "KG", Tanzania: "TZ", Bolivia: "BO",
+  "Central African Republic": "CF", "South Sudan": "SS", "Papua New Guinea": "PG", "Saudi Arabia": "SA", "South Africa": "ZA",
+})) if (!CODE.has(name)) CODE.set(name, code);
+const unknownNames = new Set();
+const codeOf = (name) => {
+  const c = CODE.get(name);
+  if (!c) unknownNames.add(name);
+  return c ?? null;
+};
+/** The governments a side names - "Government of Mali, Government of Russia" - as the site's countries. */
+const govsOf = (side) => side.split(", ").flatMap((s) => (/^Government of /.test(s) ? [codeOf(s.slice(14))].filter(Boolean) : []));
+/* UCDP files the Gaza Strip and the West Bank under Israel; the site holds them as Palestine, the UN's Occupied Palestinian
+   Territory, and they are set there - named, and given to Palestine when it is picked. */
+const PALESTINE = /^(Gaza Strip|West Bank)$/;
+
+/* Each pair of sides UCDP codes - a dyad - with the conflict it belongs to: [conflict, side A, side B, kind, side A's governments, side B's]. */
 const dyads = [];
 const dyadAt = new Map();
 const places = new Map();
@@ -143,14 +166,18 @@ for (const r of rows) {
   if (!Number.isFinite(lat) || !Number.isFinite(lon) || (lat === 0 && lon === 0)) continue;
   const kind = KIND_OF(r);
   // UCDP names a country with its former name after it - "Yemen (North Yemen)", "Myanmar (Burma)"; the page gives today's alone.
-  const name = (r[col.conflict_name] || r[col.dyad_name] || `${r[col.side_a]} - ${r[col.side_b]}`).replace(FORMER, "");
-  const sideA = r[col.side_a].replace(FORMER, "");
-  const sideB = r[col.side_b].replace(FORMER, "");
-  const country = r[col.country].replace(FORMER, "");
+  // UCDP names a perpetrator it cannot identify "XXX" and the country's number - "XXX630"; the page says what that means.
+  const unknownActor = (s) => s.replace(/\bXXX\d*\b/g, "Unidentified perpetrator");
+  const name = unknownActor((r[col.conflict_name] || r[col.dyad_name] || `${r[col.side_a]} - ${r[col.side_b]}`).replace(FORMER, ""));
+  const sideA = unknownActor(r[col.side_a].replace(FORMER, ""));
+  const sideB = unknownActor(r[col.side_b].replace(FORMER, ""));
+  const palestine = PALESTINE.test(r[col.adm_1]);
+  const country = palestine ? "Palestine" : r[col.country].replace(FORMER, "");
+  const cc = codeOf(country);
   const dkey = `${kind}|${name}|${sideA}|${sideB}`;
   if (!dyadAt.has(dkey)) {
     dyadAt.set(dkey, dyads.length);
-    dyads.push([name, sideA, sideB, kind]);
+    dyads.push([name, sideA, sideB, kind, govsOf(sideA), govsOf(sideB)]);
   }
   const best = +r[col.best] || 0;
   // Who the dead were, as UCDP splits its best estimate: side A, side B, civilians, not known. Kept only where the four add up to it.
@@ -165,7 +192,7 @@ for (const r of rows) {
   const p =
     places.get(key) ??
     places
-      .set(key, { lon, lat, place: [r[col.adm_1], country].filter(Boolean).join(", "), events: 0, best: 0, byKind: [0, 0, 0, 0], parts: new Map(), from, to, unchecked: 0, prec: 0 })
+      .set(key, { lon, lat, cc, place: [r[col.adm_1], country].filter(Boolean).join(", "), events: 0, best: 0, byKind: [0, 0, 0, 0], parts: new Map(), from, to, unchecked: 0, prec: 0 })
       .get(key);
   p.events++;
   p.best += best;
@@ -201,14 +228,16 @@ const out = [...places.values()]
     p.to,
     p.unchecked,
     p.prec,
+    p.cc,
   ]);
+if (unknownNames.size) throw new Error(`UCDP names the site has no country for: ${[...unknownNames].join(", ")}`);
 fs.mkdirSync(path.dirname(OUT), { recursive: true });
 fs.writeFileSync(
   OUT,
   JSON.stringify({
     version,
     month,
-    fields: ["lon", "lat", "kind", "events", "best", "place", "parts [dyad, events, best, side A, side B, civilians, not known]", "from", "to", "unchecked", "precision"],
+    fields: ["lon", "lat", "kind", "events", "best", "place", "parts [dyad, events, best, side A, side B, civilians, not known]", "from", "to", "unchecked", "precision", "country"],
     dyads,
     rows: out,
   }),

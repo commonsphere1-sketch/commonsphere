@@ -35,8 +35,9 @@ export type Hazard = {
   from: string;
   to: string;
   country: string;
-  /** Every country GDACS names it as touching. */
+  /** Every country GDACS names it as touching, and their ISO 3166 alpha-2 codes. */
   affected: string[];
+  codes: string[];
   severity: string;
   /** The body GDACS takes it from, by GDACS's name for it - "NEIC", "JTWC", "GWIS". */
   source: string;
@@ -68,7 +69,7 @@ type Feature = {
     todate: string;
     datemodified?: string;
     source?: string;
-    affectedcountries?: { countryname?: string }[];
+    affectedcountries?: { countryname?: string; iso2?: string }[];
     severitydata?: { severitytext?: string };
     url?: { report?: string };
   };
@@ -100,6 +101,7 @@ async function currentOf(kind: HazardKind, signal: AbortSignal): Promise<Hazard[
         to: p.todate,
         country: p.country,
         affected: (p.affectedcountries ?? []).flatMap((c) => (c.countryname ? [c.countryname] : [])),
+        codes: (p.affectedcountries ?? []).flatMap((c) => (c.iso2 ? [c.iso2.toUpperCase()] : [])),
         // A flood's reads "Magnitude 0" where GDACS gives it none; that says nothing, and is left out.
         severity: /^Magnitude 0\s*$/.test(p.severitydata?.severitytext ?? "") ? "" : (p.severitydata?.severitytext ?? "").trim(),
         source: p.source ?? "",

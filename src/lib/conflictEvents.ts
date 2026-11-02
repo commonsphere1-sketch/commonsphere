@@ -9,19 +9,50 @@ import type { HazardAlert, HazardKind } from "./gdacsLive";
  * estimates), each pair of sides there with its events and deaths and their split, the first and last day, how many
  * events UCDP is still checking, and how closely it could place them.
  */
-export type ConflictDyad = [conflict: string, sideA: string, sideB: string, kind: number];
+/** A pair of sides, with the governments on each as the site's countries - "Government of Mali, Government of Russia" is ["ML", "RU"]. */
+export type ConflictDyad = [conflict: string, sideA: string, sideB: string, kind: number, govsA: string[], govsB: string[]];
 /** One pair of sides at a place: its events and deaths, and - where UCDP's split adds up - side A's, side B's, civilians' and those not known. */
 export type ConflictPart = [dyad: number, events: number, best: number, sideA?: number, sideB?: number, civilians?: number, unknown?: number];
-export type ConflictRow = [lon: number, lat: number, kind: number, events: number, best: number, place: string, parts: ConflictPart[], from: string, to: string, unchecked: number, precision: number];
+export type ConflictRow = [
+  lon: number,
+  lat: number,
+  kind: number,
+  events: number,
+  best: number,
+  place: string,
+  parts: ConflictPart[],
+  from: string,
+  to: string,
+  unchecked: number,
+  precision: number,
+  country: string,
+];
 export type ConflictLayer = { version: string; month: string; dyads: ConflictDyad[]; rows: ConflictRow[] };
 
-/** What each kind is, in UCDP's terms. */
+/** What each kind is, in UCDP's terms - with where the incursions and the attacks called terrorism fall, as UCDP has no such classes. */
 export const CONFLICT_KIND_SAID = [
-  "A war between two governments: a state-based conflict that the UCDP/PRIO Armed Conflict Dataset types as interstate.",
-  "A government against an armed group within its own country, with or without other states' troops on one side.",
+  "A war between governments, their forces fighting or striking each other at home or across a border: a state-based conflict that the UCDP/PRIO Armed Conflict Dataset types as interstate.",
+  "A government against an armed group, at home or across a border, with or without other states' troops on one side.",
   "Two organised armed groups fighting each other, neither of them a government.",
-  "A government or an organised armed group killing civilians, who are not fighting.",
+  "A government or an organised armed group killing civilians, who are not fighting. UCDP has no class called terrorism: an armed group's attacks on civilians are counted here.",
 ] as const;
+
+/** The governments a pair of sides names, each with its country - in the order the side names them. */
+const govsNamed = (side: string, govs: string[]) =>
+  side
+    .split(", ")
+    .filter((s) => s.startsWith("Government of "))
+    .map((s, i) => ({ name: s, code: govs[i] }));
+/** The governments fighting at a place that is not their own country's - an incursion, a strike or a deployment across a border. */
+export const acrossBorder = (row: ConflictRow, dyads: ConflictDyad[]) => {
+  const seen = new Set<string>();
+  return row[6].flatMap((p) => {
+    const d = dyads[p[0]];
+    return [...govsNamed(d[1], d[4]), ...govsNamed(d[2], d[5])].filter((g) => g.code && g.code !== row[11] && !seen.has(g.name) && seen.add(g.name));
+  });
+};
+/** Whether a country's government is a side to any pair fighting at a place. */
+export const involves = (row: ConflictRow, dyads: ConflictDyad[], code: string) => row[6].some((p) => dyads[p[0]][4].includes(code) || dyads[p[0]][5].includes(code));
 
 /** What a pin's place means where UCDP could not place an event exactly (its "where_prec", 3 to 7). */
 export const CONFLICT_PRECISION: Record<number, string> = {

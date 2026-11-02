@@ -1143,6 +1143,7 @@ export default function WorldviewMap() {
           occurrence={occurrence}
           onSelect={(o, lon, lat) => choose(o, lon, lat)}
           countryAt={countryAt}
+          picked={{ code: picked, name: pickedName }}
           onPickCountry={(code) => {
             pick(code);
             document.getElementById("world-map")?.scrollIntoView({ block: "start", behavior: "smooth" });

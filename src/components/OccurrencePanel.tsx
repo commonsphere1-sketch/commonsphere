@@ -3,8 +3,9 @@
  * latest monthly release and the disasters GDACS holds as going on now - with the deadliest places and the disasters by
  * alert listed beside it, each pressed to be told and shown on the map.
  */
-import { useMemo } from "react";
-import { ArrowSquareOut } from "@phosphor-icons/react";
+import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
+import { ArrowSquareOut, MagnifyingGlass } from "@phosphor-icons/react";
+import { countriesData } from "../data/countriesData";
 import type { Tokens } from "./DataExplorer";
 import { SourceLink } from "./SourceLink";
 import { CONFLICT_EVENTS_META, CONFLICT_KINDS, CONFLICT_SOURCES } from "../data/conflictEventsMeta";
@@ -12,6 +13,8 @@ import { GDACS_SOURCES, HAZARD_KINDS, HAZARD_PLURAL, type Hazard, type HazardAle
 import {
   ALERT_SAID,
   CONFLICT_KIND_SAID,
+  acrossBorder,
+  involves,
   CONFLICT_PRECISION,
   alertInks,
   conflictInks,
@@ -30,6 +33,113 @@ const PLACED: Record<number, string> = { 3: "district only", 4: "province only",
 
 const ROW = "w-full flex items-center gap-2 px-2 py-1.5 rounded-[0.5rem] text-left cursor-pointer transition-colors hover:bg-muted/60";
 
+/** Every country the site holds, for the section's search: by name, with its continent. */
+const COUNTRIES = countriesData.filter((c) => !c.uninhabited).map((c) => ({ code: c.code, name: c.name, continent: c.continent }));
+/** Folded for matching: no case and no accents, so "turkiye" finds Türkiye. */
+const fold = (s: string) => s.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
+
+/** The section's search, as asked: any country, chosen to have its conflicts and disasters told - made as the Dashboard's place search is. */
+function CountryFind({ onPick }: { onPick: (c: { code: string; name: string }) => void }) {
+  const [q, setQ] = useState("");
+  const [open, setOpen] = useState(false);
+  const [at, setAt] = useState(0);
+  const box = useRef<HTMLDivElement>(null);
+  const hits = useMemo(() => {
+    const f = fold(q.trim());
+    if (!f) return [];
+    // Names that begin with what is typed first, then those that hold it.
+    const starts = COUNTRIES.filter((c) => fold(c.name).startsWith(f));
+    const holds = COUNTRIES.filter((c) => !fold(c.name).startsWith(f) && fold(c.name).includes(f));
+    return [...starts, ...holds].slice(0, 10);
+  }, [q]);
+  useEffect(() => setAt(0), [q]);
+  useEffect(() => {
+    const away = (e: PointerEvent) => !box.current?.contains(e.target as Node) && setOpen(false);
+    document.addEventListener("pointerdown", away);
+    return () => document.removeEventListener("pointerdown", away);
+  }, []);
+  const go = (c: (typeof COUNTRIES)[number]) => {
+    setOpen(false);
+    setQ("");
+    onPick({ code: c.code, name: c.name });
+  };
+  return (
+    <div ref={box} className="relative w-48 sm:w-56 shrink-0">
+      <label className="flex items-center gap-1.5 rounded-full border border-border px-3 py-1 transition-colors focus-within:border-foreground/40">
+        <MagnifyingGlass size={12} className="text-muted-foreground shrink-0" aria-hidden />
+        <input
+          type="search"
+          value={q}
+          onFocus={() => setOpen(true)}
+          onChange={(e) => {
+            setQ(e.target.value.slice(0, 60));
+            setOpen(true);
+          }}
+          onKeyDown={(e) => {
+            if (!hits.length) return;
+            if (e.key === "ArrowDown") setAt((i) => Math.min(hits.length - 1, i + 1));
+            else if (e.key === "ArrowUp") setAt((i) => Math.max(0, i - 1));
+            else if (e.key === "Enter") go(hits[at]);
+            else if (e.key === "Escape") setOpen(false);
+            else return;
+            e.preventDefault();
+          }}
+          placeholder="Search a country"
+          aria-label="Choose a country to see its conflicts and disasters"
+          role="combobox"
+          aria-expanded={open && hits.length > 0}
+          aria-controls="occurrence-country-hits"
+          className="flex-1 min-w-0 bg-transparent text-[11px] font-medium font-sans text-foreground placeholder:text-muted-foreground focus:outline-none"
+        />
+      </label>
+      {open && q.trim().length > 0 && (
+        <ul id="occurrence-country-hits" role="listbox" className="absolute right-0 top-full mt-1.5 w-[min(18rem,calc(100vw-2rem))] max-h-80 overflow-y-auto modal-glass border rounded-xl shadow-lg py-1 z-30">
+          {hits.map((c, i) => (
+            <li key={c.code} role="option" aria-selected={i === at}>
+              <button type="button" onClick={() => go(c)} onMouseEnter={() => setAt(i)} className={`w-full text-left px-3 py-1.5 flex items-baseline gap-2 cursor-pointer ${i === at ? "bg-muted/60" : ""}`}>
+                <span className="text-[12px] font-semibold font-sans text-foreground truncate">{c.name}</span>
+                <span className="text-[10px] font-sans text-muted-foreground truncate flex-1 min-w-0">{c.continent}</span>
+              </button>
+            </li>
+          ))}
+          {hits.length === 0 && <li className="px-3 py-2 text-[11px] font-sans text-muted-foreground">No country by that name.</li>}
+        </ul>
+      )}
+    </div>
+  );
+}
+
+/** One list of the country picked: the first six, and the rest on asking. */
+function Group({ t, title, sub, empty, items }: { t: Tokens; title: string; sub?: string; empty: string; items: ReactNode[] }) {
+  const [all, setAll] = useState(false);
+  return (
+    <div className="min-w-0">
+      <p className="text-[11px] font-semibold font-sans px-2" style={{ color: t.headText }}>
+        {title}
+      </p>
+      {sub && (
+        <p className="text-[10px] font-mono px-2 mt-0.5" style={{ color: t.mutedText }}>
+          {sub}
+        </p>
+      )}
+      <div className="mt-1">
+        {items.length ? (
+          (all ? items : items.slice(0, 6))
+        ) : (
+          <p className="text-[11px] font-sans px-2 leading-snug" style={{ color: t.mutedText }}>
+            {empty}
+          </p>
+        )}
+      </div>
+      {items.length > 6 && (
+        <button type="button" onClick={() => setAll((a) => !a)} className="text-[10px] font-sans px-2 mt-1 cursor-pointer underline-offset-2 hover:underline" style={{ color: t.mutedText }}>
+          {all ? "Fewer" : `All ${items.length}`}
+        </button>
+      )}
+    </div>
+  );
+}
+
 export function OccurrencePanel({
   t,
   show,
@@ -41,8 +151,11 @@ export function OccurrencePanel({
   onSelect,
   countryAt,
   onPickCountry,
+  picked,
 }: {
   t: Tokens;
+  /** The country picked on the map: its conflicts and disasters head the panel. */
+  picked: { code: string; name: string };
   show: { conflicts: boolean; hazards: boolean };
   conflicts: ConflictLayer | null;
   hazards: Hazard[] | null;
@@ -55,9 +168,57 @@ export function OccurrencePanel({
 }) {
   const cInk = conflictInks(t.isLight);
   const aInk = alertInks(t.isLight);
+  /* The country told: the one picked on the map, or another searched for here; a new pick on the map is followed. */
+  const [focus, setFocus] = useState(picked);
+  useEffect(() => setFocus({ code: picked.code, name: picked.name }), [picked.code, picked.name]);
   const row = occurrence?.kind === "conflict" && conflicts ? conflicts.rows[occurrence.i] : undefined;
   const hazard = occurrence?.kind === "hazard" && hazards ? hazards.find((h) => h.id === occurrence.id) : undefined;
   const byAlert = hazards ? [...hazards].sort((a, b) => ALERT_ORDER.indexOf(a.alert) - ALERT_ORDER.indexOf(b.alert) || b.updated.localeCompare(a.updated)) : [];
+  /* The country picked: the places inside its borders, those beyond them where its government is a side, and its disasters. */
+  const mine = useMemo(() => {
+    const rows = conflicts ? conflicts.rows.map((r, i) => [r, i] as const) : [];
+    return {
+      inside: rows.filter(([r]) => r[11] === focus.code),
+      abroad: conflicts ? rows.filter(([r]) => r[11] !== focus.code && involves(r, conflicts.dyads, focus.code)) : [],
+      disasters: hazards ? hazards.filter((h) => h.codes.includes(focus.code)).sort((a, b) => ALERT_ORDER.indexOf(a.alert) - ALERT_ORDER.indexOf(b.alert)) : [],
+    };
+  }, [conflicts, hazards, focus.code]);
+  const conflictRow = (r: (typeof mine.inside)[number][0], i: number) => (
+    <button
+      key={`c${i}`}
+      type="button"
+      onClick={() => onSelect({ kind: "conflict", i }, r[0], r[1])}
+      aria-pressed={occurrence?.kind === "conflict" && occurrence.i === i}
+      className={`${ROW} ${occurrence?.kind === "conflict" && occurrence.i === i ? "bg-muted/60" : ""}`}
+    >
+      <span aria-hidden className="w-2 h-2 rounded-full shrink-0" style={{ background: cInk[r[2]] }} />
+      <span className="text-[11px] font-sans flex-1 min-w-0 leading-snug" style={{ color: t.headText }}>
+        {r[5]}
+        {PLACED[r[10]] && <span style={{ color: t.mutedText }}> · {PLACED[r[10]]}</span>}
+      </span>
+      <span className="text-[10px] font-mono shrink-0" style={{ color: t.mutedText }}>
+        {r[4].toLocaleString("en")}
+      </span>
+    </button>
+  );
+  const hazardRow = (h: Hazard) => (
+    <button
+      key={h.id}
+      type="button"
+      onClick={() => onSelect({ kind: "hazard", id: h.id }, h.lon, h.lat)}
+      aria-pressed={occurrence?.kind === "hazard" && occurrence.id === h.id}
+      className={`${ROW} ${occurrence?.kind === "hazard" && occurrence.id === h.id ? "bg-muted/60" : ""}`}
+    >
+      <span aria-hidden className="w-2 h-2 rounded-full shrink-0 border-[1.5px]" style={{ borderColor: aInk[h.alert], background: `${aInk[h.alert]}33` }} />
+      <span className="text-[11px] font-sans truncate flex-1" style={{ color: t.headText }}>
+        {h.name}
+      </span>
+      <span className="text-[10px] font-mono shrink-0" style={{ color: t.mutedText }}>
+        {h.alert}
+      </span>
+    </button>
+  );
+  const killed = (rows: typeof mine.inside) => rows.reduce((a, [r]) => a + r[4], 0).toLocaleString("en");
   // Worked out for the one pressed only, not on every redrawing of the map above.
   const where = useMemo(() => (row ? countryAt(row[0], row[1]) : hazard ? countryAt(hazard.lon, hazard.lat) : null), [row, hazard, countryAt]);
 
@@ -77,6 +238,53 @@ export function OccurrencePanel({
         <p className="text-[10px] font-mono uppercase tracking-widest flex-1" style={{ color: t.mutedText }}>
           Conflicts and disasters going on
         </p>
+        <CountryFind onPick={setFocus} />
+      </div>
+      {/* The country picked, as asked: what is going on inside its borders, what its government is a side to beyond them, and its disasters. */}
+      <div key={focus.code} className="px-2 py-3 border-b" style={{ borderColor: t.gridLine }}>
+        <div className="flex flex-wrap items-center gap-2 px-2">
+          <p className="text-[9px] font-mono uppercase tracking-widest" style={{ color: t.mutedText }}>
+            {focus.name} · now
+          </p>
+          {focus.code !== picked.code && (
+            <button
+              type="button"
+              onClick={() => setFocus({ code: picked.code, name: picked.name })}
+              className="px-2 py-0.5 rounded-full text-[10px] font-sans border border-border text-muted-foreground hover:text-foreground hover:bg-muted/60 transition-colors cursor-pointer"
+            >
+              Back to {picked.name}, picked on the map
+            </button>
+          )}
+        </div>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-2">
+          {show.conflicts && conflicts && (
+            <>
+              <Group
+                t={t}
+                title="Inside its borders"
+                sub={mine.inside.length ? `${mine.inside.length} place${mine.inside.length === 1 ? "" : "s"} · ${killed(mine.inside)} killed · ${monthOf(conflicts.month)}` : undefined}
+                empty={`UCDP recorded no fatal event of organised violence in ${focus.name} in ${monthOf(conflicts.month)}.`}
+                items={mine.inside.map(([r, i]) => conflictRow(r, i))}
+              />
+              <Group
+                t={t}
+                title="Its government, beyond them"
+                sub={mine.abroad.length ? `${mine.abroad.length} place${mine.abroad.length === 1 ? "" : "s"} · ${killed(mine.abroad)} killed · ${monthOf(conflicts.month)}` : undefined}
+                empty={`${focus.name}'s government is a side to no fatal event beyond its borders in ${monthOf(conflicts.month)}.`}
+                items={mine.abroad.map(([r, i]) => conflictRow(r, i))}
+              />
+            </>
+          )}
+          {show.hazards && hazards && (
+            <Group
+              t={t}
+              title="Its disasters now"
+              sub={mine.disasters.length ? `${mine.disasters.length} current, by GDACS` : undefined}
+              empty={`GDACS holds no current disaster in ${focus.name}.`}
+              items={mine.disasters.map(hazardRow)}
+            />
+          )}
+        </div>
       </div>
       <div className="grid grid-cols-1 lg:grid-cols-[minmax(0,1fr)_20rem]">
         {/* The account of the one pressed. */}
@@ -100,6 +308,12 @@ export function OccurrencePanel({
                 {CONFLICT_PRECISION[row[10]] ? ` ${CONFLICT_PRECISION[row[10]]}.` : ""}
                 {row[9] ? ` UCDP is still checking ${row[9] === row[3] ? (row[3] === 1 ? "this event" : "these events") : `${row[9]} of these events`}, and may revise ${row[9] === 1 ? "it" : "them"}.` : ""}
               </p>
+              {/* A government fighting outside its own country: an incursion, a strike or a deployment across a border. */}
+              {acrossBorder(row, conflicts.dyads).length > 0 && (
+                <p className="text-[11px] font-sans font-medium leading-snug mt-1.5" style={{ color: t.headText }}>
+                  Across a border: {acrossBorder(row, conflicts.dyads).map((g) => `the ${g.name}`).join(" and ")}, fighting in {row[5].split(", ").pop()}.
+                </p>
+              )}
               {/* Each pair of sides fighting here: its conflict, its deaths, and who they were, as UCDP splits them. */}
               <div className="mt-3 grid grid-cols-1 sm:grid-cols-2 gap-2">
                 {row[6].map((part) => {
@@ -273,7 +487,10 @@ export function OccurrencePanel({
               {CONFLICT_EVENTS_META.released ? ` of ${dayOf(CONFLICT_EVENTS_META.released)}` : ""}. UCDP releases a month at a time, not more than a month behind,
               so this is the latest month there is, not today. A pin is a place and its size the deaths there, UCDP's best estimate; who they were is UCDP's
               split of it. The events are candidates, which UCDP may still revise, add to or drop, and {CONFLICT_EVENTS_META.unchecked.toLocaleString("en")} of
-              them it is still checking. {CONFLICT_KINDS.map((k, i) => `${k}: ${CONFLICT_EVENTS_META.deaths[i].toLocaleString("en")} killed`).join("; ")}.
+              them it is still checking. {CONFLICT_KINDS.map((k, i) => `${k}: ${CONFLICT_EVENTS_META.deaths[i].toLocaleString("en")} killed`).join("; ")}. A
+              government's incursions and strikes across a border are among them where someone was killed, and so are armed groups' attacks on civilians - UCDP
+              has no class called terrorism - but an incident in which no one died, a ship seized or an airspace crossed, is not in UCDP's records, and no open,
+              checked source of those is held. UCDP files the Gaza Strip and the West Bank under Israel; they are set here under Palestine, as the site holds it.
             </p>
             <SourceLink sources={CONFLICT_SOURCES} />
           </div>

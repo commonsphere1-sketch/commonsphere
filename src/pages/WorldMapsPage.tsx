@@ -39,7 +39,7 @@ import { flagColor } from "../lib/flagColor";
 import { REGIMES, REGIME_SOURCE, REGIME_TYPES } from "../data/regimes";
 import { CONFLICT_EVENTS_META, CONFLICT_KINDS, CONFLICT_SOURCES } from "../data/conflictEventsMeta";
 import { GDACS_SOURCES, HAZARD_KINDS, HAZARD_PLURAL, useGdacsLive, type Hazard, type HazardAlert, type HazardKind } from "../lib/gdacsLive";
-import { CONFLICT_PRECISION, alertInks, conflictInks, dayOf, daysOf, monthOf, sidesOf, useConflictEvents } from "../lib/conflictEvents";
+import { CONFLICT_PRECISION, acrossBorder, alertInks, conflictInks, dayOf, daysOf, monthOf, sidesOf, useConflictEvents } from "../lib/conflictEvents";
 import { COUNTRY_LIVING, COUNTRY_LIVING_LEAST, COUNTRY_LIVING_PARTS, LIVING_DARK, LIVING_LIGHT, STATE_LIVING, STATE_LIVING_PARTS, UNSCORED, partsSaid } from "../lib/livingScore";
 import { STATE_HEALTH_SAFETY_SOURCES } from "../data/stateHealthSafety";
 import { useAdmin2 } from "../lib/admin2";
@@ -2622,6 +2622,11 @@ export function WorldMapsPage() {
                 `${best.toLocaleString("en")} killed - UCDP's best estimate`,
                 `${events} event${events === 1 ? "" : "s"}, ${daysOf(from, to)}`,
                 names.slice(0, 3).join("; ") + (names.length > 3 ? `; and ${names.length - 3} more` : ""),
+                // A government fighting outside its own country: an incursion, a strike or a deployment across a border.
+                ...(() => {
+                  const across = acrossBorder(r, conflictData.data!.dyads);
+                  return across.length ? [`Across a border: ${across.map((g) => g.name).join(" and ")}`] : [];
+                })(),
                 ...(CONFLICT_PRECISION[precision] ? [CONFLICT_PRECISION[precision]] : []),
                 ...(unchecked ? [`UCDP is still checking ${unchecked === events ? (events === 1 ? "it" : "them") : `${unchecked} of them`}`] : []),
               ],
@@ -4560,9 +4565,12 @@ export function WorldMapsPage() {
                 a month behind, so this is the latest month there is, not today. A pin is a place and its size the deaths there, UCDP's best
                 estimate. Between states is a war of two governments, as the UCDP/PRIO Armed Conflict Dataset types it; within a state, a
                 government against an armed group; between armed groups, neither side a government; against civilians, a government or a group
-                killing people who are not fighting. The events are candidates, which UCDP may still revise, add to or drop, and{" "}
-                {CONFLICT_EVENTS_META.unchecked.toLocaleString("en")} of them it is still checking. An event it can place only to a province
-                or a country is pinned at its middle, and the card says so. Point at a pin for its conflicts.
+                killing people who are not fighting - UCDP has no class called terrorism, and an armed group's attacks on civilians are counted
+                there. A government fighting outside its own country - an incursion, a strike or a deployment across a border - the card says
+                so; an incident in which no one died is not in UCDP's records. The events are candidates, which UCDP may still revise, add to or
+                drop, and {CONFLICT_EVENTS_META.unchecked.toLocaleString("en")} of them it is still checking. An event it can place only to a
+                province or a country is pinned at its middle, and the card says so. UCDP files the Gaza Strip and the West Bank under Israel;
+                they are set here under Palestine, as the site holds it. Point at a pin for its conflicts.
               </p>
               <SourceLink sources={CONFLICT_SOURCES} className="mt-1" />
             </div>
