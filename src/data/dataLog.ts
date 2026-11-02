@@ -30,6 +30,14 @@ export const DATA_LOG: DataLogEntry[] = [
     "files": 1
   },
   {
+    "what": "The armed conflicts of the latest month: each fatal event, where it happened, pinned on the world map (with static/geo/conflicts.json)",
+    "from": "UCDP (Candidate Events; UCDP/PRIO Armed Conflict Dataset)",
+    "page": "/dashboard/maps",
+    "where": "World maps",
+    "read": "2026-11-02",
+    "files": 1
+  },
+  {
     "what": "Conflict deaths and disaster alerts by continent and by country, year by year",
     "from": "UCDP (via Our World in Data), GDACS",
     "page": "/dashboard/news",
@@ -576,4 +584,4 @@ export const DATA_LOG: DataLogEntry[] = [
 ];
 
 /** How many data files the log covers. */
-export const DATA_LOG_FILES = 90;
+export const DATA_LOG_FILES = 91;

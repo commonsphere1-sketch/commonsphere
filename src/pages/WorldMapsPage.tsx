@@ -37,6 +37,8 @@ import { MapLabels, placeLabels, type LabelCandidate } from "../components/MapLa
 import { countriesData, type Country } from "../data/countriesData";
 import { flagColor } from "../lib/flagColor";
 import { REGIMES, REGIME_SOURCE, REGIME_TYPES } from "../data/regimes";
+import { CONFLICT_EVENTS_META, CONFLICT_KINDS, CONFLICT_SOURCES } from "../data/conflictEventsMeta";
+import { GDACS_SOURCES, HAZARD_KINDS, HAZARD_PLURAL, useGdacsLive, type Hazard, type HazardAlert, type HazardKind } from "../lib/gdacsLive";
 import { COUNTRY_LIVING, COUNTRY_LIVING_LEAST, COUNTRY_LIVING_PARTS, LIVING_DARK, LIVING_LIGHT, STATE_LIVING, STATE_LIVING_PARTS, UNSCORED, partsSaid } from "../lib/livingScore";
 import { STATE_HEALTH_SAFETY_SOURCES } from "../data/stateHealthSafety";
 import { useAdmin2 } from "../lib/admin2";
@@ -144,6 +146,28 @@ const CLIMATE_COLORS: Record<ClimateZone, string> = {
 /* Air pollution is the one layer that is not fetched: it is 197 numbers, a
    few kilobytes, so it rides in the bundle rather than costing a request. */
 type OverlayId = keyof typeof OVERLAY_URL | "pollution" | "climate";
+
+/** The Conflicts layer as build-conflict-events.cjs writes it: UCDP's conflicts by name and kind, and a row for each place -
+    where, its kind (the one with the most deaths there), its events, their deaths (UCDP's best estimates), its conflicts,
+    the first and last day, how many are still being checked, and how closely UCDP could place them. */
+type ConflictLayer = {
+  version: string;
+  month: string;
+  conflicts: [name: string, kind: number][];
+  rows: [lon: number, lat: number, kind: number, events: number, best: number, place: string, conflicts: number[], from: string, to: string, unchecked: number, precision: number][];
+};
+/* What a pin's place means where UCDP could not place an event exactly (its "where_prec", 3 to 7). */
+const CONFLICT_PRECISION: Record<number, string> = {
+  3: "Pinned at its district: UCDP knows the district, not the spot",
+  4: "Pinned at its province: UCDP knows the province, not the spot",
+  5: "Pinned roughly: UCDP knows only a wider area, a road or a border",
+  6: "Pinned at the country: UCDP knows only the country",
+  7: "In international waters or airspace",
+};
+const dayOf = (d: string) => new Date(`${d.slice(0, 10)}T00:00:00Z`).toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric", timeZone: "UTC" });
+const daysOf = (from: string, to: string) => (from.slice(0, 10) === to.slice(0, 10) ? dayOf(from) : `${dayOf(from)} to ${dayOf(to)}`);
+/** The card of a pin pointed at: what it is, its name, and its figures. */
+type PinTip = { x: number; y: number; kicker: string; ink: string; title: string; lines: string[] };
 
 /** A point layer as build-map-layers.cjs writes it: a header plus index rows.
     Generic over the row shape so destructuring a row keeps its tuple types. */
@@ -1614,6 +1638,9 @@ export function WorldMapsPage() {
   const [countryMetric, setCountryMetric] = useState("hdi");
   /* The Governance layer, as asked: pressed, the world map draws each country in its regime type (V-Dem's Regimes of the World). */
   const [governance, setGovernance] = useState(false);
+  /* The conflicts and the disasters going on, as asked: each pinned on the world map while its chip is pressed. */
+  const [live, setLive] = useState({ conflicts: false, hazards: false });
+  const [pinTip, setPinTip] = useState<PinTip | null>(null);
   const [hovered, setHovered] = useState<{
     name: string;
     value: string;
@@ -1776,6 +1803,11 @@ export function WorldMapsPage() {
   };
   /* The place picked out: an orange none of the layers uses, dark enough to read as the chip's text on the light card. */
   const markInk = isLight ? "#c2410c" : "#ff922b";
+  /* The Conflicts layer's four kinds, and the Disasters layer's three alert levels, drawn hollow so the two never read as one. */
+  const conflictInk = isLight ? ["#991b1b", "#db2777", "#b45309", "#6d28d9"] : ["#ef4444", "#f472b6", "#fbbf24", "#a78bfa"];
+  const alertInk: Record<HazardAlert, string> = isLight
+    ? { Green: "#15803d", Orange: "#ea580c", Red: "#dc2626" }
+    : { Green: "#4ade80", Orange: "#fb923c", Red: "#f87171" };
   const cardBg = isLight ? "#ffffff" : "rgba(255,255,255,0.04)";
   const cardBorder = isLight ? "1px solid rgba(0,0,0,0.09)" : "1px solid rgba(255,255,255,0.14)";
   const cardShadow = isLight
@@ -2098,8 +2130,7 @@ export function WorldMapsPage() {
     cables: false,
     pipelines: false,
   });
-  const [showAdditionalLayers, setShowAdditionalLayers] = useState(false);
-  /** The same for the country and state maps' bar: whether the layers behind "More" are shown. */
+  /** The country and state maps' bar: whether the layers behind "More" are shown. The world map's bar has no "More", as asked. */
   const [showFocusLayers, setShowFocusLayers] = useState(false);
 
   type LayerSetter = React.Dispatch<React.SetStateAction<Record<OverlayId, boolean>>>;
@@ -2133,6 +2164,9 @@ export function WorldMapsPage() {
     wanted("cities"),
   );
   const cables = useOverlay<Topology>(OVERLAY_URL.cables, wanted("cables"));
+  /* The Conflicts layer is read when it is first pressed; the Disasters layer from GDACS while it is pressed, every ten minutes. */
+  const conflictData = useOverlay<ConflictLayer>("/geo/conflicts.json", live.conflicts);
+  const gdacs = useGdacsLive(live.hazards);
   const pipelines = useOverlay<Topology>(OVERLAY_URL.pipelines, wanted("pipelines"));
   const overlayState: Record<OverlayId, { loading: boolean; failed: boolean }> = {
     cables: { loading: cables.loading, failed: cables.failed },
@@ -2586,6 +2620,91 @@ export function WorldMapsPage() {
       ringed: near,
     };
   }, [minePoints, worldZoom.zoom]);
+
+  /* The pins, one element each so each answers the pointer - a few thousand at most - and made once for a zoom, so the map's
+     redrawing on hover passes over them. The biggest are drawn first, so a small one is never hidden under a big one. */
+  const livePins = useMemo(() => {
+    const z = worldZoom.zoom;
+    const at = (lon: number, lat: number) => worldPath.projection([lon, lat]);
+    const off = () => setPinTip(null);
+    const conflicts =
+      live.conflicts && conflictData.data
+        ? conflictData.data.rows.map((r, i) => {
+            const [lon, lat, kind, events, best, place, cs, from, to, unchecked, precision] = r;
+            const p = at(lon, lat);
+            if (!p) return null;
+            const names = cs.map((c) => conflictData.data!.conflicts[c][0]);
+            const card = {
+              kicker: `Armed conflict · ${CONFLICT_KINDS[kind]}`,
+              ink: conflictInk[kind],
+              title: place,
+              lines: [
+                `${best.toLocaleString("en")} killed - UCDP's best estimate`,
+                `${events} event${events === 1 ? "" : "s"}, ${daysOf(from, to)}`,
+                names.slice(0, 3).join("; ") + (names.length > 3 ? `; and ${names.length - 3} more` : ""),
+                ...(CONFLICT_PRECISION[precision] ? [CONFLICT_PRECISION[precision]] : []),
+                ...(unchecked ? [`UCDP is still checking ${unchecked === events ? (events === 1 ? "it" : "them") : `${unchecked} of them`}`] : []),
+              ],
+            };
+            return (
+              <circle
+                key={`c${i}`}
+                cx={p[0]}
+                cy={p[1]}
+                r={Math.min(14, 1.6 + Math.sqrt(best) * 0.35) / z}
+                // A halo, as every mark on the map has, so a pin reads over a country shaded near its colour.
+                fill={conflictInk[kind]}
+                fillOpacity={0.85}
+                stroke={labelHalo}
+                strokeWidth={1 / z}
+                onMouseEnter={(e) => setPinTip({ x: e.clientX, y: e.clientY, ...card })}
+                onMouseLeave={off}
+              />
+            );
+          })
+        : null;
+    const order: HazardAlert[] = ["Green", "Orange", "Red"];
+    const hazards =
+      live.hazards && gdacs.events
+        ? [...gdacs.events]
+            .sort((a, b) => order.indexOf(a.alert) - order.indexOf(b.alert))
+            .map((h: Hazard) => {
+              const p = at(h.lon, h.lat);
+              if (!p) return null;
+              const card = {
+                kicker: `${HAZARD_KINDS[h.kind]} · ${h.alert} alert`,
+                ink: alertInk[h.alert],
+                title: h.name,
+                lines: [
+                  ...(h.severity ? [h.severity] : []),
+                  ...(h.country ? [h.country] : []),
+                  daysOf(h.from, h.to || h.from),
+                  ...(h.kind === "EQ" || h.kind === "TC" ? ["An automatic alert from GDACS's models, not reviewed by people"] : []),
+                  "Press it for GDACS's report",
+                ],
+              };
+              return (
+                <a key={h.id} href={h.report} target="_blank" rel="noopener noreferrer" aria-label={`${h.name}: GDACS report`}>
+                  {/* The ring's halo under it, so a green ring reads over a country shaded green. */}
+                  <circle cx={p[0]} cy={p[1]} r={(h.alert === "Red" ? 6.2 : h.alert === "Orange" ? 4.6 : 3.2) / z} fill="none" stroke={labelHalo} strokeWidth={2.6 / z} pointerEvents="none" />
+                  <circle
+                    cx={p[0]}
+                    cy={p[1]}
+                    r={(h.alert === "Red" ? 6.2 : h.alert === "Orange" ? 4.6 : 3.2) / z}
+                    fill={alertInk[h.alert]}
+                    fillOpacity={0.25}
+                    stroke={alertInk[h.alert]}
+                    strokeWidth={1.3 / z}
+                    onMouseEnter={(e) => setPinTip({ x: e.clientX, y: e.clientY, ...card })}
+                    onMouseLeave={off}
+                  />
+                </a>
+              );
+            })
+        : null;
+    return { conflicts, hazards };
+    // The inks follow the theme, so the theme stands for them here.
+  }, [worldZoom.zoom, worldPath, live.conflicts, live.hazards, conflictData.data, gdacs.events, isLight]);
 
   const capitalsD = useMemo(() => {
     if (!capitalPoints) return undefined;
@@ -3782,18 +3901,7 @@ export function WorldMapsPage() {
           <span className="text-[10px] font-mono uppercase tracking-widest text-secondary mr-1">
             Layers
           </span>
-          <button
-            onClick={() => setShowAdditionalLayers(!showAdditionalLayers)}
-            className={`px-3 py-1 rounded-full text-[11px] font-medium font-sans border transition-colors cursor-pointer shrink-0 inline-flex items-center gap-1.5 ${
-              showAdditionalLayers
-                ? "border-transparent bg-secondary/20 text-foreground"
-                : "bg-transparent border-border text-muted-foreground hover:text-foreground hover:bg-muted/60"
-            }`}
-            title="Show layers"
-          >
-            <CaretDown size={10} weight="bold" className={`transition-transform ${showAdditionalLayers ? "rotate-180" : ""}`} />
-            More
-          </button>
+          {/* The "More" button stood here; it was taken off, as asked, and the layers it held follow the others at the row's end. */}
           {/* Three groups of countries: one pressed is picked out on the map and listed under it; pressed again, every country is back. */}
           {SCOPES.filter((sc) => BAR_SCOPES.includes(sc.id)).map((sc) => (
             <button
@@ -3816,11 +3924,35 @@ export function WorldMapsPage() {
           >
             Governance
           </button>
+          {/* The conflicts and the disasters going on, as asked: each pinned on the map while its chip is pressed, in the layers' own chip. */}
+          {(
+            [
+              ["conflicts", "Conflicts", conflictInk[0], conflictData, "Pin the armed conflicts of the latest month: every event in which someone was killed, as the Uppsala Conflict Data Program recorded it"],
+              ["hazards", "Disasters", alertInk.Red, gdacs, "Pin the disasters going on now - earthquakes, cyclones, floods, volcanoes, droughts, forest fires - read live from GDACS"],
+            ] as const
+          ).map(([id, label, ink, state, title]) => (
+            <button
+              key={id}
+              type="button"
+              onClick={() => setLive((l) => ({ ...l, [id]: !l[id] }))}
+              aria-pressed={live[id]}
+              className={`px-3 py-1 rounded-full text-[11px] font-medium font-sans border transition-colors cursor-pointer shrink-0 inline-flex items-center gap-1.5 ${
+                live[id] ? "border-transparent" : "bg-transparent border-border text-muted-foreground hover:text-foreground hover:bg-muted/60"
+              }`}
+              style={live[id] ? { background: `${ink}26`, borderColor: `${ink}66`, color: ink } : undefined}
+              title={title}
+            >
+              <span aria-hidden className="shrink-0 w-2 h-2 rounded-full" style={{ background: live[id] ? ink : "currentColor", opacity: live[id] ? 1 : 0.45 }} />
+              {label}
+              {state.loading && <span className="font-mono opacity-70">…</span>}
+              {state.failed && <span className="font-mono opacity-70">unavailable</span>}
+            </button>
+          ))}
           <div className="w-px h-5 bg-border shrink-0" aria-hidden />
           {/* Three layers kept in sight: infrastructure, ports, and resources - the mineral sites. */}
           {OVERLAYS.filter((o) => BAR_LAYERS[o.id]).map((o) => layerButton({ ...o, label: BAR_LAYERS[o.id]! }, layers, set))}
-          {/* The other layers, on the same line as asked: they follow when "More" is open, and the row moves along to reach the rest. */}
-          {showAdditionalLayers && OVERLAYS.filter((o) => !BAR_LAYERS[o.id]).map((o) => layerButton(o, layers, set))}
+          {/* The other layers, on the same line: the row moves along to reach them. */}
+          {OVERLAYS.filter((o) => !BAR_LAYERS[o.id]).map((o) => layerButton(o, layers, set))}
           {/* The picked-out country's own chip stood here; it gave way to the fibre-optic cables, as asked. A place is still picked out by the search beside the row, or by pressing it on a map. */}
         </ChipRow>
         {/* Which place that is: any country, or a US state. Pressing one on a map chooses it too. It stands beside the row of chips and not in it: a row that scrolls sideways cuts off whatever drops below it, and its list of answers was cut off. */}
@@ -3845,6 +3977,27 @@ export function WorldMapsPage() {
           figures, opened where the pointer came onto it (or under its chip).
           It takes no pointer events, so it cannot get between the pointer and
           the map. */}
+      {/* The card of a conflict or a disaster pointed at on the world map, in the same glass as the picked-out place's. */}
+      {pinTip && (
+        <div
+          role="tooltip"
+          className="fixed z-50 w-72 max-w-[calc(100vw-1.5rem)] rounded-xl border modal-glass shadow-2xl p-3 pointer-events-none"
+          style={{
+            left: Math.max(12, Math.min(pinTip.x + 14, window.innerWidth - 300)),
+            top: Math.max(12, Math.min(pinTip.y + 14, window.innerHeight - 220)),
+          }}
+        >
+          <p className="text-[9px] font-mono uppercase tracking-widest" style={{ color: pinTip.ink }}>
+            {pinTip.kicker}
+          </p>
+          <p className="text-[13px] font-semibold font-sans text-foreground leading-snug mt-0.5">{pinTip.title}</p>
+          {pinTip.lines.map((l) => (
+            <p key={l} className="text-[11px] font-sans text-muted-foreground leading-snug mt-1">
+              {l}
+            </p>
+          ))}
+        </div>
+      )}
       {markTip && markInfo && !markCard && (
         <div
           role="tooltip"
@@ -4313,6 +4466,10 @@ export function WorldMapsPage() {
             )}
 
             {/* The names of the countries, their divisions and their towns, as asked: under the title of the place pointed at. */}
+            {/* The conflicts and the disasters going on, as asked: pinned over the other layers and under the names. */}
+            {livePins.conflicts && <g>{livePins.conflicts}</g>}
+            {livePins.hazards && <g>{livePins.hazards}</g>}
+
             <MapLabels labels={worldLabels} k={worldZoom.zoom} ink={labelInk} halo={labelHalo} />
 
             {/* The title under the cursor: the continent while the whole world
@@ -4402,6 +4559,65 @@ export function WorldMapsPage() {
           />
 
           {layerNotes(worldLayers)}
+
+          {live.conflicts && (
+            <div className="mt-3">
+              <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
+                {CONFLICT_KINDS.map((k, i) => (
+                  <span key={k} className="inline-flex items-center gap-1.5 text-[10px] font-sans text-foreground">
+                    <span aria-hidden className="w-2.5 h-2.5 rounded-full inline-block" style={{ background: conflictInk[i] }} />
+                    {k}
+                    <span className="font-mono text-muted-foreground">{CONFLICT_EVENTS_META.deaths[i].toLocaleString("en")} killed</span>
+                  </span>
+                ))}
+              </div>
+              <p className="text-[10px] font-sans text-muted-foreground leading-snug mt-1.5">
+                Conflicts: every event of organised violence in which someone was killed in{" "}
+                {new Date(`${CONFLICT_EVENTS_META.month}-01T00:00:00Z`).toLocaleDateString("en-GB", { month: "long", year: "numeric", timeZone: "UTC" })}, as the
+                Uppsala Conflict Data Program recorded it - {CONFLICT_EVENTS_META.events.toLocaleString("en")} events at{" "}
+                {CONFLICT_EVENTS_META.places.toLocaleString("en")} places - from its monthly Candidate Events release {CONFLICT_EVENTS_META.version}
+                {CONFLICT_EVENTS_META.released ? ` of ${dayOf(CONFLICT_EVENTS_META.released)}` : ""}. UCDP releases a month at a time, not more than
+                a month behind, so this is the latest month there is, not today. A pin is a place and its size the deaths there, UCDP's best
+                estimate. Between states is a war of two governments, as the UCDP/PRIO Armed Conflict Dataset types it; within a state, a
+                government against an armed group; between armed groups, neither side a government; against civilians, a government or a group
+                killing people who are not fighting. The events are candidates, which UCDP may still revise, add to or drop, and{" "}
+                {CONFLICT_EVENTS_META.unchecked.toLocaleString("en")} of them it is still checking. An event it can place only to a province
+                or a country is pinned at its middle, and the card says so. Point at a pin for its conflicts.
+              </p>
+              <SourceLink sources={CONFLICT_SOURCES} className="mt-1" />
+            </div>
+          )}
+
+          {live.hazards && (
+            <div className="mt-3">
+              <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
+                {(["Red", "Orange", "Green"] as const).map((a) => (
+                  <span key={a} className="inline-flex items-center gap-1.5 text-[10px] font-sans text-foreground">
+                    <span aria-hidden className="w-2.5 h-2.5 rounded-full inline-block border-[1.5px]" style={{ borderColor: alertInk[a], background: `${alertInk[a]}33` }} />
+                    {a} alert
+                    <span className="font-mono text-muted-foreground">{gdacs.events ? gdacs.events.filter((h) => h.alert === a).length : "…"}</span>
+                  </span>
+                ))}
+              </div>
+              <p className="text-[10px] font-sans text-muted-foreground leading-snug mt-1.5">
+                Disasters: every disaster GDACS - the Global Disaster Alert and Coordination System of the United Nations and the European
+                Commission - holds as going on now
+                {gdacs.events
+                  ? `: ${(Object.keys(HAZARD_KINDS) as HazardKind[])
+                      .map((k) => [k, gdacs.events!.filter((h) => h.kind === k).length] as const)
+                      .filter(([, n]) => n > 0)
+                      .map(([k, n]) => `${n} ${n === 1 ? HAZARD_KINDS[k].toLowerCase() : HAZARD_PLURAL[k]}`)
+                      .join(", ")}`
+                  : ""}
+                {gdacs.at ? `, read from it live at ${gdacs.at.toLocaleTimeString("en-GB", { hour: "2-digit", minute: "2-digit" })}` : ""} and read again every
+                ten minutes. The colour is GDACS's alert level, its estimate of how far a disaster may need help from abroad - red the most.
+                GDACS's earthquake and cyclone alerts come from its models and are not reviewed by people before they are issued, and local and
+                national authorities' warnings come before it. Press a pin for GDACS's report.
+                {gdacs.failed && " GDACS could not be reached just now; the layer tries again in ten minutes."}
+              </p>
+              <SourceLink sources={GDACS_SOURCES} className="mt-1" />
+            </div>
+          )}
         </div>
 
         {/* ── Group figures, while a group scope is selected ── */}
