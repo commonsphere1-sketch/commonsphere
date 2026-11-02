@@ -36,6 +36,7 @@ import { Link } from "react-router-dom";
 import { MapLabels, placeLabels, type LabelCandidate } from "../components/MapLabels";
 import { countriesData, type Country } from "../data/countriesData";
 import { flagColor } from "../lib/flagColor";
+import { REGIMES, REGIME_SOURCE, REGIME_TYPES } from "../data/regimes";
 import { COUNTRY_LIVING, COUNTRY_LIVING_LEAST, COUNTRY_LIVING_PARTS, LIVING_DARK, LIVING_LIGHT, STATE_LIVING, STATE_LIVING_PARTS, UNSCORED, partsSaid } from "../lib/livingScore";
 import { STATE_HEALTH_SAFETY_SOURCES } from "../data/stateHealthSafety";
 import { useAdmin2 } from "../lib/admin2";
@@ -1611,6 +1612,8 @@ export function WorldMapsPage() {
   const isLight = theme === "light";
 
   const [countryMetric, setCountryMetric] = useState("hdi");
+  /* The Governance layer, as asked: pressed, the world map draws each country in its regime type (V-Dem's Regimes of the World). */
+  const [governance, setGovernance] = useState(false);
   const [hovered, setHovered] = useState<{
     name: string;
     value: string;
@@ -1740,6 +1743,11 @@ export function WorldMapsPage() {
   const neonOf = (code: string | null | undefined) => (code && flagColor(code)) || NEON_ACCENT;
   /* The six colours of living conditions, for the card's theme. */
   const livingRamp = isLight ? LIVING_LIGHT : LIVING_DARK;
+  /* The four regime types in the same colours, closed autocracy red to liberal democracy teal; null where V-Dem gives none. */
+  const regimeInk = (code: string | null | undefined) => {
+    const r = code ? REGIMES[code] : undefined;
+    return r ? livingRamp[[0, 2, 4, 5][r[0]]] : null;
+  };
   /* The choropleth is deliberately greyscale, which leaves hue free to mean
      "this is not the shaded figure": water blue, port amber, mineral rust.
 
@@ -3066,6 +3074,7 @@ export function WorldMapsPage() {
   const countryByCode = useMemo(() => new Map(countriesData.map((c) => [c.code, c])), []);
   const worldInk = (code: string) => {
     const c = countryByCode.get(code);
+    if (governance) return regimeInk(code) ?? UNSCORED;
     const v = c ? activeCountry.get(c) : null;
     return (neonWorld ? (v !== null ? neonOf(code) : null) : colourFor(v, countryShading.breaks, worldRamp)) ?? UNSCORED;
   };
@@ -3797,6 +3806,16 @@ export function WorldMapsPage() {
               {sc.chip}
             </button>
           ))}
+          {/* The Governance layer, as asked: every country in its regime type, democracies to autocracies. */}
+          <button
+            type="button"
+            onClick={() => setGovernance((v) => !v)}
+            aria-pressed={governance}
+            className={`px-3 py-1 rounded-full text-[11px] font-medium font-sans border transition-colors cursor-pointer shrink-0 ${governance ? "chip-selected" : "bg-transparent border-border text-muted-foreground hover:text-foreground hover:bg-muted/60"}`}
+            title="Draw each country in its regime type: closed or electoral autocracy, electoral or liberal democracy (V-Dem)"
+          >
+            Governance
+          </button>
           <div className="w-px h-5 bg-border shrink-0" aria-hidden />
           {/* Three layers kept in sight: infrastructure, ports, and resources - the mineral sites. */}
           {OVERLAYS.filter((o) => BAR_LAYERS[o.id]).map((o) => layerButton({ ...o, label: BAR_LAYERS[o.id]! }, layers, set))}
@@ -4030,9 +4049,11 @@ export function WorldMapsPage() {
               const value = country && !outside ? activeCountry.get(country) : null;
               // Its own flag's colour, and how solid it is drawn: the step its figure falls in, or none where it has no figure.
               const hue = neonOf(country?.code);
-              const solid = neonWorld && !outside ? colourFor(value, countryShading.breaks, NEON_STEPS) : null;
+              const solid = neonWorld && !governance && !outside ? colourFor(value, countryShading.breaks, NEON_STEPS) : null;
               // What it is drawn in: the colour of its step on the indicator's own scale - living conditions' six - or, for an indicator without one, its flag's. None where it has no figure.
-              const ink = outside ? null : neonWorld ? (solid !== null ? hue : null) : colourFor(value, countryShading.breaks, worldRamp);
+              // With Governance pressed, the colour of its regime type instead.
+              const regime = country ? REGIMES[country.code] : undefined;
+              const ink = outside ? null : governance ? regimeInk(country?.code) : neonWorld ? (solid !== null ? hue : null) : colourFor(value, countryShading.breaks, worldRamp);
               return (
                 <path
                   key={i}
@@ -4053,9 +4074,13 @@ export function WorldMapsPage() {
                       name: country?.name ?? name,
                       value: outside
                         ? `not in ${activeScope.title}`
-                        : value !== null
-                          ? activeCountry.format(value)
-                          : "no data",
+                        : governance
+                          ? regime
+                            ? `${REGIME_TYPES[regime[0]].name} · ${regime[1]} (V-Dem)`
+                            : "no V-Dem figure"
+                          : value !== null
+                            ? activeCountry.format(value)
+                            : "no data",
                       cx,
                       cy,
                       continent: country?.continent,
@@ -4324,7 +4349,20 @@ export function WorldMapsPage() {
           </svg>
           </div>
 
-          {activeCountry.id === "living" && (
+          {governance && (
+            <>
+              <p className="text-[10px] font-sans text-muted-foreground leading-snug mt-3">
+                Each country's political regime in {Math.max(...Object.values(REGIMES).map((x) => x[1]))}, by V-Dem's Regimes of the World. In a closed autocracy there
+                are no multi-party elections for the chief executive or the legislature, so a one-party state, an absolute monarchy or a military junta that holds none
+                is one; in an electoral autocracy there are multi-party elections, but without the freedoms of expression and association that would make them free and
+                fair; in an electoral democracy they are free and fair; a liberal democracy adds individual rights, equality before the law, and courts and a legislature
+                that constrain the executive. V-Dem has no class called totalitarian or dictatorship, and none is given here. Its figures are drawn from experts'
+                assessments; a country V-Dem does not cover is hatched. Point at a country for its type.
+              </p>
+              <SourceLink sources={REGIME_SOURCE} className="mt-1.5" />
+            </>
+          )}
+          {!governance && activeCountry.id === "living" && (
             <p className="text-[10px] font-sans text-muted-foreground leading-snug mt-3">
               Living conditions is worked out here from the figures the site holds; no body publishes it, and it is not an index of anyone's. Each country is stood
               among all the others on each measure - the share of them it does better than - and the standings are averaged within seven parts, then across them, to a
@@ -4333,7 +4371,7 @@ export function WorldMapsPage() {
               each the latest held and not all of one year. The lines inside a country are its states or provinces, and the fainter ones its counties or districts.
             </p>
           )}
-          {neonWorld && (
+          {neonWorld && !governance && (
             <p className="text-[10px] font-sans text-muted-foreground leading-snug mt-3">
               Each country is drawn in its own flag's colour, which says nothing of its figure. How solid the colour is does: the six steps of the scale below, the
               faintest the lowest. The lines inside a country are its states, provinces or regions.
@@ -4341,6 +4379,16 @@ export function WorldMapsPage() {
           )}
           <Legend
             ramp={neonWorld ? NEON_STEPS.map((o) => tint(NEON_ACCENT, o)) : worldRamp}
+            kinds={
+              governance
+                ? REGIME_TYPES.map((r, i) => ({
+                    colour: livingRamp[[0, 2, 4, 5][i]],
+                    label: r.name,
+                    count: Object.values(REGIMES).filter((x) => x[0] === i).length,
+                    said: r.said,
+                  }))
+                : undefined
+            }
             noData={noData}
             noDataHatch={noDataHatch}
             lowLabel={activeCountry.ramp?.low ?? "Lower"}
@@ -5454,9 +5502,12 @@ function Legend({
   lowLabel,
   highLabel,
   extra,
+  kinds,
   hovered,
 }: {
   ramp: string[];
+  /** Named kinds in place of the scale - a dot for each, with how many countries are of it - as the Governance layer's regime types. */
+  kinds?: { colour: string; label: string; count: number; said: string }[];
   noData: string;
   /** Hatch line colour, so the swatch matches the map's "no figure" fill. */
   noDataHatch: string;
@@ -5468,15 +5519,27 @@ function Legend({
 }) {
   return (
     <div className="flex items-center justify-between gap-4 mt-3 pt-3 border-t border-border/40 flex-wrap">
-      <div className="flex items-center gap-2">
-        <span className="text-[10px] font-sans text-muted-foreground">{lowLabel}</span>
-        <div className="flex rounded-full overflow-hidden">
-          {ramp.map((c) => (
-            <span key={c} className="w-7 h-2.5" style={{ background: c }} />
-          ))}
-        </div>
-        <span className="text-[10px] font-sans text-muted-foreground">{highLabel}</span>
-        <span className="flex items-center gap-1.5 ml-2">
+      <div className="flex items-center gap-2 flex-wrap">
+        {kinds ? (
+          kinds.map((k) => (
+            <span key={k.label} className="flex items-center gap-1.5 mr-1" title={k.said}>
+              <span className="w-2.5 h-2.5 rounded-full inline-block" style={{ background: k.colour }} />
+              <span className="text-[10px] font-sans text-foreground">{k.label}</span>
+              <span className="text-[10px] font-mono text-muted-foreground">{k.count}</span>
+            </span>
+          ))
+        ) : (
+          <>
+            <span className="text-[10px] font-sans text-muted-foreground">{lowLabel}</span>
+            <div className="flex rounded-full overflow-hidden">
+              {ramp.map((c) => (
+                <span key={c} className="w-7 h-2.5" style={{ background: c }} />
+              ))}
+            </div>
+            <span className="text-[10px] font-sans text-muted-foreground">{highLabel}</span>
+          </>
+        )}
+        <span className={`flex items-center gap-1.5 ${kinds ? "" : "ml-2"}`}>
           <span
             className="w-2.5 h-2.5 rounded-full inline-block border border-border"
             style={{
