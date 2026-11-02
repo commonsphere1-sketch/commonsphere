@@ -55,6 +55,9 @@ import { SourceLink } from "./SourceLink";
 import CountryDashboard, { headlineOf } from "./CountryDashboard";
 import PlaceFigures, { type PressedPlace } from "./PlaceFigures";
 import { NewsHistory } from "./NewsHistory";
+import { OccurrencePanel, type Occurrence } from "./OccurrencePanel";
+import { useGdacsLive, type HazardAlert } from "../lib/gdacsLive";
+import { alertInks, conflictInks, useConflictEvents } from "../lib/conflictEvents";
 import { Link } from "react-router-dom";
 import { usStatesData } from "../data/statesData";
 import { citiesData } from "../data/citiesData";
@@ -158,6 +161,12 @@ const SHAPES = WORLD.features.flatMap((f) => {
   const c = countryForFeature(f.properties.name);
   return [{ name: c?.name ?? f.properties.name, code: c?.code ?? null, d, b: PATH.bounds(f as never), a: anchorOf(PATH, f) }];
 });
+/** The country of the site's a point lies in, by the outlines the map draws; none at sea or on a shape too small to draw. */
+const countryAt = (lon: number, lat: number) => {
+  const f = WORLD.features.find((x) => geoContains(x as never, [lon, lat]));
+  const c = f ? countryForFeature(f.properties.name) : null;
+  return c ? { code: c.code, name: c.name } : null;
+};
 /** How many countries the map draws: small islands are too small to draw at this scale, and are not counted. */
 const DRAWN = new Set(SHAPES.flatMap((s) => (s.code ? [s.code] : []))).size;
 /** As close as the map is drawn: twelve times the whole. */
@@ -528,6 +537,13 @@ export default function WorldviewMap() {
   const [region, setRegion] = useState<string | null>(null);
   const [hoverRegion, setHoverRegion] = useState<string | null>(null);
   const [pressed, setPressed] = useState<Pressed | null>(null);
+  /* The conflicts and the disasters going on, as asked: each on the map while its chip is pressed, and the one pressed told under it. */
+  const [live, setLive] = useState({ conflicts: false, hazards: false });
+  const [occurrence, setOccurrence] = useState<Occurrence | null>(null);
+  const [hoverPin, setHoverPin] = useState<string | null>(null);
+  const conflictData = useConflictEvents(live.conflicts);
+  const gdacs = useGdacsLive(live.hazards);
+  const panelRef = useRef<HTMLDivElement | null>(null);
   useEffect(() => {
     setRegion(null);
     setPressed(null);
@@ -794,6 +810,93 @@ export default function WorldviewMap() {
     const k = Math.min(MAX_K, 0.8 * Math.min(W / Math.max(1, x1 - x0), H / Math.max(1, y1 - y0)));
     glideTo({ k: Math.max(1.4, k), x: (x0 + x1) / 2, y: (y0 + y1) / 2 });
   };
+  /* A pin pressed, on the map or in the list under it: told under the map, and the map drawn to it when pressed in the list.
+     Pressed on the map with the account out of sight below, the page moves just far enough to show the account's head. */
+  const choose = (o: Occurrence, lon?: number, lat?: number) => {
+    setOccurrence(o);
+    if (lon !== undefined && lat !== undefined) {
+      const p = PROJECTION([lon, lat]);
+      if (p) glideTo({ k: Math.max(viewRef.current.k, 3), x: p[0], y: p[1] });
+      return;
+    }
+    const top = panelRef.current?.getBoundingClientRect().top;
+    if (top !== undefined && top > window.innerHeight - 160) window.scrollBy({ top: top - (window.innerHeight - 280), behavior: "smooth" });
+  };
+  /* The pins, made once for a scale so the map's redrawing on hover passes over them; the biggest first, so none hides a smaller. */
+  const pins = useMemo(() => {
+    const z = view.k;
+    const halo = t.isLight ? "#ffffff" : "#000000";
+    const cInk = conflictInks(t.isLight);
+    const aInk = alertInks(t.isLight);
+    const conflicts =
+      live.conflicts && conflictData.data
+        ? conflictData.data.rows.map((r, i) => {
+            const p = PROJECTION([r[0], r[1]]);
+            if (!p) return null;
+            return (
+              <circle
+                key={`c${i}`}
+                cx={p[0]}
+                cy={p[1]}
+                r={Math.min(14, 1.6 + Math.sqrt(r[4]) * 0.35) / z}
+                fill={cInk[r[2]]}
+                fillOpacity={0.85}
+                stroke={halo}
+                strokeWidth={1 / z}
+                className="cursor-pointer"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  if (!dragged.current) choose({ kind: "conflict", i });
+                }}
+                onMouseEnter={() => setHoverPin(`${r[5]}: ${r[4].toLocaleString("en")} killed`)}
+                onMouseLeave={() => setHoverPin(null)}
+              />
+            );
+          })
+        : null;
+    const order: HazardAlert[] = ["Green", "Orange", "Red"];
+    const hazards =
+      live.hazards && gdacs.events
+        ? [...gdacs.events]
+            .sort((a, b) => order.indexOf(a.alert) - order.indexOf(b.alert))
+            .map((h) => {
+              const p = PROJECTION([h.lon, h.lat]);
+              if (!p) return null;
+              const r = (h.alert === "Red" ? 6.2 : h.alert === "Orange" ? 4.6 : 3.2) / z;
+              return (
+                <g
+                  key={h.id}
+                  className="cursor-pointer"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    if (!dragged.current) choose({ kind: "hazard", id: h.id });
+                  }}
+                  onMouseEnter={() => setHoverPin(`${h.name}: ${h.alert} alert`)}
+                  onMouseLeave={() => setHoverPin(null)}
+                >
+                  <circle cx={p[0]} cy={p[1]} r={r} fill="none" stroke={halo} strokeWidth={2.6 / z} />
+                  <circle cx={p[0]} cy={p[1]} r={r} fill={aInk[h.alert]} fillOpacity={0.25} stroke={aInk[h.alert]} strokeWidth={1.3 / z} />
+                </g>
+              );
+            })
+        : null;
+    return { conflicts, hazards };
+    // The inks follow the theme, so the theme stands for them here.
+  }, [view.k, live.conflicts, live.hazards, conflictData.data, gdacs.events, t.isLight]);
+  /* The one pressed, ringed in the map's ink over the pins. */
+  const chosenAt = (() => {
+    if (occurrence?.kind === "conflict" && live.conflicts && conflictData.data) {
+      const r = conflictData.data.rows[occurrence.i];
+      const p = r && PROJECTION([r[0], r[1]]);
+      return p ? { p, r: Math.min(14, 1.6 + Math.sqrt(r[4]) * 0.35) } : null;
+    }
+    if (occurrence?.kind === "hazard" && live.hazards && gdacs.events) {
+      const h = gdacs.events.find((x) => x.id === occurrence.id);
+      const p = h && PROJECTION([h.lon, h.lat]);
+      return p ? { p, r: h.alert === "Red" ? 6.2 : h.alert === "Orange" ? 4.6 : 3.2 } : null;
+    }
+    return null;
+  })();
   const shown = hover ? SHAPES.find((s) => s.code === hover) : null;
   const pickedName = SHAPES.find((s) => s.code === picked)?.name ?? picked;
   return (
@@ -803,6 +906,35 @@ export default function WorldviewMap() {
         <p className="text-[10px] font-mono uppercase tracking-widest" style={{ color: t.mutedText }}>
           The world, country by country
         </p>
+        {/* The conflicts and the disasters going on, as asked: each switched on and off here, in the layers' own chip. */}
+        <div className="ml-auto flex flex-wrap items-center gap-1.5">
+          {(
+            [
+              ["conflicts", "Conflicts", conflictInks(t.isLight)[0], conflictData, "Pin the armed conflicts of the latest month: every event in which someone was killed, as the Uppsala Conflict Data Program recorded it"],
+              ["hazards", "Disasters", alertInks(t.isLight).Red, gdacs, "Pin the disasters going on now - earthquakes, cyclones, floods, volcanoes, droughts, forest fires - read live from GDACS"],
+            ] as const
+          ).map(([id, label, ink, state, title]) => (
+            <button
+              key={id}
+              type="button"
+              onClick={() => {
+                setLive((l) => ({ ...l, [id]: !l[id] }));
+                setOccurrence((o) => (o && (o.kind === "conflict" ? "conflicts" : "hazards") === id ? null : o));
+              }}
+              aria-pressed={live[id]}
+              className={`px-3 py-1 rounded-full text-[11px] font-medium font-sans border transition-colors cursor-pointer shrink-0 inline-flex items-center gap-1.5 ${
+                live[id] ? "border-transparent" : "bg-transparent border-border text-muted-foreground hover:text-foreground hover:bg-muted/60"
+              }`}
+              style={live[id] ? { background: `${ink}26`, borderColor: `${ink}66`, color: ink } : undefined}
+              title={title}
+            >
+              <span aria-hidden className="shrink-0 w-2 h-2 rounded-full" style={{ background: live[id] ? ink : "currentColor", opacity: live[id] ? 1 : 0.45 }} />
+              {label}
+              {state.loading && <span className="font-mono opacity-70">…</span>}
+              {state.failed && <span className="font-mono opacity-70">unavailable</span>}
+            </button>
+          ))}
+        </div>
       </div>
       <div className="grid grid-cols-1 lg:grid-cols-[minmax(0,1fr)_15rem]">
         <div className="relative p-3 min-w-0">
@@ -944,6 +1076,12 @@ export default function WorldviewMap() {
                 );
               })}
             {/* The names of the places on it, as asked. */}
+            {/* The conflicts and the disasters going on, as asked: over the countries and under the names. */}
+            {pins.conflicts && <g>{pins.conflicts}</g>}
+            {pins.hazards && <g>{pins.hazards}</g>}
+            {chosenAt && (
+              <circle cx={chosenAt.p[0]} cy={chosenAt.p[1]} r={(chosenAt.r + 3) / view.k} fill="none" stroke={t.headText} strokeWidth={1.6 / view.k} pointerEvents="none" />
+            )}
             <MapLabels labels={labels} k={view.k} />
           </svg>
           {/* Closer and further, and the whole map again: the outline map's round buttons, at the map's corner. */}
@@ -962,7 +1100,12 @@ export default function WorldviewMap() {
           </div>
           {/* What the pointer is on, in the map's corner: a pill of the same make as the zoom buttons, as asked. */}
           <div className="absolute left-5 bottom-5 max-w-[calc(100%-2.5rem)] h-7 px-3 rounded-full border border-border bg-background/70 flex items-center gap-1.5 text-[10px] font-mono text-muted-foreground truncate">
-            {hoverRegion && view.k >= REGIONS_FROM ? (
+            {hoverPin ? (
+              <>
+                <span className="font-sans font-semibold text-foreground truncate">{hoverPin}</span>
+                <span>press for its account</span>
+              </>
+            ) : hoverRegion && view.k >= REGIONS_FROM ? (
               <>
                 <span className="font-sans font-semibold text-foreground truncate">{hoverRegion.startsWith("city:") ? hoverRegion.slice(5) : countiesShown ? (counties!.list.find((c) => c.id === hoverRegion)?.name ?? hoverRegion) : hoverRegion}</span>
                 <span>press for its record</span>
@@ -987,6 +1130,26 @@ export default function WorldviewMap() {
         <SourceLink sources={[{ label: "Natural Earth, via world-atlas — country outlines (public domain)", url: "https://github.com/topojson/world-atlas" }, { label: "geoBoundaries (gbOpen, each country's under its publisher's open licence) and Natural Earth (public domain) — state, province, county and district borders", url: "https://www.geoboundaries.org/" }, { label: "GeoNames — cities of 100,000 or more (CC BY 4.0)", url: "https://www.geonames.org/" }]} />
       </div>
     </section>
+    {/* The account of the conflict or disaster pressed, as asked: under the map, while either is on it. */}
+    {(live.conflicts || live.hazards) && (
+      <div ref={panelRef} className="scroll-mt-36">
+        <OccurrencePanel
+          t={t}
+          show={live}
+          conflicts={live.conflicts ? conflictData.data : null}
+          hazards={live.hazards ? gdacs.events : null}
+          hazardsAt={gdacs.at}
+          hazardsFailed={gdacs.failed}
+          occurrence={occurrence}
+          onSelect={(o, lon, lat) => choose(o, lon, lat)}
+          countryAt={countryAt}
+          onPickCountry={(code) => {
+            pick(code);
+            document.getElementById("world-map")?.scrollIntoView({ block: "start", behavior: "smooth" });
+          }}
+        />
+      </div>
+    )}
     {/* The country picked: its own figures, filled in under the map. */}
     {/* The state, county or city pressed on the map: its own figures, above its country's, as asked. */}
     {(() => {

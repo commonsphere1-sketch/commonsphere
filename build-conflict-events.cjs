@@ -18,7 +18,8 @@
  *     3 against civilians         one-sided: a government or an armed group killing civilians
  *   A conflict not yet in the Armed Conflict Dataset (it began this year) is between states if both its sides are governments.
  *
- * Events at the same coordinates are one pin: the deaths summed - UCDP's best estimates; its low and high ones are left out, as
+ * Events at the same coordinates are one pin, each pair of sides (a dyad) there with its events and deaths, split as UCDP
+ * splits them - side A, side B, civilians, not known - where the four add up to its best estimate. The deaths summed - UCDP's best estimates; its low and high ones are left out, as
  * in some candidate events they do not bracket the best - and each conflict named. Only UCDP's own coded fields are kept -
  * not the news articles and headlines it cites.
  *
@@ -127,11 +128,13 @@ const KIND_OF = (r) => {
   return /^Government of /.test(r[col.side_a]) && /^Government of /.test(r[col.side_b]) ? 0 : 1;
 };
 const FORMER = / \((?:North Yemen|Burma|Soviet Union|Zaire|Kampuchea|Rhodesia|Yugoslavia|Malagasy|Upper Volta|Dahomey|Ceylon)\)/g;
-const conflicts = []; // [name, kind]
-const conflictAt = new Map();
+/* Each pair of sides UCDP codes - a dyad - with the conflict it belongs to: [conflict, side A, side B, kind]. */
+const dyads = [];
+const dyadAt = new Map();
 const places = new Map();
 let events = 0;
 let unchecked = 0;
+let unsplit = 0;
 const deaths = [0, 0, 0, 0];
 const months = new Map();
 for (const r of rows) {
@@ -141,13 +144,19 @@ for (const r of rows) {
   const kind = KIND_OF(r);
   // UCDP names a country with its former name after it - "Yemen (North Yemen)", "Myanmar (Burma)"; the page gives today's alone.
   const name = (r[col.conflict_name] || r[col.dyad_name] || `${r[col.side_a]} - ${r[col.side_b]}`).replace(FORMER, "");
+  const sideA = r[col.side_a].replace(FORMER, "");
+  const sideB = r[col.side_b].replace(FORMER, "");
   const country = r[col.country].replace(FORMER, "");
-  const ckey = `${kind}|${name}`;
-  if (!conflictAt.has(ckey)) {
-    conflictAt.set(ckey, conflicts.length);
-    conflicts.push([name, kind]);
+  const dkey = `${kind}|${name}|${sideA}|${sideB}`;
+  if (!dyadAt.has(dkey)) {
+    dyadAt.set(dkey, dyads.length);
+    dyads.push([name, sideA, sideB, kind]);
   }
   const best = +r[col.best] || 0;
+  // Who the dead were, as UCDP splits its best estimate: side A, side B, civilians, not known. Kept only where the four add up to it.
+  const split = ["deaths_a", "deaths_b", "deaths_civilians", "deaths_unknown"].map((c) => +r[col[c]] || 0);
+  const splits = split.reduce((a, b) => a + b, 0) === best;
+  if (!splits) unsplit++;
   const from = r[col.date_start].slice(0, 10);
   const to = (r[col.date_end] || r[col.date_start]).slice(0, 10);
   months.set(from.slice(0, 7), (months.get(from.slice(0, 7)) ?? 0) + 1);
@@ -156,12 +165,18 @@ for (const r of rows) {
   const p =
     places.get(key) ??
     places
-      .set(key, { lon, lat, place: [r[col.adm_1], country].filter(Boolean).join(", "), events: 0, best: 0, byKind: [0, 0, 0, 0], conflicts: new Set(), from, to, unchecked: 0, prec: 0 })
+      .set(key, { lon, lat, place: [r[col.adm_1], country].filter(Boolean).join(", "), events: 0, best: 0, byKind: [0, 0, 0, 0], parts: new Map(), from, to, unchecked: 0, prec: 0 })
       .get(key);
   p.events++;
   p.best += best;
   p.byKind[kind] += best || 0.001;
-  p.conflicts.add(conflictAt.get(ckey));
+  // Each dyad's share of the place: its events, its deaths, and their split (null once an event of it does not split).
+  const d = dyadAt.get(dkey);
+  const part = p.parts.get(d) ?? p.parts.set(d, { events: 0, best: 0, split: [0, 0, 0, 0] }).get(d);
+  part.events++;
+  part.best += best;
+  if (part.split && splits) split.forEach((v, i) => (part.split[i] += v));
+  else part.split = null;
   if (from < p.from) p.from = from;
   if (to > p.to) p.to = to;
   if (check) p.unchecked++;
@@ -181,14 +196,23 @@ const out = [...places.values()]
     p.events,
     p.best,
     p.place,
-    [...p.conflicts],
+    [...p.parts].sort((a, b) => b[1].best - a[1].best).map(([d, x]) => [d, x.events, x.best, ...(x.split ?? [])]),
     p.from,
     p.to,
     p.unchecked,
     p.prec,
   ]);
 fs.mkdirSync(path.dirname(OUT), { recursive: true });
-fs.writeFileSync(OUT, JSON.stringify({ version, month, fields: ["lon", "lat", "kind", "events", "best", "place", "conflicts", "from", "to", "unchecked", "precision"], conflicts, rows: out }));
+fs.writeFileSync(
+  OUT,
+  JSON.stringify({
+    version,
+    month,
+    fields: ["lon", "lat", "kind", "events", "best", "place", "parts [dyad, events, best, side A, side B, civilians, not known]", "from", "to", "unchecked", "precision"],
+    dyads,
+    rows: out,
+  }),
+);
 
 const KINDS = ["between states", "within a state", "between armed groups", "against civilians"];
 fs.writeFileSync(
@@ -211,4 +235,5 @@ export const CONFLICT_SOURCES = [
 );
 console.log(`wrote ${path.relative(__dirname, OUT)}: ${events} events at ${out.length} places in ${month} (${[...months].map(([m, n]) => `${m} ${n}`).join(", ")}); deaths ${deaths.join(" / ")}; ${unchecked} still being checked`);
 console.log(`  biggest: ${out.slice(0, 6).map((r) => `${r[5]} ${r[4]}`).join("; ")}`);
-console.log(`  between states: ${conflicts.filter((c) => c[1] === 0).map((c) => c[0]).join("; ")}`);
+console.log(`  between states: ${[...new Set(dyads.filter((c) => c[3] === 0).map((c) => c[0]))].join("; ")}`);
+console.log(`  ${unsplit} events whose deaths UCDP's split does not add up to, shown unsplit`);

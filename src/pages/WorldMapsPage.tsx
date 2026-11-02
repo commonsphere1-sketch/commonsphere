@@ -39,6 +39,7 @@ import { flagColor } from "../lib/flagColor";
 import { REGIMES, REGIME_SOURCE, REGIME_TYPES } from "../data/regimes";
 import { CONFLICT_EVENTS_META, CONFLICT_KINDS, CONFLICT_SOURCES } from "../data/conflictEventsMeta";
 import { GDACS_SOURCES, HAZARD_KINDS, HAZARD_PLURAL, useGdacsLive, type Hazard, type HazardAlert, type HazardKind } from "../lib/gdacsLive";
+import { CONFLICT_PRECISION, alertInks, conflictInks, dayOf, daysOf, monthOf, sidesOf, useConflictEvents } from "../lib/conflictEvents";
 import { COUNTRY_LIVING, COUNTRY_LIVING_LEAST, COUNTRY_LIVING_PARTS, LIVING_DARK, LIVING_LIGHT, STATE_LIVING, STATE_LIVING_PARTS, UNSCORED, partsSaid } from "../lib/livingScore";
 import { STATE_HEALTH_SAFETY_SOURCES } from "../data/stateHealthSafety";
 import { useAdmin2 } from "../lib/admin2";
@@ -147,25 +148,6 @@ const CLIMATE_COLORS: Record<ClimateZone, string> = {
    few kilobytes, so it rides in the bundle rather than costing a request. */
 type OverlayId = keyof typeof OVERLAY_URL | "pollution" | "climate";
 
-/** The Conflicts layer as build-conflict-events.cjs writes it: UCDP's conflicts by name and kind, and a row for each place -
-    where, its kind (the one with the most deaths there), its events, their deaths (UCDP's best estimates), its conflicts,
-    the first and last day, how many are still being checked, and how closely UCDP could place them. */
-type ConflictLayer = {
-  version: string;
-  month: string;
-  conflicts: [name: string, kind: number][];
-  rows: [lon: number, lat: number, kind: number, events: number, best: number, place: string, conflicts: number[], from: string, to: string, unchecked: number, precision: number][];
-};
-/* What a pin's place means where UCDP could not place an event exactly (its "where_prec", 3 to 7). */
-const CONFLICT_PRECISION: Record<number, string> = {
-  3: "Pinned at its district: UCDP knows the district, not the spot",
-  4: "Pinned at its province: UCDP knows the province, not the spot",
-  5: "Pinned roughly: UCDP knows only a wider area, a road or a border",
-  6: "Pinned at the country: UCDP knows only the country",
-  7: "In international waters or airspace",
-};
-const dayOf = (d: string) => new Date(`${d.slice(0, 10)}T00:00:00Z`).toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric", timeZone: "UTC" });
-const daysOf = (from: string, to: string) => (from.slice(0, 10) === to.slice(0, 10) ? dayOf(from) : `${dayOf(from)} to ${dayOf(to)}`);
 /** The card of a pin pointed at: what it is, its name, and its figures. */
 type PinTip = { x: number; y: number; kicker: string; ink: string; title: string; lines: string[] };
 
@@ -1804,10 +1786,8 @@ export function WorldMapsPage() {
   /* The place picked out: an orange none of the layers uses, dark enough to read as the chip's text on the light card. */
   const markInk = isLight ? "#c2410c" : "#ff922b";
   /* The Conflicts layer's four kinds, and the Disasters layer's three alert levels, drawn hollow so the two never read as one. */
-  const conflictInk = isLight ? ["#991b1b", "#db2777", "#b45309", "#6d28d9"] : ["#ef4444", "#f472b6", "#fbbf24", "#a78bfa"];
-  const alertInk: Record<HazardAlert, string> = isLight
-    ? { Green: "#15803d", Orange: "#ea580c", Red: "#dc2626" }
-    : { Green: "#4ade80", Orange: "#fb923c", Red: "#f87171" };
+  const conflictInk = conflictInks(isLight);
+  const alertInk = alertInks(isLight);
   const cardBg = isLight ? "#ffffff" : "rgba(255,255,255,0.04)";
   const cardBorder = isLight ? "1px solid rgba(0,0,0,0.09)" : "1px solid rgba(255,255,255,0.14)";
   const cardShadow = isLight
@@ -2165,7 +2145,7 @@ export function WorldMapsPage() {
   );
   const cables = useOverlay<Topology>(OVERLAY_URL.cables, wanted("cables"));
   /* The Conflicts layer is read when it is first pressed; the Disasters layer from GDACS while it is pressed, every ten minutes. */
-  const conflictData = useOverlay<ConflictLayer>("/geo/conflicts.json", live.conflicts);
+  const conflictData = useConflictEvents(live.conflicts);
   const gdacs = useGdacsLive(live.hazards);
   const pipelines = useOverlay<Topology>(OVERLAY_URL.pipelines, wanted("pipelines"));
   const overlayState: Record<OverlayId, { loading: boolean; failed: boolean }> = {
@@ -2630,10 +2610,10 @@ export function WorldMapsPage() {
     const conflicts =
       live.conflicts && conflictData.data
         ? conflictData.data.rows.map((r, i) => {
-            const [lon, lat, kind, events, best, place, cs, from, to, unchecked, precision] = r;
+            const [lon, lat, kind, events, best, place, parts, from, to, unchecked, precision] = r;
             const p = at(lon, lat);
             if (!p) return null;
-            const names = cs.map((c) => conflictData.data!.conflicts[c][0]);
+            const names = parts.map((x) => sidesOf(conflictData.data!.dyads[x[0]]));
             const card = {
               kicker: `Armed conflict · ${CONFLICT_KINDS[kind]}`,
               ink: conflictInk[kind],
@@ -4573,7 +4553,7 @@ export function WorldMapsPage() {
               </div>
               <p className="text-[10px] font-sans text-muted-foreground leading-snug mt-1.5">
                 Conflicts: every event of organised violence in which someone was killed in{" "}
-                {new Date(`${CONFLICT_EVENTS_META.month}-01T00:00:00Z`).toLocaleDateString("en-GB", { month: "long", year: "numeric", timeZone: "UTC" })}, as the
+                {monthOf(CONFLICT_EVENTS_META.month)}, as the
                 Uppsala Conflict Data Program recorded it - {CONFLICT_EVENTS_META.events.toLocaleString("en")} events at{" "}
                 {CONFLICT_EVENTS_META.places.toLocaleString("en")} places - from its monthly Candidate Events release {CONFLICT_EVENTS_META.version}
                 {CONFLICT_EVENTS_META.released ? ` of ${dayOf(CONFLICT_EVENTS_META.released)}` : ""}. UCDP releases a month at a time, not more than
