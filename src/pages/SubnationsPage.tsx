@@ -75,6 +75,8 @@ import { lazy, Suspense, useCallback, useEffect, useMemo, useState, type ReactNo
 
 /** The law a place is under, its country's: fetched when a window's Laws tab is opened. */
 const PlaceLaws = lazy(() => import("../components/PlaceLaws"));
+/** What each job pays in the area BLS counts a county in. */
+const CountyPay = lazy(() => import("../components/PayByJob").then((m) => ({ default: m.CountyPay })));
 
 import { useLocation, useNavigate } from "react-router-dom";
 
@@ -1112,6 +1114,10 @@ function CountyWindow({ county, data, onBack, onClose }: { county: UsCounty; dat
             <Section key={p.title} part={p} />
           ))}
           <PostalCodes entry={postal?.counties?.[fips]} cc="US" name={name} how="county" />
+          {/* What each job pays in the area BLS counts the county in: the area's figures, at the foot with the state's and the country's. */}
+          <Suspense fallback={null}>
+            <CountyPay fips={fips} />
+          </Suspense>
           {state && <StateTaxPanel stateId={state.id} name={state.name} place={name} />}
           <TaxPanel code="US" country="United States" place={name} />
           {state && <StatePeoplePanel stateId={state.id} name={state.name} place={name} />}

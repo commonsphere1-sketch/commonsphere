@@ -30,6 +30,14 @@ export const DATA_LOG: DataLogEntry[] = [
     "files": 1
   },
   {
+    "what": "What each of 830 jobs pays, and how many hold it, in the nation, each state and each metro area (with static/pay/)",
+    "from": "US Bureau of Labor Statistics (Occupational Employment and Wage Statistics, May 2025)",
+    "page": "/dashboard/states",
+    "where": "US States · Jobs & pay",
+    "read": "2026-11-03",
+    "files": 1
+  },
+  {
     "what": "Each country's political regime: closed or electoral autocracy, electoral or liberal democracy",
     "from": "V-Dem (Regimes of the World), via Our World in Data",
     "page": "/dashboard/maps",
@@ -592,4 +600,4 @@ export const DATA_LOG: DataLogEntry[] = [
 ];
 
 /** How many data files the log covers. */
-export const DATA_LOG_FILES = 92;
+export const DATA_LOG_FILES = 93;

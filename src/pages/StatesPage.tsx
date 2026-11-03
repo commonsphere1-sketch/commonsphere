@@ -6031,13 +6031,15 @@ function StateMapTab({ state }: { state: USState }) {
 }
 
 // ─── Modal ───────────────────────────────────────────────────────────────────
-type ModalTab = "overview" | "map" | "laws" | "politics" | "history";
+type ModalTab = "overview" | "pay" | "map" | "laws" | "politics" | "history";
 
 /** One of a state's office-holders, as a tile of its window names them. */
 type Holder = { kind: "governor" | "senator" | "representative"; name: string; district?: string };
 
 /** The country's religions, in a state's window: no survey of religion by state is held, and the panel says whose they are. */
 const PeoplePanel = lazy(() => import("../components/PeoplePanel"));
+/** What each job pays in the state, by BLS: the Jobs & pay tab. */
+const PayByJob = lazy(() => import("../components/PayByJob"));
 /** What is illegal and legal in the United States, as the UK Foreign Office's travel advice tells it: under a state's own list. */
 
 function StateModal({
@@ -6093,6 +6095,7 @@ function StateModal({
       label: "Overview",
       icon: <ListBullets size={13} weight="bold" />,
     },
+    { id: "pay", label: "Jobs & pay", icon: <Briefcase size={13} weight="fill" /> },
     { id: "politics", label: "Politics", icon: <Flag size={13} weight="fill" /> },
     { id: "laws", label: "Laws", icon: <Scales size={13} weight="fill" /> },
     { id: "history", label: "History", icon: <Scroll size={13} weight="fill" /> },
@@ -6210,6 +6213,15 @@ function StateModal({
               </button>
             ))}
           </div>
+
+          {/* Tab: Jobs & pay - what each job pays in the state, by BLS's survey of employers. */}
+          {activeTab === "pay" && (
+            <div className="mt-4">
+              <Suspense fallback={<p className="text-[11px] font-sans text-muted-foreground">Loading what each job pays…</p>}>
+                <PayByJob scope={{ kind: "state", abbr: state.abbreviation }} place={state.name} />
+              </Suspense>
+            </div>
+          )}
 
           {/* Tab: Map */}
           {activeTab === "map" && <StateMapTab state={state} />}

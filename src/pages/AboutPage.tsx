@@ -114,7 +114,7 @@ const DATA_SOURCES = [
     icon: <Briefcase size={22} weight="fill" />,
     name: "US Bureau of Labor Statistics",
     category: "Employment",
-    desc: "Unemployment in each state, and with the Bureau of Economic Analysis what each state produces and earns.",
+    desc: "Unemployment in each state; what each of 830 jobs pays in the nation, each state and each metro area; and with the Bureau of Economic Analysis what each state produces and earns.",
     url: "https://www.bls.gov/data/",
     color: "text-teal-400",
     bg: "bg-teal-500/10",
