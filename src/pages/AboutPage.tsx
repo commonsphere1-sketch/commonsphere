@@ -1,5 +1,7 @@
 import { decodeEntities } from "../lib/security";
 import {
+  Clock,
+  CurrencyEur,
   Globe,
   Lightning,
   Newspaper,
@@ -217,6 +219,26 @@ const DATA_SOURCES = [
     color: "text-lime-400",
     bg: "bg-lime-500/10",
     badge: "bg-lime-500/10 text-lime-400",
+  },
+  {
+    icon: <CurrencyEur size={22} weight="fill" />,
+    name: "European Central Bank",
+    category: "Exchange rates",
+    desc: "The euro's reference rate in some thirty currencies, set each working day and read live in each economy's Currency tab.",
+    url: "https://www.ecb.europa.eu/stats/policy_and_exchange_rates/euro_reference_exchange_rates/html/index.en.html",
+    color: "text-blue-400",
+    bg: "bg-blue-500/10",
+    badge: "bg-blue-500/10 text-blue-400",
+  },
+  {
+    icon: <Clock size={22} weight="fill" />,
+    name: "IANA Time Zone Database",
+    category: "Local time",
+    desc: "Every country's time zones, with timezone-boundary-builder's OpenStreetMap boundaries for where a place lies: the time now in each place's window.",
+    url: "https://www.iana.org/time-zones",
+    color: "text-cyan-400",
+    bg: "bg-cyan-500/10",
+    badge: "bg-cyan-500/10 text-cyan-400",
   },
   {
     icon: <MapPin size={22} weight="fill" />,

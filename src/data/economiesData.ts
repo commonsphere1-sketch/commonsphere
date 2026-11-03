@@ -3604,8 +3604,8 @@ export const economiesData: Economy[] = [
     fdiInflowBillions: 3,
     stockMarketCap: 0.03,
     interestRate: 2.75,
-    currencyCode: "BGN",
-    currencyName: "Bulgarian Lev",
+    currencyCode: "EUR",
+    currencyName: "Euro",
     topExports: [
       "Petroleum Products",
       "Copper",
