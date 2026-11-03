@@ -38,6 +38,14 @@ export const DATA_LOG: DataLogEntry[] = [
     "files": 1
   },
   {
+    "what": "What things cost: each country's price level against the world's and the EU's average, and each US state's and metro area's against the nation's (with static/prices/)",
+    "from": "World Bank (International Comparison Program 2021); Eurostat; US Bureau of Economic Analysis (Regional Price Parities)",
+    "page": "/dashboard/countries",
+    "where": "Countries · Money & work; US States · Pay & prices",
+    "read": "2026-11-03",
+    "files": 1
+  },
+  {
     "what": "Each country's political regime: closed or electoral autocracy, electoral or liberal democracy",
     "from": "V-Dem (Regimes of the World), via Our World in Data",
     "page": "/dashboard/maps",
@@ -600,4 +608,4 @@ export const DATA_LOG: DataLogEntry[] = [
 ];
 
 /** How many data files the log covers. */
-export const DATA_LOG_FILES = 93;
+export const DATA_LOG_FILES = 94;

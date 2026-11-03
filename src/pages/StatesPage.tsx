@@ -6040,6 +6040,8 @@ type Holder = { kind: "governor" | "senator" | "representative"; name: string; d
 const PeoplePanel = lazy(() => import("../components/PeoplePanel"));
 /** What each job pays in the state, by BLS: the Jobs & pay tab. */
 const PayByJob = lazy(() => import("../components/PayByJob"));
+/** What things cost in the state against the nation, by BEA: at the head of the same tab. */
+const StatePrices = lazy(() => import("../components/CostOfLiving").then((m) => ({ default: m.StatePrices })));
 /** What is illegal and legal in the United States, as the UK Foreign Office's travel advice tells it: under a state's own list. */
 
 function StateModal({
@@ -6095,7 +6097,7 @@ function StateModal({
       label: "Overview",
       icon: <ListBullets size={13} weight="bold" />,
     },
-    { id: "pay", label: "Jobs & pay", icon: <Briefcase size={13} weight="fill" /> },
+    { id: "pay", label: "Pay & prices", icon: <Briefcase size={13} weight="fill" /> },
     { id: "politics", label: "Politics", icon: <Flag size={13} weight="fill" /> },
     { id: "laws", label: "Laws", icon: <Scales size={13} weight="fill" /> },
     { id: "history", label: "History", icon: <Scroll size={13} weight="fill" /> },
@@ -6214,10 +6216,11 @@ function StateModal({
             ))}
           </div>
 
-          {/* Tab: Jobs & pay - what each job pays in the state, by BLS's survey of employers. */}
+          {/* Tab: Pay & prices - what things cost in the state, by BEA, and what each job pays, by BLS's survey of employers. */}
           {activeTab === "pay" && (
-            <div className="mt-4">
-              <Suspense fallback={<p className="text-[11px] font-sans text-muted-foreground">Loading what each job pays…</p>}>
+            <div className="mt-4 space-y-4">
+              <Suspense fallback={<p className="text-[11px] font-sans text-muted-foreground">Loading what things cost and what each job pays…</p>}>
+                <StatePrices abbr={state.abbreviation} name={state.name} />
                 <PayByJob scope={{ kind: "state", abbr: state.abbreviation }} place={state.name} />
               </Suspense>
             </div>

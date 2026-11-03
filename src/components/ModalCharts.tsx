@@ -95,7 +95,7 @@ export interface MeasureRow {
  * a thin bar under it on a scale all the rows share. `max` is that scale's
  * end - 100 for shares; left out, it is the largest figure shown.
  */
-export function MeasureBars({ rows, max, color = ACCENT, label }: { rows: MeasureRow[]; max?: number; color?: string; /** What the chart shows, for a screen reader. */ label?: string }) {
+export function MeasureBars({ rows, max, color = ACCENT, label, refName = "world" }: { rows: MeasureRow[]; max?: number; color?: string; /** What the chart shows, for a screen reader. */ label?: string; /** Whose figure the tick on each bar is: the world's, unless another's - "the nation", "EU". */ refName?: string }) {
   const top = max ?? Math.max(0, ...rows.flatMap((r) => [r.value ?? 0, r.world?.value ?? 0]));
   const at = (v: number) => `${top > 0 ? Math.min(100, Math.max(0, (100 * v) / top)) : 0}%`;
   return (
@@ -109,7 +109,7 @@ export function MeasureBars({ rows, max, color = ACCENT, label }: { rows: Measur
               {(r.sub || r.world) && (
                 <span className="font-normal text-muted-foreground">
                   {r.sub ? ` · ${r.sub}` : ""}
-                  {r.world ? ` · world ${r.world.text}` : ""}
+                  {r.world ? ` · ${refName} ${r.world.text}` : ""}
                 </span>
               )}
             </span>
@@ -125,7 +125,7 @@ export function MeasureBars({ rows, max, color = ACCENT, label }: { rows: Measur
                   background: `linear-gradient(90deg, color-mix(in srgb, ${r.color ?? semanticColor(r.label) ?? color} 35%, transparent), ${r.color ?? semanticColor(r.label) ?? color})`,
                 }}
               />
-              {r.world && <span className="absolute -top-0.5 -bottom-0.5 w-0.5 -ml-px rounded-full bg-foreground" style={{ left: at(r.world.value) }} title={`World: ${r.world.text}`} />}
+              {r.world && <span className="absolute -top-0.5 -bottom-0.5 w-0.5 -ml-px rounded-full bg-foreground" style={{ left: at(r.world.value) }} title={`${refName.charAt(0).toUpperCase()}${refName.slice(1)}: ${r.world.text}`} />}
             </span>
           )}
         </li>

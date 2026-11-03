@@ -12,6 +12,7 @@
 import { MagnifyingGlass } from "@phosphor-icons/react";
 import { useEffect, useMemo, useState, type ReactNode } from "react";
 import { PAY_PERIOD, PAY_SOURCES, PAY_TOP, type PayAreas, type PayOccFile, type PayRow, type PayUs } from "../data/payMeta";
+import { MetroPrices } from "./CostOfLiving";
 import { ChartNote, ChartTitle, FigureRow, MeasureBars } from "./ModalCharts";
 import { SourceLink } from "./SourceLink";
 
@@ -148,7 +149,7 @@ export default function PayByJob({ scope, place, ofParent }: { scope: PayScope; 
   );
 }
 
-/** A county's: the figures of the area BLS counts it in, said to be its area's. */
+/** A county's: the figures of the area BLS counts it in, said to be its area's - and what things cost there, by BEA. */
 export function CountyPay({ fips }: { fips: string }) {
   const [area, setArea] = useState<{ code: string; title: string } | null | undefined>(undefined);
   useEffect(() => {
@@ -161,7 +162,13 @@ export function CountyPay({ fips }: { fips: string }) {
     };
   }, [fips]);
   if (!area) return null;
-  return <PayByJob scope={{ kind: "area", code: area.code }} place={area.title} ofParent />;
+  return (
+    <div className="space-y-4">
+      <PayByJob scope={{ kind: "area", code: area.code }} place={area.title} ofParent />
+      {/* What things cost in the same metro area, by BEA, which knows it by the same code; a nonmetropolitan area has none. */}
+      <MetroPrices code={area.code} />
+    </div>
+  );
 }
 
 function Tile({ title, children }: { title: string; children: ReactNode }) {

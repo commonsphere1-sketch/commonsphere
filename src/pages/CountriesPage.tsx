@@ -24,6 +24,8 @@ const PoliticalClimate = lazy(() => import("../components/PoliticalClimate"));
 const GovernmentFacts = lazy(() => import("../components/GovernmentFacts"));
 /** How the country's income is shared among its people, and how many are poor: the World Bank's shares by fifth and tenth and its poverty rates. */
 const PeoplePanel = lazy(() => import("../components/PeoplePanel"));
+/** What things cost in a country against the world and the EU: the ICP's and Eurostat's price levels. */
+const CountryPrices = lazy(() => import("../components/CostOfLiving"));
 /** What is illegal and legal in the country, as the UK Foreign Office's travel advice tells it: the head of its Law tab. */
 const Universities = lazy(() => import("../components/Universities"));
 /** The Sovereignty report: a panel with its own data, loaded when the Politics tab opens. */
@@ -1238,6 +1240,11 @@ function CountryModal({
                   {/* How its income is shared among its people, and how many are poor. Its languages, beliefs and ages are in the group above, as the window has long had them. */}
                   <Suspense fallback={null}>
                     <PeoplePanel code={country.code} country={country.name} parts={["income", "poverty"]} />
+                  </Suspense>
+
+                  {/* What things cost there against the world's and the EU's average: the ICP's and Eurostat's price levels. */}
+                  <Suspense fallback={null}>
+                    <CountryPrices code={country.code} country={country.name} />
                   </Suspense>
 
                   {/* Economy by sector + land use */}
