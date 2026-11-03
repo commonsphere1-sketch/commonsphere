@@ -65,6 +65,7 @@ import { useLiveData } from "../hooks/useLiveData";
 import { SourceLink } from "../components/SourceLink";
 import { WindowGroup } from "../components/WindowGroup";
 import { WindowTitle } from "../components/WindowTitle";
+import { LocalTime } from "../components/LocalTime";
 import { HeadlinesBanner, ALL_TOPICS, followedFirst, namesAbroad, useFollowedTags } from "../components/HeadlinesBanner";
 import { FilterBar } from "../components/FilterBar";
 import { TONE } from "@/lib/chipTone";
@@ -635,7 +636,7 @@ function CountryModal({
       >
         <div className="p-6">
           {/* Its name, where it is and the window's buttons: one bar above the flag, in sight as the window is scrolled - the same in every place's window. */}
-          <WindowTitle title={country.name} where={capitalLabel(country)}>
+          <WindowTitle title={country.name} where={capitalLabel(country)} time={<LocalTime of={{ kind: "country", cc: country.code, at: country.capital }} />}>
             <button
               onClick={() => void watch.toggle("country", country.id)}
               className="p-2 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted/60 transition-colors cursor-pointer"

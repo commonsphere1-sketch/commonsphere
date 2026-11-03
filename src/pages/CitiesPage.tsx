@@ -47,6 +47,7 @@ import { CITY_FIGURES, CITY_FIGURES_SOURCE, type CityFigures } from "../data/cit
 import { CITY_YEARS, cityYear, cityFirstYear, cityGrowth, type CityYear } from "../lib/cityFigures";
 import { ArticlePanel } from "../components/HistoryPanel";
 import { WindowTitle } from "../components/WindowTitle";
+import { LocalTime } from "../components/LocalTime";
 import { ACCENT, ChartNote } from "../components/ModalCharts";
 import { useTheme } from "../contexts/ThemeContext";
 import { HeadlinesBanner, namesTag, type Headline, type Shown } from "../components/HeadlinesBanner";
@@ -455,7 +456,7 @@ function CityModal({ city, onClose }: { city: City; onClose: () => void }) {
         <div className="p-6">
           {/* Header */}
           {/* Its name, where it is and the window's buttons: one bar above the flag, in sight as the window is scrolled - the same in every place's window. */}
-          <WindowTitle title={city.name} where={city.country}>
+          <WindowTitle title={city.name} where={city.country} time={<LocalTime of={{ kind: "city", cc: city.countryCode, id: city.id }} />}>
             {/* Follow, as in a country's and a state's window: the city is kept at the top of the page. */}
             <button
               onClick={() => follow.toggle(city.id, { name: city.name })}

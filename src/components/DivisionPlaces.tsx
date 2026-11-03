@@ -81,6 +81,7 @@ import PeoplePanel from "./PeoplePanel";
 import StatePeoplePanel from "./StatePeoplePanel";
 import { WindowGroup } from "./WindowGroup";
 import { WindowTitle } from "./WindowTitle";
+import { LocalTime } from "./LocalTime";
 
 const FILES = new Map<string, Promise<PlacesFile | null>>();
 const load = (cc: string) => {
@@ -803,7 +804,7 @@ function PlaceWindow({
       <div role="dialog" aria-modal="true" aria-label={name} className={`relative z-10 rounded-2xl w-full shadow-2xl modal-glass border overflow-y-auto transition-all duration-300 ${expanded ? "max-w-full max-h-full m-0" : "max-w-2xl max-h-[90vh]"}`}>
         <div className="p-6">
           {/* Its name, where it is and the window's buttons: one bar above the flag, in sight as the window is scrolled - the same in every place's window. */}
-          <WindowTitle title={name} where={[district, s.name, country].filter(Boolean).join(" · ")}>
+          <WindowTitle title={name} where={[district, s.name, country].filter(Boolean).join(" · ")} time={<LocalTime of={{ kind: "place", cc: s.cc, id, region: p[4] }} />}>
             {/* Follow, as in a country's and a state's window. */}
             <FollowStar where="window" id={placeFollowId(id)} name={name} to={`/dashboard/subnations?open=place:${s.cc}:${id}`} />
             {/* The buttons a country's window has at its head: the place on the map, and the window opened to the whole screen. */}

@@ -20,6 +20,7 @@ export function WindowTitle({
   title,
   where,
   note,
+  time,
   children,
   className = "",
 }: {
@@ -28,6 +29,8 @@ export function WindowTitle({
   where?: ReactNode;
   /** What the window is, where it is not a place's: a line beside its name, with no pin. */
   note?: ReactNode;
+  /** The time now where the place is (LocalTime), after where it is. */
+  time?: ReactNode;
   /** The window's buttons, at the bar's right. */
   children?: ReactNode;
   className?: string;
@@ -56,6 +59,7 @@ export function WindowTitle({
           </span>
         )}
         {note && <span className="text-xs font-medium font-sans text-foreground/80 min-w-0">{note}</span>}
+        {time}
       </div>
       {children && <div className="flex items-center gap-1.5 shrink-0">{children}</div>}
     </div>

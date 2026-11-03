@@ -93,6 +93,7 @@ import { DivisionPlaces, PlaceHost, PlacesAnalysis, PlacesInside, insideOf, useP
 import { FilterBar } from "../components/FilterBar";
 import { ArticlePanel } from "../components/HistoryPanel";
 import { WindowTitle } from "../components/WindowTitle";
+import { LocalTime, type ZoneOf } from "../components/LocalTime";
 import { ChartNote, ChartTitle, FigureRow, MeasureBars, PartsBar, PartsDonut } from "../components/ModalCharts";
 import PostalCodes from "../components/PostalCodes";
 import PlaceIndexes from "../components/PlaceIndexes";
@@ -325,7 +326,10 @@ function Window({
   follow,
   top = true,
   hidden = false,
+  zone,
 }: {
+  /** Where its clock's time is taken: the place's zone (LocalTime). */
+  zone?: ZoneOf;
   /** Its follow star, first among its buttons, as a country's and a state's window have theirs. */
   follow?: ReactNode;
   title: string;
@@ -360,7 +364,7 @@ function Window({
       <div role="dialog" aria-modal="true" aria-label={title} className={`relative z-10 rounded-2xl w-full shadow-2xl modal-glass border overflow-y-auto transition-all duration-300 ${expanded ? "max-w-full max-h-full m-0" : "max-w-2xl max-h-[90vh]"}`}>
         <div className="p-6 flex flex-col gap-5">
           {/* Its name, where it is and the window's buttons: one bar above the flag, in sight as the window is scrolled - the same in every place's window. */}
-          <WindowTitle title={title} where={kicker}>
+          <WindowTitle title={title} where={kicker} time={zone && <LocalTime of={zone} />}>
             {follow}
             {mapTo && (
               <button onClick={() => navigate(mapTo)} className="p-2 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted/60 transition-colors cursor-pointer" aria-label={`Show ${title} on the map`} title="Show on map">
@@ -857,7 +861,7 @@ function SubnationWindow({ s, onBack, onClose, onCounties }: { s: Subnation; /**
     ...(s.article ? [{ label: `Wikipedia — ${s.article}`, url: `https://en.wikipedia.org/wiki/${encodeURIComponent(s.article.replace(/ /g, "_"))}` }] : []),
   ];
   return (
-    <Window follow={<DivisionStar s={s} where="window" />} mapTo={`/dashboard/maps?country=${s.cc}`} top={!placeOpen} hidden={placeOpen} onBack={onBack} title={s.name} kicker={`${s.kind || "Division"} · ${c?.name ?? s.cc}`} flagSrc=
+    <Window zone={{ kind: "division", cc: s.cc, id: s.id, name: s.name }} follow={<DivisionStar s={s} where="window" />} mapTo={`/dashboard/maps?country=${s.cc}`} top={!placeOpen} hidden={placeOpen} onBack={onBack} title={s.name} kicker={`${s.kind || "Division"} · ${c?.name ?? s.cc}`} flagSrc=
 {ownFlag(s, 250) ?? flag(s.cc, 160)} chips={[...(s.code ? [s.code] : []), ...(s.capital ? [`Capital: ${s.capital}`] : []), ...(s.region ? [s.region] : [])]} onClose={onClose}>
       <div className="flex flex-wrap gap-2">
         {c && <LinkButton onClick={() => navigate(`/dashboard/countries?open=${c.id}`)}>Open {c.name}</LinkButton>}
@@ -1086,7 +1090,7 @@ function CountyWindow({ county, data, onBack, onClose }: { county: UsCounty; dat
     },
   ];
   return (
-    <Window follow={<FollowStar where="window" id={`county:${fips}`} name={name} />} mapTo="/dashboard/maps?country=US" top={!placeOpen} hidden={placeOpen} onBack={onBack} title={name} kicker={`County · ${state?.name ?? abbr}`} flagSrc={flag("US", 160)} chips={[`FIPS ${fips}`, state?.name ?? abbr, ...(rows ? [`${whole(rows.length)} places listed`] : [])]} onClose={onClose}>
+    <Window zone={{ kind: "county", state: abbr, fips }} follow={<FollowStar where="window" id={`county:${fips}`} name={name} />} mapTo="/dashboard/maps?country=US" top={!placeOpen} hidden={placeOpen} onBack={onBack} title={name} kicker={`County · ${state?.name ?? abbr}`} flagSrc={flag("US", 160)} chips={[`FIPS ${fips}`, state?.name ?? abbr, ...(rows ? [`${whole(rows.length)} places listed`] : [])]} onClose={onClose}>
       <div className="flex flex-wrap gap-2">
         {state && <LinkButton onClick={() => navigate(`/dashboard/subnations?open=US-${state.abbreviation}`)}>{state.name}'s record</LinkButton>}
         {state && <LinkButton onClick={() => navigate(`/dashboard/states?open=${state.id}`)}>Open {state.name} on the US States page</LinkButton>}
@@ -1333,6 +1337,7 @@ function DistrictWindow({
   ];
   return (
     <Window
+      zone={{ kind: "admin2", cc, parent: parentName ?? "", name }}
       follow={<FollowStar where="window" id={`district:${cc}:${index}`} name={name} />}
       mapTo={`/dashboard/maps?country=${cc}`}
       top={!placeOpen}
@@ -1692,7 +1697,7 @@ function CountryWindow({
   const counties = useMemo(() => (countyData && countyState ? countyData.US_COUNTIES.filter((x) => x[2] === countyState) : []), [countyData, countyState]);
   const stateName = usStatesData.find((s) => s.abbreviation === countyState)?.name ?? countyState;
   return (
-    <Window follow={<CountryStar cc={row.cc} name={row.name} />} mapTo={`/dashboard/maps?country=${row.cc}`} top={top && !placeOpen} hidden={!top || placeOpen} title={row.name} kicker="Country · its divisions" flagSrc={flag(row.cc, 160)} chips={[`${row.divisions.length} divisions`, ...row.kinds.slice(0, 3), ...(row.continent ? [row.continent] : [])]} onClose={onClose}>
+    <Window zone={{ kind: "country", cc: row.cc, at: COUNTRY.get(row.cc)?.capital }} follow={<CountryStar cc={row.cc} name={row.name} />} mapTo={`/dashboard/maps?country=${row.cc}`} top={top && !placeOpen} hidden={!top || placeOpen} title={row.name} kicker="Country · its divisions" flagSrc={flag(row.cc, 160)} chips={[`${row.divisions.length} divisions`, ...row.kinds.slice(0, 3), ...(row.continent ? [row.continent] : [])]} onClose={onClose}>
       <div className="flex flex-wrap items-center gap-2">
         {c && <LinkButton onClick={() => navigate(`/dashboard/countries?open=${c.id}`)}>Open {c.name} on the Countries page</LinkButton>}
         <LinkButton onClick={() => navigate(`/dashboard/maps?country=${row.cc}`)}>

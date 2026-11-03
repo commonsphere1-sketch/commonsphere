@@ -32,6 +32,7 @@ import { UniversityList } from "../components/UniversityList";
 import { OfficialsExplorer, officialOf } from "../components/OfficialsExplorer";
 import StatePeoplePanel from "../components/StatePeoplePanel";
 import { WindowTitle } from "../components/WindowTitle";
+import { LocalTime } from "../components/LocalTime";
 import { UpcomingStates } from "@/components/UpcomingStates";
 import { useLiveData } from "../hooks/useLiveData";
 import { SourceLink } from "../components/SourceLink";
@@ -6111,7 +6112,7 @@ function StateModal({
         <div className="p-6">
           {/* Header */}
           {/* Its name, where it is and the window's buttons: one bar above the flag, in sight as the window is scrolled - the same in every place's window. */}
-          <WindowTitle title={state.name} where={state.capital}>
+          <WindowTitle title={state.name} where={state.capital} time={<LocalTime of={{ kind: "region", cc: "US", name: state.name, at: `${state.capital}, the state capital` }} />}>
             <button
               onClick={() => void watch.toggle("state", state.id)}
               className="p-2 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted/60 transition-colors cursor-pointer"

@@ -64,6 +64,7 @@ import { FollowStar } from "./FollowStar";
 import PeoplePanel from "./PeoplePanel";
 import { WindowGroup } from "./WindowGroup";
 import { WindowTitle } from "./WindowTitle";
+import { LocalTime } from "./LocalTime";
 import { PROFILED, PROFILES, namesOf, plain, unCityId } from "../lib/profiledCities";
 import CityAnalysis from "./CityAnalysis";
 import PostalCodes from "./PostalCodes";
@@ -212,7 +213,7 @@ function CityWindow({ c, onBack, onClose }: { c: UnCity; /** Back to its country
         <div className="p-6">
           {/* Header: as a profiled city's */}
           {/* Its name, where it is and the window's buttons: one bar above the flag, in sight as the window is scrolled - the same in every place's window. */}
-          <WindowTitle title={name} where={land}>
+          <WindowTitle title={name} where={land} time={<LocalTime of={{ kind: "un", cc, code: c[1] }} />}>
             {/* Follow, as in a country's and a state's window. */}
             <FollowStar where="window" id={profile?.id ?? unCityId(c)} name={name} />
             {/* On the map, as every other place's window has it: the Maps page, opened on its country. */}
@@ -619,7 +620,7 @@ function CountryWindow({ row, top, asked, onOpen, onClose }: { row: Row; /** Whe
       <div role="dialog" aria-modal="true" aria-label={`${row.name}: its cities`} className={`relative z-10 rounded-2xl w-full shadow-2xl modal-glass border overflow-y-auto transition-all duration-300 ${wide ? "max-w-full max-h-full m-0" : "max-w-2xl max-h-[90vh]"}`}>
         <div className="p-6 flex flex-col gap-5">
           {/* Its name, what the window is and the window's buttons: the bar every place's window has, with the button that opens it to the whole screen. It was a wider window with neither. */}
-          <WindowTitle title={row.name} where="Country · its cities">
+          <WindowTitle title={row.name} where="Country · its cities" time={<LocalTime of={{ kind: "country", cc: row.cc, at: COUNTRY.get(row.cc)?.capital }} />}>
             <button onClick={() => setWide((v) => !v)} className="p-2 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted/60 transition-colors cursor-pointer" aria-label={wide ? "Collapse the window" : "Expand the window to full screen"} title={wide ? "Collapse" : "Expand to full screen"}>
               {wide ? <ArrowsIn size={18} /> : <ArrowsOut size={18} />}
             </button>

@@ -22,6 +22,14 @@ export interface DataLogEntry {
 
 export const DATA_LOG: DataLogEntry[] = [
   {
+    "what": "The time zone of every place with a window: the time there now, beside its name (with static/tz/)",
+    "from": "IANA Time Zone Database; timezone-boundary-builder (OpenStreetMap)",
+    "page": "/dashboard/countries",
+    "where": "Every place's window",
+    "read": "2026-11-03",
+    "files": 1
+  },
+  {
     "what": "Each country's political regime: closed or electoral autocracy, electoral or liberal democracy",
     "from": "V-Dem (Regimes of the World), via Our World in Data",
     "page": "/dashboard/maps",
@@ -584,4 +592,4 @@ export const DATA_LOG: DataLogEntry[] = [
 ];
 
 /** How many data files the log covers. */
-export const DATA_LOG_FILES = 91;
+export const DATA_LOG_FILES = 92;
