@@ -19,6 +19,7 @@ import { useEffect, useMemo, useState } from "react";
 import { CartesianGrid, Line, LineChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
 import { useTheme } from "../contexts/ThemeContext";
 import { ChartNote, ChartTitle, FigureRow } from "./ModalCharts";
+import { SiteLoading } from "./SiteLoading";
 import { SourceLink } from "./SourceLink";
 
 const ECB = "https://data-api.ecb.europa.eu/service/data/EXR";
@@ -230,7 +231,13 @@ export default function EconomyCurrency({ code, name, cc, place }: { code: strin
     </div>
   );
 
-  if (t === undefined) return <div>{header}<p className="text-[11px] font-sans text-muted-foreground">Reading the ECB&apos;s rates…</p></div>;
+  if (t === undefined)
+    return (
+      <div>
+        {header}
+        <SiteLoading label="Reading the European Central Bank's rates" />
+      </div>
+    );
 
   if (byEcb && t) {
     const usd = t.perEuro.get("USD");
@@ -319,7 +326,7 @@ export default function EconomyCurrency({ code, name, cc, place }: { code: strin
     <div>
       {header}
       {wb === undefined && cc ? (
-        <p className="text-[11px] font-sans text-muted-foreground">Reading the World Bank&apos;s rates…</p>
+        <SiteLoading label="Reading the World Bank's rates" />
       ) : wb && wb.length > 0 ? (
         <Tile title={`Local currency units to the US dollar · the average of each year · ${wb[0][0]}–${wb[wb.length - 1][0]}`}>
           {wb.length > 2 ? <RateChart points={wb} unit="to the dollar" label={`${place}'s official exchange rate to the US dollar, by year`} daily={false} /> : <FigureRow label={`Average · ${wb[wb.length - 1][0]}`} value={rate(wb[wb.length - 1][1])} sub="to the dollar" />}

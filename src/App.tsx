@@ -6,6 +6,7 @@ import { NotesProvider } from "./contexts/NotesContext";
 /* ─── Eager (small / always needed) ────────────────────────── */
 import { DashboardPage } from "./pages/DashboardPage";
 import { SettingsPage } from "./pages/SettingsPage";
+import { SiteLoading } from "./components/SiteLoading";
 
 /* ─── Lazy (large or rarely-visited on first load) ─────────── */
 const StatesPage = lazy(() =>
@@ -88,12 +89,9 @@ const WorldLeadersPage = lazy(() =>
   })),
 );
 
+/** While a page's code is fetched: the site's globe and track, as every loading panel has them. */
 function PageFallback() {
-  return (
-    <div className="flex items-center justify-center min-h-[40vh] text-muted-foreground text-sm font-sans">
-      Loading…
-    </div>
-  );
+  return <SiteLoading size="page" label="Loading the page" />;
 }
 
 export default function App() {

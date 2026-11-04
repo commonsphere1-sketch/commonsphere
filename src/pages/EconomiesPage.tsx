@@ -50,6 +50,7 @@ import EconomyManufacturing from "../components/EconomyManufacturing";
 import TaxPanel from "../components/TaxPanel";
 import { countriesData } from "../data/countriesData";
 import { CODE_OF_ECONOMY } from "../data/placeIndex";
+import { SiteLoading } from "../components/SiteLoading";
 import { SeeAlso } from "../components/SeeAlso";
 import { FilterBar } from "../components/FilterBar";
 import { StyledSelect } from "../components/StyledSelect";
@@ -1063,7 +1064,9 @@ function EconomyModal({
 }) {
   const [isExpanded, setIsExpanded] = React.useState(false);
   /** The window's tabs, as a country's and a state's have: the overview, and inflation, deficits and tariffs. */
-  const [tab, setTab] = React.useState<"overview" | "currency" | "resources" | "tax" | "details">("overview");
+  const [tab, setTab] = React.useState<"overview" | "money" | "resources" | "details">("overview");
+  /** Whether it has a currency of its own to tell of: an economy with none has its tax alone in the tab. */
+  const hasCurrency = !!economy.currencyCode && economy.currencyCode !== "None";
 
   React.useEffect(() => {
     const handler = (e: KeyboardEvent) => {
@@ -1198,11 +1201,12 @@ function EconomyModal({
             {(
               [
                 { id: "overview", label: "Overview", icon: <ListBullets size={13} weight="bold" /> },
-                // What its money is worth today and over the year, and a converter; an economy with no currency of its own has none.
-                ...(economy.currencyCode && economy.currencyCode !== "None" ? [{ id: "currency", label: "Currency", icon: <CurrencyCircleDollar size={13} weight="bold" /> } as const] : []),
+                // Its money and what is taken of it, in one tab as asked: its currency - what it is worth and a converter - and its tax. An economy with no currency of its own has its tax alone.
+                hasCurrency
+                  ? ({ id: "money", label: "Currency & Tax", icon: <CurrencyCircleDollar size={13} weight="bold" /> } as const)
+                  : ({ id: "money", label: "Tax", icon: <Receipt size={13} weight="bold" /> } as const),
                 // A card with neither rents nor minerals published has no Resources tab to open.
                 ...(showResources ? [{ id: "resources", label: "Resources", icon: <Mountains size={13} weight="bold" /> } as const] : []),
-                { id: "tax", label: "Tax", icon: <Receipt size={13} weight="bold" /> },
                 { id: "details", label: "Inflation, Deficits & Tariffs", icon: <Percent size={13} weight="bold" /> },
               ] as const
             ).map((x) => (
@@ -1221,19 +1225,15 @@ function EconomyModal({
             ))}
           </div>
 
-          {/* ── CURRENCY: the ECB's rate today and over the past year, and a converter; else the World Bank's yearly average ── */}
-          {tab === "currency" && (
-            <div className="mt-4 animate-fade-in">
-              <React.Suspense fallback={<p className="text-[11px] font-sans text-muted-foreground">Loading its currency…</p>}>
-                <EconomyCurrency code={economy.currencyCode} name={economy.currencyName} cc={CODE_OF_ECONOMY[economy.id]} place={economy.name} />
-              </React.Suspense>
-            </div>
-          )}
-
-          {/* ── TAX: the federal and the state rate on companies, the top rate on incomes, what is taken in tax - each now, over the years, and beside an average ── */}
-          {tab === "tax" && (
-            <div className="mt-4 animate-fade-in">
-              <React.Suspense fallback={<p className="text-[11px] font-sans text-muted-foreground">Loading tax rates and revenue…</p>}>
+          {/* ── CURRENCY & TAX: the ECB's rate today and over the past year and a converter (else the World Bank's yearly average); then the federal and the state rate on companies, the top rate on incomes, what is taken in tax - each now, over the years, and beside an average ── */}
+          {tab === "money" && (
+            <div className="mt-4 space-y-6 animate-fade-in">
+              {hasCurrency && (
+                <React.Suspense fallback={<SiteLoading label="Loading its currency" />}>
+                  <EconomyCurrency code={economy.currencyCode} name={economy.currencyName} cc={CODE_OF_ECONOMY[economy.id]} place={economy.name} />
+                </React.Suspense>
+              )}
+              <React.Suspense fallback={<SiteLoading label="Loading tax rates and revenue" />}>
                 <EconomyTax code={CODE_OF_ECONOMY[economy.id]} name={economy.name} union={economy.id === "eu-eco"} />
               </React.Suspense>
             </div>
@@ -1242,7 +1242,7 @@ function EconomyModal({
           {/* ── INFLATION · DEFICITS · TARIFFS: each with its series, its projections where a body makes them, and what it measures ── */}
           {tab === "details" && (
             <div className="mt-4 animate-fade-in">
-              <React.Suspense fallback={<p className="text-[11px] font-sans text-muted-foreground">Loading inflation, deficits and tariffs…</p>}>
+              <React.Suspense fallback={<SiteLoading label="Loading inflation, deficits and tariffs" />}>
                 <EconomyDetails id={economy.id} name={economy.name} />
               </React.Suspense>
             </div>

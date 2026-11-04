@@ -382,6 +382,35 @@ html.light .modal-tile {
   animation: cs-scrim-in 0.2s ease-out;
 }
 
+/* ── Loading (SiteLoading) ─────────────────────────────────
+   The site's globe breathing, and a gradient running along the slim track
+   its bars are drawn on - in the foreground's own ink, so it suits both
+   themes. Still for a reader who asks for less motion. */
+@keyframes cs-loading-breathe {
+  0%, 100% { opacity: 0.55; transform: scale(0.96); }
+  50%      { opacity: 1;    transform: scale(1); }
+}
+@keyframes cs-loading-run {
+  from { transform: translateX(-100%); }
+  to   { transform: translateX(250%); }
+}
+.site-loading-mark {
+  animation: cs-loading-breathe 1.8s ease-in-out infinite;
+}
+.site-loading-run {
+  background: linear-gradient(90deg, transparent, color-mix(in srgb, currentColor 45%, transparent), transparent);
+  animation: cs-loading-run 1.4s ease-in-out infinite;
+}
+@media (prefers-reduced-motion: reduce) {
+  .site-loading-mark,
+  .site-loading-run {
+    animation: none;
+  }
+  .site-loading-run {
+    transform: translateX(75%);
+  }
+}
+
 /* ── Sidebar nav items: frosted glass ────────────────────
    The desktop sidebar is opaque, so there the frosting comes from the
    translucent fill and the edge treatment — blurring a flat colour just
