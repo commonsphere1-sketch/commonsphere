@@ -1192,9 +1192,9 @@ function EconomyModal({
 
           {economy.limitedData && <LimitedDataNote economy={economy} />}
 
-          {/* Through to the same place on the other pages: its country profile, its leaders, its cities, the map.
+          {/* Through to the same place on the other pages: its country profile, its leaders, the map - its cities taken off, as asked.
               A bloc's or a region's card is no one country's, and has no such row. */}
-          {CODE_OF_ECONOMY[economy.id] && <SeeAlso code={CODE_OF_ECONOMY[economy.id]} name={economy.name} omit={["economy"]} className="mt-4" />}
+          {CODE_OF_ECONOMY[economy.id] && <SeeAlso code={CODE_OF_ECONOMY[economy.id]} name={economy.name} omit={["economy", "cities"]} className="mt-4" />}
 
           {/* Tab bar */}
           <div className="flex items-center gap-1 mt-4 bg-muted/60 rounded-xl p-1 border border-border/60 overflow-x-auto modal-tabs">
