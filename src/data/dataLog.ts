@@ -30,6 +30,14 @@ export const DATA_LOG: DataLogEntry[] = [
     "files": 1
   },
   {
+    "what": "Migration: the people living in each country born abroad, net migration, and the money people working abroad send home",
+    "from": "World Bank WDI (UN Population Division's International Migrant Stock and World Population Prospects; IMF and World Bank remittances)",
+    "page": "/dashboard/countries",
+    "where": "Countries · People & society",
+    "read": "2026-11-04",
+    "files": 1
+  },
+  {
     "what": "What homes rent and sell for: HUD's fair market rents in each county's rent area, and FHFA's house price index for each state and metro area (with static/housing/)",
     "from": "US Department of Housing and Urban Development (Fair Market Rents FY2026); Federal Housing Finance Agency (House Price Index); US Census Bureau (metro delineations)",
     "page": "/dashboard/states",
@@ -632,4 +640,4 @@ export const DATA_LOG: DataLogEntry[] = [
 ];
 
 /** How many data files the log covers. */
-export const DATA_LOG_FILES = 97;
+export const DATA_LOG_FILES = 98;

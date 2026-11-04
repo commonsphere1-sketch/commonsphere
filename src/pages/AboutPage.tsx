@@ -74,7 +74,7 @@ const DATA_SOURCES = [
     icon: <Bank size={22} weight="fill" />,
     name: "World Bank Open Data",
     category: "Development & governance",
-    desc: "Development indicators, shares of income and poverty, the Worldwide Governance Indicators, tax revenue and tariffs, and the International Comparison Program's price levels.",
+    desc: "Development indicators, shares of income and poverty, the Worldwide Governance Indicators, tax revenue and tariffs, the International Comparison Program's price levels, and migration and remittances.",
     url: "https://data.worldbank.org",
     color: "text-emerald-400",
     bg: "bg-emerald-500/10",

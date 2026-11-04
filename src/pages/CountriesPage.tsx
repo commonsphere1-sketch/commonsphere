@@ -28,6 +28,8 @@ const PeoplePanel = lazy(() => import("../components/PeoplePanel"));
 const CountryPrices = lazy(() => import("../components/CostOfLiving"));
 /** What electricity, gas and fuel cost: EIA's for the United States, Eurostat's and the Weekly Oil Bulletin's for Europe. */
 const CountryEnergy = lazy(() => import("../components/EnergyPrices"));
+/** Who has moved to and from the country: the UN's migrant stock and net migration, and remittances, as the World Bank publishes them. */
+const MigrationPanel = lazy(() => import("../components/MigrationPanel"));
 /** What is illegal and legal in the country, as the UK Foreign Office's travel advice tells it: the head of its Law tab. */
 const Universities = lazy(() => import("../components/Universities"));
 /** The Sovereignty report: a panel with its own data, loaded when the Politics tab opens. */
@@ -1153,6 +1155,11 @@ function CountryModal({
                   {/* The peoples it is made of, its languages and its religions, each with its share and its year, from the Factbook: where the two plain lists of religions and languages stood. Its ages are in Demographics above. */}
                   <Suspense fallback={null}>
                     <PeoplePanel code={country.code} country={country.name} parts={["peoples", "languages", "religions"]} />
+                  </Suspense>
+
+                  {/* Who has moved there and away, and what they send home. */}
+                  <Suspense fallback={null}>
+                    <MigrationPanel code={country.code} country={country.name} />
                   </Suspense>
 
                   {/* Spoken Languages, Landmarks, Religions */}
