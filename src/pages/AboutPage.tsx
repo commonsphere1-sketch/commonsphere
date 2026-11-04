@@ -232,9 +232,9 @@ const DATA_SOURCES = [
   },
   {
     icon: <Gavel size={22} weight="fill" />,
-    name: "Clerk of the US House and the FEC",
+    name: "Clerk of the US House, the FEC and USAspending",
     category: "Congress",
-    desc: "How each member of the House voted on every recorded vote, from the Clerk's roll calls; and what each campaign has raised and spent, from the Federal Election Commission.",
+    desc: "How each member of the House voted on every recorded vote, from the Clerk's roll calls; what each campaign has raised and spent, from the Federal Election Commission; and what federal agencies award in each state and county, read live from the Treasury's USAspending.gov.",
     url: "https://clerk.house.gov/Votes",
     color: "text-red-400",
     bg: "bg-red-500/10",
