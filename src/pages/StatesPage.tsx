@@ -6046,6 +6046,8 @@ const StatePrices = lazy(() => import("../components/CostOfLiving").then((m) => 
 const StateEnergy = lazy(() => import("../components/EnergyPrices").then((m) => ({ default: m.StateEnergy })));
 /** What federal agencies award to recipients in the state, read live from USAspending.gov: in the Politics tab. */
 const FederalMoney = lazy(() => import("../components/FederalMoney"));
+/** The state's house prices over the years, by FHFA: in the Pay & prices tab. */
+const StateHousing = lazy(() => import("../components/HousingCosts").then((m) => ({ default: m.StateHousing })));
 /** What is illegal and legal in the United States, as the UK Foreign Office's travel advice tells it: under a state's own list. */
 
 function StateModal({
@@ -6225,6 +6227,7 @@ function StateModal({
             <div className="mt-4 space-y-4">
               <Suspense fallback={<p className="text-[11px] font-sans text-muted-foreground">Loading what things cost and what each job pays…</p>}>
                 <StatePrices abbr={state.abbreviation} name={state.name} />
+                <StateHousing abbr={state.abbreviation} name={state.name} />
                 <StateEnergy abbr={state.abbreviation} name={state.name} />
                 <PayByJob scope={{ kind: "state", abbr: state.abbreviation }} place={state.name} />
               </Suspense>

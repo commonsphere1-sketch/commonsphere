@@ -231,6 +231,16 @@ const DATA_SOURCES = [
     badge: "bg-orange-500/10 text-orange-400",
   },
   {
+    icon: <Buildings size={22} weight="fill" />,
+    name: "HUD and FHFA",
+    category: "Rents & house prices",
+    desc: "The Department of Housing and Urban Development's fair market rents for each county's rent area, and the Federal Housing Finance Agency's house price index for each state and metro area.",
+    url: "https://www.fhfa.gov/data/hpi",
+    color: "text-sky-400",
+    bg: "bg-sky-500/10",
+    badge: "bg-sky-500/10 text-sky-400",
+  },
+  {
     icon: <Gavel size={22} weight="fill" />,
     name: "Clerk of the US House, the FEC and USAspending",
     category: "Congress",

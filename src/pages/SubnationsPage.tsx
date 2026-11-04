@@ -79,6 +79,8 @@ const PlaceLaws = lazy(() => import("../components/PlaceLaws"));
 const CountyPay = lazy(() => import("../components/PayByJob").then((m) => ({ default: m.CountyPay })));
 /** What federal agencies award to recipients in a county, read live from USAspending.gov. */
 const FederalMoney = lazy(() => import("../components/FederalMoney"));
+/** A county's rents, by HUD, and its metropolitan area's house prices, by FHFA. */
+const CountyHousing = lazy(() => import("../components/HousingCosts").then((m) => ({ default: m.CountyHousing })));
 
 import { useLocation, useNavigate } from "react-router-dom";
 
@@ -1121,6 +1123,9 @@ function CountyWindow({ county, data, onBack, onClose }: { county: UsCounty; dat
           </Suspense>
           <PostalCodes entry={postal?.counties?.[fips]} cc="US" name={name} how="county" />
           {/* What each job pays in the area BLS counts the county in: the area's figures, at the foot with the state's and the country's. */}
+          <Suspense fallback={null}>
+            <CountyHousing fips={fips} name={name} />
+          </Suspense>
           <Suspense fallback={null}>
             <CountyPay fips={fips} />
           </Suspense>

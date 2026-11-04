@@ -30,6 +30,14 @@ export const DATA_LOG: DataLogEntry[] = [
     "files": 1
   },
   {
+    "what": "What homes rent and sell for: HUD's fair market rents in each county's rent area, and FHFA's house price index for each state and metro area (with static/housing/)",
+    "from": "US Department of Housing and Urban Development (Fair Market Rents FY2026); Federal Housing Finance Agency (House Price Index); US Census Bureau (metro delineations)",
+    "page": "/dashboard/states",
+    "where": "US States · Pay & prices; each county's window",
+    "read": "2026-11-04",
+    "files": 1
+  },
+  {
     "what": "The time zone of every place with a window: the time there now, beside its name (with static/tz/)",
     "from": "IANA Time Zone Database; timezone-boundary-builder (OpenStreetMap)",
     "page": "/dashboard/countries",
@@ -624,4 +632,4 @@ export const DATA_LOG: DataLogEntry[] = [
 ];
 
 /** How many data files the log covers. */
-export const DATA_LOG_FILES = 96;
+export const DATA_LOG_FILES = 97;
