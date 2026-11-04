@@ -46,6 +46,14 @@ export const DATA_LOG: DataLogEntry[] = [
     "files": 1
   },
   {
+    "what": "Sanctions: the people and companies on the US, UK and EU sanctions lists tied to each country, and the programmes they are listed under",
+    "from": "US Treasury (OFAC SDN list); UK FCDO (UK Sanctions List); European Commission (EU financial sanctions list)",
+    "page": "/dashboard/countries",
+    "where": "Countries · Government, defence & the world",
+    "read": "2026-11-04",
+    "files": 1
+  },
+  {
     "what": "What homes rent and sell for: HUD's fair market rents in each county's rent area, and FHFA's house price index for each state and metro area (with static/housing/)",
     "from": "US Department of Housing and Urban Development (Fair Market Rents FY2026); Federal Housing Finance Agency (House Price Index); US Census Bureau (metro delineations)",
     "page": "/dashboard/states",
@@ -648,4 +656,4 @@ export const DATA_LOG: DataLogEntry[] = [
 ];
 
 /** How many data files the log covers. */
-export const DATA_LOG_FILES = 99;
+export const DATA_LOG_FILES = 100;

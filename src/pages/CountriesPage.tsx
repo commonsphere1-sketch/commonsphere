@@ -32,6 +32,8 @@ const CountryEnergy = lazy(() => import("../components/EnergyPrices"));
 const MigrationPanel = lazy(() => import("../components/MigrationPanel"));
 /** The aid the country gives or receives: the OECD's official development assistance, as the World Bank publishes it. */
 const AidPanel = lazy(() => import("../components/AidPanel"));
+/** Who tied to the country is under sanctions: the US Treasury's, the UK's and the EU's lists, counted. */
+const SanctionsPanel = lazy(() => import("../components/SanctionsPanel"));
 /** What is illegal and legal in the country, as the UK Foreign Office's travel advice tells it: the head of its Law tab. */
 const Universities = lazy(() => import("../components/Universities"));
 /** The Sovereignty report: a panel with its own data, loaded when the Politics tab opens. */
@@ -1364,6 +1366,11 @@ function CountryModal({
                   {/* The aid it gives or receives. */}
                   <Suspense fallback={null}>
                     <AidPanel code={country.code} country={country.name} />
+                  </Suspense>
+
+                  {/* The people and companies tied to it on the US, UK and EU sanctions lists. */}
+                  <Suspense fallback={null}>
+                    <SanctionsPanel code={country.code} country={country.name} />
                   </Suspense>
                 </WindowGroup>
 

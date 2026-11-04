@@ -231,6 +231,16 @@ const DATA_SOURCES = [
     badge: "bg-orange-500/10 text-orange-400",
   },
   {
+    icon: <ShieldCheck size={22} weight="fill" />,
+    name: "US Treasury, UK FCDO and European Commission",
+    category: "Sanctions",
+    desc: "The official sanctions lists - OFAC's Specially Designated Nationals, the UK Sanctions List and the EU's financial sanctions list - counted by the country each entry is tied to.",
+    url: "https://ofac.treasury.gov/sanctions-list-service",
+    color: "text-rose-400",
+    bg: "bg-rose-500/10",
+    badge: "bg-rose-500/10 text-rose-400",
+  },
+  {
     icon: <Buildings size={22} weight="fill" />,
     name: "HUD and FHFA",
     category: "Rents & house prices",
