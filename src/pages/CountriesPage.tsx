@@ -26,6 +26,8 @@ const GovernmentFacts = lazy(() => import("../components/GovernmentFacts"));
 const PeoplePanel = lazy(() => import("../components/PeoplePanel"));
 /** What things cost in a country against the world and the EU: the ICP's and Eurostat's price levels. */
 const CountryPrices = lazy(() => import("../components/CostOfLiving"));
+/** What electricity, gas and fuel cost: EIA's for the United States, Eurostat's and the Weekly Oil Bulletin's for Europe. */
+const CountryEnergy = lazy(() => import("../components/EnergyPrices"));
 /** What is illegal and legal in the country, as the UK Foreign Office's travel advice tells it: the head of its Law tab. */
 const Universities = lazy(() => import("../components/Universities"));
 /** The Sovereignty report: a panel with its own data, loaded when the Politics tab opens. */
@@ -1320,6 +1322,11 @@ function CountryModal({
 
                 <WindowGroup title="Energy">
                   {/* The Transport panel stood here, above Energy, and was taken off as asked: it is kept below, not shown. */}
+
+                  {/* What electricity, gas and fuel cost there, by the bodies that publish them. */}
+                  <Suspense fallback={null}>
+                    <CountryEnergy code={country.code} country={country.name} />
+                  </Suspense>
 
                   {/* Energy */}
                   {country.energy && (

@@ -6042,6 +6042,8 @@ const PeoplePanel = lazy(() => import("../components/PeoplePanel"));
 const PayByJob = lazy(() => import("../components/PayByJob"));
 /** What things cost in the state against the nation, by BEA: at the head of the same tab. */
 const StatePrices = lazy(() => import("../components/CostOfLiving").then((m) => ({ default: m.StatePrices })));
+/** What electricity and fuel cost in the state, by EIA: in the same tab. */
+const StateEnergy = lazy(() => import("../components/EnergyPrices").then((m) => ({ default: m.StateEnergy })));
 /** What is illegal and legal in the United States, as the UK Foreign Office's travel advice tells it: under a state's own list. */
 
 function StateModal({
@@ -6216,11 +6218,12 @@ function StateModal({
             ))}
           </div>
 
-          {/* Tab: Pay & prices - what things cost in the state, by BEA, and what each job pays, by BLS's survey of employers. */}
+          {/* Tab: Pay & prices - what things cost in the state, by BEA, what electricity and fuel cost, by EIA, and what each job pays, by BLS's survey of employers. */}
           {activeTab === "pay" && (
             <div className="mt-4 space-y-4">
               <Suspense fallback={<p className="text-[11px] font-sans text-muted-foreground">Loading what things cost and what each job pays…</p>}>
                 <StatePrices abbr={state.abbreviation} name={state.name} />
+                <StateEnergy abbr={state.abbreviation} name={state.name} />
                 <PayByJob scope={{ kind: "state", abbr: state.abbreviation }} place={state.name} />
               </Suspense>
             </div>

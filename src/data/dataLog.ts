@@ -38,6 +38,14 @@ export const DATA_LOG: DataLogEntry[] = [
     "files": 1
   },
   {
+    "what": "What electricity, gas and fuel cost: each US state's electricity by sector and pump prices week by week, and each European country's household energy and pump prices",
+    "from": "US Energy Information Administration; Eurostat; European Commission (Weekly Oil Bulletin)",
+    "page": "/dashboard/states",
+    "where": "US States · Pay & prices; Countries · Energy",
+    "read": "2026-11-03",
+    "files": 1
+  },
+  {
     "what": "What things cost: each country's price level against the world's and the EU's average, and each US state's and metro area's against the nation's (with static/prices/)",
     "from": "World Bank (International Comparison Program 2021); Eurostat; US Bureau of Economic Analysis (Regional Price Parities)",
     "page": "/dashboard/countries",
@@ -608,4 +616,4 @@ export const DATA_LOG: DataLogEntry[] = [
 ];
 
 /** How many data files the log covers. */
-export const DATA_LOG_FILES = 94;
+export const DATA_LOG_FILES = 95;
