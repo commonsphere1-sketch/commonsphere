@@ -20,7 +20,7 @@
  * It is loaded when an official's detail is first shown, with its data, so
  * the States page does not carry either before then.
  */
-import { useState, type ReactNode } from "react";
+import { lazy, Suspense, useState, type ReactNode } from "react";
 import { ArrowSquareOut } from "@phosphor-icons/react";
 import { COMMITTEES, IDEOLOGY_REFERENCE, OFFICIAL_PROFILES, OFFICIAL_PROFILE_SOURCES as SRC, type Campaign } from "../data/officialProfiles";
 import { TONE } from "../lib/chipTone";
@@ -30,6 +30,9 @@ import { MeasureBars } from "./ModalCharts";
 import { SourceLink } from "./SourceLink";
 
 type Kind = "senator" | "representative" | "governor" | "mayor";
+
+/** How a member of the House voted, from the Clerk's roll calls: fetched when the profile is opened. */
+const HouseVotes = lazy(() => import("./HouseVotes"));
 
 /** Where approval of every holder of an office is tracked. The figures are the publisher's, for its subscribers; the pane links and copies none. */
 const APPROVAL_TRACKER: Partial<Record<Kind, { label: string; url: string }>> = {
@@ -249,6 +252,27 @@ export default function OfficialProfile({ t, id, kind, name, color }: { t: Token
           <Said t={t}>{member ? `Voteview has no score yet for ${name} in the 119th Congress.` : `None is published: Voteview's scores are drawn from votes in Congress, and a ${kind} casts none.`}</Said>
         )}
       </Block>
+
+      {/* How they voted: the House's roll calls for a representative; the Senate's are not held, and the pane says why. */}
+      {(kind === "representative" || kind === "senator") && (
+        <Block>
+          <Label t={t}>How they voted · the {kind === "representative" ? "House" : "Senate"}, 119th Congress</Label>
+          {kind === "representative" ? (
+            <Suspense fallback={<Said t={t}>Loading {name}'s votes…</Said>}>
+              <HouseVotes t={t} id={id} name={name} color={color} />
+            </Suspense>
+          ) : (
+            <>
+              <Said t={t}>
+                Not held. The Senate publishes each roll call on its own site, but that site refuses reads by a program such as the one that builds this site, and no copy of the Senate's votes is published under terms that let this site carry it - so none is shown, and nothing is put in its place.
+              </Said>
+              <Out href="https://www.senate.gov/legislative/votes_new.htm" color={color}>
+                The Senate's roll call votes
+              </Out>
+            </>
+          )}
+        </Block>
+      )}
 
       <Block>
         <Label t={t}>Approval rating</Label>

@@ -22,6 +22,14 @@ export interface DataLogEntry {
 
 export const DATA_LOG: DataLogEntry[] = [
   {
+    "what": "How each member of the House voted: every recorded vote of the 119th Congress (with static/votes/house/)",
+    "from": "Clerk of the US House of Representatives (roll call votes)",
+    "page": "/dashboard/states",
+    "where": "US States · each representative's profile",
+    "read": "2026-11-04",
+    "files": 1
+  },
+  {
     "what": "The time zone of every place with a window: the time there now, beside its name (with static/tz/)",
     "from": "IANA Time Zone Database; timezone-boundary-builder (OpenStreetMap)",
     "page": "/dashboard/countries",
@@ -616,4 +624,4 @@ export const DATA_LOG: DataLogEntry[] = [
 ];
 
 /** How many data files the log covers. */
-export const DATA_LOG_FILES = 95;
+export const DATA_LOG_FILES = 96;

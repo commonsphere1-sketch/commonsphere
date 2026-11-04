@@ -231,6 +231,16 @@ const DATA_SOURCES = [
     badge: "bg-orange-500/10 text-orange-400",
   },
   {
+    icon: <Gavel size={22} weight="fill" />,
+    name: "Clerk of the US House and the FEC",
+    category: "Congress",
+    desc: "How each member of the House voted on every recorded vote, from the Clerk's roll calls; and what each campaign has raised and spent, from the Federal Election Commission.",
+    url: "https://clerk.house.gov/Votes",
+    color: "text-red-400",
+    bg: "bg-red-500/10",
+    badge: "bg-red-500/10 text-red-400",
+  },
+  {
     icon: <CurrencyEur size={22} weight="fill" />,
     name: "European Central Bank",
     category: "Exchange rates",
