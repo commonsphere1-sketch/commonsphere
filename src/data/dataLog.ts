@@ -22,6 +22,14 @@ export interface DataLogEntry {
 
 export const DATA_LOG: DataLogEntry[] = [
   {
+    "what": "Foreign aid: what each donor gives and each country receives in official development assistance",
+    "from": "World Bank WDI (OECD Development Assistance Committee)",
+    "page": "/dashboard/countries",
+    "where": "Countries · Government, defence & the world",
+    "read": "2026-11-04",
+    "files": 1
+  },
+  {
     "what": "How each member of the House voted: every recorded vote of the 119th Congress (with static/votes/house/)",
     "from": "Clerk of the US House of Representatives (roll call votes)",
     "page": "/dashboard/states",
@@ -640,4 +648,4 @@ export const DATA_LOG: DataLogEntry[] = [
 ];
 
 /** How many data files the log covers. */
-export const DATA_LOG_FILES = 98;
+export const DATA_LOG_FILES = 99;

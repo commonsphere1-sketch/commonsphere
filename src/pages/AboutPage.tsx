@@ -83,8 +83,8 @@ const DATA_SOURCES = [
   {
     icon: <ChartBar size={22} weight="fill" />,
     name: "OECD",
-    category: "Tax & wages",
-    desc: "Statutory rates of corporate and personal income tax, year by year, and average wages.",
+    category: "Tax, wages & aid",
+    desc: "Statutory rates of corporate and personal income tax, year by year, average wages, and the official development assistance each donor gives and each country receives (through the World Bank).",
     url: "https://data.oecd.org",
     color: "text-blue-400",
     bg: "bg-blue-500/10",

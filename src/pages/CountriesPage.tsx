@@ -30,6 +30,8 @@ const CountryPrices = lazy(() => import("../components/CostOfLiving"));
 const CountryEnergy = lazy(() => import("../components/EnergyPrices"));
 /** Who has moved to and from the country: the UN's migrant stock and net migration, and remittances, as the World Bank publishes them. */
 const MigrationPanel = lazy(() => import("../components/MigrationPanel"));
+/** The aid the country gives or receives: the OECD's official development assistance, as the World Bank publishes it. */
+const AidPanel = lazy(() => import("../components/AidPanel"));
 /** What is illegal and legal in the country, as the UK Foreign Office's travel advice tells it: the head of its Law tab. */
 const Universities = lazy(() => import("../components/Universities"));
 /** The Sovereignty report: a panel with its own data, loaded when the Politics tab opens. */
@@ -1358,6 +1360,11 @@ function CountryModal({
 
                   {/* Its place in the United Nations: when it was admitted, its regional group, and its seat on the Security Council - the record, from the UN's own pages. */}
                   <UnPanel code={country.code} country={country.name} className="mb-4" />
+
+                  {/* The aid it gives or receives. */}
+                  <Suspense fallback={null}>
+                    <AidPanel code={country.code} country={country.name} />
+                  </Suspense>
                 </WindowGroup>
 
                 <WindowGroup title="How it scores">
