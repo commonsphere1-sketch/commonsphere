@@ -242,8 +242,11 @@ export function OutlineMap({
       const p = drawn.paths[0];
       cands.push({ key: "self", text: p.name, x: p.cx, y: p.cy, w: p.w, h: p.h, size: 12, weight: 700, rank: 0 });
     }
-    for (const d of drawn.dots) cands.push({ key: `d${d.id}`, text: d.name, x: d.x, y: d.y, size: 9, rank: 2, town: true });
-    for (const p of partAnchors) cands.push({ key: `p${p.i}`, text: p.text, x: p.cx, y: p.cy, w: p.w, h: p.h, size: 8.5, weight: 500, rank: 3 });
+    // Where every division is named, the towns' names - and the finer parts' (a state's counties) - wait until the map is
+    // drawn closer, as asked: whole, it names its divisions only, and a town's dot still gives its name when pointed at.
+    const closer = !(every && drawn.paths.length > 1) || view.k > 1;
+    if (closer) for (const d of drawn.dots) cands.push({ key: `d${d.id}`, text: d.name, x: d.x, y: d.y, size: 9, rank: 2, town: true });
+    if (closer) for (const p of partAnchors) cands.push({ key: `p${p.i}`, text: p.text, x: p.cx, y: p.cy, w: p.w, h: p.h, size: 8.5, weight: 500, rank: 3 });
     return placeLabels(cands, { x0: view.x - W / (2 * view.k), y0: view.y - H / (2 * view.k), x1: view.x + W / (2 * view.k), y1: view.y + H / (2 * view.k), k: view.k });
   }, [drawn, partAnchors, view, shortOf]);
   if (!drawn || !drawn.paths.length) return null;
