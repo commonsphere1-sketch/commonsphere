@@ -15,12 +15,13 @@
  * one line from one tracing. The United States' are the Census Bureau's
  * states and counties, which are one tracing already (us-atlas).
  *
- * A country's provinces are put together this way only where every district
- * says which province it lies in, and only where every province the site
- * lists comes out of it (alignedTo): otherwise some ground, or some
- * province, would be left out, and Natural Earth's outlines are kept, with
- * the districts' borders over them as before. A country with no districts
- * held draws none.
+ * A country's provinces are put together this way where all but a few of its
+ * districts say which province they lie in (the rest lie outside every
+ * province Natural Earth draws, so nothing is lost), and only where every
+ * province the site lists comes out of it (alignedTo): otherwise some ground,
+ * or some province, would be left out, and Natural Earth's outlines are kept,
+ * with the districts' borders over them as before. A country with no
+ * districts held draws none.
  */
 import { useEffect, useMemo, useState } from "react";
 import { feature, merge, mesh } from "topojson-client";
@@ -92,13 +93,18 @@ function ofCountry(cc: string, second: Admin2File, division?: string): SecondOrd
   /* A file whose districts do not share their edges (admin2Untiled) gives its borders in scraps: every edge of its districts is
      drawn instead, and its divisions are not put together from them - Natural Earth's outlines stand. */
   const loose = cc in ADMIN2_UNTILED;
-  // A country's divisions are put together only where every district says which it lies in: otherwise ground would be left out.
-  const whole = !loose && (Boolean(division) || kept.every((g) => parent(g)));
+  /* A country's divisions are put together from the districts placed in one. A district placed in none is one no point of
+     which falls in any of the country's Natural Earth divisions (build-admin2.cjs) - an islet off their coast, or ground
+     they give to another country (Taiwan in China's file, Crimea in Ukraine's) - so leaving it out leaves out nothing the
+     map drew before, and every border inside is then one line from one tracing. Where more than one in twenty are
+     unplaced, too much would go: Natural Earth's outlines stand, with the districts' borders over them. */
+  const unplaced = kept.filter((g) => !parent(g)).length;
+  const whole = !loose && (Boolean(division) || unplaced <= kept.length / 20);
   const names = division ? [division] : [...new Set(kept.map((g) => parent(g) ?? ""))].filter(Boolean);
   return {
     lines: at.map(({ i }) => second.shapes[i] as unknown as Outline),
     open: (i) => `/dashboard/subnations?open=district:${cc}:${at[i].i}`,
-    inner: loose ? mesh(second.topo, collection as never) : mesh(second.topo, collection as never, (a, b) => a !== b && parent(a as Named) === parent(b as Named)),
+    inner: loose ? mesh(second.topo, collection as never) : mesh(second.topo, collection as never, (a, b) => a !== b && Boolean(parent(a as Named)) && parent(a as Named) === parent(b as Named)),
     innerAll: loose ? mesh(second.topo, collection as never) : mesh(second.topo, collection as never, (a, b) => a !== b),
     outline: whole ? names.map((n) => asOutline(merge(second.topo, kept.filter((g) => parent(g) === n) as never), n)) : undefined,
     are: "districts",
