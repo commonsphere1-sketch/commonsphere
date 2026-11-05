@@ -9,6 +9,7 @@
  * Shares and margins are worked out here from the state's votes, and said to be.
  */
 import { useMemo, useState } from "react";
+import { StyledSelect } from "./StyledSelect";
 import { usStatesData } from "../data/statesData";
 import type { Outline } from "../lib/outlines";
 import { OTHER_INK, RACES_2026, holderOf, partyInk, standingOf, type Contest, type Midterms, type Office } from "../lib/elections2026";
@@ -113,6 +114,18 @@ export function MidtermsPanel({ t, data, office, onOffice }: { t: Tokens; data: 
     return all.filter((st) => (office === "house" ? districtsOf(data, st).length > 0 : !!stateLead(data, st, office))).sort((a, b) => (NAME_OF.get(a) ?? a).localeCompare(NAME_OF.get(b) ?? b));
   }, [data, office]);
   const missing = data && office !== "house" ? RACES_2026[office].filter((st) => !states.includes(st)) : [];
+  /* The state chosen in the dropdown, as asked: one race at a time, or every state's. A state with no race of the kind chosen gives way to the first that has one. */
+  const [pick, setPick] = useState("");
+  const chosen = pick === "all" ? "all" : states.includes(pick) ? pick : states[0] ?? "";
+  const shown = chosen === "all" ? states : states.filter((st) => st === chosen);
+  /** What a state's line in the dropdown says: who has won it or leads, or its districts. */
+  const sayOf = (st: string) => {
+    if (office === "house") return `${districtsOf(data, st).length} districts`;
+    const s = standingOf(data, st, office);
+    const who = (n: string) => n.split(/\s+\/\s+| and /)[0].split(" ").slice(-1)[0];
+    return s.called ? `${who(s.called.winner)} (${s.called.party}) called` : s.lead ? `${who(s.lead[0])} (${s.lead[1]}) leads the count` : "";
+  };
+  const options = [...states.map((st) => ({ value: st, label: `${NAME_OF.get(st) ?? st} · ${sayOf(st)}` })), ...(states.length > 1 ? [{ value: "all", label: `All ${states.length} states` }] : [])];
   const chip = (on: boolean) => ({ borderColor: on ? t.headText : t.gridLine, color: on ? t.headText : t.mutedText });
 
   if (data === undefined) return <p className="text-[10px] font-mono uppercase tracking-widest mt-3" style={{ color: t.mutedText }}>Reading the results…</p>;
@@ -141,8 +154,22 @@ export function MidtermsPanel({ t, data, office, onOffice }: { t: Tokens; data: 
         </span>
       </div>
 
+      {options.length > 0 && (
+        <div className="flex flex-wrap items-center gap-2">
+          <span className="text-xs font-sans" style={{ color: t.mutedText }}>
+            One state:
+          </span>
+          <span className="rounded-full border border-border px-3 py-1">
+            <StyledSelect value={chosen} onValueChange={setPick} options={options} ariaLabel="Which state's race to show" triggerClassName="!text-[12px] font-semibold !text-foreground" />
+          </span>
+          <span className="text-[10px] font-sans" style={{ color: t.mutedText }}>
+            {states.length} {office === "house" ? "with districts known here" : "with a race known here"}
+          </span>
+        </div>
+      )}
+
       <div>
-        {states.map((st) => {
+        {shown.map((st) => {
           if (office !== "house") {
             const c = data.states[st]?.contests.find((x) => x.office === office);
             return (
@@ -170,9 +197,12 @@ export function MidtermsPanel({ t, data, office, onOffice }: { t: Tokens; data: 
             const key = s.called ? `${s.called.party} called` : s.lead ? `${s.lead[1]} leads` : "";
             return key ? { ...a, [key]: (a[key] ?? 0) + 1 } : a;
           }, {});
+          // A state chosen alone opens on its districts; in the list of all, each opens on a press.
+          const alone = chosen === st;
+          const isOpen = alone || open === st;
           return (
             <div key={st} className="py-2" style={{ borderBottom: `1px solid ${t.gridLine}` }}>
-              <button type="button" onClick={() => setOpen((o) => (o === st ? null : st))} aria-expanded={open === st} className="w-full flex items-baseline justify-between gap-3 text-left cursor-pointer">
+              <button type="button" disabled={alone} onClick={() => setOpen((o) => (o === st ? null : st))} aria-expanded={isOpen} className={`w-full flex items-baseline justify-between gap-3 text-left ${alone ? "cursor-default" : "cursor-pointer"}`}>
                 <span className="text-[12px] font-semibold font-sans" style={{ color: t.headText }}>
                   {NAME_OF.get(st) ?? st} · {ds.length} districts known here
                 </span>
@@ -180,11 +210,11 @@ export function MidtermsPanel({ t, data, office, onOffice }: { t: Tokens; data: 
                   {Object.entries(tally)
                     .sort((a, b) => b[1] - a[1])
                     .map(([k, n]) => `${k} ${n}`)
-                    .join(" · ")}{" "}
-                  {open === st ? "▴" : "▾"}
+                    .join(" · ")}
+                  {alone ? "" : isOpen ? " ▴" : " ▾"}
                 </span>
               </button>
-              {open === st &&
+              {isOpen &&
                 ds.map((d) => {
                   const c = data.states[st]?.contests.find((x) => x.office === "house" && x.district === d);
                   return (
