@@ -80,8 +80,10 @@ export function loadFiner(code: string, order: 1 | 2): Promise<Finer[]> {
             })
           : loadAdmin2(code).then((file) => {
               if (!file) return [];
-              const parent = (g: unknown) => (g as { properties?: { p?: string } }).properties?.p ?? g;
-              FIRSTS.set(code, mesh(file.topo, file.topo.objects.a as never, (a, b) => a !== b && parent(a) !== parent(b)));
+              const parent = (g: unknown) => (g as { properties?: { p?: string } }).properties?.p;
+              // A division's border is an edge between districts of two divisions, or the edge of the ground placed in one; between two
+              // districts placed in none (ground Natural Earth gives another country, as Taiwan's in China's file) none is drawn.
+              FIRSTS.set(code, mesh(file.topo, file.topo.objects.a as never, (a, b) => a !== b && Boolean(parent(a) || parent(b)) && parent(a) !== parent(b)));
               return file.shapes.map((s, index): Finer => ({ code, order, name: s.properties.n, parent: s.properties.p, index, geo: s as unknown as FinerGeo }));
             });
     FILES.set(

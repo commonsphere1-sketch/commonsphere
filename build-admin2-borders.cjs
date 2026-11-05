@@ -55,7 +55,8 @@ const add = (code, topo, obj, parent) => {
   const whole = UNTILED.has(code);
   for (const o of whole ? [2] : [1, 2]) {
     // Where the districts do not fit together, every edge of them, once each: what they share would be scraps.
-    const lines = (whole ? mesh(topo, obj) : mesh(topo, obj, (a, b) => a !== b && (parent(a) === parent(b)) === (o === 2))).coordinates;
+    // Between two districts placed in no division - ground Natural Earth gives another country, as Taiwan's in China's file - nothing.
+    const lines = (whole ? mesh(topo, obj) : mesh(topo, obj, (a, b) => a !== b && Boolean(parent(a) || parent(b)) && (parent(a) === parent(b)) === (o === 2))).coordinates;
     if (!lines.length) continue;
     before += lines.reduce((n, l) => n + l.length, 0);
     const simplified = lines.map((l) => simplify(l, TOLERANCE)).filter((l) => l.length > 1);
@@ -71,8 +72,8 @@ let countries = 0;
 for (const file of fs.readdirSync(SRC).sort()) {
   if (!/^[A-Z]{2}\.json$/.test(file)) continue; // the manifest is not geometry
   const topo = JSON.parse(fs.readFileSync(path.join(SRC, file), "utf8"));
-  // The first-order division a district lies in is with it in the file; one that names none is its own.
-  add(file.replace(/\.json$/, ""), topo, topo.objects[Object.keys(topo.objects)[0]], (g) => g.properties?.p ?? g);
+  // The first-order division a district lies in is with it in the file; one placed in none has none (build-admin2-place.cjs).
+  add(file.replace(/\.json$/, ""), topo, topo.objects[Object.keys(topo.objects)[0]], (g) => g.properties?.p);
 }
 // The United States' counties, which are not among those files: the site draws them from us-atlas.
 {

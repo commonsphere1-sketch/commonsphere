@@ -3170,8 +3170,9 @@ export function WorldMapsPage() {
        borders are then Natural Earth's, and every edge of its districts is drawn. */
     if (focusCode in ADMIN2_UNTILED) return { first: focusMap.interior, finer: focusMap.path(mesh(second.topo, obj) as never) ?? "" };
     return {
-      first: focusMap.path(mesh(second.topo, obj, (a, b) => a !== b && parent(a) !== parent(b)) as never) ?? "",
-      finer: focusMap.path(mesh(second.topo, obj, (a, b) => a !== b && parent(a) === parent(b)) as never) ?? "",
+      // Between two districts placed in no division - ground Natural Earth gives another country, as Taiwan's in China's file - nothing is drawn.
+      first: focusMap.path(mesh(second.topo, obj, (a, b) => a !== b && Boolean(parent(a) || parent(b)) && parent(a) !== parent(b)) as never) ?? "",
+      finer: focusMap.path(mesh(second.topo, obj, (a, b) => a !== b && Boolean(parent(a)) && parent(a) === parent(b)) as never) ?? "",
     };
   }, [focusMap, second, focusCode]);
   /* The colour a country is drawn in on the world map, by its code: what the borders inside it are drawn in too. */
