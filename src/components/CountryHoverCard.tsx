@@ -4,8 +4,9 @@
  * the point under the pointer.
  *
  * The zone is the country's capital's, by the IANA time zone database (timeZones.ts); the time it shows now, summer time
- * and all, is worked out by the reader's browser from its own copy of the same database. The point is worked out here
- * from where the pointer is on the map, by the map's own projection.
+ * and all, is worked out by the reader's browser from its own copy of the same database, from the time now as the site's
+ * server has it (trueTime.ts) - not the reader's computer's clock alone, which can be set wrong. The point is worked out
+ * here from where the pointer is on the map, by the map's own projection.
  *
  * The card keeps its own state, set by the map through its handle, so that the pointer moving over a country redraws the
  * card alone and not the map.
@@ -110,7 +111,7 @@ export const CountryHoverCard = forwardRef<CountryHoverHandle>(function CountryH
           </>
         )}
       </dl>
-      <p className="text-[9px] font-sans text-muted-foreground leading-snug mt-1.5">Time by the IANA time zone database, worked out in your browser; the point under the pointer, worked out from the map.</p>
+      <p className="text-[9px] font-sans text-muted-foreground leading-snug mt-1.5">Time by the site&apos;s clock and the IANA time zone database, summer time and all; the point under the pointer, worked out from the map.</p>
     </div>,
     document.body,
   );

@@ -11,6 +11,7 @@
 import { Clock } from "@phosphor-icons/react";
 import { useEffect, useState } from "react";
 import { COUNTRY_ZONES, TZ_MULTI, ZONES, type TzFile } from "../data/timeZones";
+import { syncClock, trueNow } from "../lib/trueTime";
 
 export type ZoneOf =
   /** A country: the time at its capital, named by `at`. */
@@ -104,15 +105,22 @@ function useZone(of: ZoneOf): Found | null {
   return f?.key === key ? found(of, f.file) : null;
 }
 
-/** The time now, moved on at each new minute. */
+/** The time now - the server's, where it has been asked (trueTime.ts), not the reader's computer's alone - moved on at each new minute. */
 export function useMinute() {
-  const [now, setNow] = useState(() => new Date());
+  const [now, setNow] = useState(() => trueNow());
   useEffect(() => {
+    let live = true;
+    // Set right once the server has said the time.
+    void syncClock().then(() => live && setNow(trueNow()));
+    const wait = () => 60_000 - (trueNow().getTime() % 60_000) + 50;
     let timer = window.setTimeout(function tick() {
-      setNow(new Date());
-      timer = window.setTimeout(tick, 60_000 - (Date.now() % 60_000) + 50);
-    }, 60_000 - (Date.now() % 60_000) + 50);
-    return () => window.clearTimeout(timer);
+      setNow(trueNow());
+      timer = window.setTimeout(tick, wait());
+    }, wait());
+    return () => {
+      live = false;
+      window.clearTimeout(timer);
+    };
   }, []);
   return now;
 }
@@ -146,7 +154,7 @@ export function LocalTime({ of }: { of: ZoneOf }) {
   const said = [
     `${long}${found.at ? `, the time at ${found.at.replace(/\.$/, "")}` : ""}.`,
     offsets.length > 1 ? `Clocks there now show ${offsets.length} times, ${offset(offsets[0])} to ${offset(offsets[offsets.length - 1])}.` : "",
-    "Worked out in your browser from the IANA time zone database.",
+    "Worked out in your browser by the site's clock and the IANA time zone database, summer time and all.",
   ]
     .filter(Boolean)
     .join(" ");
