@@ -27,8 +27,8 @@ const features = [];
 let before = 0;
 let after = 0;
 for (const file of fs.readdirSync(SRC).sort()) {
-  // The manifest is not geometry; "-1" holds divisions with no country.
-  if (file === "manifest.json" || file === "-1.json") continue;
+  // A country's file only: the manifest and build-hires-admin1.cjs's list are not geometry, and "-1" holds divisions with no country.
+  if (!/^[A-Z]{2}\.json$/.test(file)) continue;
   const topo = JSON.parse(fs.readFileSync(path.join(SRC, file), "utf8"));
   const obj = topo.objects[Object.keys(topo.objects)[0]];
   const lines = mesh(topo, obj, (a, b) => a !== b).coordinates;
