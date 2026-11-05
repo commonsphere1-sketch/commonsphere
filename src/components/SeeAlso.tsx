@@ -1,6 +1,6 @@
 /**
  * "See also": from a place's window on one page to the same place's windows
- * on the others - its country profile, its economy, its leaders, its cities,
+ * on the others - its country profile, its economy, its leaders (its cities, no longer),
  * the states for the United States, and the map.
  *
  * Each window had its own row or none: a country's named its leaders and
@@ -19,6 +19,10 @@ import { LEADERS_BY_COUNTRY } from "../data/leaderIndex";
 import { citiesData } from "../data/citiesData";
 
 export type SeeAlsoKind = "country" | "economy" | "leaders" | "cities" | "states" | "map";
+
+/** The links to the country's profiled cities, taken off every window's row as asked - of the economy's window, then the
+ *  country's ("these two as well"). The code stays, switched off here, should they be wanted back. */
+const CITY_LINKS = false;
 
 const CHIP =
   "inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-medium font-sans border border-border text-foreground hover:bg-muted/60 transition-colors cursor-pointer";
@@ -51,7 +55,7 @@ export function SeeAlso({
   const country = has("country") ? COUNTRY_OF[code] : undefined;
   const economy = has("economy") ? ECONOMY_OF[code] : undefined;
   const leaders = has("leaders") ? (LEADERS_BY_COUNTRY[code] ?? []).filter((l) => l.id !== leaderId) : [];
-  const cities = has("cities") ? citiesData.filter((c) => c.countryCode === code && c.id !== cityId) : [];
+  const cities = CITY_LINKS && has("cities") ? citiesData.filter((c) => c.countryCode === code && c.id !== cityId) : [];
   const states = has("states") && code === "US";
   const map = has("map");
   if (!country && !economy && !leaders.length && !cities.length && !states && !map) return null;
