@@ -375,10 +375,10 @@ export function OutlineMap({
           />
         ))}
         <defs>
+          {/* One path of every outline, not one each: a clip of many paths was drawn coarsely once the map was drawn closer, and
+              cut the finer borders inside it to dots (Angola's districts, as seen). Their union under the nonzero rule is the same ground. */}
           <clipPath id={clipId}>
-            {drawn.paths.map((p) => (
-              <path key={p.key} d={p.d} />
-            ))}
+            <path d={drawn.paths.map((p) => p.d).join("")} />
           </clipPath>
         </defs>
         {/* The finer borders, over the fills and under the dots: thinner and fainter than the outlines they lie in, and kept inside them. */}
