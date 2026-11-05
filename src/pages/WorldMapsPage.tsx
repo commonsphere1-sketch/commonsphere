@@ -34,6 +34,7 @@ import {
 } from "@phosphor-icons/react";
 import { Link } from "react-router-dom";
 import { MapLabels, placeLabels, type LabelCandidate } from "../components/MapLabels";
+import { CountryHoverCard, type CountryHoverHandle } from "../components/CountryHoverCard";
 import { countriesData, type Country } from "../data/countriesData";
 import { flagColor } from "../lib/flagColor";
 import { REGIMES, REGIME_SOURCE, REGIME_TYPES } from "../data/regimes";
@@ -1623,6 +1624,8 @@ export function WorldMapsPage() {
   /* The conflicts and the disasters going on, as asked: each pinned on the world map while its chip is pressed. */
   const [live, setLive] = useState({ conflicts: false, hazards: false });
   const [pinTip, setPinTip] = useState<PinTip | null>(null);
+  /* The card by the pointer over a country on the world map, as asked: its name, its time and zone, and the point under the pointer. */
+  const card = useRef<CountryHoverHandle>(null);
   const [hovered, setHovered] = useState<{
     name: string;
     value: string;
@@ -3963,6 +3966,7 @@ export function WorldMapsPage() {
           figures, opened where the pointer came onto it (or under its chip).
           It takes no pointer events, so it cannot get between the pointer and
           the map. */}
+      <CountryHoverCard ref={card} />
       {/* The card of a conflict or a disaster pointed at on the world map, in the same glass as the picked-out place's. */}
       {pinTip && (
         <div
@@ -4220,14 +4224,16 @@ export function WorldMapsPage() {
                           : value !== null
                             ? activeCountry.format(value)
                             : "no data",
-                      cx,
-                      cy,
+                      // A country has the country card by the pointer instead of a title over the map, as asked (CountryHoverCard).
+                      ...(country ? {} : { cx, cy }),
                       continent: country?.continent,
                     });
                   }}
+                  onMouseMove={(e) => country && card.current?.show(e, country.code, country.name, worldPath.projection)}
                   onMouseLeave={() => {
                     pointOff();
                     setHovered(null);
+                    card.current?.hide();
                   }}
                 />
               );

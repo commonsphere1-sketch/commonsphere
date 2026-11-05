@@ -91,6 +91,7 @@ import type { Topology } from "topojson-specification";
 import worldTopo from "world-atlas/countries-110m.json";
 import statesTopo from "us-atlas/states-10m.json";
 import { CaretRight, MagnifyingGlassMinus, MagnifyingGlassPlus, MapTrifold } from "@phosphor-icons/react";
+import { CountryHoverCard, type CountryHoverHandle } from "./CountryHoverCard";
 import { countriesData } from "../data/countriesData";
 import { COUNTRY_INDICATORS } from "../data/countryIndicators";
 import { STATE_INDICATORS } from "../data/stateIndicators";
@@ -233,6 +234,8 @@ export default function PlaceAtlas() {
   /* How close the map is drawn, and where its middle is, in the map's own units: 1 is the whole of it. */
   const [view, setView] = useState({ k: 1, x: W / 2, y: H / 2 });
   const svgRef = useRef<SVGSVGElement | null>(null);
+  /* The card by the pointer over a country on the world's map, as asked: its name, its time and zone, and the point under the pointer. */
+  const card = useRef<CountryHoverHandle>(null);
   /** Kept on the map: no closer than twelve times, no further out than the whole, and never past an edge. */
   const held = (k: number, x: number, y: number) => {
     const z = Math.max(1, Math.min(MAX_K, k));
@@ -1086,6 +1089,7 @@ export default function PlaceAtlas() {
       <div className="grid grid-cols-1 lg:grid-cols-[minmax(0,1fr)_15rem] gap-3">
         {/* The map, and the place picked on its right where the list of places stood, as the Worldview page sets its column beside its map. */}
         <div className="min-w-0 relative">
+          <CountryHoverCard ref={card} />
           <svg
             ref={svgRef}
             viewBox={`${view.x - W / (2 * view.k)} ${view.y - H / (2 * view.k)} ${W / view.k} ${H / view.k}`}
@@ -1187,9 +1191,14 @@ export default function PlaceAtlas() {
                 strokeLinejoin="round"
                 onClick={s.go}
                 onMouseEnter={() => setHover(s.name)}
-                onMouseLeave={() => setHover(null)}
+                onMouseMove={level.kind === "world" && s.ref.kind === "country" && s.ref.code ? (e) => s.ref.kind === "country" && card.current?.show(e, s.ref.code, s.name, WORLD_PROJECTION) : undefined}
+                onMouseLeave={() => {
+                  setHover(null);
+                  card.current?.hide();
+                }}
               >
-                <title>{s.name}</title>
+                {/* A country on the world's map has the card instead. */}
+                {!(level.kind === "world" && s.ref.kind === "country") && <title>{s.name}</title>}
               </path>
             ))}
             {/* The world's smaller places, once it is drawn close enough for them: over their countries and in their countries' colour, a little dimmer at the edge, each pressed for itself. */}
@@ -1290,8 +1299,9 @@ export default function PlaceAtlas() {
               {view.k === 1 ? "1.0×" : `Reset · ${view.k.toFixed(1)}×`}
             </button>
           </div>
-          {/* The place pointed at, named beside the pointer as the windows' maps name theirs: its name, what it is, and that a press opens it. */}
-          {hover && (litShape || litDot) && (
+          {/* The place pointed at, named beside the pointer as the windows' maps name theirs: its name, what it is, and that a press opens it.
+              A country on the world's map has the country card instead (CountryHoverCard), as asked. */}
+          {hover && (litShape || litDot) && !(level.kind === "world" && !litDot && litShape?.ref.kind === "country") && (
             <div ref={tipRef} role="status" className="absolute left-0 top-0 z-10 pointer-events-none modal-glass border rounded-lg px-2.5 py-1.5 shadow-lg max-w-[16rem]" style={{ transform: tipPlace() }}>
               <p className="text-[12px] font-bold font-sans text-foreground leading-tight">{hover}</p>
               <p className="text-[10px] font-sans text-muted-foreground leading-snug mt-0.5">{about && item?.name === hover ? `${about.kicker} · press it to open` : "Press it to open"}</p>

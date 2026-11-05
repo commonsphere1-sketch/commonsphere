@@ -36,6 +36,7 @@
  */
 import { type ReactNode, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { ArrowCounterClockwise, MagnifyingGlassMinus, MagnifyingGlassPlus } from "@phosphor-icons/react";
+import { CountryHoverCard, type CountryHoverHandle } from "./CountryHoverCard";
 import { geoArea, geoContains, geoEqualEarth, geoGraticule10, geoPath } from "d3-geo";
 import type { Subnation } from "../data/subnations";
 import { ADMIN2_SOURCE, loadAdmin2, useAdmin2Manifest } from "../lib/admin2";
@@ -747,6 +748,8 @@ export default function WorldviewMap() {
   }, []);
   useEffect(() => () => void (gliding.current !== null && cancelAnimationFrame(gliding.current)), []);
   const svgRef = useRef<SVGSVGElement | null>(null);
+  /* The card by the pointer over a country, as asked: its name, its time and zone, and the point under the pointer. */
+  const card = useRef<CountryHoverHandle>(null);
   /* The borders inside the countries - states and provinces, then counties and districts - and the cities: the World Maps
      page's own files, fetched after the map is drawn. A file that does not come leaves the map without that layer. */
   const [inner, setInner] = useState<{ one: { c: string; d: string }[]; two: { c: string; d: string }[] }>({ one: [], two: [] });
@@ -923,6 +926,7 @@ export default function WorldviewMap() {
   const pickedName = SHAPES.find((s) => s.code === picked)?.name ?? picked;
   return (
     <>
+    <CountryHoverCard ref={card} />
     <section id="world-map" className="scroll-mt-36 rounded-2xl overflow-hidden" style={{ background: t.cardBg, border: t.cardBorder, boxShadow: t.cardShadow }} aria-label="The world, country by country">
       <div className="flex flex-wrap items-center gap-x-4 gap-y-2 px-4 py-3 border-b" style={{ borderColor: t.gridLine }}>
         <p className="text-[10px] font-mono uppercase tracking-widest" style={{ color: t.mutedText }}>
@@ -1009,10 +1013,12 @@ export default function WorldviewMap() {
                   stroke={s.code ? inkOf(s.code) : t.isLight ? "#cbd5e1" : "#3a3a44"}
                   strokeWidth={0.7 / view.k}
                   onMouseEnter={() => s.code && setHover(s.code)}
-                  onMouseLeave={() => setHover(null)}
-                >
-                  <title>{s.name}</title>
-                </path>
+                  onMouseMove={(e) => s.code && !drag.current?.moved && card.current?.show(e, s.code, s.name, PROJECTION)}
+                  onMouseLeave={() => {
+                    setHover(null);
+                    card.current?.hide();
+                  }}
+                />
               );
             })}
             {/* The borders inside each country, in its own colour and dimmer than its edge, kept inside the land as drawn here. */}

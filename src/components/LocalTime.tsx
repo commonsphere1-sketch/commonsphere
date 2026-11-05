@@ -105,7 +105,7 @@ function useZone(of: ZoneOf): Found | null {
 }
 
 /** The time now, moved on at each new minute. */
-function useMinute() {
+export function useMinute() {
   const [now, setNow] = useState(() => new Date());
   useEffect(() => {
     let timer = window.setTimeout(function tick() {
@@ -118,12 +118,12 @@ function useMinute() {
 }
 
 /** A zone's offset from UTC now, in minutes. */
-const minutesOf = (zone: string, now: Date) => {
+export const minutesOf = (zone: string, now: Date) => {
   const s = new Intl.DateTimeFormat("en-US", { timeZone: zone, timeZoneName: "longOffset" }).formatToParts(now).find((p) => p.type === "timeZoneName")?.value ?? "GMT";
   const m = s.match(/GMT([+-])(\d{2}):(\d{2})/);
   return m ? (m[1] === "-" ? -1 : 1) * (+m[2] * 60 + +m[3]) : 0;
 };
-const offset = (min: number) => `UTC${min < 0 ? "−" : "+"}${Math.floor(Math.abs(min) / 60)}${Math.abs(min) % 60 ? `:${String(Math.abs(min) % 60).padStart(2, "0")}` : ""}`;
+export const offset = (min: number) => `UTC${min < 0 ? "−" : "+"}${Math.floor(Math.abs(min) / 60)}${Math.abs(min) % 60 ? `:${String(Math.abs(min) % 60).padStart(2, "0")}` : ""}`;
 
 export function LocalTime({ of }: { of: ZoneOf }) {
   const found = useZone(of);
