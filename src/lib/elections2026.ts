@@ -92,6 +92,42 @@ export function holderOf(st: string, c: Contest): [string, string] | null {
   return r ? [r.name, letter(r.party)] : null;
 }
 
+const letterOf = (party: string) => (/^Democrat/.test(party) ? "D" : /^Republican/.test(party) ? "R" : "O");
+
+/**
+ * The balance of a chamber, as the counts stand - worked out here: the seats not up this year by the party their holder
+ * sits with (an independent who caucuses with a party counted with it), the races where each party leads the count, and
+ * the races not yet read. For the House every seat is up.
+ */
+export type Balance = { notUp: Record<"D" | "R" | "O", number>; leads: Record<"D" | "R" | "O", number>; unread: number; total: number; control: number };
+export function balanceOf(data: Midterms | null | undefined, office: Office): Balance {
+  const notUp = { D: 0, R: 0, O: 0 };
+  const leads = { D: 0, R: 0, O: 0 };
+  let up = 0;
+  if (office === "senate") {
+    for (const [id, o] of Object.entries(STATE_OFFICES))
+      for (const s of o.senators) {
+        const isUp = s.class === 2 || (["fl", "oh"].includes(id) && s.class === 3);
+        if (isUp) up++;
+        else notUp[letterOf(s.caucus ?? s.party)]++;
+      }
+  } else if (office === "governor") {
+    for (const [id, o] of Object.entries(STATE_OFFICES)) {
+      if (RACES_2026.governor.includes(id.toUpperCase())) up++;
+      else notUp[letterOf(o.governor.party)]++;
+    }
+  } else up = 435;
+
+  for (const s of Object.values(data?.states ?? {}))
+    for (const c of s.contests.filter((x) => x.office === office)) {
+
+      const total = c.cands.reduce((a, x) => a + x[2], 0);
+      if (total > 0) leads[c.cands[0][1] === "D" ? "D" : c.cands[0][1] === "R" ? "R" : "O"]++;
+    }
+  const total = office === "senate" ? 100 : office === "governor" ? 50 : 435;
+  return { notUp, leads, unread: Math.max(0, up - leads.D - leads.R - leads.O), total, control: office === "senate" ? 51 : office === "governor" ? 26 : 218 };
+}
+
 /**
  * The states with a Senate or a governor's race in 2026: for the Senate, each state holding a class 2 seat by the
  * congress-legislators data, and Florida's and Ohio's special elections; for governor, the 36 states whose constitutions

@@ -57,6 +57,7 @@ import PlaceFigures, { type PressedPlace } from "./PlaceFigures";
 import { NewsHistory } from "./NewsHistory";
 import { MidtermsPanel, midtermFill } from "./MidtermsPanel";
 import { useMidterms, type Office } from "../lib/elections2026";
+import { useElectionSeason } from "../lib/electionSeason";
 import { OccurrencePanel, type Occurrence } from "./OccurrencePanel";
 import { useGdacsLive, type HazardAlert } from "../lib/gdacsLive";
 import { alertInks, conflictInks, useConflictEvents } from "../lib/conflictEvents";
@@ -511,7 +512,9 @@ function AreaMiniMap({ t, code, country, place, city }: { t: Tokens; code: strin
   const countyGeo = place?.kind === "county" ? (place.geo as { geometry?: Outline["geometry"] } | undefined) : undefined;
   /* The 2026 midterms on the United States, as asked: each state in the colour of whoever leads its count, the counts under the map. */
   const usWhole = code === "US" && !place;
-  const [midterms, setMidterms] = useState(true);
+  // On while election season is on (Settings), and pressed on or off here for this map.
+  const [season] = useElectionSeason();
+  const [midterms, setMidterms] = useState(season);
   const [office, setOffice] = useState<Office>("senate");
   const counts = useMidterms(usWhole && midterms);
   return (

@@ -5,6 +5,7 @@ import { HeaderNav } from "./HeaderNav";
 import { SidebarNav } from "./SidebarNav";
 import { NotesPopup } from "./NotesPopup";
 import { CalendarPopup } from "./CalendarPopup";
+import { ElectionBroadcast } from "./ElectionBroadcast";
 
 /** Tablet widths: where the desktop sidebar shows (768px up) but the page is not yet desktop-wide. */
 const TABLET = "(max-width: 1023px)";
@@ -115,6 +116,8 @@ export function DashboardLayout() {
           }`}
           id="main-content"
         >
+          {/* Election season: the 2026 midterm counts at the head of every page while it is on. */}
+          <ElectionBroadcast />
           <Outlet />
         </main>
       </div>
