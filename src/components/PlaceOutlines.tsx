@@ -26,6 +26,10 @@ import { framed, outlineParts, placesWithin, useAdmin1, usePlacesFile, type Outl
 import { alignedTo, matchedTo, useSecondOrder } from "../lib/secondOrder";
 import { OutlineMap, placeDots, type MapDot } from "./OutlineMap";
 import { SourceLink } from "./SourceLink";
+import { usStatesData } from "../data/statesData";
+
+/** The US states' postal codes by name. */
+const STATE_CODE = new Map([...usStatesData.map((s) => [s.name, s.abbreviation] as const), ["District of Columbia", "DC"] as const]);
 
 const COLOR = "#0ea5e9";
 const NATURAL_EARTH = { label: "Natural Earth — admin-1 divisions (public domain)", url: "https://www.naturalearthdata.com/" };
@@ -85,6 +89,8 @@ export function CountryOutline({
 
         shapes={outlines ?? drawn}
         fillOf={fillOf}
+        // A US state's postal code, where its name does not fit.
+        shortOf={code === "US" ? (f) => STATE_CODE.get(f.properties.n ?? "") : undefined}
         frame={frame}
         inner={aligned ? second?.inner : second?.innerAll}
         parts={second?.lines}

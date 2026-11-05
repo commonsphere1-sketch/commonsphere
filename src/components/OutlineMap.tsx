@@ -76,7 +76,10 @@ export function OutlineMap({
   onDot,
   onShape,
   fillOf,
+  shortOf,
 }: {
+  /** A division's short name, where it has one - a US state's postal code - set where its full name does not fit. */
+  shortOf?: (shape: Outline) => string | undefined;
   /** A fill of its own for an outline - a state in the colour of the party leading its count - where it has one; the others keep the map's. */
   fillOf?: (shape: Outline) => string | undefined;
   /** What is drawn: one outline, or several side by side - a country's divisions. */
@@ -230,7 +233,10 @@ export function OutlineMap({
     if (!drawn) return [];
     const cands: LabelCandidate[] = [];
     if (drawn.mark) cands.push({ key: "mark", text: drawn.mark.name, x: drawn.mark.x, y: drawn.mark.y, size: 11, weight: 700, rank: 0, town: true });
-    if (drawn.paths.length > 1) for (const p of drawn.paths) if (p.name) cands.push({ key: `s${p.key}`, text: p.name, x: p.cx, y: p.cy, w: p.w, h: p.h, size: 10, rank: 1 });
+    // Every division named, as asked - shrunk to fit, its short form, or beside the map with a line to it - where the map
+    // draws few enough for that to read (a country's states, not its hundreds of counties).
+    const every = drawn.paths.length <= 60;
+    if (drawn.paths.length > 1) for (const p of drawn.paths) if (p.name) cands.push({ key: `s${p.key}`, text: p.name, x: p.cx, y: p.cy, w: p.w, h: p.h, size: 10, rank: 1, always: every ? { short: shortOf?.(p.shape), min: 7.5 } : undefined });
     // A map of one place carries its name across its middle, as asked, where no place in it is marked.
     else if (!drawn.mark && drawn.paths[0]?.name) {
       const p = drawn.paths[0];
@@ -239,7 +245,7 @@ export function OutlineMap({
     for (const d of drawn.dots) cands.push({ key: `d${d.id}`, text: d.name, x: d.x, y: d.y, size: 9, rank: 2, town: true });
     for (const p of partAnchors) cands.push({ key: `p${p.i}`, text: p.text, x: p.cx, y: p.cy, w: p.w, h: p.h, size: 8.5, weight: 500, rank: 3 });
     return placeLabels(cands, { x0: view.x - W / (2 * view.k), y0: view.y - H / (2 * view.k), x1: view.x + W / (2 * view.k), y1: view.y + H / (2 * view.k), k: view.k });
-  }, [drawn, partAnchors, view]);
+  }, [drawn, partAnchors, view, shortOf]);
   if (!drawn || !drawn.paths.length) return null;
   // Only those in view are drawn: a country has thousands.
   const vx0 = view.x - W / (2 * view.k);
