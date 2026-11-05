@@ -1384,11 +1384,11 @@ function CountryModal({
 
           {activeTab === "overview" && (
             <>
-              {/* Each of its figures beside the average of every country, with how each is measured, as asked. */}
-              {!country.uninhabited && <div className="mb-4"><AgainstAverage rows={countryAverageRows(country.code)} peers={COUNTRY_PEERS} /></div>}
               {!country.uninhabited && <PublicServicesSection code={country.code} name={country.name} />}
               <TerritoriesSection country={country} onOpenCode={onOpenCode} />
               <GeographySection country={country} />
+              {/* Each of its figures beside the average of every country, with how each is measured: at the foot of the window, as asked. */}
+              {!country.uninhabited && <div className="mt-4"><AgainstAverage rows={countryAverageRows(country.code)} peers={COUNTRY_PEERS} /></div>}
             </>
           )}
         </div>

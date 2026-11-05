@@ -6265,11 +6265,6 @@ function StateModal({
                 {/* The state as the site's maps draw it, with the places listed inside it: the map every window of a place opens on. */}
                 <StateOutline name={state.name} />
 
-                {/* Each of its figures beside the average of the fifty states, with how each is measured, as asked. */}
-                <div className="my-4">
-                  <AgainstAverage rows={stateAverageRows(state.id)} peers={STATE_PEERS} color="#3b82f6" />
-                </div>
-
                 {/* Key Stats — organized by category */}
 
                 {/* ── ECONOMIC ── */}
@@ -6526,6 +6521,11 @@ function StateModal({
                   {onOfficial && <p className="text-[10px] font-sans text-muted-foreground leading-snug mt-2">Press a governor, a senator or a representative to open them in the list of elected officials on this page, with their education, career and own site.</p>}
                   <SourceLink sources={SRC_CONGRESS} className="mt-3" />
                 </WindowGroup>
+
+                {/* Each of its figures beside the average of the fifty states, with how each is measured: at the foot of the window, as asked. */}
+                <div className="mt-4">
+                  <AgainstAverage rows={stateAverageRows(state.id)} peers={STATE_PEERS} color="#3b82f6" />
+                </div>
               </>
             ) /* end overview tab */
           }

@@ -297,9 +297,6 @@ function CityWindow({ c, onBack, onClose }: { c: UnCity; /** Back to its country
                 </div>
               </Section>
 
-              {/* Each of its figures beside the average of every city the UN counts, with how each is measured, as asked. */}
-              <AgainstAverage rows={cityAverageRows(c)} peers={`the ${UN_CITIES.length.toLocaleString("en-US")} cities the UN counts`} color={flagColor(cc) ?? COLOR} />
-
               <WindowGroup title="The city in figures" bodyClass="space-y-4">
                 {/* The city's own figures, set out and worked through: everything the UN gives for it, year by year. Until its file is in, or where it has none, the four figures the list carries are drawn. */}
                 <CityAnalysis
@@ -379,6 +376,9 @@ function CityWindow({ c, onBack, onClose }: { c: UnCity; /** Back to its country
                 {/* The indexes its country is scored on: the reference detail, last. */}
                 <PlaceIndexes code={cc} country={land} place={name} />
               </WindowGroup>
+
+              {/* Each of its figures beside the average of every city the UN counts, with how each is measured: at the foot of the window, as asked. */}
+              <AgainstAverage rows={cityAverageRows(c)} peers={`the ${UN_CITIES.length.toLocaleString("en-US")} cities the UN counts`} color={flagColor(cc) ?? COLOR} />
             </div>
           )}
 

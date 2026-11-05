@@ -1251,8 +1251,6 @@ function EconomyModal({
           {/* ── ALL SECTIONS ── */}
           {tab === "overview" && (
           <div className="mt-4 space-y-4 animate-fade-in">
-            {/* Each of its figures beside the average of every country's economy, with how each is measured, as asked. */}
-            {!economy.noFiguresReason && <AgainstAverage rows={economyAverageRows(economy.id)} peers={ECONOMY_PEERS} color="#0ea5e9" />}
             {/* ════════════════════════════════════════
                 SECTION: OVERVIEW
             ════════════════════════════════════════ */}
@@ -1733,8 +1731,11 @@ function EconomyModal({
             </div>
             </>)}
 
-            {/* The largest companies based there, by name: the last thing on the Overview, as asked. */}
+            {/* The largest companies based there, by name. */}
             <EconomyCompanies economy={economy} />
+
+            {/* Each of its figures beside the average of every country's economy, with how each is measured: at the foot of the window, as asked. */}
+            {!economy.noFiguresReason && <AgainstAverage rows={economyAverageRows(economy.id)} peers={ECONOMY_PEERS} color="#0ea5e9" />}
           </div>
           )}
 

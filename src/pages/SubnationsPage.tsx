@@ -889,8 +889,6 @@ function SubnationWindow({ s, onBack, onClose, onCounties }: { s: Subnation; /**
       {/* Overview: all about the division itself - where it stands among its country's, and its own record in its eight parts. */}
       {tab === "overview" && (
         <>
-          {/* Each of its figures beside the average of its country's divisions, with how each is measured, as asked. */}
-          <AgainstAverage rows={divisionAverageRows(s, peers)} peers={`${c?.name ?? s.cc}'s ${peers.length} divisions`} color={flagColor(s.cc) ?? COLOR} />
           {!state && peers.length > 1 && (peopleAt > 0 || areaAt > 0) && (
             <section>
               <div className="flex items-center gap-2 mb-1.5">
@@ -921,6 +919,8 @@ function SubnationWindow({ s, onBack, onClose, onCounties }: { s: Subnation; /**
           <PeoplePanel code={s.cc} country={c?.name ?? s.cc} place={s.name} />
           {/* The indexes its country is scored on, last, as in every window: none is published for a division, and the panel says whose they are. */}
           <PlaceIndexes code={s.cc} country={c?.name ?? s.cc} place={s.name} />
+          {/* Each of its figures beside the average of its country's divisions, with how each is measured: at the foot of the window, as asked. */}
+          <AgainstAverage rows={divisionAverageRows(s, peers)} peers={`${c?.name ?? s.cc}'s ${peers.length} divisions`} color={flagColor(s.cc) ?? COLOR} />
           <div>
             <p className="text-[10px] font-bold font-sans text-muted-foreground uppercase tracking-widest mb-1">Where to read more</p>
 
@@ -1112,8 +1112,6 @@ function CountyWindow({ county, data, onBack, onClose }: { county: UsCounty; dat
       )}
       {tab === "overview" && (
         <>
-          {/* Each of its figures beside the average of every US county, with how each is measured, as asked. */}
-          <AgainstAverage rows={countyAverageRows(county, data)} peers={`the ${whole(data.US_COUNTIES.length)} US counties`} color="#3b82f6" />
           {inOrder(parts).map((p) => (
             <Section key={p.title} part={p} />
           ))}
@@ -1134,6 +1132,8 @@ function CountyWindow({ county, data, onBack, onClose }: { county: UsCounty; dat
           {state && <StatePeoplePanel stateId={state.id} name={state.name} place={name} />}
           <PeoplePanel code="US" country="United States" place={name} />
           <PlaceIndexes code="US" country="United States" place={name} />
+          {/* Each of its figures beside the average of every US county, with how each is measured: at the foot of the window, as asked. */}
+          <AgainstAverage rows={countyAverageRows(county, data)} peers={`the ${whole(data.US_COUNTIES.length)} US counties`} color="#3b82f6" />
         </>
       )}
       {/* Laws: the law the place is under - its country's, said to be so - with what is illegal and legal there first. */}
