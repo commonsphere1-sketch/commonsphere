@@ -23,7 +23,7 @@ function raceOf(title: string): Pick<Contest, "office" | "special" | "district">
   const t = title.replace(/\s+/g, " ").trim();
   if (/^(United States Senator|US SENATE|U\.S\. Senator)/i.test(t)) return { office: "senate", special: /unexpired|special/i.test(t) };
   if (/^Governor\b/i.test(t)) return { office: "governor" };
-  const h = t.match(/(?:United States Representative|Representative to the \d+(?:st|nd|rd|th) United States Congress|US HOUSE OF REPRESENTATIVES|U\.S\. Representative)\D*District (\d+)/i);
+  const h = t.match(/(?:United States Representative|Representative to the \d+(?:st|nd|rd|th) United States Congress|US HOUSE OF REPRESENTATIVES|U\.S\. Representative|Representative in Congress)\D*District (\d+)/i);
   return h ? { office: "house", district: +h[1] } : null;
 }
 const PARTY: Record<string, string> = { REP: "R", DEM: "D" };
