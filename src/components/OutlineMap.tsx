@@ -276,7 +276,9 @@ export function OutlineMap({
       <svg
         ref={setSvgEl}
         viewBox={`${view.x - W / (2 * view.k)} ${view.y - H / (2 * view.k)} ${W / view.k} ${H / view.k}`}
-        className="w-full h-auto modal-tile rounded-xl outline-none focus-visible:ring-2 focus-visible:ring-secondary/60"
+        // No tile of its own, as asked: the map lies on the window or section it is in, its buttons over it. Its corners are
+        // given by measure, not .rounded-xl, which the stylesheet gives a card's edge and shadow - only the focus ring is drawn round.
+        className="w-full h-auto rounded-[12px] outline-none focus-visible:ring-2 focus-visible:ring-secondary/60"
         // One finger scrolls the window over a map that is whole and moves one that is drawn closer; two are always the map's, to pinch.
         style={{ touchAction: view.k > 1 ? "none" : "pan-y", cursor: view.k > 1 ? "grab" : undefined }}
         role="img"
