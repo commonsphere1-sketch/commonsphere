@@ -13,7 +13,7 @@ import { useNavigate } from "react-router-dom";
 import { CaretDown, CaretUp, X } from "@phosphor-icons/react";
 import { useWatchlist } from "../contexts/WatchlistContext";
 import { usStatesData } from "../data/statesData";
-import { balanceOf, partyInk, useMidterms, type Balance, type Midterms, type Office } from "../lib/elections2026";
+import { balanceOf, partyInk, standingOf, useMidterms, type Balance, type Midterms } from "../lib/elections2026";
 import { useElectionSeason } from "../lib/electionSeason";
 
 const D = "#3b82f6";
@@ -23,8 +23,9 @@ const NAME_OF = new Map(usStatesData.map((s) => [s.abbreviation, s.name]));
 /** One chamber's balance: the seats not up and the leads of each party from either end, the unread between, control marked. */
 function PowerBar({ label, b }: { label: string; b: Balance }) {
   const at = (n: number) => `${(100 * n) / b.total}%`;
-  const dAll = b.notUp.D + b.leads.D;
-  const rAll = b.notUp.R + b.leads.R;
+  // Seats a party holds and does not defend, with the races called for it: firm; its leads in the count beside.
+  const dAll = b.notUp.D + b.won.D;
+  const rAll = b.notUp.R + b.won.R;
   const seg = (w: number, color: string, faint: boolean, title: string) =>
     w > 0 ? <span title={title} className="h-full" style={{ width: at(w), background: faint ? `color-mix(in srgb, ${color} 45%, transparent)` : color }} /> : null;
   return (
@@ -32,26 +33,27 @@ function PowerBar({ label, b }: { label: string; b: Balance }) {
       <div className="flex items-baseline justify-between gap-2 text-[10px] font-mono">
         <span className="font-semibold" style={{ color: D }}>
           D {dAll}
+          {b.leads.D ? <span className="font-normal text-muted-foreground"> +{b.leads.D} leading</span> : null}
         </span>
         <span className="uppercase tracking-widest text-muted-foreground truncate">{label}</span>
         <span className="font-semibold" style={{ color: R }}>
-          R {rAll}
+          {b.leads.R ? <span className="font-normal text-muted-foreground">{b.leads.R} leading+ </span> : null}R {rAll}
         </span>
       </div>
       <div className="relative mt-1">
-        <div className="flex h-2.5 rounded-full overflow-hidden text-foreground" style={{ background: "color-mix(in srgb, currentColor 7%, transparent)" }} role="img" aria-label={`${label}: Democrats ${b.notUp.D} not up and ${b.leads.D} leading, Republicans ${b.notUp.R} not up and ${b.leads.R} leading, ${b.unread} not yet read; ${b.control} for control`}>
-          {seg(b.notUp.D, D, false, `Democratic, not up this year: ${b.notUp.D}`)}
-          {seg(b.leads.D, D, true, `Democratic leads in the count: ${b.leads.D}`)}
-          {seg(b.unread + b.notUp.O + b.leads.O, "transparent", false, `Not yet read, or neither party: ${b.unread + b.notUp.O + b.leads.O}`)}
-          {seg(b.leads.R, R, true, `Republican leads in the count: ${b.leads.R}`)}
-          {seg(b.notUp.R, R, false, `Republican, not up this year: ${b.notUp.R}`)}
+        <div className="flex h-2.5 rounded-full overflow-hidden text-foreground" style={{ background: "color-mix(in srgb, currentColor 7%, transparent)" }} role="img" aria-label={`${label}: Democrats ${b.notUp.D} not up, ${b.won.D} called and ${b.leads.D} leading; Republicans ${b.notUp.R} not up, ${b.won.R} called and ${b.leads.R} leading; ${b.unread} not yet known; ${b.control} for control`}>
+          {seg(b.notUp.D + b.won.D, D, false, `Democratic: ${b.notUp.D} not up this year, ${b.won.D} called`)}
+          {seg(b.leads.D, D, true, `Democratic leads in the count, not yet called: ${b.leads.D}`)}
+          {seg(b.unread + b.notUp.O + b.won.O + b.leads.O, "transparent", false, `Not yet known here, or neither party: ${b.unread + b.notUp.O + b.won.O + b.leads.O}`)}
+          {seg(b.leads.R, R, true, `Republican leads in the count, not yet called: ${b.leads.R}`)}
+          {seg(b.notUp.R + b.won.R, R, false, `Republican: ${b.notUp.R} not up this year, ${b.won.R} called`)}
         </div>
         {/* Where control lies, from either end. */}
         <span aria-hidden className="absolute -top-0.5 -bottom-0.5 w-px bg-foreground" style={{ left: at(b.control) }} />
         <span aria-hidden className="absolute -top-0.5 -bottom-0.5 w-px bg-foreground" style={{ left: `calc(100% - ${at(b.control)})` }} />
       </div>
       <p className="text-[9px] font-mono text-muted-foreground mt-0.5 truncate">
-        {b.unread} not yet read · {b.control} of {b.total} for control
+        {b.unread} not yet known · {b.control} of {b.total} for control
       </p>
     </div>
   );
@@ -59,23 +61,21 @@ function PowerBar({ label, b }: { label: string; b: Balance }) {
 
 /** A followed state's races as its count stands: who leads each. */
 function Followed({ data, st }: { data: Midterms | null | undefined; st: string }) {
-  const s = data?.states[st];
-  const lead = (o: Office) => {
-    const c = s?.contests.find((x) => x.office === o);
-    const total = c ? c.cands.reduce((a, x) => a + x[2], 0) : 0;
-    return c && total ? c.cands[0] : null;
-  };
-  const races = (["senate", "governor"] as const).map((o) => [o, lead(o)] as const).filter(([, l]) => l);
+  // Each statewide race: its call, else its leader in the state's count (marked so).
+  const races = (["senate", "governor"] as const).flatMap((o) => {
+    const s = standingOf(data, st, o);
+    return s.called ? [{ o, name: s.called.winner, party: s.called.party, called: true }] : s.lead ? [{ o, name: s.lead[0], party: s.lead[1], called: false }] : [];
+  });
   return (
     <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full border border-border text-[10px] font-sans whitespace-nowrap">
       <span className="font-semibold text-foreground">{NAME_OF.get(st) ?? st}</span>
-      {!s && <span className="text-muted-foreground">not read yet</span>}
-      {s && !races.length && <span className="text-muted-foreground">its House districts</span>}
-      {races.map(([o, l]) => (
-        <span key={o} className="inline-flex items-center gap-1 text-muted-foreground">
-          {o === "senate" ? "Sen" : "Gov"}
-          <span aria-hidden className="w-1.5 h-1.5 rounded-full" style={{ background: partyInk(l![1]) }} />
-          <span className="text-foreground">{l![0].split(/\s+\/\s+| and /)[0].split(" ").slice(-1)[0]}</span>
+      {!races.length && <span className="text-muted-foreground">no Senate or governor's race known here</span>}
+      {races.map((r) => (
+        <span key={r.o} className="inline-flex items-center gap-1 text-muted-foreground">
+          {r.o === "senate" ? "Sen" : "Gov"}
+          <span aria-hidden className="w-1.5 h-1.5 rounded-full" style={{ background: r.called ? partyInk(r.party) : `${partyInk(r.party)}80` }} />
+          <span className="text-foreground">{r.name.split(/\s+\/\s+| and /)[0].split(" ").slice(-1)[0]}</span>
+          {r.called ? "won" : "leads"}
         </span>
       ))}
     </span>
@@ -102,7 +102,7 @@ export function ElectionBroadcast() {
           Midterms 2026 · the states&apos; counts
         </span>
         <span className="text-[10px] font-sans text-muted-foreground">
-          {data === undefined ? "reading…" : data === null ? "could not be read just now" : `${read} states read so far, unofficial until certified`}
+          {data === undefined ? "reading…" : data === null ? "could not be read just now" : `races called by news organisations, per Wikipedia · ${read} states' own counts read, unofficial until certified`}
         </span>
         <span className="flex items-center gap-1.5 ml-auto">
           <button type="button" onClick={() => navigate("/dashboard/worldview")} className="px-2.5 py-0.5 rounded-full text-[10px] font-sans border border-border text-foreground hover:bg-muted/60 transition-colors cursor-pointer">
@@ -133,7 +133,7 @@ export function ElectionBroadcast() {
       )}
       {open && (
         <p className="text-[10px] font-sans text-muted-foreground leading-snug mt-2">
-          Each state&apos;s count is read from its own official results site and is unofficial until it certifies; no race is called here. On each bar the full colour is the seats not up this year, by the party their holder sits with; the lighter colour is the races a party leads in the count; grey is the races not yet read here, or held by neither party. The two marks are where control lies from either end - a 50-50 Senate is decided by the Vice President&apos;s vote. Worked out here from the states&apos; counts and the seats not up. Turn this off, or on again, in Settings.
+          A race is shown as won where news organisations have called it, as Wikipedia records it - and only where Wikipedia&apos;s national article and the race&apos;s own agree; a state&apos;s count is read from its own official results site and is unofficial until it certifies. On each bar the full colour is the seats not up this year, by the party their holder sits with, and the races called for that party; the lighter colour is the races a party leads in the state&apos;s count, not yet called; grey is the races not yet known here, or held by neither party. The two marks are where control lies from either end - a 50-50 Senate is decided by the Vice President&apos;s vote. Worked out here from the states&apos; counts and the seats not up. Turn this off, or on again, in Settings.
         </p>
       )}
     </section>
