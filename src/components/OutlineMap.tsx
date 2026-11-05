@@ -75,7 +75,10 @@ export function OutlineMap({
   label,
   onDot,
   onShape,
+  fillOf,
 }: {
+  /** A fill of its own for an outline - a state in the colour of the party leading its count - where it has one; the others keep the map's. */
+  fillOf?: (shape: Outline) => string | undefined;
   /** What is drawn: one outline, or several side by side - a country's divisions. */
   shapes: Outline[];
   /** No longer used: a place in parts that lie apart is shown a part at a time (outlineParts), and one whose parts lie together whole. Kept so that the windows that pass it need not change. */
@@ -348,8 +351,8 @@ export function OutlineMap({
           <path
             key={p.key}
             d={p.d}
-            fill={color}
-            fillOpacity={litPath?.key === p.key ? 0.62 : 0.28}
+            fill={fillOf?.(p.shape) ?? color}
+            fillOpacity={fillOf?.(p.shape) ? (litPath?.key === p.key ? 0.95 : 0.72) : litPath?.key === p.key ? 0.62 : 0.28}
             stroke={color}
             strokeWidth={many ? 0.8 : 1.4}
             vectorEffect="non-scaling-stroke"

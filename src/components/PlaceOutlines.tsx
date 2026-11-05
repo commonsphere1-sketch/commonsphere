@@ -22,7 +22,7 @@ import { useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import { PLACES_SOURCE } from "../data/placesIndex";
 import { flagColor } from "../lib/flagColor";
-import { framed, outlineParts, placesWithin, useAdmin1, usePlacesFile } from "../lib/outlines";
+import { framed, outlineParts, placesWithin, useAdmin1, usePlacesFile, type Outline } from "../lib/outlines";
 import { alignedTo, matchedTo, useSecondOrder } from "../lib/secondOrder";
 import { OutlineMap, placeDots, type MapDot } from "./OutlineMap";
 import { SourceLink } from "./SourceLink";
@@ -41,7 +41,10 @@ export function CountryOutline({
   className = "mb-4",
   onDot,
   color,
+  fillOf,
 }: {
+  /** A fill of its own for a division, where it has one (OutlineMap). */
+  fillOf?: (shape: Outline) => string | undefined;
   /** The country's ISO code. */
   code: string;
   name: string;
@@ -81,6 +84,7 @@ export function CountryOutline({
         onShape={(f) => f.properties.n && navigate(`/dashboard/subnations?country=${code}&name=${encodeURIComponent(f.properties.n)}`)}
 
         shapes={outlines ?? drawn}
+        fillOf={fillOf}
         frame={frame}
         inner={aligned ? second?.inner : second?.innerAll}
         parts={second?.lines}

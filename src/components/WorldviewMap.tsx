@@ -55,6 +55,8 @@ import { SourceLink } from "./SourceLink";
 import CountryDashboard, { headlineOf } from "./CountryDashboard";
 import PlaceFigures, { type PressedPlace } from "./PlaceFigures";
 import { NewsHistory } from "./NewsHistory";
+import { MidtermsPanel, midtermFill } from "./MidtermsPanel";
+import { useMidterms, type Office } from "../lib/elections2026";
 import { OccurrencePanel, type Occurrence } from "./OccurrencePanel";
 import { useGdacsLive, type HazardAlert } from "../lib/gdacsLive";
 import { alertInks, conflictInks, useConflictEvents } from "../lib/conflictEvents";
@@ -507,12 +509,28 @@ function AreaMiniMap({ t, code, country, place, city }: { t: Tokens; code: strin
   const what =
     place?.kind === "region" ? place.name : place?.kind === "county" ? [place.name, place.parent].filter(Boolean).join(", ") : place?.kind === "city" ? place.name : country;
   const countyGeo = place?.kind === "county" ? (place.geo as { geometry?: Outline["geometry"] } | undefined) : undefined;
+  /* The 2026 midterms on the United States, as asked: each state in the colour of whoever leads its count, the counts under the map. */
+  const usWhole = code === "US" && !place;
+  const [midterms, setMidterms] = useState(true);
+  const [office, setOffice] = useState<Office>("senate");
+  const counts = useMidterms(usWhole && midterms);
   return (
     <section className="rounded-xl flex flex-col min-w-0" style={{ background: t.cardBg, border: t.cardBorder }} aria-label={`Where ${what} is`}>
       <div className="flex items-baseline gap-2 px-3.5 pt-3 pb-2 border-b" style={{ borderColor: t.gridLine }}>
         <h3 className="text-[10px] font-mono uppercase tracking-widest flex-1 min-w-0 truncate" style={{ color: t.headText }}>
           Where it is · {what}
         </h3>
+        {usWhole && (
+          <button
+            type="button"
+            onClick={() => setMidterms((v) => !v)}
+            aria-pressed={midterms}
+            className="px-2.5 py-0.5 rounded-full text-[10px] font-sans border transition-colors cursor-pointer shrink-0"
+            style={{ borderColor: midterms ? t.headText : t.gridLine, color: midterms ? t.headText : t.mutedText }}
+          >
+            Midterms 2026
+          </button>
+        )}
       </div>
       <div className="p-3.5 w-full max-w-2xl mx-auto">
         {place?.kind === "region" ? (
@@ -520,8 +538,9 @@ function AreaMiniMap({ t, code, country, place, city }: { t: Tokens; code: strin
         ) : place?.kind === "county" && countyGeo?.geometry ? (
           <OutlineMap shapes={[{ type: "Feature", properties: { n: place.name }, geometry: countyGeo.geometry }]} color={MAP_INK} label={`The outline of ${what}`} />
         ) : (
-          <CountryOutline code={code} name={country} color={MAP_INK} className="" mark={place?.kind === "city" && city ? { id: city.name, name: city.name, lon: city.lon, lat: city.lat } : undefined} />
+          <CountryOutline code={code} name={country} color={MAP_INK} className="" fillOf={usWhole && midterms ? midtermFill(counts, office) : undefined} mark={place?.kind === "city" && city ? { id: city.name, name: city.name, lon: city.lon, lat: city.lat } : undefined} />
         )}
+        {usWhole && midterms && <MidtermsPanel t={t} data={counts} office={office} onOffice={setOffice} />}
       </div>
     </section>
   );
