@@ -107,7 +107,7 @@ import type { PlaceRow } from "../data/placesIndex";
 import { Card, Go, Head } from "./DashboardCitiesSectors";
 import { useTokens } from "./DataExplorer";
 import { SourceLink } from "./SourceLink";
-import PlaceSearch from "./PlaceSearch";
+import PlaceSearch, { type Hit, type Locate } from "./PlaceSearch";
 import { MapLabels, anchorOf, placeLabels, type Anchor, type LabelCandidate } from "./MapLabels";
 
 const W = 960;
@@ -272,12 +272,14 @@ export default function PlaceAtlas() {
   const viewRef = useRef(view);
   viewRef.current = view;
   const gliding = useRef<number | null>(null);
-  const glideTo = useCallback((to: { k: number; x: number; y: number }) => {
+  /** `done`, where given, is called once the map is there. */
+  const glideTo = useCallback((to: { k: number; x: number; y: number }, done?: () => void) => {
     if (gliding.current !== null) cancelAnimationFrame(gliding.current);
     const from = viewRef.current;
     const target = held(to.k, to.x, to.y);
     if (typeof document === "undefined" || document.hidden) {
       setView(target);
+      if (done) window.setTimeout(done, 0);
       return;
     }
     let began: number | null = null;
@@ -288,6 +290,7 @@ export default function PlaceAtlas() {
       const k = Math.exp(Math.log(from.k) + (Math.log(target.k) - Math.log(from.k)) * e);
       setView(held(k, from.x + (target.x - from.x) * e, from.y + (target.y - from.y) * e));
       gliding.current = p < 1 ? requestAnimationFrame(tick) : null;
+      if (p >= 1 && done) window.setTimeout(done, 0);
     };
     gliding.current = requestAnimationFrame(tick);
   }, []);
@@ -384,6 +387,68 @@ export default function PlaceAtlas() {
     const now = viewRef.current;
     if (now.k < from || now.k >= to) glideTo({ ...now, k: from });
   };
+  /* A place found by the search over the map, as asked: the map drawn to it, centred, and close enough for a press to
+     select that kind of place - a country from far out, a state or province, a county, a city - with a ring round where
+     it lies. A country or US state is drawn to its outline (its largest piece of land); a division or county to its point
+     as its record gives it; a city to where the United Nations says its people are centred, as close as its size needs
+     for it to be drawn. Where a place cannot be found on this map, its own page opens instead, as before. */
+  const [found, setFound] = useState<{ name: string; x: number; y: number } | null>(null);
+  type ToFind = { view: { k: number; x: number; y: number }; mark: { name: string; x: number; y: number }; last?: string; pick?: Pick };
+  const [toFind, setToFind] = useState<ToFind | null>(null);
+  const focusOn = async (h: Hit & { at: Locate }): Promise<boolean> => {
+    const a = h.at;
+    const fit = (box: { x: number; y: number; w: number; h: number }, lo: number, hi: number) => ({ k: Math.max(lo, Math.min(hi, 0.6 * Math.min(W / Math.max(box.w, 1e-6), H / Math.max(box.h, 1e-6)))), x: box.x, y: box.y });
+    const point = (lon: number, lat: number) => {
+      const p = WORLD_PROJECTION([lon, lat]);
+      return p && Number.isFinite(p[0]) && Number.isFinite(p[1]) ? { x: p[0], y: p[1] } : null;
+    };
+    let next: ToFind | null = null;
+    if (a.kind === "country") {
+      const g = WORLD.find((x) => countryForFeature(x.properties.name)?.code === a.cc);
+      const box = g ? anchorOf(geoPath(WORLD_PROJECTION), g) : undefined;
+      // Close enough to see it, and no closer than a country's step where it can be centred there; a press selects the country however close.
+      if (g && box) next = { view: fit(box, 1, STATES_FROM - 0.05), mark: { name: h.name, x: box.x, y: box.y }, last: countryForFeature(g.properties.name)?.name };
+    } else if (a.kind === "state") {
+      const s = STATES.find((x) => x.f.properties.name === a.name);
+      const box = s ? anchorOf(geoPath(WORLD_PROJECTION), s.f) : undefined;
+      if (box) next = { view: fit(box, STATES_FROM, COUNTIES_FROM - 0.05), mark: { name: h.name, x: box.x, y: box.y }, last: `${a.name}, United States` };
+    } else if (a.kind === "division" || a.kind === "county") {
+      const p = point(a.lon, a.lat);
+      // A state's or province's step, or a county's: where a press selects that kind of place.
+      if (p) next = { view: { k: a.kind === "division" ? 3 : 6, ...p }, mark: { name: h.name, ...p } };
+    } else {
+      const m = await import("../data/unCities");
+      const fold = (s: string) => s.normalize("NFD").replace(/\p{M}/gu, "").toLowerCase().trim();
+      const c = m.UN_CITIES.find((r) => r[0] === a.cc && fold(r[2]) === fold(a.name)) ?? m.UN_CITIES.find((r) => r[0] === a.cc && fold(r[2]).startsWith(fold(a.name)));
+      const p = c && c[3] !== null && c[4] !== null ? point(c[4], c[3]) : null;
+      // The cities are drawn as the map closes in: those of a million first, then of 300,000, then every one.
+      if (c && p) next = { view: { k: c[8] >= 1e6 ? 10 : c[8] >= 3e5 ? 16 : 26, ...p }, mark: { name: h.name, ...p } };
+    }
+    if (!next) return false;
+    // Centred: the map is never moved past its edge, so a place near one (Japan, New Zealand) is drawn as close as it needs to be for that.
+    const { x, y } = next.view;
+    next.view.k = Math.min(MAX_K, Math.max(next.view.k, W / (2 * Math.max(1e-6, Math.min(x, W - x))), H / (2 * Math.max(1e-6, Math.min(y, H - y)))));
+    next.pick = a.kind === "country" ? "country" : a.kind === "county" ? "county" : a.kind === "city" ? "city" : "state";
+    setManual(null);
+    setToFind(next);
+    if (level.kind !== "world") setLevel({ kind: "world" });
+    return true;
+  };
+  // A new map clears the ring; the one just found is set after it (the effects run in this order).
+  useEffect(() => setFound(null), [level]);
+  useEffect(() => {
+    if (!toFind || level.kind !== "world") return;
+    const { last: name, pick: kind } = toFind;
+    // Once the glide is done - a step passed on the way would clear both - a press selects the kind of place found (a
+    // country even where it is drawn close to be centred), and the place is named in the panel beside the map.
+    glideTo(toFind.view, () => {
+      if (kind) setManual(kind);
+      if (name) setLast(name);
+    });
+    setFound(toFind.mark);
+    setToFind(null);
+  }, [toFind, level, glideTo]);
+
   /* What the map fills in with as it is drawn closer. On the world: its countries from a finer tracing, the states' and
      provinces' borders, the counties' and districts', and the cities - those of a million people first, then of 300,000,
      then every one the United Nations counts. On a country's own map: its cities. */
@@ -1108,7 +1173,7 @@ export default function PlaceAtlas() {
           )}
         </p>
         {/* A search of every place the site holds, as asked: a result opens its window. */}
-        <PlaceSearch />
+        <PlaceSearch onPlace={focusOn} />
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-[minmax(0,1fr)_15rem] gap-3">
@@ -1320,6 +1385,16 @@ export default function PlaceAtlas() {
               </text>
             )}
             {/* The names of the places on it, as asked: the shapes' - countries, states, divisions, counties - the finer ones', and the cities' and towns' beside their dots, as many as fit in view without meeting. */}
+            {/* The place the search found: a ring round where it lies, until another is found or the map changes. */}
+            {found && onWorld && (
+              <g pointerEvents="none" aria-hidden>
+                <circle cx={found.x} cy={found.y} r={10 / view.k} fill="none" stroke={t.headText} strokeWidth={1.6 / view.k}>
+                  <animate attributeName="r" values={`${7 / view.k};${15 / view.k};${7 / view.k}`} dur="1.6s" repeatCount="indefinite" />
+                  <animate attributeName="stroke-opacity" values="1;0.35;1" dur="1.6s" repeatCount="indefinite" />
+                </circle>
+                <circle cx={found.x} cy={found.y} r={2.4 / view.k} fill={t.headText} stroke={t.isLight ? "#ffffff" : "#000000"} strokeWidth={0.8 / view.k} />
+              </g>
+            )}
             <MapLabels labels={labels} k={view.k} />
           </svg>
           {/* Closer and further, at the map's own corner where they are seen with it: the same as the wheel, a pinch and the + and - keys, and they glide. */}

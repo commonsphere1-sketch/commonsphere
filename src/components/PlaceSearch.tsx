@@ -1,9 +1,11 @@
 /**
  * A search over every place the site holds, for the bar over the Dashboard's
  * map, as asked: countries, the US states, every first-order division the
- * site lists, the US counties and the cities. A result opens that place's
- * window on its own page, as the header's search does. The divisions and the
- * counties are large, so they are read only when the box is first used.
+ * site lists, the US counties and the cities. Over the Dashboard's map a
+ * result draws the map to that place, centred and close enough for a press to
+ * select it, as asked (onPlace); elsewhere it opens that place's window on its
+ * own page, as the header's search does. The divisions and the counties are
+ * large, so they are read only when the box is first used.
  */
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
@@ -12,17 +14,25 @@ import { countriesData } from "../data/countriesData";
 import { usStatesData } from "../data/statesData";
 import { citiesData } from "../data/citiesData";
 
-type Hit = { key: string; name: string; sub: string; type: string; to: string };
+/** Where a result lies, for a map to be drawn to it: a country or US state by its outline, a division or county by its point, a city by the UN's record of it. */
+export type Locate =
+  | { kind: "country"; cc: string }
+  | { kind: "state"; name: string }
+  | { kind: "division"; cc: string; name: string; lat: number; lon: number }
+  | { kind: "county"; name: string; state: string; lat: number; lon: number }
+  | { kind: "city"; cc: string; name: string };
+export type Hit = { key: string; name: string; sub: string; type: string; to: string; at?: Locate };
 const BASE: Hit[] = [
-  ...countriesData.filter((c) => !c.uninhabited).map((c) => ({ key: `c-${c.id}`, name: c.name, sub: [c.continent, c.capital].filter(Boolean).join(" · "), type: "Country", to: `/dashboard/countries?open=${encodeURIComponent(c.id)}` })),
-  ...usStatesData.map((s) => ({ key: `s-${s.id}`, name: s.name, sub: `United States · ${s.capital}`, type: "State", to: `/dashboard/states?open=${encodeURIComponent(s.id)}` })),
-  ...citiesData.map((c) => ({ key: `ci-${c.id}`, name: c.name, sub: [c.region, c.country].filter(Boolean).join(" · "), type: "City", to: `/dashboard/cities?open=${encodeURIComponent(c.id)}` })),
+  ...countriesData.filter((c) => !c.uninhabited).map((c): Hit => ({ key: `c-${c.id}`, name: c.name, sub: [c.continent, c.capital].filter(Boolean).join(" · "), type: "Country", to: `/dashboard/countries?open=${encodeURIComponent(c.id)}`, at: { kind: "country", cc: c.code } })),
+  ...usStatesData.map((s): Hit => ({ key: `s-${s.id}`, name: s.name, sub: `United States · ${s.capital}`, type: "State", to: `/dashboard/states?open=${encodeURIComponent(s.id)}`, at: { kind: "state", name: s.name } })),
+  ...citiesData.map((c): Hit => ({ key: `ci-${c.id}`, name: c.name, sub: [c.region, c.country].filter(Boolean).join(" · "), type: "City", to: `/dashboard/cities?open=${encodeURIComponent(c.id)}`, at: { kind: "city", cc: c.countryCode, name: c.name } })),
 ];
 const COUNTRY_NAME = new Map(countriesData.map((c) => [c.code, c.name]));
 /** Folded for matching: no case and no accents, so "sao paulo" finds São Paulo. */
 const fold = (s: string) => s.normalize("NFD").replace(/[̀-ͯ]/g, "").toLowerCase();
 
-export default function PlaceSearch() {
+/** `onPlace`: where the search sits over a map, what a result does instead of opening its page - true where the map was drawn to it. */
+export default function PlaceSearch({ onPlace }: { onPlace?: (h: Hit & { at: Locate }) => boolean | Promise<boolean> } = {}) {
   const navigate = useNavigate();
   const [q, setQ] = useState("");
   const [open, setOpen] = useState(false);
@@ -35,8 +45,8 @@ export default function PlaceSearch() {
     Promise.all([import("../data/subnations"), import("../data/usCounties")]).then(([sub, cty]) =>
       setMore([
         // The US states are in the list above already, from their own page.
-        ...sub.SUBNATIONS.filter((s) => s.cc !== "US").map((s) => ({ key: `d-${s.id}`, name: s.name, sub: [s.kind, COUNTRY_NAME.get(s.cc) ?? s.cc].filter(Boolean).join(" · "), type: "Division", to: `/dashboard/subnations?open=${encodeURIComponent(s.id)}` })),
-        ...cty.US_COUNTIES.map(([fips, name, st]) => ({ key: `k-${fips}`, name, sub: `${st} · United States`, type: "County", to: `/dashboard/subnations?open=county:${fips}` })),
+        ...sub.SUBNATIONS.filter((s) => s.cc !== "US").map((s): Hit => ({ key: `d-${s.id}`, name: s.name, sub: [s.kind, COUNTRY_NAME.get(s.cc) ?? s.cc].filter(Boolean).join(" · "), type: "Division", to: `/dashboard/subnations?open=${encodeURIComponent(s.id)}`, at: Number.isFinite(s.lat) && Number.isFinite(s.lon) ? { kind: "division", cc: s.cc, name: s.name, lat: s.lat, lon: s.lon } : undefined })),
+        ...cty.US_COUNTIES.map(([fips, name, st, lat, lon]): Hit => ({ key: `k-${fips}`, name, sub: `${st} · United States`, type: "County", to: `/dashboard/subnations?open=county:${fips}`, at: lat !== null && lon !== null ? { kind: "county", name, state: st, lat, lon } : undefined })),
       ]),
     );
   };
@@ -58,7 +68,12 @@ export default function PlaceSearch() {
   const go = (h: Hit) => {
     setOpen(false);
     setQ("");
-    navigate(h.to);
+    // Over a map, the map is drawn to the place; where it cannot be, the place's own page opens, as before.
+    if (onPlace && h.at)
+      void Promise.resolve(onPlace(h as Hit & { at: Locate })).then((done) => {
+        if (!done) navigate(h.to);
+      });
+    else navigate(h.to);
   };
   return (
     <div ref={box} className="relative w-44 sm:w-56 ml-auto shrink-0">
