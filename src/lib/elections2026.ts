@@ -177,3 +177,39 @@ export const RACES_2026: Record<"senate" | "governor", string[]> = {
     .sort(),
   governor: ["AL", "AK", "AZ", "AR", "CA", "CO", "CT", "FL", "GA", "HI", "ID", "IL", "IA", "KS", "ME", "MD", "MA", "MI", "MN", "NE", "NV", "NH", "NM", "NY", "OH", "OK", "OR", "PA", "RI", "SC", "SD", "TN", "TX", "VT", "WI", "WY"],
 };
+
+/* ── Who was elected ──────────────────────────────────────────────────────
+   For the windows that say, beside each office-holder, who the 2026 elections chose for the seat: the calls alone, as
+   news organisations made them and Wikipedia records them, kept only where its two records agree (build-election-calls.cjs). */
+let CALLS: Promise<Calls | null> | null = null;
+/** The race calls, fetched once and kept: undefined while fetched, null where they are not held. */
+export function useCalls(): Calls | null | undefined {
+  const [c, setC] = useState<Calls | null | undefined>(undefined);
+  useEffect(() => {
+    let live = true;
+    (CALLS ??= fetch("/elections/2026-calls.json")
+      .then((r) => (r.ok ? (r.json() as Promise<Calls>) : null))
+      .catch(() => null)).then((x) => live && setC(x));
+    return () => {
+      live = false;
+    };
+  }, []);
+  return c;
+}
+/** Whether two names are one person's, as the calls are checked: by surname, a suffix (Jr., II) and accents and case aside. */
+export function samePerson(a: string, b: string) {
+  const s = (n: string) =>
+    n
+      .normalize("NFD")
+      .replace(/\p{M}/gu, "")
+      .replace(/,?\s+(Jr\.?|Sr\.?|II|III|IV)$/i, "")
+      .trim()
+      .split(/\s+/)
+      .pop()!
+      .toLowerCase();
+  return s(a) === s(b);
+}
+/** Which senator's seat a state's 2026 Senate race is for: the class 2 seat, or the seat a special election fills. */
+export function senateSeatUp(st: string, special: boolean): string | null {
+  return holderOf(st, { office: "senate", special, title: "", cands: [], reporting: null })?.[0] ?? null;
+}

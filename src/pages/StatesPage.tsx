@@ -24,6 +24,21 @@ import {
 } from "@phosphor-icons/react";
 // Bookmark feature removed
 import { STATE_OFFICES, STATE_OFFICES_SOURCES } from "../data/stateOffices";
+import { partyInk, samePerson, senateSeatUp, useCalls, type Call } from "../lib/elections2026";
+
+/**
+ * Who the 2026 elections chose for a seat, under its holder's name: re-elected, or the person elected and when they take
+ * it. A call is the news organisations', as Wikipedia records it, kept only where its two records agree.
+ */
+function ElectedLine({ call, holder, when }: { call: Call; holder: string; when: string }) {
+  if (samePerson(call.winner, holder)) return <p className="text-[10px] font-sans text-muted-foreground leading-snug mt-1">Re-elected 3 Nov 2026</p>;
+  return (
+    <p className="text-[10px] font-sans text-muted-foreground leading-snug mt-1">
+      <span aria-hidden className="inline-block w-1.5 h-1.5 rounded-full mr-1 align-middle" style={{ background: partyInk(call.party) }} />
+      Elected 3 Nov 2026: <span className="font-semibold text-foreground">{call.winner}</span> ({call.party}) · {when}
+    </p>
+  );
+}
 import { civicDay, daysUntil, electionDay, upcomingCivicDates } from "../lib/usCivicDates";
 import { usStatesData, type USState } from "../data/statesData";
 import { STATE_INDICATORS, STATE_SOURCES } from "../data/stateIndicators";
@@ -6080,6 +6095,14 @@ function StateModal({
   const [isExpanded, setIsExpanded] = useState(false);
   const watch = useWatchlist();
   const navigate = useNavigate();
+  /* The 2026 elections' calls, as asked: who each seat goes to, beside who holds it now. */
+  const calls = useCalls();
+  const st = state.abbreviation;
+  const senateCall = calls?.senate[st];
+  const senateUp = senateCall ? senateSeatUp(st, Boolean(senateCall.special)) : null;
+  const houseCalls = calls?.house[st] ?? {};
+  /** A House seat's number from its label ("TX-7"); an at-large seat is the first. */
+  const seatOf = (district: string) => (/(\d+)\s*$/.test(district) ? +district.match(/(\d+)\s*$/)![1] : 1);
 
   React.useEffect(() => {
     setActiveTab("overview");
@@ -6422,6 +6445,7 @@ function StateModal({
                       >
                         {state.party}
                       </p>
+                      {calls?.governor[st] && <ElectedLine call={calls.governor[st]} holder={state.governor} when="takes office when the new term begins" />}
                     </div>
                     <div className="modal-tile rounded-lg p-4">
                       <p className="text-xs text-muted-foreground font-sans mb-1">
@@ -6466,6 +6490,10 @@ function StateModal({
                               >
                                 {sen.party}
                               </p>
+                              {/* The seat that was up: the class 2 seat, or the one a special election filled. */}
+                              {senateCall && senateUp && samePerson(sen.name, senateUp) && (
+                                <ElectedLine call={senateCall} holder={sen.name} when={senateCall.special ? "takes office once the state certifies the result" : "takes office 3 Jan 2027"} />
+                              )}
                             </div>
                             <span className="text-[10px] font-mono bg-card border border-border rounded px-1.5 py-0.5 text-muted-foreground shrink-0">
                               Term ends {sen.termEnd}
@@ -6489,6 +6517,12 @@ function StateModal({
                           </span>
                         </p>
                       </div>
+                      {calls && (
+                        <p className="text-[10px] font-sans text-muted-foreground leading-snug mb-2">
+                          Elected 3 November 2026, as news organisations called it and Wikipedia records it - shown only where its two records agree: {Object.keys(houseCalls).length} of {state.houseSeats} seat{state.houseSeats !== 1 ? "s" : ""} so far
+                          {Object.keys(houseCalls).length < state.houseSeats ? ", the rest not yet" : ""}. Those elected take their seats on 3 January 2027.
+                        </p>
+                      )}
                       <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 max-h-52 overflow-y-auto pr-1">
                         {state.representatives.map((rep, i) => (
                           <div
@@ -6503,6 +6537,7 @@ function StateModal({
                               <p className="text-[10px] text-muted-foreground font-sans">
                                 {rep.district}
                               </p>
+                              {houseCalls[String(seatOf(rep.district))] && <ElectedLine call={houseCalls[String(seatOf(rep.district))]} holder={rep.name} when="from 3 Jan 2027" />}
                             </div>
                             <span
                               className={`text-[10px] font-mono shrink-0 px-1.5 py-0.5 rounded border ${rep.party === "Democrat" ? "border-secondary/40 text-secondary bg-secondary/10" : rep.party === "Republican" ? "border-red-500/40 text-red-400 bg-red-500/10" : "border-yellow-500/40 text-yellow-400 bg-yellow-500/10"}`}
