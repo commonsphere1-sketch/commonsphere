@@ -1013,7 +1013,7 @@ export default function WorldviewMap() {
                   stroke={s.code ? inkOf(s.code) : t.isLight ? "#cbd5e1" : "#3a3a44"}
                   strokeWidth={0.7 / view.k}
                   onMouseEnter={() => s.code && setHover(s.code)}
-                  onMouseMove={(e) => s.code && !drag.current?.moved && card.current?.show(e, s.code, s.name, PROJECTION)}
+                  onMouseMove={(e) => s.code && !drag.current?.moved && card.current?.show(e, { name: s.name, zone: { kind: "country", cc: s.code } }, PROJECTION)}
                   onMouseLeave={() => {
                     setHover(null);
                     card.current?.hide();
@@ -1058,10 +1058,20 @@ export default function WorldviewMap() {
                         if (!dragged.current) pressCounty(c);
                       }}
                       onMouseEnter={() => setHoverRegion(c.id)}
-                      onMouseLeave={() => setHoverRegion(null)}
-                    >
-                      <title>{c.parent ? `${c.name}, ${c.parent}` : c.name}</title>
-                    </path>
+                      // The card by the pointer, as for a country: its name, what it lies in, its time and zone, and the point.
+                      onMouseMove={(e) =>
+                        !drag.current?.moved &&
+                        card.current?.show(
+                          e,
+                          { name: c.name, kicker: [c.parent, pickedName].filter(Boolean).join(", "), zone: picked === "US" ? { kind: "county", state: c.parent ?? "", fips: c.id } : { kind: "district", cc: picked, parent: c.parent, name: c.name } },
+                          PROJECTION,
+                        )
+                      }
+                      onMouseLeave={() => {
+                        setHoverRegion(null);
+                        card.current?.hide();
+                      }}
+                    />
                   );
                 })}
               </g>
@@ -1083,10 +1093,12 @@ export default function WorldviewMap() {
                       setRegion(r.name);
                     }}
                     onMouseEnter={() => setHoverRegion(r.name)}
-                    onMouseLeave={() => setHoverRegion(null)}
-                  >
-                    <title>{r.name}</title>
-                  </path>
+                    onMouseMove={(e) => !drag.current?.moved && card.current?.show(e, { name: r.name, kicker: pickedName, zone: { kind: "division", cc: picked, name: r.name } }, PROJECTION)}
+                    onMouseLeave={() => {
+                      setHoverRegion(null);
+                      card.current?.hide();
+                    }}
+                  />
                 ))}
               </g>
             )}

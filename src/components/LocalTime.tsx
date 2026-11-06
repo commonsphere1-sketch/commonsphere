@@ -32,7 +32,7 @@ export type ZoneOf =
 type Found = { zone: string; at?: string; kinds?: string[] };
 
 const FILES = new Map<string, Promise<TzFile | null>>();
-const fileOf = (cc: string) => {
+export const fileOf = (cc: string) => {
   if (!FILES.has(cc))
     FILES.set(
       cc,

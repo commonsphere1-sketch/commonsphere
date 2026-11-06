@@ -34,7 +34,7 @@ import {
 } from "@phosphor-icons/react";
 import { Link } from "react-router-dom";
 import { MapLabels, placeLabels, type LabelCandidate } from "../components/MapLabels";
-import { CountryHoverCard, type CountryHoverHandle } from "../components/CountryHoverCard";
+import { CountryHoverCard, type CountryHoverHandle, type HoverPlace } from "../components/CountryHoverCard";
 import { countriesData, type Country } from "../data/countriesData";
 import { flagColor } from "../lib/flagColor";
 import { REGIMES, REGIME_SOURCE, REGIME_TYPES } from "../data/regimes";
@@ -2506,7 +2506,7 @@ export function WorldMapsPage() {
   const finerOwn = useFiner(finerCodes, finerOrder);
   const finerWithout = useMemo(() => (finerOrder === 2 ? finerCodes.filter((c) => finerOwn.get(c)?.length === 0) : []), [finerOrder, finerCodes, finerOwn]);
   const finerFirst = useFiner(finerWithout, finerOrder === 2 ? 1 : 0);
-  type FinerHit = { key: string; code: string; /** The first-order division it is, or lies in. */ division?: string; name: string; value: string; d: string; cx: number; cy: number; x0: number; y0: number; x1: number; y1: number };
+  type FinerHit = { key: string; code: string; /** The first-order division it is, or lies in. */ division?: string; name: string; value: string; d: string; cx: number; cy: number; x0: number; y0: number; x1: number; y1: number; /** What the card by the pointer says of it. */ place: HoverPlace };
   const finerBuilt = useRef(new Map<string, FinerHit[]>());
   const finerHits = useMemo<FinerHit[]>(() => {
     if (!finerOrder) return [];
@@ -2536,6 +2536,11 @@ export function WorldMapsPage() {
                 division: f.order === 1 ? f.name : f.parent,
                 name: [f.name, f.order === 2 ? f.parent : undefined, land].filter(Boolean).join(", "),
                 value: f.order === 1 ? `a first-order division of ${land}` : `a county or district of ${land}`,
+                place: {
+                  name: f.name,
+                  kicker: [f.order === 2 ? f.parent : undefined, land].filter(Boolean).join(", "),
+                  zone: f.order === 1 ? { kind: "division", cc: code, name: f.name } : f.fips ? { kind: "county", state: f.parent ?? "", fips: f.fips } : { kind: "district", cc: code, parent: f.parent, name: f.name },
+                },
                 d,
                 cx,
                 cy,
@@ -4229,7 +4234,7 @@ export function WorldMapsPage() {
                       continent: country?.continent,
                     });
                   }}
-                  onMouseMove={(e) => country && card.current?.show(e, country.code, country.name, worldPath.projection)}
+                  onMouseMove={(e) => country && card.current?.show(e, { name: country.name, zone: { kind: "country", cc: country.code } }, worldPath.projection)}
                   onMouseLeave={() => {
                     pointOff();
                     setHovered(null);
@@ -4255,15 +4260,16 @@ export function WorldMapsPage() {
                 data-pick={`country:${h.code}`}
                 onMouseEnter={() => {
                   pointAt(h.code, h.division);
-                  setHovered({ name: h.name, value: h.value, cx: h.cx, cy: h.cy });
+                  // The card by the pointer names it, as a country's does: no title over the map as well.
+                  setHovered({ name: h.name, value: h.value });
                 }}
+                onMouseMove={(e) => card.current?.show(e, h.place, worldPath.projection)}
                 onMouseLeave={() => {
                   pointOff();
                   setHovered(null);
+                  card.current?.hide();
                 }}
-              >
-                <title>{h.name}</title>
-              </path>
+              />
             ))}
             {/* The borders inside each country, in the country's own colour and a little dimmer than its edge, so that they are
                 plain to see and still read as its own: its states' and provinces', and - once the map is drawn closer -
