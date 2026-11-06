@@ -37,6 +37,7 @@
 import { type ReactNode, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { ArrowCounterClockwise, MagnifyingGlassMinus, MagnifyingGlassPlus } from "@phosphor-icons/react";
 import { CountryHoverCard, type CountryHoverHandle } from "./CountryHoverCard";
+import PlaceSearch, { type Hit, type Locate } from "./PlaceSearch";
 import { geoArea, geoContains, geoEqualEarth, geoGraticule10, geoPath } from "d3-geo";
 import type { Subnation } from "../data/subnations";
 import { ADMIN2_SOURCE, loadAdmin2, useAdmin2Manifest } from "../lib/admin2";
@@ -835,6 +836,66 @@ export default function WorldviewMap() {
     const k = Math.min(MAX_K, 0.8 * Math.min(W / Math.max(1, x1 - x0), H / Math.max(1, y1 - y0)));
     glideTo({ k: Math.max(1.4, k), x: (x0 + x1) / 2, y: (y0 + y1) / 2 });
   };
+  /* A place found by the search on the map's bar, as asked: the map drawn to it, centred - a country picked, as a press
+     on it picks it; a state or province picked out in its country, its details beside the map; a county pressed once its
+     country's counties are drawn, its record beside the map; a city drawn to where the United Nations has its people
+     centred - with a ring round where it lies. A place near the map's edge (Japan) is drawn as close as centring it needs.
+     Where a place cannot be found on this map, its own page opens instead. */
+  const [found, setFound] = useState<{ x: number; y: number } | null>(null);
+  const [toFind, setToFind] = useState<{ cc: string; kind: "region" | "county"; name?: string; fips?: string; at?: { x: number; y: number } } | null>(null);
+  /** As close as a place at x, y must be drawn for the map, which is never moved past its edge, to be centred on it. */
+  const centred = (k: number, x: number, y: number) => Math.min(MAX_K, Math.max(k, W / (2 * Math.max(1e-6, Math.min(x, W - x))), H / (2 * Math.max(1e-6, Math.min(y, H - y)))));
+  const pointOf = (lon: number, lat: number) => {
+    const p = PROJECTION([lon, lat]);
+    return p && Number.isFinite(p[0]) && Number.isFinite(p[1]) ? { x: p[0], y: p[1] } : null;
+  };
+  const fold = (s: string) => s.normalize("NFD").replace(/\p{M}/gu, "").toLowerCase().trim();
+  const findPlace = async (h: Hit & { at: Locate }): Promise<boolean> => {
+    const a = h.at;
+    const glideOn = (k: number, p: { x: number; y: number }) => {
+      glideTo({ k: centred(k, p.x, p.y), x: p.x, y: p.y });
+      setFound(p);
+    };
+    if (a.kind === "country") {
+      const s = SHAPES.find((x) => x.code === a.cc);
+      if (!s?.a) return false;
+      setToFind(null);
+      setPicked(a.cc);
+      // Sized to the whole country, as a press on it draws it; centred on its mainland.
+      const [[x0, y0], [x1, y1]] = s.b;
+      glideOn(Math.max(1.4, Math.min(MAX_K, 0.8 * Math.min(W / Math.max(1, x1 - x0), H / Math.max(1, y1 - y0)))), s.a);
+      return true;
+    }
+    if (a.kind === "state" || a.kind === "division") {
+      const cc = a.kind === "state" ? "US" : a.cc;
+      const s = SHAPES.find((x) => x.code === cc);
+      if (!s?.a) return false;
+      setPicked(cc);
+      // Drawn first to its point where its record gives one, else to its country, until its country's divisions are in to draw it to its own outline.
+      const at = a.kind === "division" ? (pointOf(a.lon, a.lat) ?? undefined) : undefined;
+      if (at) glideOn(2.2, at);
+      else glideOn(Math.max(1.4, Math.min(MAX_K, 0.7 * Math.min(W / Math.max(1, s.a.w), H / Math.max(1, s.a.h)))), s.a);
+      setToFind({ cc, kind: "region", name: a.name, at });
+      return true;
+    }
+    if (a.kind === "county") {
+      const p = pointOf(a.lon, a.lat);
+      if (!p) return false;
+      setPicked("US");
+      glideOn(5, p);
+      setToFind({ cc: "US", kind: "county", fips: a.fips });
+      return true;
+    }
+    const m = await import("../data/unCities");
+    const c = m.UN_CITIES.find((r) => r[0] === a.cc && fold(r[2]) === fold(a.name)) ?? m.UN_CITIES.find((r) => r[0] === a.cc && fold(r[2]).startsWith(fold(a.name)));
+    const p = c && c[3] !== null && c[4] !== null ? pointOf(c[4], c[3]) : null;
+    if (!p) return false;
+    setToFind(null);
+    setPicked(a.cc);
+    glideOn(6, p);
+    return true;
+  };
+
   /* A pin pressed, on the map or in the list under it: told under the map, and the map drawn to it when pressed in the list.
      Pressed on the map with the account out of sight below, the page moves just far enough to show the account's head. */
   const choose = (o: Occurrence, lon?: number, lat?: number) => {
@@ -922,6 +983,28 @@ export default function WorldviewMap() {
     }
     return null;
   })();
+  /* A state, province or county found by the search, once its country's divisions or counties are in: drawn to its own
+     outline and picked out, or pressed. */
+  useEffect(() => {
+    if (!toFind || picked !== toFind.cc) return;
+    if (toFind.kind === "region") {
+      if (regions?.code !== toFind.cc) return;
+      const r = regions.list.find((x) => fold(x.name) === fold(toFind.name ?? ""));
+      if (r?.a) {
+        const k = Math.min(COUNTIES_PICK_FROM - 0.05, Math.max(REGIONS_FROM + 0.1, 0.6 * Math.min(W / Math.max(1e-6, r.a.w), H / Math.max(1e-6, r.a.h))));
+        glideTo({ k: centred(k, r.a.x, r.a.y), x: r.a.x, y: r.a.y });
+        setFound({ x: r.a.x, y: r.a.y });
+        setPressed(null);
+        setRegion(r.name);
+      }
+      setToFind(null);
+    } else if (countiesShown && counties?.code === "US") {
+      const c = counties.list.find((x) => x.id === toFind.fips);
+      if (c) pressCounty(c);
+      setToFind(null);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [toFind, picked, regions, counties, countiesShown]);
   const shown = hover ? SHAPES.find((s) => s.code === hover) : null;
   const pickedName = SHAPES.find((s) => s.code === picked)?.name ?? picked;
   return (
@@ -932,8 +1015,10 @@ export default function WorldviewMap() {
         <p className="text-[10px] font-mono uppercase tracking-widest" style={{ color: t.mutedText }}>
           The world, country by country
         </p>
+        {/* A search of every place the site holds, as asked: a place chosen is found on the map. */}
+        <PlaceSearch onPlace={findPlace} />
         {/* The conflicts and the disasters going on, as asked: each switched on and off here, in the layers' own chip. */}
-        <div className="ml-auto flex flex-wrap items-center gap-1.5">
+        <div className="flex flex-wrap items-center gap-1.5">
           {(
             [
               ["conflicts", "Conflicts", conflictInks(t.isLight)[0], conflictData, "Pin the armed conflicts of the latest month: every event in which someone was killed, as the Uppsala Conflict Data Program recorded it"],
@@ -1121,6 +1206,16 @@ export default function WorldviewMap() {
             {pins.hazards && <g>{pins.hazards}</g>}
             {chosenAt && (
               <circle cx={chosenAt.p[0]} cy={chosenAt.p[1]} r={(chosenAt.r + 3) / view.k} fill="none" stroke={t.headText} strokeWidth={1.6 / view.k} pointerEvents="none" />
+            )}
+            {/* The place the search found: a ring round where it lies, until another is found. */}
+            {found && (
+              <g pointerEvents="none" aria-hidden>
+                <circle cx={found.x} cy={found.y} r={10 / view.k} fill="none" stroke={t.headText} strokeWidth={1.6 / view.k}>
+                  <animate attributeName="r" values={`${7 / view.k};${15 / view.k};${7 / view.k}`} dur="1.6s" repeatCount="indefinite" />
+                  <animate attributeName="stroke-opacity" values="1;0.35;1" dur="1.6s" repeatCount="indefinite" />
+                </circle>
+                <circle cx={found.x} cy={found.y} r={2.4 / view.k} fill={t.headText} stroke={t.isLight ? "#ffffff" : "#000000"} strokeWidth={0.8 / view.k} />
+              </g>
             )}
             <MapLabels labels={labels} k={view.k} />
           </svg>

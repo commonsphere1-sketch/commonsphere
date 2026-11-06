@@ -19,7 +19,7 @@ export type Locate =
   | { kind: "country"; cc: string }
   | { kind: "state"; name: string }
   | { kind: "division"; cc: string; name: string; lat: number; lon: number }
-  | { kind: "county"; name: string; state: string; lat: number; lon: number }
+  | { kind: "county"; fips: string; name: string; state: string; lat: number; lon: number }
   | { kind: "city"; cc: string; name: string };
 export type Hit = { key: string; name: string; sub: string; type: string; to: string; at?: Locate };
 const BASE: Hit[] = [
@@ -46,7 +46,7 @@ export default function PlaceSearch({ onPlace }: { onPlace?: (h: Hit & { at: Loc
       setMore([
         // The US states are in the list above already, from their own page.
         ...sub.SUBNATIONS.filter((s) => s.cc !== "US").map((s): Hit => ({ key: `d-${s.id}`, name: s.name, sub: [s.kind, COUNTRY_NAME.get(s.cc) ?? s.cc].filter(Boolean).join(" · "), type: "Division", to: `/dashboard/subnations?open=${encodeURIComponent(s.id)}`, at: Number.isFinite(s.lat) && Number.isFinite(s.lon) ? { kind: "division", cc: s.cc, name: s.name, lat: s.lat, lon: s.lon } : undefined })),
-        ...cty.US_COUNTIES.map(([fips, name, st, lat, lon]): Hit => ({ key: `k-${fips}`, name, sub: `${st} · United States`, type: "County", to: `/dashboard/subnations?open=county:${fips}`, at: lat !== null && lon !== null ? { kind: "county", name, state: st, lat, lon } : undefined })),
+        ...cty.US_COUNTIES.map(([fips, name, st, lat, lon]): Hit => ({ key: `k-${fips}`, name, sub: `${st} · United States`, type: "County", to: `/dashboard/subnations?open=county:${fips}`, at: lat !== null && lon !== null ? { kind: "county", fips, name, state: st, lat, lon } : undefined })),
       ]),
     );
   };
