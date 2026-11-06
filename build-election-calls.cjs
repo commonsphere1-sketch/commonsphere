@@ -18,6 +18,8 @@ const path = require("path");
 
 const OUT = path.join(__dirname, "static/elections/2026-calls.json");
 const UA = "CommonSphere-build/1.0 (https://commonsphere.vercel.app)";
+// The time stamped on the calls, by a server's clock: this computer's can be set wrong.
+const { syncClock, nowIso } = require("./build-clock.cjs");
 const API = "https://en.wikipedia.org/w/api.php";
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 /** An article's wikitext and revision, one read at a time. */
@@ -118,7 +120,8 @@ const same = (a, b) => fold(a) === fold(b) || (surname(a) !== "" && surname(a) =
 function markedWinner(row) {
   const line = row.split("\n").find((l) => /\{\{aye\}\}/i.test(l));
   if (!line) return null;
-  const m = line.match(/\{\{aye\}\}\s*(.+?)\s*\(([^)]+)\)\s*$/);
+  // The winner's name and party, and since the count came in, the share of the vote after them ("(Democratic) 54.3%").
+  const m = line.match(/\{\{aye\}\}\s*(.+?)\s*\(([^)]+)\)\s*(?:[\d.,]+\s*%)?\s*$/);
   return m ? { name: shown(m[1]), party: partyOf(m[2]) } : null;
 }
 const statusOf = (row) => {
@@ -126,7 +129,7 @@ const statusOf = (row) => {
   return m ? `${m[1]} ${m[2].toLowerCase()}` : null;
 };
 
-const result = { builtAt: new Date().toISOString(), revisions: {}, senate: {}, governor: {}, house: {}, unagreed: [], uncalled: { senate: 0, governor: 0, house: 0 } };
+const result = { builtAt: "", revisions: {}, senate: {}, governor: {}, house: {}, unagreed: [], uncalled: { senate: 0, governor: 0, house: 0 } };
 const disagree = (office, where, a, b) => result.unagreed.push({ office, where, national: a, race: b });
 
 /** A race article's infobox winner: after_election and after_party. */
@@ -239,6 +242,8 @@ async function house() {
 }
 
 async function main() {
+  await syncClock();
+  result.builtAt = nowIso();
   await statewide("senate", "2026 United States Senate elections");
   await statewide("governor", "2026 United States gubernatorial elections");
   await house();

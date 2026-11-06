@@ -24,6 +24,8 @@ const { readXlsx } = require("./xlsx-lite.cjs");
 
 const OUT = path.join(__dirname, "static/elections/2026.json");
 const UA = "CommonSphere-build/1.0 (https://commonsphere.vercel.app)";
+// The times stamped on what is read, by a server's clock: this computer's can be set wrong.
+const { syncClock, nowIso } = require("./build-clock.cjs");
 const get = async (url) => {
   const r = await fetch(url, { headers: { "User-Agent": UA } });
   if (!r.ok) throw new Error(`${url}: ${r.status}`);
@@ -39,7 +41,7 @@ function raceOf(title) {
   const t = title.replace(/\s+/g, " ").trim();
   if (/^(United States Senator|US SENATE|U\.S\. Senator)/i.test(t)) return { office: "senate", special: /unexpired|special/i.test(t) };
   if (/^Governor\b/i.test(t)) return { office: "governor" };
-  const h = t.match(/(?:United States Representative|Representative to the \d+(?:st|nd|rd|th) United States Congress|US HOUSE OF REPRESENTATIVES|U\.S\. Representative|Representative in Congress)\D*District (\d+)/i);
+  const h = t.match(/(?:United States Representative|Representative to the \d+(?:st|nd|rd|th) United States Congress|US HOUSE OF REPRESENTATIVES|U\.S\. Representative|Representative in Congress|Representative to Congress)\D*District (\d+)/i);
   if (h) return { office: "house", district: +h[1] };
   return null;
 }
@@ -56,6 +58,49 @@ async function clarity(st, eid) {
     contests.push({ ...race, title: c.C, cands: c.CH.map((n, i) => [n, party(c.P[i]), c.V[i]]), reporting: Number.isFinite(c.PR) && Number.isFinite(c.TP) ? [c.PR, c.TP] : null });
   }
   return { contests, live: { kind: "clarity", st, eid }, url: `https://results.enr.clarityelections.com/${st}/${eid}/web.${ver}/#/summary` };
+}
+
+// ── Ohio: the results file the Secretary of State publishes, in the common election results format (IEEE 1622) ──
+async function ohio() {
+  const url = "https://liveresults.ohiosos.gov/Api/v1/download?filename=VSSC1622XmlFileBlob";
+  const x = await (await get(url)).text();
+  if (!x.includes("<ElectionReport")) throw new Error("not the results file");
+  const text = (s) => (s.match(/<LanguageString[^>]*>([^<]*)</) ?? [])[1]?.trim() ?? "";
+  // Each party by the letter the state gives it; each candidate by name and party.
+  const parties = new Map();
+  for (const m of x.matchAll(/<Party ObjectId="([^"]+)"[^>]*Abbreviation="([^"]*)"[^>]*>([\s\S]*?)<\/Party>/g)) parties.set(m[1], (m[3].match(/<Code Type="StateLevel" Value="([^"]+)"/) ?? [])[1] ?? m[2]);
+  const cands = new Map();
+  for (const m of x.matchAll(/<Candidate ObjectId="([^"]+)"[^>]*>([\s\S]*?)<\/Candidate>/g))
+    cands.set(m[1], { name: text((m[2].match(/<BallotName>([\s\S]*?)<\/BallotName>/) ?? [])[1] ?? ""), party: parties.get((m[2].match(/<PartyId>([^<]+)</) ?? [])[1] ?? "") ?? "" });
+  // The state, and its counties with how many of their precincts have reported.
+  const units = new Map();
+  for (const m of x.matchAll(/<GpUnit xsi:type="ReportingUnit" ObjectId="([^"]+)"([^>]*)>/g))
+    units.set(m[1], { type: (m[2].match(/ Type="([^"]+)"/) ?? [])[1], rep: +((m[2].match(/SubUnitsReported="(\d+)"/) ?? [])[1] ?? NaN), tot: +((m[2].match(/TotalSubUnits="(\d+)"/) ?? [])[1] ?? NaN) });
+  let rep = 0;
+  let tot = 0;
+  for (const u of units.values()) if (u.type === "County" && Number.isFinite(u.rep) && Number.isFinite(u.tot)) (rep += u.rep), (tot += u.tot);
+  const contests = [];
+  for (const m of x.matchAll(/<Contest xsi:type="CandidateContest"[^>]*Name="([^"]+)"[^>]*>([\s\S]*?)<\/Contest>/g)) {
+    const race = raceOf(m[1]);
+    if (!race) continue;
+    const list = [];
+    for (const s of m[2].matchAll(/<BallotSelection xsi:type="CandidateSelection"[^>]*>([\s\S]*?)<\/BallotSelection>/g)) {
+      const c = cands.get((s[1].match(/<CandidateId>([^<]+)</) ?? [])[1] ?? "");
+      if (!c) continue;
+      // The state's total where the file gives one (a statewide race); a district's, the sum of its counties' totals - the file gives none for the district alone.
+      let state = null;
+      let counties = 0;
+      for (const v of s[1].matchAll(/<VoteCounts Type="Total" Count="(\d+)">\s*<GpUnitId>([^<]+)</g)) {
+        const u = units.get(v[2]);
+        if (u?.type === "State") state = +v[1];
+        else if (u?.type === "County") counties += +v[1];
+      }
+      list.push([c.name, party(c.party), state ?? counties]);
+    }
+    // Precincts reported: every county's, for a statewide race; the file does not give a district's, so none is said for one.
+    contests.push({ ...race, title: m[1], cands: list, reporting: race.office !== "house" && tot ? [rep, tot] : null });
+  }
+  return { contests, url: "https://liveresults.ohiosos.gov/" };
 }
 
 // ── North Carolina ──
@@ -151,15 +196,21 @@ const READERS = {
   NC: { name: "North Carolina State Board of Elections", read: northCarolina },
   GA: { name: "Georgia Secretary of State", read: georgia },
   FL: { name: "Florida Division of Elections", read: florida },
+  OH: { name: "Ohio Secretary of State", read: ohio },
 };
 /** States read and refused, so far: what each official site said to a program. */
 const REFUSED = {
   TX: "The Texas Secretary of State's results site refuses reads by a program.",
   AR: "The Arkansas Secretary of State's results site refuses reads by a program.",
   KY: "The Kentucky State Board of Elections' results site refuses reads by a program.",
+  // Asked on 6 November 2026: each answered a program with a bot check (Cloudflare, Incapsula), which is not got round.
+  AZ: "The Arizona Secretary of State's results site (results.arizona.vote) answers a program with a bot check.",
+  NV: "The Nevada Secretary of State's results site (silverstateelection.nv.gov) answers a program with a bot check.",
+  PA: "The Pennsylvania Department of State's results site (electionreturns.pa.gov) answers a program with a bot check.",
 };
 
 async function main() {
+  await syncClock();
   const states = {};
   const failed = {};
   for (const [st, r] of Object.entries(READERS)) {
@@ -167,13 +218,13 @@ async function main() {
       const got = await r.read();
       // A contest with no votes counted yet is kept: it says the race is on the ballot.
       for (const c of got.contests) c.cands.sort((a, b) => b[2] - a[2]);
-      states[st] = { source: r.name, url: got.url, live: got.live ?? null, readAt: new Date().toISOString(), contests: got.contests.sort((a, b) => ["senate", "governor", "house"].indexOf(a.office) - ["senate", "governor", "house"].indexOf(b.office) || (a.district ?? 0) - (b.district ?? 0)) };
+      states[st] = { source: r.name, url: got.url, live: got.live ?? null, readAt: nowIso(), contests: got.contests.sort((a, b) => ["senate", "governor", "house"].indexOf(a.office) - ["senate", "governor", "house"].indexOf(b.office) || (a.district ?? 0) - (b.district ?? 0)) };
     } catch (e) {
       failed[st] = String(e.message ?? e);
     }
   }
   fs.mkdirSync(path.dirname(OUT), { recursive: true });
-  fs.writeFileSync(OUT, JSON.stringify({ election: "2026-11-03", builtAt: new Date().toISOString(), states, refused: REFUSED, failed }));
+  fs.writeFileSync(OUT, JSON.stringify({ election: "2026-11-03", builtAt: nowIso(), states, refused: REFUSED, failed }));
   for (const [st, s] of Object.entries(states)) console.log(`${st} ${s.source}: ${s.contests.map((c) => `${c.office}${c.district ?? ""}${c.special ? "*" : ""} ${c.cands[0]?.[0]} ${c.cands[0]?.[1]} ${c.cands[0]?.[2]}`).join(" · ")}`);
   if (Object.keys(failed).length) console.log("failed:", failed);
 }
