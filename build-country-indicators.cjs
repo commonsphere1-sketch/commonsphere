@@ -68,6 +68,8 @@ const FIELDS = {
   lifeExpectancy: { code: "SP.DYN.LE00.IN", conv: (v) => round(v) },
   unemploymentRate: { code: "SL.UEM.TOTL.ZS", conv: (v) => round(v) },
   inflationRate: { code: "FP.CPI.TOTL.ZG", conv: (v) => round(v) },
+  // People per km² of land area, the World Bank's own series (its population over its land area): the World Maps page's density layer.
+  density: { code: "EN.POP.DNST", conv: (v) => round(v) },
 };
 
 /** The site's field → IMF WEO datamapper indicator, and unit conversion. */

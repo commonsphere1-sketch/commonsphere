@@ -36,6 +36,15 @@ import { Link } from "react-router-dom";
 import { MapLabels, placeLabels, type LabelCandidate } from "../components/MapLabels";
 import { CountryHoverCard, type CountryHoverHandle, type HoverPlace } from "../components/CountryHoverCard";
 import { countriesData, type Country } from "../data/countriesData";
+import { COUNTRY_INDICATORS as COUNTRY_FIGURES } from "../data/countryIndicators";
+
+/* Population density, as the World Bank publishes it - people per km² of land area - and the years it is for: the density
+   layer's figure and what its note says of them. */
+const DENSITY_YEARS = (() => {
+  const n = new Map<string, number>();
+  for (const v of Object.values(COUNTRY_FIGURES)) if (v.density) n.set(v.density.y, (n.get(v.density.y) ?? 0) + 1);
+  return [...n].sort((a, b) => b[1] - a[1]);
+})();
 import { flagColor } from "../lib/flagColor";
 import { REGIMES, REGIME_SOURCE, REGIME_TYPES } from "../data/regimes";
 import { CONFLICT_EVENTS_META, CONFLICT_KINDS, CONFLICT_SOURCES } from "../data/conflictEventsMeta";
@@ -1526,6 +1535,21 @@ const COUNTRY_INDICATORS: CountryIndicator[] = [
     ramp: { light: LIVING_LIGHT, dark: LIVING_DARK, low: "Lower", high: "Higher" },
   },
   {
+    // The density layer, as asked (its chip on the layers bar): the World Bank's own series, not worked out here.
+    id: "density",
+    label: "Population density",
+    group: "People",
+    unit: "people per km² of land",
+    higherIsBetter: false,
+    get: (c) => COUNTRY_FIGURES[c.code]?.density?.v ?? null,
+    format: (v) => `${v >= 100 ? Math.round(v).toLocaleString("en-US") : v >= 10 ? v.toFixed(1) : v.toFixed(2)} people per km² of land`,
+    source: {
+      label: "World Bank — World Development Indicators, population density (EN.POP.DNST)",
+      url: "https://data.worldbank.org/indicator/EN.POP.DNST",
+      note: `Population density: the people of each country to a km² of its land - its midyear population over its land area, inland water left out - as the World Bank publishes it, for ${DENSITY_YEARS.map(([y, n]) => `${y} (${n} ${n === 1 ? "country" : "countries"})`).join(", ")}. A country it gives no figure for is hatched. Point at a country for its figure. `,
+    },
+  },
+  {
     id: "hdi",
     label: "Human Development",
     group: "Development",
@@ -1621,6 +1645,8 @@ export function WorldMapsPage() {
   const [countryMetric, setCountryMetric] = useState("hdi");
   /* The Governance layer, as asked: pressed, the world map draws each country in its regime type (V-Dem's Regimes of the World). */
   const [governance, setGovernance] = useState(false);
+  /* The population density layer, as asked: the countries drawn by people to a km² of land in place of living conditions. */
+  const [densityOn, setDensityOn] = useState(false);
   /* The conflicts and the disasters going on, as asked: each pinned on the world map while its chip is pressed. */
   const [live, setLive] = useState({ conflicts: false, hazards: false });
   const [pinTip, setPinTip] = useState<PinTip | null>(null);
@@ -1861,7 +1887,7 @@ export function WorldMapsPage() {
   }, [statePath]);
 
   /* ── Country shading ── */
-  const activeCountry = SHOW_SCOPES ? COUNTRY_INDICATORS.find((i) => i.id === countryMetric)! : COUNTRY_INDICATORS[0];
+  const activeCountry = densityOn ? COUNTRY_INDICATORS.find((i) => i.id === "density")! : SHOW_SCOPES ? COUNTRY_INDICATORS.find((i) => i.id === countryMetric)! : COUNTRY_INDICATORS[0];
 
   /* The world map's ramp: the indicator's own where it has one (forest cover
      is green), the greys otherwise. The other maps on the page keep the greys. */
@@ -3911,12 +3937,28 @@ export function WorldMapsPage() {
           {/* The Governance layer, as asked: every country in its regime type, democracies to autocracies. */}
           <button
             type="button"
-            onClick={() => setGovernance((v) => !v)}
+            onClick={() => {
+              setGovernance((v) => !v);
+              setDensityOn(false);
+            }}
             aria-pressed={governance}
             className={`px-3 py-1 rounded-full text-[11px] font-medium font-sans border transition-colors cursor-pointer shrink-0 ${governance ? "chip-selected" : "bg-transparent border-border text-muted-foreground hover:text-foreground hover:bg-muted/60"}`}
             title="Draw each country in its regime type: closed or electoral autocracy, electoral or liberal democracy (V-Dem)"
           >
             Governance
+          </button>
+          {/* The population density layer, as asked: every country by its people to a km² of land (World Bank). */}
+          <button
+            type="button"
+            onClick={() => {
+              setDensityOn((v) => !v);
+              setGovernance(false);
+            }}
+            aria-pressed={densityOn}
+            className={`px-3 py-1 rounded-full text-[11px] font-medium font-sans border transition-colors cursor-pointer shrink-0 ${densityOn ? "chip-selected" : "bg-transparent border-border text-muted-foreground hover:text-foreground hover:bg-muted/60"}`}
+            title="Draw each country by its population density: people to a km² of land area (World Bank)"
+          >
+            Population density
           </button>
           {/* The conflicts and the disasters going on, as asked: each pinned on the map while its chip is pressed, in the layers' own chip. */}
           {(
