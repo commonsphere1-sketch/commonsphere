@@ -15,7 +15,7 @@
  * The card keeps its own state, set by the map through its handle, so that the pointer moving over a place redraws the
  * card alone and not the map.
  */
-import { forwardRef, useImperativeHandle, useState } from "react";
+import { Fragment, forwardRef, useImperativeHandle, useState } from "react";
 import { createPortal } from "react-dom";
 import { COUNTRY_ZONES, TZ_MULTI, ZONES, type TzFile } from "../data/timeZones";
 import { countriesData } from "../data/countriesData";
@@ -30,8 +30,8 @@ export type PlaceZone =
   | { kind: "division"; cc: string; name: string }
   | { kind: "county"; state: string; fips: string }
   | { kind: "district"; cc: string; parent?: string; name: string };
-/** What the card says of a place: its name, what it lies in (a line under the name), and where its zone is to be found. */
-export type HoverPlace = { name: string; kicker?: string; zone: PlaceZone };
+/** What the card says of a place: its name, what it lies in (a line under the name), where its zone is to be found, and any figures the map is drawn by (a label and its value, said with its year and whose it is). */
+export type HoverPlace = { name: string; kicker?: string; zone: PlaceZone; figures?: [label: string, value: string][] };
 export type CountryHoverHandle = {
   /** Shows, or moves, the card for a place, from the pointer's event on the place's shape. */
   show: (e: React.MouseEvent<SVGElement>, place: HoverPlace, projection: Projection) => void;
@@ -178,6 +178,12 @@ export const CountryHoverCard = forwardRef<CountryHoverHandle>(function CountryH
             <dd className="text-[11px] font-sans text-muted-foreground">reading…</dd>
           </>
         )}
+        {at.place.figures?.map(([label, value]) => (
+          <Fragment key={label}>
+            <dt className="text-[9px] font-mono uppercase tracking-wider text-muted-foreground">{label}</dt>
+            <dd className="text-[11px] font-sans text-foreground tabular-nums">{value}</dd>
+          </Fragment>
+        ))}
         {Number.isFinite(at.lat) && (
           <>
             <dt className="text-[9px] font-mono uppercase tracking-wider text-muted-foreground">Here</dt>

@@ -1614,6 +1614,113 @@ function quantileBreaks(values: number[], buckets: number): number[] {
 /** Headlines naming a country or US state: the places on these maps. */
 const pickPlaced = pickWhere(namesPlace);
 
+/* ── The map of the United States drawn by a figure, as asked: the richest and poorest states and counties, how many of
+   their people are poor, how many die by homicide, and the states' crime (static/us/place-figures.json,
+   build-us-place-figures.cjs). Each is drawn by the sixth of the places it falls in - the states among the states, the
+   counties among the counties - teal the better end and red the worse, as living conditions is. ── */
+type UsFigure = { i?: number; p?: number; h?: number; hm?: 1; v?: number; pr?: number };
+type UsFigures = { builtAt: string; years: Record<string, string>; sources: Record<string, { label: string; url: string }>; states: Record<string, UsFigure>; counties: Record<string, UsFigure> };
+type UsMeasureId = "income" | "poverty" | "homicide" | "violent" | "property";
+type UsMeasure = {
+  id: UsMeasureId;
+  chip: string;
+  key: "i" | "p" | "h" | "v" | "pr";
+  /** Whether it is held county by county, or for the states alone. */
+  counties: boolean;
+  /** Whether the lower figure is the better end: drawn teal. */
+  lowGood: boolean;
+  /** What the card calls it. */
+  label: string;
+  low: string;
+  high: string;
+  /** Its year's key in the file, and its source's. */
+  year: "income" | "poverty" | "homicide" | "crime";
+  src: "saipe" | "homicide" | "crime";
+  format: (v: number, f: UsFigure) => string;
+  title: string;
+  /** What is said under the map. */
+  said: (year: string) => string;
+};
+const US_MEASURES: UsMeasure[] = [
+  {
+    id: "income",
+    chip: "Household income",
+    key: "i",
+    counties: true,
+    lowGood: false,
+    label: "Household income",
+    low: "Poorest",
+    high: "Richest",
+    year: "income",
+    src: "saipe",
+    format: (v) => `$${Math.round(v).toLocaleString("en-US")} median`,
+    title: "Draw the states and counties by median household income: the richest and the poorest (Census Bureau)",
+    said: (y) =>
+      `Median household income in ${y}: half the households of each state or county take in more, half less. The Census Bureau's Small Area Income and Poverty Estimates, which model every state and all 3,143 counties alike from its surveys, tax returns and the programmes' own counts, so that a county's figure stands beside its state's. A state's window gives the American Community Survey's median, a survey figure; the two differ a little.`,
+  },
+  {
+    id: "poverty",
+    chip: "Poverty",
+    key: "p",
+    counties: true,
+    lowGood: true,
+    label: "In poverty",
+    low: "Least",
+    high: "Most",
+    year: "poverty",
+    src: "saipe",
+    format: (v) => `${v.toFixed(1)}% of people`,
+    title: "Draw the states and counties by the share of their people in poverty (Census Bureau)",
+    said: (y) => `The share of the people of each state or county, of all ages, below the official poverty line in ${y}: the Census Bureau's Small Area Income and Poverty Estimates, for every state and all 3,143 counties alike.`,
+  },
+  {
+    id: "homicide",
+    chip: "Homicide",
+    key: "h",
+    counties: true,
+    lowGood: true,
+    label: "Homicide",
+    low: "Fewest",
+    high: "Most",
+    year: "homicide",
+    src: "homicide",
+    format: (v, f) => `${v.toFixed(1)} deaths to 100,000 people${f.hm ? " · modelled by the CDC: 1 to 9 deaths" : ""}`,
+    title: "Draw the states and counties by deaths by homicide to 100,000 people (CDC)",
+    said: (y) =>
+      `Deaths by homicide in ${y} to 100,000 residents, by the state or county the dead lived in: the CDC's count from death certificates (National Vital Statistics System). Where a county had 1 to 9 deaths the CDC gives a rate from a statistical model in place of the count, and the card says so; where it withholds the rate, the county is hatched.`,
+  },
+  {
+    id: "violent",
+    chip: "Violent crime",
+    key: "v",
+    counties: false,
+    lowGood: true,
+    label: "Violent crime",
+    low: "Least",
+    high: "Most",
+    year: "crime",
+    src: "crime",
+    format: (v) => `${v.toFixed(1)} to 100,000 people · worked out here from the FBI's estimates`,
+    title: "Draw the states by violent crime to 100,000 people (FBI)",
+    said: (y) => `Violent crimes known to the police in ${y} - murder, rape, robbery and aggravated assault - to 100,000 people: worked out here from the FBI's estimated counts and population for each state. The FBI publishes no county figures, so the states alone are drawn.`,
+  },
+  {
+    id: "property",
+    chip: "Property crime",
+    key: "pr",
+    counties: false,
+    lowGood: true,
+    label: "Property crime",
+    low: "Least",
+    high: "Most",
+    year: "crime",
+    src: "crime",
+    format: (v) => `${v.toFixed(1)} to 100,000 people · worked out here from the FBI's estimates`,
+    title: "Draw the states by property crime to 100,000 people (FBI)",
+    said: (y) => `Property crimes known to the police in ${y} - burglary, larceny-theft and motor vehicle theft - to 100,000 people: worked out here from the FBI's estimated counts and population for each state. The FBI publishes no county figures, so the states alone are drawn.`,
+  },
+];
+
 export function WorldMapsPage() {
   const { theme } = useTheme();
   const isLight = theme === "light";
@@ -1621,6 +1728,8 @@ export function WorldMapsPage() {
   const [countryMetric, setCountryMetric] = useState("hdi");
   /* The Governance layer, as asked: pressed, the world map draws each country in its regime type (V-Dem's Regimes of the World). */
   const [governance, setGovernance] = useState(false);
+  /* The figure the map of the United States is drawn by, as asked: none, and it is drawn by living conditions. */
+  const [usMeasure, setUsMeasure] = useState<UsMeasureId | null>(null);
   /* The conflicts and the disasters going on, as asked: each pinned on the world map while its chip is pressed. */
   const [live, setLive] = useState({ conflicts: false, hazards: false });
   const [pinTip, setPinTip] = useState<PinTip | null>(null);
@@ -1851,6 +1960,9 @@ export function WorldMapsPage() {
     );
     return geoPath(projection);
   }, [states]);
+
+  /** The map of the United States' projection, as the card by the pointer reads it. */
+  const usProjection = useMemo(() => statePath.projection() as unknown as { invert: (p: [number, number]) => [number, number] | null }, [statePath]);
 
   const usOutlineD = useMemo(() => {
     const topo = statesTopo as unknown as Topology;
@@ -2570,6 +2682,19 @@ export function WorldMapsPage() {
     });
   }, [wantCountyHits, usCounties, states, statePath]);
 
+  /* The counties drawn by the figure chosen, where it is held county by county: all of them, at every distance, as asked - the richest and poorest areas are counties. Built when first wanted. */
+  const usMeasureCounties = usMeasure === "income" || usMeasure === "poverty" || usMeasure === "homicide";
+  const usCountyShapes = useMemo(() => {
+    if (!usMeasureCounties || focusCode !== "US" || !usCounties) return [];
+    const stateName = new Map(states.features.map((f) => [String((f as { id?: string | number }).id ?? "").padStart(2, "0"), stateForFeature(f.properties.name)?.name ?? f.properties.name]));
+    return (feature(usCounties, usCounties.objects.counties as never) as unknown as { features: { id?: string | number; properties: { name: string } }[] }).features.flatMap((f) => {
+      const d = statePath(f as never);
+      const fips = String(f.id ?? "").padStart(5, "0");
+      const state = stateName.get(fips.slice(0, 2)) ?? "";
+      return d ? [{ fips, d, state, name: f.properties.name }] : [];
+    });
+  }, [usMeasureCounties, focusCode, usCounties, states, statePath]);
+
   /* These two depend on the zoom, so they are declared after it: the dots keep
      a constant size on screen, which means their radius is in canvas units
      divided by the current zoom. */
@@ -3207,6 +3332,41 @@ export function WorldMapsPage() {
   /* A state's, on the United States' map. */
   // Kept the same from one drawing to the next, so that the atlas below is not redrawn at every step of a pan.
   const stateInk = useCallback((name: string) => (STATE_LIVING[name] && colourFor(STATE_LIVING[name].score, stateLivingBreaks, livingRamp)) || UNSCORED, [stateLivingBreaks, livingRamp]);
+  /* The figure the map of the United States is drawn by, as asked - none, and it is drawn by living conditions - and the file of them, fetched when that map is shown. */
+  const [usFigures, setUsFigures] = useState<UsFigures | null | undefined>(undefined);
+  useEffect(() => {
+    if (focusCode !== "US" || usFigures !== undefined) return;
+    let off = false;
+    fetch("/us/place-figures.json")
+      .then((r) => (r.ok ? (r.json() as Promise<UsFigures>) : null))
+      .then((j) => !off && setUsFigures(j))
+      .catch(() => !off && setUsFigures(null));
+    return () => {
+      off = true;
+    };
+  }, [focusCode, usFigures]);
+  /** The measures the file holds: the FBI's only where its file was there to build from. */
+  const usMeasures = US_MEASURES.filter((m) => usFigures && usFigures.years[m.year]);
+  const usM = usFigures && usMeasure ? (US_MEASURES.find((m) => m.id === usMeasure && usFigures.years[m.year]) ?? null) : null;
+  const usRamp = useMemo(() => (usM?.lowGood ? [...livingRamp].reverse() : livingRamp), [usM, livingRamp]);
+  const usValues = (o: Record<string, UsFigure> | undefined, k: UsMeasure["key"]) => Object.values(o ?? {}).flatMap((x) => (typeof x[k] === "number" ? [x[k] as number] : []));
+  const usStateBreaks = useMemo(() => (usM && usFigures ? quantileBreaks(usValues(usFigures.states, usM.key), usRamp.length) : []), [usM, usFigures, usRamp.length]);
+  const usCountyBreaks = useMemo(() => (usM?.counties && usFigures ? quantileBreaks(usValues(usFigures.counties, usM.key), usRamp.length) : []), [usM, usFigures, usRamp.length]);
+  /** A state's colour: by the figure chosen, else by its living conditions. */
+  const usStateFill = (abbr: string | undefined, name: string) => {
+    if (!usM) return stateInk(name);
+    const v = abbr ? usFigures?.states[abbr]?.[usM.key] : undefined;
+    return (typeof v === "number" && colourFor(v, usStateBreaks, usRamp)) || UNSCORED;
+  };
+  /** What the card says of a state or a county: its figure on the measure chosen, else a state's living conditions. */
+  const usFiguresOf = (f: UsFigure | undefined, name?: string): [string, string][] => {
+    if (usM) {
+      const v = f?.[usM.key];
+      const y = usFigures?.years[usM.year];
+      return [[usM.label, typeof v === "number" ? `${usM.format(v, f!)} · ${y}` : "not published"]];
+    }
+    return name && STATE_LIVING[name] ? [["Living conditions", `${STATE_LIVING[name].score.toFixed(0)} of 100 · worked out here`]] : [];
+  };
 
   /* ── The same overlays, on whichever country is in focus ──────────────
      The layers are lon/lat, so they can be drawn in any projection; what
@@ -3879,6 +4039,20 @@ export function WorldMapsPage() {
               <CaretDown size={10} weight="bold" className={`transition-transform ${showFocusLayers ? "rotate-180" : ""}`} />
               More
             </button>
+            {/* The figures the United States can be drawn by, as asked: one at a time, pressed again for living conditions. */}
+            {focusCode === "US" &&
+              usMeasures.map((m) => (
+                <button
+                  key={m.id}
+                  type="button"
+                  onClick={() => setUsMeasure((v) => (v === m.id ? null : m.id))}
+                  aria-pressed={usMeasure === m.id}
+                  className={`px-3 py-1 rounded-full text-[11px] font-medium font-sans border transition-colors cursor-pointer shrink-0 ${usMeasure === m.id ? "chip-selected" : "bg-transparent border-border text-muted-foreground hover:text-foreground hover:bg-muted/60"}`}
+                  title={m.title}
+                >
+                  {m.chip}
+                </button>
+              ))}
             {OVERLAYS.filter((o) => BAR_LAYERS[o.id]).map((o) => layerButton({ ...o, label: BAR_LAYERS[o.id]! }, layers, set))}
             {showFocusLayers && OVERLAYS.filter((o) => !BAR_LAYERS[o.id]).map((o) => layerButton(o, layers, set))}
             {/* On the country map the chip is for a state or a city: a country is not picked out here. */}
@@ -4823,26 +4997,54 @@ export function WorldMapsPage() {
               <path
                 key={i}
                 d={d}
-                className="[fill-opacity:0.36] hover:[fill-opacity:0.78] transition-[fill-opacity]"
-                fill={stateInk(state?.name ?? name)}
-                stroke={stateInk(state?.name ?? name)}
+                className={usMeasureCounties ? undefined : "[fill-opacity:0.36] hover:[fill-opacity:0.78] transition-[fill-opacity]"}
+                // Where the counties are drawn by the figure, the state is their frame: its edge alone, over them.
+                fill={usMeasureCounties ? "none" : usStateFill(state?.abbreviation, state?.name ?? name)}
+                stroke={usMeasureCounties ? (isLight ? "rgba(15,23,42,0.55)" : "rgba(255,255,255,0.55)") : usStateFill(state?.abbreviation, state?.name ?? name)}
                 strokeWidth={0.9 / zoom}
                 strokeLinejoin="round"
+                pointerEvents={usMeasureCounties ? "none" : undefined}
                 data-pick={state ? `state:${state.abbreviation}` : undefined}
                 onMouseEnter={() => pointAt("US", state?.name ?? name)}
-                onMouseLeave={pointOff}
+                onMouseMove={(e) => card.current?.show(e, { name: state?.name ?? name, kicker: "United States", zone: { kind: "division", cc: "US", name: state?.name ?? name }, figures: usFiguresOf(state ? usFigures?.states[state.abbreviation] : undefined, state?.name ?? name) }, usProjection)}
+                onMouseLeave={() => {
+                  pointOff();
+                  card.current?.hide();
+                }}
                 style={{ cursor: state && zoom === 1 ? "pointer" : undefined }}
-              >
-
-                <title>{`${state?.name ?? name}${STATE_LIVING[state?.name ?? name] ? ` · living conditions ${STATE_LIVING[state?.name ?? name].score.toFixed(0)} of 100, worked out here` : ""}`}</title>
-              </path>
+              />
             ))}
             {/* The counties' borders, over the states and under the labels: each state's in the state's own colour, a little dimmer and finer than its edge, and not pointed at. */}
-            {usCountyLines.map((l) => (
-              <path key={l.name} d={l.d} fill="none" stroke={stateInk(l.name)} strokeOpacity={0.6} strokeWidth={0.4 / zoom} strokeLinejoin="round" pointerEvents="none" />
-            ))}
+            {!usMeasureCounties &&
+              usCountyLines.map((l) => (
+                <path key={l.name} d={l.d} fill="none" stroke={usM ? usStateFill(stateForFeature(l.name)?.abbreviation, l.name) : stateInk(l.name)} strokeOpacity={0.6} strokeWidth={0.4 / zoom} strokeLinejoin="round" pointerEvents="none" />
+              ))}
+            {/* Every county by the figure chosen, as asked: its sixth among the counties, a county whose figure is withheld hatched; the card by the pointer gives its figure. */}
+            {usMeasureCounties && usM && (
+              <g>
+                {usCountyShapes.map((c) => {
+                  const fig = usFigures?.counties[c.fips];
+                  const v = fig?.[usM.key];
+                  const ink = typeof v === "number" ? colourFor(v, usCountyBreaks, usRamp) : null;
+                  return (
+                    <path
+                      key={c.fips}
+                      d={c.d}
+                      fill={ink ?? "url(#nodata-us)"}
+                      className="[fill-opacity:0.62] hover:[fill-opacity:0.95] transition-[fill-opacity]"
+                      stroke={ink ?? UNSCORED}
+                      strokeOpacity={0.5}
+                      strokeWidth={0.25 / zoom}
+                      strokeLinejoin="round"
+                      onMouseMove={(e) => card.current?.show(e, { name: c.name, kicker: [c.state, "United States"].filter(Boolean).join(", "), zone: { kind: "county", state: c.state, fips: c.fips }, figures: usFiguresOf(fig) }, usProjection)}
+                      onMouseLeave={() => card.current?.hide()}
+                    />
+                  );
+                })}
+              </g>
+            )}
             {/* Drawn closer, a county is what is pointed at: lit in its state's colour, with an edge, and named. */}
-            {usCountyHits.map((h) => (
+            {!usMeasureCounties && usCountyHits.map((h) => (
               <path key={h.key} d={h.d} onMouseEnter={() => pointAt("US", h.state)} onMouseLeave={pointOff} fill={stateInk(h.state)} stroke={stateInk(h.state)} strokeWidth={1.2 / zoom} strokeLinejoin="round" className="[fill-opacity:0] [stroke-opacity:0] hover:[fill-opacity:0.6] hover:[stroke-opacity:1] transition-[fill-opacity]">
                 <title>{h.name}</title>
               </path>
@@ -4913,6 +5115,10 @@ export function WorldMapsPage() {
             )}
                         {/* These are worldwide files. Without clipping they run on across Canada and Mexico, and the map stops being a map of the United States. */}
             <defs>
+              <pattern id="nodata-us" patternUnits="userSpaceOnUse" width="4" height="4" patternTransform="rotate(45)">
+                <rect width="4" height="4" fill={noData} />
+                <line x1="2" y1="0" x2="2" y2="4" stroke={noDataHatch} strokeWidth="1.5" />
+              </pattern>
               {usOutlineD && (
                 <clipPath id="clip-us">
                   <path d={usOutlineD} />
@@ -5039,6 +5245,19 @@ export function WorldMapsPage() {
 
             </g>
           </svg>
+          {usM && usFigures ? (
+            <>
+              <p className="text-[10px] font-sans text-muted-foreground leading-snug mt-3">
+                {usM.said(usFigures.years[usM.year])} The colour is the sixth of the {usM.counties ? "counties among the counties - the states' edges over them -" : "states among the states"} it falls in,
+                teal the {usM.lowGood ? "lowest" : "highest"} and red the {usM.lowGood ? "highest" : "lowest"}; point at {usM.counties ? "a county" : "a state"} for its figure.
+                {usM.counties &&
+                  " The map draws some counties on older lines than the figures, and those are hatched: Connecticut's eight counties, which the Census Bureau has counted as nine planning regions since 2022; Alaska's Valdez-Cordova, divided in 2019; and Kalawao, Hawaii, counted with Maui."}
+              </p>
+              <Legend ramp={usRamp} noData={noData} noDataHatch={noDataHatch} lowLabel={usM.low} highLabel={usM.high} hovered={null} />
+              <SourceLink sources={[usFigures.sources[usM.src]]} className="mt-1.5" />
+            </>
+          ) : (
+          <>
           <p className="text-[10px] font-sans text-muted-foreground leading-snug mt-3">
             Each state is coloured by its living conditions among the fifty, worked out here as a country's is and published by no body: its standing among the
             states on each measure, averaged within five parts and then across them, 0 to 100 - {partsSaid(STATE_LIVING_PARTS)}. The colour is the sixth of the states
@@ -5047,6 +5266,8 @@ export function WorldMapsPage() {
             are held county by county, so a county is not coloured apart from its state: the fine lines are the counties' borders.
           </p>
           <Legend ramp={livingRamp} noData={noData} noDataHatch={noDataHatch} lowLabel="Lower" highLabel="Higher" hovered={null} />
+          </>
+          )}
 
           {layerNotes(focusLayers)}
           </>
