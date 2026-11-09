@@ -223,6 +223,12 @@ async function main() {
       failed[st] = String(e.message ?? e);
     }
   }
+  // A state whose site does not answer this time keeps its last count, at the time it was read (the page says when):
+  // a server that is down for a day does not take a state off the map.
+  if (fs.existsSync(OUT)) {
+    const before = JSON.parse(fs.readFileSync(OUT, "utf8"));
+    for (const st of Object.keys(failed)) if (!states[st] && before.states?.[st]) states[st] = before.states[st];
+  }
   fs.mkdirSync(path.dirname(OUT), { recursive: true });
   fs.writeFileSync(OUT, JSON.stringify({ election: "2026-11-03", builtAt: nowIso(), states, refused: REFUSED, failed }));
   for (const [st, s] of Object.entries(states)) console.log(`${st} ${s.source}: ${s.contests.map((c) => `${c.office}${c.district ?? ""}${c.special ? "*" : ""} ${c.cands[0]?.[0]} ${c.cands[0]?.[1]} ${c.cands[0]?.[2]}`).join(" · ")}`);
