@@ -46,6 +46,7 @@ import { STATE_HEALTH_SAFETY_SOURCES } from "../data/stateHealthSafety";
 import { useAdmin2 } from "../lib/admin2";
 import { inView, useFiner, type Bounds } from "../lib/finerShapes";
 import { usStatesData } from "../data/statesData";
+import { stepAmong } from "../lib/divisionFigures";
 import {
   countryForFeature,
   stateForFeature,
@@ -3350,13 +3351,15 @@ export function WorldMapsPage() {
   const usM = usFigures && usMeasure ? (US_MEASURES.find((m) => m.id === usMeasure && usFigures.years[m.year]) ?? null) : null;
   const usRamp = useMemo(() => (usM?.lowGood ? [...livingRamp].reverse() : livingRamp), [usM, livingRamp]);
   const usValues = (o: Record<string, UsFigure> | undefined, k: UsMeasure["key"]) => Object.values(o ?? {}).flatMap((x) => (typeof x[k] === "number" ? [x[k] as number] : []));
-  const usStateBreaks = useMemo(() => (usM && usFigures ? quantileBreaks(usValues(usFigures.states, usM.key), usRamp.length) : []), [usM, usFigures, usRamp.length]);
-  const usCountyBreaks = useMemo(() => (usM?.counties && usFigures ? quantileBreaks(usValues(usFigures.counties, usM.key), usRamp.length) : []), [usM, usFigures, usRamp.length]);
+  /* Each state's and county's sixth among its kind, by the share of them below it: places that tie fall together - the 1,246
+     counties with no homicide in 2024, two in five, in the lowest, where cutting the sorted list at fixed places drew them a third of the way up. */
+  const usStateStep = useMemo(() => (usM && usFigures ? stepAmong(usValues(usFigures.states, usM.key), usRamp.length) : null), [usM, usFigures, usRamp.length]);
+  const usCountyStep = useMemo(() => (usM?.counties && usFigures ? stepAmong(usValues(usFigures.counties, usM.key), usRamp.length) : null), [usM, usFigures, usRamp.length]);
   /** A state's colour: by the figure chosen, else by its living conditions. */
   const usStateFill = (abbr: string | undefined, name: string) => {
     if (!usM) return stateInk(name);
     const v = abbr ? usFigures?.states[abbr]?.[usM.key] : undefined;
-    return (typeof v === "number" && colourFor(v, usStateBreaks, usRamp)) || UNSCORED;
+    return (typeof v === "number" && Number.isFinite(v) && usStateStep && usRamp[usStateStep(v)]) || UNSCORED;
   };
   /** What the card says of a state or a county: its figure on the measure chosen, else a state's living conditions. */
   const usFiguresOf = (f: UsFigure | undefined, name?: string): [string, string][] => {
@@ -5025,7 +5028,7 @@ export function WorldMapsPage() {
                 {usCountyShapes.map((c) => {
                   const fig = usFigures?.counties[c.fips];
                   const v = fig?.[usM.key];
-                  const ink = typeof v === "number" ? colourFor(v, usCountyBreaks, usRamp) : null;
+                  const ink = typeof v === "number" && Number.isFinite(v) && usCountyStep ? usRamp[usCountyStep(v)] : null;
                   return (
                     <path
                       key={c.fips}

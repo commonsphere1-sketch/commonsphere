@@ -47,11 +47,16 @@ export function CountryOutline({
   color,
   fillOf,
   figureOf,
+  partFillOf,
+  partFigureOf,
 }: {
   /** A fill of its own for a division, where it has one (OutlineMap). */
   fillOf?: (shape: Outline) => string | undefined;
   /** A division's figure, said in its pop-up, where the map is drawn by one (OutlineMap). */
   figureOf?: (shape: Outline) => string | undefined;
+  /** A county's or district's fill and figure, where the map is drawn by one held for them (OutlineMap). */
+  partFillOf?: (part: Outline) => string | undefined;
+  partFigureOf?: (part: Outline) => string | undefined;
   /** The country's ISO code. */
   code: string;
   name: string;
@@ -93,6 +98,8 @@ export function CountryOutline({
         shapes={outlines ?? drawn}
         fillOf={fillOf}
         figureOf={figureOf}
+        partFillOf={partFillOf}
+        partFigureOf={partFigureOf}
         // A US state's postal code, where its name does not fit.
         shortOf={code === "US" ? (f) => STATE_CODE.get(f.properties.n ?? "") : undefined}
         frame={frame}
@@ -107,7 +114,7 @@ export function CountryOutline({
       <p className="text-[10px] font-sans text-muted-foreground leading-snug mt-1">
         {name}'s divisions as the site's maps draw them
         {mark ? `, with ${mark.name} marked` : shown.length ? `, with ${dotsAre ?? `the ${shown.length} largest places GeoNames lists for it`} as dots - point at one for its name and what it belongs to, and press it for its own window` : ""}
-        {second ? `; the finer lines are its ${second.are} - draw the map closer to point at one` : ""}
+        {second ? (partFillOf ? `; its ${second.are} are drawn by the figure chosen - point at one for its figure` : `; the finer lines are its ${second.are} - draw the map closer to point at one`) : ""}
         {apart > 1 ? `; it opens on its main part, and its ${apart - 1} far-off part${apart > 2 ? "s are" : " is"} a swipe away, or the arrows under the map` : ""}.
       </p>
       <SourceLink sources={[NATURAL_EARTH, ...(second ? [second.source] : []), ...(mark ? [] : [dotsSource ?? GEONAMES])]} className="mt-1" />

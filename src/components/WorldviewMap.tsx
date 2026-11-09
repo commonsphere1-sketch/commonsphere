@@ -58,7 +58,8 @@ import CountryDashboard, { headlineOf } from "./CountryDashboard";
 import PlaceFigures, { type PressedPlace } from "./PlaceFigures";
 import { NewsHistory } from "./NewsHistory";
 import { MidtermsPanel, midtermFill } from "./MidtermsPanel";
-import { DIVISION_MEASURES, figureFill, useDivisionFigures, yearsAndSources, type DivisionMeasureId } from "../lib/divisionFigures";
+import { DIVISION_MEASURES, figureFill, partKeyOf, useDivisionFigures, yearsAndSources, type DivisionMeasureId } from "../lib/divisionFigures";
+import { useSecondOrder } from "../lib/secondOrder";
 import { useMidterms, type Office } from "../lib/elections2026";
 import { useElectionSeason } from "../lib/electionSeason";
 import { OccurrencePanel, type Occurrence } from "./OccurrencePanel";
@@ -520,18 +521,25 @@ function AreaMiniMap({ t, code, country, place, city }: { t: Tokens; code: strin
   const [midterms, setMidterms] = useState(season);
   const [office, setOffice] = useState<Office>("senate");
   const counts = useMidterms(usWhole && midterms);
-  /* The figures the country's divisions can be drawn by, as asked - population and density for now - one at a time, pressed again for the plain map. */
+  /* The figures the country's divisions - and its counties, where those hold them, as asked - can be drawn by: one at a time, pressed again for the plain map. */
   const whole = !place;
   const figures = useDivisionFigures(whole ? code : null);
   const [measure, setMeasure] = useState<DivisionMeasureId | null>(null);
   useEffect(() => setMeasure(null), [code]);
-  const measures = DIVISION_MEASURES.filter((m) => figures && figures[m.id].size >= 2);
-  const shown = whole && measure && figures && figures[measure].size >= 2 ? DIVISION_MEASURES.find((m) => m.id === measure)! : null;
-  const held = shown && figures ? figures[shown.id] : null;
+  const measures = DIVISION_MEASURES.filter((m) => (figures?.[m.id]?.by.size ?? 0) >= 2);
+  const shown = whole && measure && (figures?.[measure]?.by.size ?? 0) >= 2 ? DIVISION_MEASURES.find((m) => m.id === measure)! : null;
+  const held = shown ? (figures?.[shown.id] ?? null) : null;
+  /* Where the counties hold the figure, they are drawn - every one at every distance, the states' edges over them - and found by their FIPS codes. */
+  const second = useSecondOrder(whole ? code : null);
+  const partKey = partKeyOf(code);
+  const byCounty = held?.level === "counties" && partKey ? partKey : null;
+  const drawnCounties = byCounty && second ? second.lines.filter((l) => /^(0\d|[1-4]\d|5[0-6])/.test(byCounty(l) ?? "")) : null;
+  const countiesHeld = byCounty && held && drawnCounties ? drawnCounties.filter((l) => held.by.has(byCounty(l) ?? "")).length : 0;
+  const ys = held ? yearsAndSources(held.by) : null;
   const chip = (on: boolean) => ({ borderColor: on ? t.headText : t.gridLine, color: on ? t.headText : t.mutedText });
   return (
     <section className="rounded-xl flex flex-col min-w-0" style={{ background: t.cardBg, border: t.cardBorder }} aria-label={`Where ${what} is`}>
-      <div className="flex items-baseline gap-2 px-3.5 pt-3 pb-2 border-b" style={{ borderColor: t.gridLine }}>
+      <div className="flex flex-wrap items-baseline gap-x-2 gap-y-1.5 px-3.5 pt-3 pb-2 border-b" style={{ borderColor: t.gridLine }}>
         <h3 className="text-[10px] font-mono uppercase tracking-widest flex-1 min-w-0 truncate" style={{ color: t.headText }}>
           Where it is · {what}
         </h3>
@@ -574,22 +582,21 @@ function AreaMiniMap({ t, code, country, place, city }: { t: Tokens; code: strin
         ) : place?.kind === "county" && countyGeo?.geometry ? (
           <OutlineMap shapes={[{ type: "Feature", properties: { n: place.name }, geometry: countyGeo.geometry }]} color={MAP_INK} label={`The outline of ${what}`} />
         ) : (
-          <CountryOutline code={code} name={country} color={MAP_INK} className="" fillOf={shown && held ? figureFill(held, MAP_INK) : usWhole && midterms ? midtermFill(counts, office) : undefined} figureOf={shown && held ? (s) => { const fg = s.properties.n ? held.get(s.properties.n) : undefined; return fg ? shown.say(fg) : "not held"; } : undefined} mark={place?.kind === "city" && city ? { id: city.name, name: city.name, lon: city.lon, lat: city.lat } : undefined} />
+          <CountryOutline code={code} name={country} color={MAP_INK} className="" fillOf={shown && held && !byCounty ? figureFill(held.by, MAP_INK) : usWhole && midterms ? midtermFill(counts, office) : undefined} figureOf={shown && held && !byCounty ? (s) => { const fg = s.properties.n ? held.by.get(s.properties.n) : undefined; return fg ? shown.say(fg) : "not held"; } : undefined} partFillOf={shown && held && byCounty ? figureFill(held.by, MAP_INK, byCounty) : undefined} partFigureOf={shown && held && byCounty ? (s) => { const k = byCounty(s); const fg = k ? held.by.get(k) : undefined; return fg ? shown.say(fg) : "not held"; } : undefined} mark={place?.kind === "city" && city ? { id: city.name, name: city.name, lon: city.lon, lat: city.lat } : undefined} />
         )}
         {usWhole && midterms && <MidtermsPanel t={t} data={counts} office={office} onOffice={setOffice} />}
-        {/* What the divisions are drawn by: its years and sources, how the shading is read, and how many divisions hold it. */}
-        {shown && held && (
+        {/* What the map is drawn by: its years and sources, how the shading is read, and how many divisions or counties hold it. */}
+        {shown && held && ys && (
           <div className="mt-2">
             <p className="text-[10px] font-sans leading-snug" style={{ color: t.mutedText }}>
-              {shown.note(yearsAndSources(held).years, yearsAndSources(held).sources)} {held.size} of {country}'s divisions on this map hold it.
+              {shown.note(ys.years, ys.sources, byCounty ? "counties" : "divisions")}{" "}
+              {byCounty
+                ? drawnCounties
+                  ? `${countiesHeld.toLocaleString("en-US")} of the ${drawnCounties.length.toLocaleString("en-US")} counties and county equivalents of the states and the District of Columbia on this map hold it.${held.plain && countiesHeld < drawnCounties.length ? ` ${held.plain}` : ""}`
+                  : ""
+                : `${held.by.size} of ${country}'s divisions on this map hold it.`}
             </p>
-            <SourceLink
-              sources={[
-                ...([...held.values()].some((x) => x.by.startsWith("Wikidata")) ? [{ label: "Wikidata (CC0) — each division's population, citing its statistics office", url: "https://www.wikidata.org/" }] : []),
-                ...([...held.values()].some((x) => x.by === "Wikipedia") ? [{ label: "Wikipedia — a division's population where its Wikidata record has none", url: "https://en.wikipedia.org/" }] : []),
-              ]}
-              className="mt-1"
-            />
+            <SourceLink sources={held.sources} className="mt-1" />
           </div>
         )}
       </div>

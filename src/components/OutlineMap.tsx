@@ -78,7 +78,13 @@ export function OutlineMap({
   fillOf,
   shortOf,
   figureOf,
+  partFillOf,
+  partFigureOf,
 }: {
+  /** A county's or district's fill, where the map is drawn by a figure held for them: they are then drawn at every distance, the outlines' edges over them. */
+  partFillOf?: (part: Outline) => string | undefined;
+  /** A county's or district's figure, said in its pop-up. */
+  partFigureOf?: (part: Outline) => string | undefined;
   /** A division's figure, where the map is drawn by one: said in its pop-up, under its name. */
   figureOf?: (shape: Outline) => string | undefined;
   /** A division's short name, where it has one - a US state's postal code - set where its full name does not fit. */
@@ -209,7 +215,7 @@ export function OutlineMap({
     };
   }, [shapes, inner, dots, mark, slides, groups, onSlide]);
   /* The places inside, each with its outline, its middle and where it lies: worked out when the map is first drawn close enough for them. */
-  const wantParts = view.k >= PARTS_FROM && Boolean(parts?.length);
+  const wantParts = (view.k >= PARTS_FROM || Boolean(partFillOf)) && Boolean(parts?.length);
   const partPaths = useMemo(() => {
     if (!wantParts || !drawn || !parts) return [];
     return parts.flatMap((s, i) => {
@@ -217,7 +223,7 @@ export function OutlineMap({
       if (!d) return [];
       const [[x0, y0], [x1, y1]] = drawn.path.bounds(s as never);
       const [cx, cy] = drawn.path.centroid(s as never);
-      return [{ i, d, cx, cy, x0, y0, x1, y1, name: [s.properties.n, s.properties.p].filter(Boolean).join(", ") }];
+      return [{ i, d, cx, cy, x0, y0, x1, y1, part: s, name: [s.properties.n, s.properties.p].filter(Boolean).join(", ") }];
     });
   }, [wantParts, drawn, parts]);
   /* Where each of the places inside has its name set: worked out once for the map, at any zoom, so that their names show from the first view. */
@@ -268,13 +274,17 @@ export function OutlineMap({
   const tip =
     said ??
     (litPartPath && litPartPath.name && Number.isFinite(litPartPath.cx)
-      ? { x: litPartPath.cx, y: litPartPath.cy, name: litPartPath.name, sub: onPart ? "Press it to open its window" : undefined }
+      ? { x: litPartPath.cx, y: litPartPath.cy, name: litPartPath.name, figure: partFigureOf?.(litPartPath.part), sub: onPart ? "Press it to open its window" : undefined }
       : litPath && litPath.name && Number.isFinite(litPath.cx)
         ? { x: litPath.cx, y: litPath.cy, name: litPath.name, figure: figureOf?.(litPath.shape), sub: onShape ? "Press it to open its window" : undefined }
         : undefined);
   /* Where the pop-up's place is across what is in view, 0 to 1 each way. */
   const fx = tip ? (tip.x - (view.x - W / (2 * view.k))) / (W / view.k) : 0;
   const fy = tip ? (tip.y - (view.y - H / (2 * view.k))) / (H / view.k) : 0;
+  /* The finer borders: thinner and fainter than the outlines they lie in, and kept inside them - over the fills, or over the counties where those are drawn by a figure. */
+  const finer = drawn.inner ? (
+    <path d={drawn.inner} clipPath={`url(#${clipId})`} fill="none" stroke={color} strokeOpacity={many ? 0.5 : 0.7} strokeWidth={many ? 0.35 : 0.55} vectorEffect="non-scaling-stroke" strokeLinejoin="round" pointerEvents="none" />
+  ) : null;
   const tool =
     "w-7 h-7 rounded-full border border-border bg-background/70 text-muted-foreground hover:text-foreground flex items-center justify-center cursor-pointer transition-colors disabled:opacity-40 disabled:cursor-default";
   return (
@@ -366,7 +376,8 @@ export function OutlineMap({
             key={p.key}
             d={p.d}
             fill={fillOf?.(p.shape) ?? color}
-            fillOpacity={fillOf?.(p.shape) ? (litPath?.key === p.key ? 0.95 : 0.72) : litPath?.key === p.key ? 0.62 : 0.28}
+            // Where its counties or districts are drawn by a figure, the outline is their frame, unfilled: one with no figure is then blank.
+            fillOpacity={partFillOf ? 0 : fillOf?.(p.shape) ? (litPath?.key === p.key ? 0.95 : 0.72) : litPath?.key === p.key ? 0.62 : 0.28}
             stroke={color}
             strokeWidth={many ? 0.8 : 1.4}
             vectorEffect="non-scaling-stroke"
@@ -385,22 +396,31 @@ export function OutlineMap({
           </clipPath>
         </defs>
         {/* The finer borders, over the fills and under the dots: thinner and fainter than the outlines they lie in, and kept inside them. */}
-        {drawn.inner && <path d={drawn.inner} clipPath={`url(#${clipId})`} fill="none" stroke={color} strokeOpacity={many ? 0.5 : 0.7} strokeWidth={many ? 0.35 : 0.55} vectorEffect="non-scaling-stroke" strokeLinejoin="round" pointerEvents="none" />}
+        {finer && !partFillOf && finer}
         {/* The outline pointed at, edged over its neighbours so that the whole of its border shows. */}
         {litPath && !litPartPath && <path d={litPath.d} fill="none" stroke={color} strokeWidth={2} vectorEffect="non-scaling-stroke" strokeLinejoin="round" pointerEvents="none" />}
         {/* Drawn closer, the places inside are what is pointed at: unseen until then, each over the outline it lies in. */}
-        {partsInView.map((p) => (
-          <path
-            key={p.i}
-            d={p.d}
-            fill={color}
-            fillOpacity={litPart === p.i ? 0.45 : 0}
-            className={onPart ? "cursor-pointer" : undefined}
-            onMouseEnter={() => setLitPart(p.i)}
-            onMouseLeave={() => setLitPart((x) => (x === p.i ? null : x))}
-            onClick={onPart ? () => onPart(p.i) : undefined}
-          />
-        ))}
+        {/* Drawn by a figure, they are kept inside the outlines: a country's file can hold ones the map does not draw (Puerto Rico's, beside the United States'). */}
+        <g clipPath={partFillOf ? `url(#${clipId})` : undefined}>
+          {partsInView.map((p) => {
+            const fill = partFillOf?.(p.part);
+            return (
+              <path
+                key={p.i}
+                d={p.d}
+                fill={fill ?? color}
+                fillOpacity={partFillOf ? (fill ? (litPart === p.i ? 1 : 0.88) : 0) : litPart === p.i ? 0.45 : 0}
+                className={onPart ? "cursor-pointer" : undefined}
+                onMouseEnter={() => setLitPart(p.i)}
+                onMouseLeave={() => setLitPart((x) => (x === p.i ? null : x))}
+                onClick={onPart ? () => onPart(p.i) : undefined}
+              />
+            );
+          })}
+        </g>
+        {/* Where the counties or districts are drawn by a figure, their borders and the outlines' own edges over them, so that each still reads. */}
+        {finer && partFillOf && finer}
+        {partFillOf && drawn.paths.map((p) => <path key={`edge-${p.key}`} d={p.d} fill="none" stroke={color} strokeWidth={1} vectorEffect="non-scaling-stroke" strokeLinejoin="round" pointerEvents="none" />)}
         {litPartPath && <path d={litPartPath.d} fill="none" stroke={color} strokeWidth={2} vectorEffect="non-scaling-stroke" strokeLinejoin="round" pointerEvents="none" />}
         {drawn.dots.map((p) => (
           // A clear edge round each dot, so that one so small can still be pointed at.
