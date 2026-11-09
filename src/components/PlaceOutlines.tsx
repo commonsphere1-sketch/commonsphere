@@ -46,9 +46,12 @@ export function CountryOutline({
   onDot,
   color,
   fillOf,
+  figureOf,
 }: {
   /** A fill of its own for a division, where it has one (OutlineMap). */
   fillOf?: (shape: Outline) => string | undefined;
+  /** A division's figure, said in its pop-up, where the map is drawn by one (OutlineMap). */
+  figureOf?: (shape: Outline) => string | undefined;
   /** The country's ISO code. */
   code: string;
   name: string;
@@ -89,6 +92,7 @@ export function CountryOutline({
 
         shapes={outlines ?? drawn}
         fillOf={fillOf}
+        figureOf={figureOf}
         // A US state's postal code, where its name does not fit.
         shortOf={code === "US" ? (f) => STATE_CODE.get(f.properties.n ?? "") : undefined}
         frame={frame}

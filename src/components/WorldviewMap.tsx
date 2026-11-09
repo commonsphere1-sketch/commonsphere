@@ -58,6 +58,7 @@ import CountryDashboard, { headlineOf } from "./CountryDashboard";
 import PlaceFigures, { type PressedPlace } from "./PlaceFigures";
 import { NewsHistory } from "./NewsHistory";
 import { MidtermsPanel, midtermFill } from "./MidtermsPanel";
+import { DIVISION_MEASURES, figureFill, useDivisionFigures, yearsAndSources, type DivisionMeasureId } from "../lib/divisionFigures";
 import { useMidterms, type Office } from "../lib/elections2026";
 import { useElectionSeason } from "../lib/electionSeason";
 import { OccurrencePanel, type Occurrence } from "./OccurrencePanel";
@@ -519,16 +520,46 @@ function AreaMiniMap({ t, code, country, place, city }: { t: Tokens; code: strin
   const [midterms, setMidterms] = useState(season);
   const [office, setOffice] = useState<Office>("senate");
   const counts = useMidterms(usWhole && midterms);
+  /* The figures the country's divisions can be drawn by, as asked - population and density for now - one at a time, pressed again for the plain map. */
+  const whole = !place;
+  const figures = useDivisionFigures(whole ? code : null);
+  const [measure, setMeasure] = useState<DivisionMeasureId | null>(null);
+  useEffect(() => setMeasure(null), [code]);
+  const measures = DIVISION_MEASURES.filter((m) => figures && figures[m.id].size >= 2);
+  const shown = whole && measure && figures && figures[measure].size >= 2 ? DIVISION_MEASURES.find((m) => m.id === measure)! : null;
+  const held = shown && figures ? figures[shown.id] : null;
+  const chip = (on: boolean) => ({ borderColor: on ? t.headText : t.gridLine, color: on ? t.headText : t.mutedText });
   return (
     <section className="rounded-xl flex flex-col min-w-0" style={{ background: t.cardBg, border: t.cardBorder }} aria-label={`Where ${what} is`}>
       <div className="flex items-baseline gap-2 px-3.5 pt-3 pb-2 border-b" style={{ borderColor: t.gridLine }}>
         <h3 className="text-[10px] font-mono uppercase tracking-widest flex-1 min-w-0 truncate" style={{ color: t.headText }}>
           Where it is · {what}
         </h3>
+        {/* The figures its divisions can be drawn by, as asked: a chip each, beside the midterms on the United States. */}
+        {whole &&
+          measures.map((m) => (
+            <button
+              key={m.id}
+              type="button"
+              onClick={() => {
+                setMeasure((v) => (v === m.id ? null : m.id));
+                setMidterms(false);
+              }}
+              aria-pressed={measure === m.id}
+              className="px-2.5 py-0.5 rounded-full text-[10px] font-sans border transition-colors cursor-pointer shrink-0"
+              style={chip(measure === m.id)}
+              title={`Draw ${country}'s divisions by ${m.chip.toLowerCase()}`}
+            >
+              {m.chip}
+            </button>
+          ))}
         {usWhole && (
           <button
             type="button"
-            onClick={() => setMidterms((v) => !v)}
+            onClick={() => {
+              setMidterms((v) => !v);
+              setMeasure(null);
+            }}
             aria-pressed={midterms}
             className="px-2.5 py-0.5 rounded-full text-[10px] font-sans border transition-colors cursor-pointer shrink-0"
             style={{ borderColor: midterms ? t.headText : t.gridLine, color: midterms ? t.headText : t.mutedText }}
@@ -543,9 +574,24 @@ function AreaMiniMap({ t, code, country, place, city }: { t: Tokens; code: strin
         ) : place?.kind === "county" && countyGeo?.geometry ? (
           <OutlineMap shapes={[{ type: "Feature", properties: { n: place.name }, geometry: countyGeo.geometry }]} color={MAP_INK} label={`The outline of ${what}`} />
         ) : (
-          <CountryOutline code={code} name={country} color={MAP_INK} className="" fillOf={usWhole && midterms ? midtermFill(counts, office) : undefined} mark={place?.kind === "city" && city ? { id: city.name, name: city.name, lon: city.lon, lat: city.lat } : undefined} />
+          <CountryOutline code={code} name={country} color={MAP_INK} className="" fillOf={shown && held ? figureFill(held, MAP_INK) : usWhole && midterms ? midtermFill(counts, office) : undefined} figureOf={shown && held ? (s) => { const fg = s.properties.n ? held.get(s.properties.n) : undefined; return fg ? shown.say(fg) : "not held"; } : undefined} mark={place?.kind === "city" && city ? { id: city.name, name: city.name, lon: city.lon, lat: city.lat } : undefined} />
         )}
         {usWhole && midterms && <MidtermsPanel t={t} data={counts} office={office} onOffice={setOffice} />}
+        {/* What the divisions are drawn by: its years and sources, how the shading is read, and how many divisions hold it. */}
+        {shown && held && (
+          <div className="mt-2">
+            <p className="text-[10px] font-sans leading-snug" style={{ color: t.mutedText }}>
+              {shown.note(yearsAndSources(held).years, yearsAndSources(held).sources)} {held.size} of {country}'s divisions on this map hold it.
+            </p>
+            <SourceLink
+              sources={[
+                ...([...held.values()].some((x) => x.by.startsWith("Wikidata")) ? [{ label: "Wikidata (CC0) — each division's population, citing its statistics office", url: "https://www.wikidata.org/" }] : []),
+                ...([...held.values()].some((x) => x.by === "Wikipedia") ? [{ label: "Wikipedia — a division's population where its Wikidata record has none", url: "https://en.wikipedia.org/" }] : []),
+              ]}
+              className="mt-1"
+            />
+          </div>
+        )}
       </div>
     </section>
   );

@@ -77,7 +77,10 @@ export function OutlineMap({
   onShape,
   fillOf,
   shortOf,
+  figureOf,
 }: {
+  /** A division's figure, where the map is drawn by one: said in its pop-up, under its name. */
+  figureOf?: (shape: Outline) => string | undefined;
   /** A division's short name, where it has one - a US state's postal code - set where its full name does not fit. */
   shortOf?: (shape: Outline) => string | undefined;
   /** A fill of its own for an outline - a state in the colour of the party leading its count - where it has one; the others keep the map's. */
@@ -267,7 +270,7 @@ export function OutlineMap({
     (litPartPath && litPartPath.name && Number.isFinite(litPartPath.cx)
       ? { x: litPartPath.cx, y: litPartPath.cy, name: litPartPath.name, sub: onPart ? "Press it to open its window" : undefined }
       : litPath && litPath.name && Number.isFinite(litPath.cx)
-        ? { x: litPath.cx, y: litPath.cy, name: litPath.name, sub: onShape ? "Press it to open its window" : undefined }
+        ? { x: litPath.cx, y: litPath.cy, name: litPath.name, figure: figureOf?.(litPath.shape), sub: onShape ? "Press it to open its window" : undefined }
         : undefined);
   /* Where the pop-up's place is across what is in view, 0 to 1 each way. */
   const fx = tip ? (tip.x - (view.x - W / (2 * view.k))) / (W / view.k) : 0;
@@ -478,6 +481,7 @@ export function OutlineMap({
           }}
         >
           <p className="text-[12px] font-bold font-sans text-foreground leading-tight">{tip.name}</p>
+          {"figure" in tip && tip.figure && <p className="text-[11px] font-sans text-foreground leading-snug mt-0.5 tabular-nums">{tip.figure}</p>}
           {tip.sub && <p className="text-[10px] font-sans text-muted-foreground leading-snug mt-0.5">{tip.sub}</p>}
 
         </div>
