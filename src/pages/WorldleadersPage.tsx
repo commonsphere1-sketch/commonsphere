@@ -462,7 +462,7 @@ const LEADERS: Leader[] = [
     country: "Germany",
     countryCode: "DE",
     flag: "🇩🇪",
-    title: "Chancellor",
+    title: "Former Chancellor",
     photo:
       "https://upload.wikimedia.org/wikipedia/commons/thumb/0/09/2023_Olaf_Scholz.jpg/440px-2023_Olaf_Scholz.jpg",
     age: 66,

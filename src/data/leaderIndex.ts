@@ -50,7 +50,7 @@ export const LEADERS_BY_COUNTRY: Record<string, LeaderRef[]> = {
   CU: [{"id":"diaz-canel","name":"Miguel Díaz-Canel","title":"President & First Secretary, Communist Party"}],
   CY: [{"id":"christodoulides","name":"Nikos Christodoulides","title":"President"}],
   CZ: [{"id":"fiala","name":"Petr Fiala","title":"Former Prime Minister"},{"id":"babis","name":"Andrej Babiš","title":"Prime Minister"}],
-  DE: [{"id":"scholz","name":"Olaf Scholz","title":"Chancellor"},{"id":"merz","name":"Friedrich Merz","title":"Chancellor"}],
+  DE: [{"id":"scholz","name":"Olaf Scholz","title":"Former Chancellor"},{"id":"merz","name":"Friedrich Merz","title":"Chancellor"}],
   DJ: [{"id":"guelleh","name":"Ismail Omar Guelleh","title":"President"}],
   DK: [{"id":"frederik","name":"King Frederik X","title":"King of Denmark"},{"id":"frederiksen","name":"Mette Frederiksen","title":"Prime Minister"}],
   DZ: [{"id":"tebboune","name":"Abdelmadjid Tebboune","title":"President"}],
