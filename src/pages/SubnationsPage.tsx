@@ -118,6 +118,9 @@ import { COUNTRY_INDICATORS, COUNTRY_INDICATORS_SOURCE } from "../data/countryIn
 import { PLACES_SOURCE, type PlaceRow } from "../data/placesIndex";
 import { REGIONAL_ASSEMBLIES, REPRESENTATIVES, REPRESENTATIVES_SOURCES } from "../data/representatives";
 import { STATE_INDICATORS, STATE_SOURCES } from "../data/stateIndicators";
+import { STATE_PEOPLE, STATE_PEOPLE_YEAR } from "../data/statePeople";
+import { COUNTRY_PEOPLE, POVERTY_LINE } from "../data/countryPeople";
+import { COUNTRY_PANELS } from "../data/countryPanels";
 import { usStatesData } from "../data/statesData";
 import { SUBNATION_FLAG_FILE } from "../data/subnationFlagFiles";
 import { SUBNATIONS, SUBNATIONS_RETRIEVED, SUBNATIONS_SOURCES, type Subnation } from "../data/subnations";
@@ -1479,6 +1482,24 @@ const field = "bg-transparent border border-border rounded-full px-3 py-1.5 text
 /** Whether a division answers a search: by its name, its code or its capital. */
 const answers = (s: Subnation, q: string) => s.name.toLowerCase().includes(q) || (s.code ?? "").toLowerCase() === q || (s.capital ?? "").toLowerCase().includes(q);
 
+/** What a figure on a card is, said when it is pointed at. */
+const TIPS: Record<string, string> = {
+  "Below poverty line": "The share of its people below the official US poverty line - US Census Bureau, American Community Survey, 1-year",
+  "Inequality (Gini)":
+    "The Gini index of income: 0 if every household or person had the same, 100 if one had it all. It measures income (or, in some countries, spending), not wealth.",
+};
+/** A division's poverty and inequality, where held for it: a US state's from the American Community Survey - the Gini index as the Census Bureau gives it (0 to 1), shown out of 100 as the World Bank gives a country's. */
+function povertyOf(s: Subnation, stateId: string | undefined): [string, string | undefined][] {
+  if (s.cc !== "US" || !stateId) return [];
+  const below = STATE_INDICATORS[stateId]?.poverty;
+  const pct = below?.groups.find((g) => g.label === "Below poverty line")?.pct;
+  const gini = STATE_PEOPLE[stateId]?.gini;
+  return [
+    ["Below poverty line", typeof pct === "number" && below ? `${pct.toFixed(1)}% · ${below.y}` : undefined],
+    ["Inequality (Gini)", typeof gini === "number" ? `${(gini * 100).toFixed(1)} · ${STATE_PEOPLE_YEAR}` : undefined],
+  ];
+}
+
 /** A division's card, inside its country's window. */
 function DivisionCard({ s, inside, onOpen }: { s: Subnation; /** What GeoNames lists inside it: undefined while its country's places are fetched, null where it has none by the division's name. */ inside: Inside | null | undefined; onOpen: () => void }) {
   // A US state's population is the one its window gives: the Census Bureau's. The "Head" line the card had was taken off as asked: it said "Not held" for nearly every division.
@@ -1488,6 +1509,8 @@ function DivisionCard({ s, inside, onOpen }: { s: Subnation; /** What GeoNames l
     ["Population", m ? `${people(m.population.v)} · ${m.population.y}` : s.pop ? `${people(s.pop[1])} · ${s.pop[0]}` : undefined],
     ["Area", s.areaKm2 ? `${whole(s.areaKm2)} km²` : undefined],
     ["Capital", s.capital],
+    // Poverty and inequality, as asked, where they are held for the division itself: a US state's are the Census Bureau's (American Community Survey).
+    ...povertyOf(s, state?.id),
 
     // What lies inside it, as GeoNames lists it: the counties or districts with a listed place, and the towns, cities and villages of more than 500 people.
     ["Counties or districts", inside === undefined ? "…" : inside && inside.order === 1 && inside.districts.length ? whole(inside.districts.length) : undefined],
@@ -1545,7 +1568,7 @@ function DivisionCard({ s, inside, onOpen }: { s: Subnation; /** What GeoNames l
         {facts
           .filter(([, v]) => v)
           .map(([k, v]) => (
-          <span key={k} className="flex items-baseline justify-between gap-2 py-0.5 min-w-0">
+          <span key={k} className="flex items-baseline justify-between gap-2 py-0.5 min-w-0" title={TIPS[k]}>
             <span className="text-[11px] font-sans text-muted-foreground shrink-0">{k}</span>
             <span className={`text-[11px] font-mono truncate ${v ? "font-bold text-foreground" : "text-muted-foreground"}`}>{v ?? "Not held"}</span>
           </span>
@@ -1557,11 +1580,16 @@ function DivisionCard({ s, inside, onOpen }: { s: Subnation; /** What GeoNames l
 
 /** A country's card, drawn as the Countries page draws a country: its flag behind its name, four facts, a bar and its chips. */
 function CountryCard({ row, matching, onOpen }: { row: CountryRow; /** How many of its divisions answer the search, where it is they and not its name that do. */ matching: number; onOpen: () => void }) {
-  const slots: { label: string; value: string; text?: boolean }[] = [
+  const poor = COUNTRY_PEOPLE[row.cc]?.poor;
+  const gini = COUNTRY_PANELS[row.cc.toLowerCase()]?.gini;
+  const slots: { label: string; value: string; text?: boolean; tip?: string }[] = [
     { label: "Divisions", value: String(row.divisions.length) },
     { label: "Kind", value: row.kinds.length ? `${row.kinds[0]}${row.kinds.length > 1 ? ` +${row.kinds.length - 1}` : ""}` : "Not held", text: true },
     { label: "Most populous", value: row.populous?.name ?? "Not held", text: true },
     { label: "Largest", value: row.widest?.name ?? "Not held", text: true },
+    // Poverty and inequality, as asked: the World Bank's, each with its survey year - the share under its international line, and the Gini index of income or spending.
+    { label: "Under $3.00 a day", value: poor ? `${poor.v}% · ${poor.y}` : "Not held", tip: `The share of ${row.name}'s people living on under ${POVERTY_LINE} - the World Bank's international poverty line, from its Poverty and Inequality Platform` },
+    { label: "Inequality (Gini)", value: gini ? `${gini.v.toFixed(1)} · ${gini.y}` : "Not held", tip: "The Gini index of income or spending, 0 if everyone had the same, 100 if one person had it all - the World Bank's (World Development Indicators). It measures income, not wealth." },
   ];
   const pop = countryPeople(row.cc);
   return (
@@ -1606,10 +1634,10 @@ function CountryCard({ row, matching, onOpen }: { row: CountryRow; /** How many 
 
       {/* Key facts: the same four slots for every country. */}
       <div className="grid grid-cols-2 gap-2 mb-3">
-        {slots.map(({ label, value, text }) => (
-          <div key={label} className="min-w-0">
-            <p className="text-xs text-muted-foreground font-sans">{label}</p>
-            <p className={`text-sm font-bold text-foreground truncate ${text ? "font-sans leading-snug" : "font-mono"}`} title={value}>
+        {slots.map(({ label, value, text, tip }) => (
+          <div key={label} className="min-w-0" title={tip}>
+            <p className="text-xs text-muted-foreground font-sans truncate">{label}</p>
+            <p className={`text-sm font-bold text-foreground truncate ${text ? "font-sans leading-snug" : "font-mono"}`} title={tip ? undefined : value}>
               {value}
             </p>
           </div>
