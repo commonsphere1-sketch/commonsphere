@@ -105,6 +105,7 @@ const PAGES: [label: string, to: string, about: string][] = [
   ["Cities", "/dashboard/cities", "Every city the United Nations counts"],
   ["Economies", "/dashboard/economies", "Economies, markets and sectors"],
   ["World Leaders", "/dashboard/world-leaders", "Heads of state and government"],
+  ["Polls & Elections", "/dashboard/elections", "Each country's elections, governments and regimes on a timeline"],
   ["Policy", "/dashboard/policy", "Policies, country by country"],
   ["Compare", "/dashboard/rankings", "Places side by side"],
   ["Worldview", "/dashboard/worldview", "The world's news and views"],

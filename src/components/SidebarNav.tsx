@@ -37,6 +37,7 @@ import {
   ArrowsOut,
   X,
   TreeStructure,
+  CheckSquareOffset,
 } from "@phosphor-icons/react";
 
 interface SidebarNavProps {
@@ -70,6 +71,7 @@ const analysisNav = [
     icon: Lectern,
     end: false,
   },
+  { to: "/dashboard/elections", label: "Polls & Elections", icon: CheckSquareOffset, end: false },
   { to: "/dashboard/policy", label: "Policy", icon: Scales, end: false },
   // The route keeps its /rankings path so existing links still resolve; the
   // page itself is the comparison now, with the ranked list as its picker.

@@ -83,6 +83,7 @@ const GlobalIndexesPage = lazy(() =>
   })),
 );
 // WorldLeadersPage fetches a 3MB TopoJSON file — keep lazy to avoid stalling the bundler
+const ElectionsPage = lazy(() => import("./pages/ElectionsPage"));
 const WorldLeadersPage = lazy(() =>
   import("./pages/WorldleadersPage").then((m) => ({
     default: m.WorldLeadersPage,
@@ -121,6 +122,8 @@ export default function App() {
               <Route path="economies" element={<EconomiesPage />} />
               <Route path="policy" element={<PolicyPage />} />
               <Route path="world-leaders" element={<WorldLeadersPage />} />
+              {/* Each country's elections, governments and regimes on a timeline, as asked. */}
+              <Route path="elections" element={<ElectionsPage />} />
               {/* The page was reachable at /worldmap before it was renamed;
                   redirect so existing links and bookmarks still land on it
                   rather than being swallowed by the catch-all below. */}
