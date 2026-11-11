@@ -9,7 +9,8 @@ import { CONFLICT_SOURCES } from "../data/conflictEventsMeta";
 import { GDACS_SOURCES } from "../lib/gdacsLive";
 import { HUMANITARIAN_PLANS_RETRIEVED, HUMANITARIAN_PLANS_SOURCE } from "../data/humanitarianPlans";
 import { CRITICAL_BY, namedBy, type CriticalZones } from "../lib/criticalZones";
-import { dayOf, monthOf } from "../lib/conflictEvents";
+import { CONFLICT_KIND_SAID, dayOf, monthOf } from "../lib/conflictEvents";
+import { CONFLICT_KINDS } from "../data/conflictEventsMeta";
 
 export function CriticalZonesPanel({ t, data, ink, nameOf, onPick }: { t: Tokens; data: CriticalZones; ink: string; nameOf: (code: string) => string; onPick: (code: string) => void }) {
   const rows = [...data.zones.entries()].map(([cc, rs]) => ({ cc, rs, n: namedBy(rs), name: nameOf(cc) })).sort((a, b) => b.n - a.n || a.name.localeCompare(b.name));
@@ -56,6 +57,12 @@ export function CriticalZonesPanel({ t, data, ink, nameOf, onPick }: { t: Tokens
                   ) : (
                     x.said
                   )}
+                  {/* The kind of disturbance it is, in the body's own terms. */}
+                  {x.what && (
+                    <span className="block" style={{ color: t.headText }}>
+                      {x.by === "travel" ? `"${x.what}"` : x.what}
+                    </span>
+                  )}
                 </li>
               ))}
             </ul>
@@ -69,6 +76,7 @@ export function CriticalZonesPanel({ t, data, ink, nameOf, onPick }: { t: Tokens
           {data.month ? monthOf(data.month) : "…"}'s, the latest month UCDP has released, not today's; the red alerts are GDACS's now; the UN's plans were read on {dayOf(HUMANITARIAN_PLANS_RETRIEVED)}, its
           regional refugee plans left out, as they name the countries hosting people who fled, not where the crisis is. Each is its body's own word, of the day it was read; none is a finding of the site's,
           and a country none of them names is not found to be safe.
+          {" "}The kinds of violence are UCDP's: {CONFLICT_KINDS.map((k, i) => `${k.toLowerCase()} - ${CONFLICT_KIND_SAID[i]}`).join(" ")} The State Department's reasons are its own words, quoted.
           {waiting.length ? ` Still being read: ${waiting.map((b) => b.chip.toLowerCase()).join(", ")}.` : ""}
         </p>
         <SourceLink

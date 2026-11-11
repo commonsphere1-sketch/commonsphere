@@ -65,7 +65,7 @@ import { useElectionSeason } from "../lib/electionSeason";
 import { OccurrencePanel, type Occurrence } from "./OccurrencePanel";
 import { useGdacsLive, type HazardAlert } from "../lib/gdacsLive";
 import { alertInks, conflictInks, useConflictEvents } from "../lib/conflictEvents";
-import { namedBy, useCriticalZones } from "../lib/criticalZones";
+import { criticalRows, namedBy, useCriticalZones } from "../lib/criticalZones";
 import { CriticalZonesPanel } from "./CriticalZonesPanel";
 import { Link } from "react-router-dom";
 import { usStatesData } from "../data/statesData";
@@ -1168,7 +1168,7 @@ export default function WorldviewMap() {
                   stroke={s.code ? inkOf(s.code) : t.isLight ? "#cbd5e1" : "#3a3a44"}
                   strokeWidth={0.7 / view.k}
                   onMouseEnter={() => s.code && setHover(s.code)}
-                  onMouseMove={(e) => s.code && !drag.current?.moved && card.current?.show(e, { name: s.name, zone: { kind: "country", cc: s.code } }, PROJECTION)}
+                  onMouseMove={(e) => s.code && !drag.current?.moved && card.current?.show(e, { name: s.name, zone: { kind: "country", cc: s.code }, ...(live.critical && critical?.zones.get(s.code) ? { figures: criticalRows(critical.zones.get(s.code)!) } : {}) }, PROJECTION)}
                   onMouseLeave={() => {
                     setHover(null);
                     card.current?.hide();
