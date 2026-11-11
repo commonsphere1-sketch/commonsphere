@@ -19,6 +19,12 @@
  *               party's - or a winning party's own - ideologies (P1142) and political alignment (P1387). Not a platform:
  *               no open record of manifestos may be used here (the Manifesto Project's is non-commercial), and no open
  *               record of leaders' approval is published.
+ *   Shifts      Freedoms each year since 1789, V-Dem's indices (0 to 1) via Our World in Data: civil liberties, freedom
+ *               of expression, and women's political empowerment. The governments' leaning: each ParlGov cabinet's
+ *               prime minister's party on ParlGov's left (0) to right (10) scale; and each leader's party at the start
+ *               of the term (Wikidata, P102 with dates that take in the day, or the person's one party) with that
+ *               party's political alignment (P1387). Opinion polls and approval ratings are not held: polling firms
+ *               publish them under their own copyright.
  *   Regimes     V-Dem's Regimes of the World (Lührmann, Tannenberg and Lindberg, 2018), as Our World in Data publishes it
  *               (V-Dem 2026, CC BY-SA; Our World in Data's processing CC BY): the country's type each year since 1789,
  *               as runs of years. A change is a year whose type is not the year before's.
@@ -271,6 +277,33 @@ async function qlever(name, query) {
     const words = fold(name).split(" ").filter((w) => w.length > 1);
     return (nowHeads.get(cc) ?? []).some((h) => h.length > 1 && (h.every((w) => words.includes(w)) || words.every((w) => h.includes(w))));
   };
+  const leaderIds = [...new Set(leaderRows.map((b) => b.person.value.split("/").pop()))];
+  const partyRows = await qlever(
+    "leader-parties.json",
+    `SELECT ?person ?party ?partyName ?pStart ?pEnd ?align WHERE {
+  VALUES ?person { ${leaderIds.map((q) => `wd:${q}`).join(" ")} }
+  ?person p:P102 ?ps . ?ps ps:P102 ?party . ?party rdfs:label ?partyName . FILTER(LANG(?partyName) = "en")
+  OPTIONAL { ?ps pq:P580 ?pStart } OPTIONAL { ?ps pq:P582 ?pEnd }
+  OPTIONAL { ?party wdt:P1387 ?a . ?a rdfs:label ?align . FILTER(LANG(?align) = "en") }
+}`,
+  );
+  const partiesOf = new Map();
+  for (const b of partyRows) {
+    const id = b.person.value.split("/").pop();
+    const pid = b.party.value.split("/").pop();
+    const m = partiesOf.get(id) ?? new Map();
+    const p = m.get(pid) ?? { name: b.partyName.value, from: b.pStart?.value?.slice(0, 10), to: b.pEnd?.value?.slice(0, 10), align: new Set() };
+    if (b.align) p.align.add(b.align.value);
+    m.set(pid, p);
+    partiesOf.set(id, m);
+  }
+  /** A leader's party at a day: the one whose dates take it in, or the person's one party. */
+  const partyAt = (id, day) => {
+    const all = [...(partiesOf.get(id)?.values() ?? [])];
+    const dated = all.filter((p) => (p.from || p.to) && (!p.from || p.from <= day) && (!p.to || p.to >= day));
+    const p = dated.length === 1 ? dated[0] : all.length === 1 ? all[0] : null;
+    return p ? { party: p.name, ...(p.align.size ? { align: [...p.align].sort().join(", ") } : {}) } : null;
+  };
   const leadersByCountry = new Map();
   const y = (d) => d.slice(0, 4);
   for (const b of leaderRows) {
@@ -288,8 +321,10 @@ async function qlever(name, query) {
     const list = leadersByCountry.get(cc) ?? [];
     const key = `${b.role.value}|${id}|${y(s)}`;
     if (list.some((l) => l.key === key)) continue;
+    const pa = partyAt(id, s.slice(0, 10));
     list.push({
       key,
+      ...(pa ? pa : {}),
       role: b.role.value,
       name: b.name.value,
       id,
@@ -332,7 +367,11 @@ async function qlever(name, query) {
     const at = cabByCountry.get(cc) ?? new Map();
     const cab = at.get(r.cabinet_id) ?? { start: r.start_date, name: r.cabinet_name, caretaker: r.caretaker === "1", parties: [], pmParty: null };
     if (r.cabinet_party === "1") cab.parties.push(r.party_name_english || r.party_name);
-    if (r.prime_minister === "1") cab.pmParty = r.party_name_english || r.party_name;
+    if (r.prime_minister === "1") {
+      cab.pmParty = r.party_name_english || r.party_name;
+      const lr = r.left_right === "" ? NaN : Number(r.left_right);
+      if (Number.isFinite(lr)) cab.pmLeftRight = Math.round(lr * 10) / 10;
+    }
     at.set(r.cabinet_id, cab);
     cabByCountry.set(cc, at);
   }
@@ -355,6 +394,34 @@ async function qlever(name, query) {
     const r = /^[0-3]$/.test(v) ? +v : TYPES.indexOf(v);
     if (r < 0) throw new Error(`V-Dem type not known: ${f.join(",")}`);
     (years.get(cc) ?? years.set(cc, []).get(cc)).push([y, r]);
+  }
+  /* V-Dem's indices each year, via Our World in Data: [first year, a value for each year on] - null for a year it gives none. */
+  const INDICES = { civ: "human-rights-index-vdem", expr: "freedom-of-expression-index", women: "women-political-empowerment-index" };
+  const indexBy = {};
+  for (const [key, slug] of Object.entries(INDICES)) {
+    const text = await cached(`${slug}.csv`, `https://ourworldindata.org/grapher/${slug}.csv?v=1&csvType=full&useColumnShortNames=true`, 24 * 7);
+    const [h, ...ls] = text.trim().split(/\r?\n/);
+    const cols = h.split(",");
+    const iCode = cols.indexOf("code");
+    const iYear = cols.indexOf("year");
+    const iVal = cols.findIndex((c) => /__estimate_best$/.test(c));
+    if (iCode < 0 || iYear < 0 || iVal < 0) throw new Error(`${slug}: columns ${h}`);
+    const per = new Map();
+    for (const line of ls) {
+      // An entity's name may hold a comma in quotes: the fields are counted from the code on, which never does.
+      const fields = line.match(/("[^"]*"|[^,]*)(,|$)/g).map((x) => x.replace(/,$/, ""));
+      const cc = iso2.get(fields[iCode]);
+      const v = fields[iVal];
+      if (!cc || !SITE.has(cc) || v === "") continue;
+      (per.get(cc) ?? per.set(cc, []).get(cc)).push([+fields[iYear], +v]);
+    }
+    for (const [cc, ys] of per) {
+      ys.sort((a, b) => a[0] - b[0]);
+      const from = ys[0][0];
+      const vals = [];
+      for (const [y, v] of ys) vals[y - from] = Math.round(v * 1000) / 1000;
+      ((indexBy[cc] ??= {})[key] = [from, ...Array.from(vals, (v) => (v === undefined ? null : v))]);
+    }
   }
   const runs = (ys) => {
     const out = [];
@@ -394,7 +461,7 @@ async function qlever(name, query) {
     const regimes = years.has(cc) ? runs(years.get(cc)) : [];
     const leaders = (leadersByCountry.get(cc) ?? []).map(({ key, ...l }) => l).sort((a, b) => a.from.localeCompare(b.from) || a.role.localeCompare(b.role));
     if (!elections.length && !regimes.length && !cabinets.length && !leaders.length) continue;
-    fs.writeFileSync(path.join(OUT_DIR, `${cc}.json`), JSON.stringify({ cc, elections, cabinets, regimes, leaders }));
+    fs.writeFileSync(path.join(OUT_DIR, `${cc}.json`), JSON.stringify({ cc, elections, cabinets, regimes, leaders, ...(indexBy[cc] ? { indices: indexBy[cc] } : {}) }));
     index.push([cc, elections.filter((e) => e.date <= today).length, elections.filter((e) => e.date > today).length, cabinets.length, regimes.length ? regimes[0][0] : null, regimes.length ? regimes[regimes.length - 1][1] : null, leaders.length]);
   }
 
@@ -412,6 +479,7 @@ export const ELECTION_HISTORY_SOURCES = {
   wikidata: { label: "Wikidata (CC0) — each national election's own record, read through QLever (University of Freiburg)", url: "https://www.wikidata.org/" },
   parlgov: { label: "ParlGov — Döring & Manow, Parliaments and governments database, Release 2024 (Harvard Dataverse, CC0)", url: "https://doi.org/10.7910/DVN/2VZ5ZC" },
   vdem: { label: "V-Dem — Regimes of the World (Lührmann, Tannenberg & Lindberg), via Our World in Data (CC BY-SA)", url: "https://ourworldindata.org/grapher/political-regime" },
+  vdemIndices: { label: "V-Dem — civil liberties, freedom of expression and women's political empowerment indices, via Our World in Data", url: "https://ourworldindata.org/grapher/human-rights-index-vdem" },
 };
 /** [code, elections held, elections to come, cabinets, first and last year of V-Dem's regimes, leaders' terms]. */
 export const ELECTION_HISTORY_INDEX: [cc: string, held: number, coming: number, cabinets: number, from: number | null, to: number | null, leaders: number][] = ${JSON.stringify(index)};

@@ -30,10 +30,28 @@ const stoodSaid = (name: string, s?: Stood) => {
   const bits = [s.party, s.position, s.ideology?.join(", ")].filter(Boolean);
   return bits.length ? `${name} (${bits.join("; ")})` : name;
 };
-type Cabinet = { start: string; name: string; caretaker: boolean; parties: string[]; pmParty: string | null };
+type Cabinet = { start: string; name: string; caretaker: boolean; parties: string[]; pmParty: string | null; /** The prime minister's party on ParlGov's scale, left (0) to right (10). */ pmLeftRight?: number };
 /** A term of a head of state or of government: from (a day, or a year where the two records agree only on it), to where both records end it alike, `now` where the site's checked heads name the person, `end` where no end is agreed. */
-type Leader = { role: "state" | "government"; name: string; id: string; from: string; to?: string; now?: true; end?: string };
-type History = { cc: string; elections: Election[]; cabinets: Cabinet[]; regimes: [from: number, to: number, type: 0 | 1 | 2 | 3][]; leaders?: Leader[] };
+type Leader = { role: "state" | "government"; name: string; id: string; from: string; to?: string; now?: true; end?: string; /** The party at the start of the term, and its political alignment, as Wikidata records them. */ party?: string; align?: string };
+/** V-Dem's indices, each [first year, a value (0 to 1) for each year on, null where none]. */
+type Indices = Partial<Record<"civ" | "expr" | "women", (number | null)[]>>;
+type History = { cc: string; elections: Election[]; cabinets: Cabinet[]; regimes: [from: number, to: number, type: 0 | 1 | 2 | 3][]; leaders?: Leader[]; indices?: Indices };
+
+/** The three freedoms drawn, V-Dem's indices: what each is, and its colour. */
+const FREEDOMS = [
+  { key: "civ", name: "Civil liberties", ink: "#0d9488" },
+  { key: "expr", name: "Freedom of expression", ink: "#2563eb" },
+  { key: "women", name: "Women's political empowerment", ink: "#c026d3" },
+] as const;
+/** An index's value in a year, where V-Dem gives one. */
+const indexAt = (s: (number | null)[] | undefined, y: number) => (s && y >= (s[0] as number) ? (s[1 + y - (s[0] as number)] ?? null) : null);
+/** Wikidata's political alignment as a place from left to right, for drawing: its words, read one by one; a party given more than one is drawn at none. */
+const ALIGN = ["far-left", "left-wing", "centre-left", "centrism", "centre-right", "right-wing", "far-right"];
+const alignAt = (a?: string) => {
+  if (!a || a.includes(",")) return null;
+  const i = ALIGN.findIndex((w) => a.toLowerCase().startsWith(w.replace("centrism", "centr")));
+  return i < 0 ? null : i;
+};
 
 /* The country's turning points, from the site's record of events (build-event-history.cjs): its revolutions, coups and wars,
    each as a whole - not a war's battles - by its record's own class. */
@@ -231,7 +249,9 @@ export default function ElectionsPage() {
           of the site's record of events, each as a whole, with its sources. What a winner stood for is as the records give it: a person's party at the election, and that party's ideologies and political
           alignment, from Wikidata; and each party's place from left (0) to right (10) on ParlGov's scale, from expert surveys. Neither is a platform: the records of parties' manifestos that exist may
           not be used on a commercial site. Opinion polls and leaders' approval ratings are not held: they are published by polling firms under their own copyright, and no open record of them is
-          published that the site may use.
+          published that the site may use. Freedoms are V-Dem's yearly indices, 0 (none) to 1 (fullest), as Our World in Data publishes them: civil liberties,
+          freedom of expression, and women's political empowerment. A government's leaning is ParlGov's place for the prime minister's party, left (0) to right (10), where it holds the country,
+          and elsewhere the political alignment Wikidata records for the head of government's party at the start of the term.
         </p>
         <SourceLink sources={[ELECTION_HISTORY_SOURCES.wikidata, ELECTION_HISTORY_SOURCES.parlgov, ELECTION_HISTORY_SOURCES.vdem, { label: COUNTRY_POLITICS_SOURCE.label, url: COUNTRY_POLITICS_SOURCE.url }]} />
       </div>
@@ -325,6 +345,19 @@ function Timeline({ data, today, regimeInk, turning, country }: { data: History;
     { key: "legislative", label: "Legislative & general", kinds: ["Legislative", "General"] },
     { key: "referendum", label: "Referendums", kinds: ["Referendum"] },
   ].filter((r) => data.elections.some((e) => r.kinds.includes(e.kind)));
+
+  /* The governments' leaning: ParlGov's prime minister's party where it holds the country, else each head of government's - or, where none, head of state's - party's alignment, as Wikidata records it. */
+  const pgLean = data.cabinets.filter((c) => typeof c.pmLeftRight === "number");
+  const leanRole = leaders.some((l) => l.role === "government" && alignAt(l.align) !== null) ? "government" : "state";
+  const wdLean = pgLean.length ? [] : leaders.filter((l) => l.role === leanRole && alignAt(l.align) !== null);
+  const freedoms = FREEDOMS.filter((fr) => data.indices?.[fr.key]);
+  /* The year under the pointer, from where it is across the timeline. */
+  const yearAtPointer = (e: React.MouseEvent) => {
+    const r = box.current?.getBoundingClientRect();
+    if (!r) return null;
+    const sx = ((e.clientX - r.left) / r.width) * W;
+    return Math.round(y0 + ((sx - G) / (W - G - R)) * (y1 - y0) - 0.5);
+  };
 
   const rows: Row[] = [
     {
@@ -436,6 +469,93 @@ function Timeline({ data, today, regimeInk, turning, country }: { data: History;
               }),
         };
       }),
+    ...(freedoms.length
+      ? [
+          {
+            key: "freedoms",
+            label: "Freedoms",
+            source: "V-Dem, 0 to 1",
+            height: 44,
+            draw: (top: number) => (
+              <g
+                onMouseMove={(e) => {
+                  const y = yearAtPointer(e);
+                  if (y === null) return;
+                  show(e, `${y}`, [...freedoms.map((fr) => `${fr.name}: ${indexAt(data.indices![fr.key], y)?.toFixed(3) ?? "none"}`), "V-Dem's indices, 0 (none) to 1 (fullest)"]);
+                }}
+                onMouseLeave={() => setTip(null)}
+              >
+                <rect x={G} y={top} width={W - G - R} height={44} fill="transparent" />
+                {[0, 0.5, 1].map((v) => (
+                  <line key={v} x1={G} x2={W - R} y1={top + 40 - v * 36} y2={top + 40 - v * 36} className="stroke-border" strokeOpacity={0.5} strokeWidth={0.5} strokeDasharray={v === 0.5 ? "2 3" : undefined} />
+                ))}
+                {freedoms.map((fr) => {
+                  const s = data.indices![fr.key]!;
+                  const first = s[0] as number;
+                  const pts: string[] = [];
+                  const parts: string[] = [];
+                  for (let i = 1; i < s.length; i++) {
+                    const y = first + i - 1;
+                    const v = s[i];
+                    if (y < y0 || v === null) {
+                      if (pts.length) parts.push(pts.splice(0).join(" "));
+                      continue;
+                    }
+                    pts.push(`${x(y + 0.5).toFixed(1)},${(top + 40 - v * 36).toFixed(1)}`);
+                  }
+                  if (pts.length) parts.push(pts.join(" "));
+                  return parts.map((p, i) => <polyline key={`${fr.key}-${i}`} points={p} fill="none" stroke={fr.ink} strokeWidth={1.4} strokeLinejoin="round" pointerEvents="none" />);
+                })}
+              </g>
+            ),
+          },
+        ]
+      : []),
+    ...(pgLean.length || wdLean.length
+      ? [
+          {
+            key: "leaning",
+            label: "Government's leaning",
+            source: pgLean.length ? "ParlGov, PM's party 0–10" : `Wikidata, ${leanRole === "government" ? "head of gov't" : "head of state"}'s party`,
+            height: 40,
+            draw: (top: number) => {
+              const yOf = (pos: number, of: number) => top + 34 - (pos / of) * 28;
+              return (
+                <>
+                  {/* The axis: left at the foot, right at the head. */}
+                  <text x={G - 4} y={top + 10} textAnchor="end" fontSize={7.5} className="fill-muted-foreground" fontFamily="ui-monospace, monospace">right</text>
+                  <text x={G - 4} y={top + 37} textAnchor="end" fontSize={7.5} className="fill-muted-foreground" fontFamily="ui-monospace, monospace">left</text>
+                  <line x1={G} x2={W - R} y1={yOf(1, 2)} y2={yOf(1, 2)} className="stroke-border" strokeOpacity={0.6} strokeDasharray="2 3" strokeWidth={0.6} />
+                  {pgLean.length
+                    ? pgLean.map((c, i) => {
+                        const a = xd(c.start);
+                        const next = pgLean[i + 1]?.start ?? today;
+                        const b = xd(next);
+                        const yy = yOf(c.pmLeftRight!, 10);
+                        return (
+                          <g key={`${c.start}-${i}`} {...hover(`${c.name} cabinet`, [`${day(c.start)} to ${pgLean[i + 1] ? day(next) : "now or its end"}`, `Prime minister's party: ${c.pmParty} - ${c.pmLeftRight} on ParlGov's scale, left (0) to right (10)`, "ParlGov"])}>
+                            <line x1={a} x2={Math.max(a + 2, b)} y1={yy} y2={yy} className="stroke-foreground" strokeWidth={2.4} strokeOpacity={0.75} />
+                            <circle cx={a} cy={yy} r={2.2} className="fill-foreground" />
+                          </g>
+                        );
+                      })
+                    : wdLean.map((l, i) => {
+                        const a = xs(l.from);
+                        const b = l.to ? (l.to.length > 4 ? xd(l.to) : x(yearOf(l.to) + 1)) : l.now ? xd(today) : a + 3;
+                        const yy = yOf(alignAt(l.align)!, 6);
+                        return (
+                          <g key={`${l.id}-${i}`} {...hover(l.name, [termOf(l), `${l.party}: ${l.align}`, "Wikidata: the party at the start of the term, and its political alignment"])}>
+                            <line x1={a} x2={Math.max(a + 2, b)} y1={yy} y2={yy} className="stroke-foreground" strokeWidth={2.4} strokeOpacity={0.75} />
+                            <circle cx={a} cy={yy} r={2.2} className="fill-foreground" />
+                          </g>
+                        );
+                      })}
+                </>
+              );
+            },
+          },
+        ]
+      : []),
     ...(data.cabinets.length
       ? [
           {
@@ -488,8 +608,13 @@ function Timeline({ data, today, regimeInk, turning, country }: { data: History;
         e.parlgovOnly ? "ParlGov" : `Wikidata${e.results ? "; ParlGov" : ""}`,
         e.id ? `https://www.wikidata.org/wiki/${e.id}` : "https://doi.org/10.7910/DVN/2VZ5ZC",
       ]);
-    for (const l of leaders) out.push([l.role === "state" ? "head of state" : "head of government", l.from, l.to ?? (l.now ? "now" : ""), l.name, l.end ? `end ${l.end}` : "", "Wikidata (two records agreeing)", `https://www.wikidata.org/wiki/${l.id}`]);
-    for (const c of data.cabinets) out.push(["government", c.start, "", c.name, [c.caretaker ? "caretaker" : "", c.parties.join("; "), c.pmParty ? `PM's party: ${c.pmParty}` : ""].filter(Boolean).join(" | "), "ParlGov", "https://doi.org/10.7910/DVN/2VZ5ZC"]);
+    for (const l of leaders) out.push([l.role === "state" ? "head of state" : "head of government", l.from, l.to ?? (l.now ? "now" : ""), l.name, [l.end ? `end ${l.end}` : "", l.party ? `party: ${l.party}${l.align ? ` (${l.align})` : ""}` : ""].filter(Boolean).join(" | "), "Wikidata (two records agreeing)", `https://www.wikidata.org/wiki/${l.id}`]);
+    for (const c of data.cabinets) out.push(["government", c.start, "", c.name, [c.caretaker ? "caretaker" : "", c.parties.join("; "), c.pmParty ? `PM's party: ${c.pmParty}${c.pmLeftRight != null ? ` (${c.pmLeftRight} on ParlGov's 0-10 left-right scale)` : ""}` : ""].filter(Boolean).join(" | "), "ParlGov", "https://doi.org/10.7910/DVN/2VZ5ZC"]);
+    for (const fr of FREEDOMS) {
+      const s = data.indices?.[fr.key];
+      if (!s) continue;
+      for (let i = 1; i < s.length; i++) if (s[i] !== null) out.push([`${fr.name.toLowerCase()} index`, (s[0] as number) + i - 1, "", fr.name, String(s[i]), "V-Dem, via Our World in Data", "https://ourworldindata.org/grapher/human-rights-index-vdem"]);
+    }
     const csv = out.map((r) => r.map(q).join(",")).join("\r\n");
     const url = URL.createObjectURL(new Blob([`﻿${csv}`], { type: "text/csv;charset=utf-8" }));
     const a = document.createElement("a");
@@ -584,6 +709,12 @@ function Timeline({ data, today, regimeInk, turning, country }: { data: History;
             {k}
           </span>
         ))}
+        {freedoms.map((fr) => (
+          <span key={fr.key} className="inline-flex items-center gap-1.5 text-[10px] font-sans text-muted-foreground">
+            <span className="w-3 h-0.5" style={{ background: fr.ink }} />
+            {fr.name}
+          </span>
+        ))}
         <span className="text-[10px] font-sans text-muted-foreground">hollow: still to come · faint bar: end not agreed · faint diamond: taken part in abroad</span>
       </div>
       <p className="text-[10px] font-sans text-muted-foreground mt-1.5 leading-snug">
@@ -615,6 +746,15 @@ function RegimeBreakdown({ data, turning, today, regimeInk }: { data: History; t
             return a <= to && b >= from;
           });
           const points = turning.filter((tp) => tp.y >= from && tp.y <= to).reverse();
+          const moved = FREEDOMS.flatMap((fr) => {
+            const a = indexAt(data.indices?.[fr.key], from);
+            const b = indexAt(data.indices?.[fr.key], to);
+            return a !== null && b !== null ? [`${fr.name.toLowerCase()} ${a.toFixed(2)} → ${b.toFixed(2)}`] : [];
+          });
+          const leanings = inOffice
+            .filter((l) => l.role === "government" && l.align)
+            .reverse()
+            .reduce<string[]>((acc, l) => (acc[acc.length - 1] === l.align ? acc : [...acc, l.align!]), []);
           const open = more.has(from);
           const cut = (n: number) => (open ? n : Math.min(n, 8));
           return (
@@ -627,6 +767,12 @@ function RegimeBreakdown({ data, turning, today, regimeInk }: { data: History; t
                 </span>
                 <span className="text-[10px] font-sans text-muted-foreground">· {REGIME_TYPES[type].said}</span>
               </div>
+              {(moved.length > 0 || leanings.length > 0) && (
+                <p className="text-[10px] font-sans text-muted-foreground mt-1 leading-snug">
+                  {moved.length > 0 && <>From {from} to {to}, V-Dem's indices: {moved.join("; ")}. </>}
+                  {leanings.length > 0 && <>Its heads of government's parties, in turn: {leanings.slice(-5).join(" → ")} (Wikidata).</>}
+                </p>
+              )}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-1 mt-1.5">
                 <div className="min-w-0">
                   <p className="text-[9px] font-mono uppercase tracking-wider text-muted-foreground">Leaders in office</p>
