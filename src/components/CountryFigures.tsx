@@ -245,12 +245,20 @@ function Shares({ t, of }: { t: Tokens; of: PeopleShares }) {
     </>
   );
 }
-/** Figures in tiles, two across. */
+/** Figures two across, parted by lines, as asked, in place of a box each: a line between the columns and one between the rows. */
 export function Tiles({ t, items }: { t: Tokens; items: { label: string; text: string; y?: string | number }[] }) {
   return (
-    <div className="grid grid-cols-2 gap-2">
-      {items.map((i) => (
-        <div key={i.label} className="rounded-lg px-2.5 py-2 min-w-0" style={{ background: t.tile, border: `1px solid ${t.gridLine}` }}>
+    <div className="grid grid-cols-2">
+      {items.map((i, n) => (
+        <div
+          key={i.label}
+          className={`py-2 min-w-0 ${n % 2 === 0 ? "pr-3" : "pl-3"}`}
+          style={{
+            // The line between the columns, beside a figure with one to its right; the line between the rows, over each after the first row.
+            borderRight: n % 2 === 0 && n + 1 < items.length ? `1px solid ${t.gridLine}` : undefined,
+            borderTop: n >= 2 ? `1px solid ${t.gridLine}` : undefined,
+          }}
+        >
           <p className="text-[9px] font-mono uppercase tracking-wider leading-tight" style={{ color: t.mutedText }}>
             {i.label}
           </p>
