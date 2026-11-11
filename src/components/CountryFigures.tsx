@@ -86,6 +86,12 @@ function usePanelRows(rows: CsvCell[][]) {
   }, [panel, key, json]);
 }
 
+/** A chart drawn with Recharts in a panel - a line or an area over the years - handing its points to the panel's CSV: it draws nothing. */
+export function SeriesRows({ rows }: { rows: CsvCell[][] }) {
+  usePanelRows(rows);
+  return null;
+}
+
 /** A panel: its heading in capitals, a line beside it, and what it holds - as tall as the others in its row - with the figures its charts draw downloadable from its heading. */
 export function Panel({ t, title, meta, children, className = "" }: { t: Tokens; title: string; meta?: string; children: ReactNode; className?: string }) {
   const [held, setHeld] = useState<Record<string, CsvCell[][]>>({});
@@ -575,6 +581,7 @@ export default function CountryFigures({ code, name }: { code: string; name: str
                   <Area type="monotone" dataKey="v" stroke={INK[0]} strokeWidth={1.5} fill={`url(#mf-${code})`} isAnimationActive={false} />
                 </AreaChart>
               </ResponsiveContainer>
+              <SeriesRows rows={mf.value.map(([y, v]) => ["Manufacturing, value added", usdBn(v), v, `${y} · US$ billion, current`])} />
               <Tiles
                 t={t}
                 items={[

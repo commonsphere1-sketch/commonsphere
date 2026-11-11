@@ -29,7 +29,7 @@ import { COUNTRY_PANELS, PANEL_SOURCES, type PanelField } from "../data/countryP
 import { useTokens } from "./DataExplorer";
 import { SourceLink } from "./SourceLink";
 import { SlimColumns, gradId } from "./SlimBars";
-import CountryFigures, { INK, None, Panel } from "./CountryFigures";
+import CountryFigures, { INK, None, Panel, SeriesRows } from "./CountryFigures";
 
 const usd = (b: number) => (b >= 1000 ? `$${(b / 1000).toFixed(2)}T` : b >= 1 ? `$${b.toFixed(b >= 100 ? 0 : 1)}B` : `$${Math.round(b * 1000)}M`);
 const people = (v: number) => (v >= 1e9 ? `${(v / 1e9).toFixed(2)}B` : v >= 1e6 ? `${(v / 1e6).toFixed(1)}M` : Math.round(v).toLocaleString("en-US"));
@@ -121,6 +121,7 @@ export default function CountryDashboard({ code, name }: { code: string; name: s
                   <Area type="monotone" dataKey="gdp" stroke={INK[0]} strokeWidth={2} fill={`url(#${id}-gdp)`} isAnimationActive={false} />
                 </AreaChart>
               </ResponsiveContainer>
+              <SeriesRows rows={gdp.map((g) => ["GDP", usd(g.gdp), g.gdp, `${g.year} · current US$`])} />
               <SourceLink sources={[GDP_HISTORY_SOURCE]} />
             </>
           ) : (
@@ -215,6 +216,12 @@ export default function CountryDashboard({ code, name }: { code: string; name: s
                   <Area type="monotone" dataKey="own" stroke={INK[5]} strokeWidth={2} fill={`url(#${id}-own)`} connectNulls isAnimationActive={false} />
                 </AreaChart>
               </ResponsiveContainer>
+              <SeriesRows
+                rows={taxRows.flatMap((r) => [
+                  ...(r.own != null ? [[`${name}, tax revenue`, `${r.own.toFixed(1)}%`, r.own, `${r.year} · % of GDP`]] : []),
+                  ...(r.world != null ? [["The world, tax revenue", `${r.world.toFixed(1)}%`, r.world, `${r.year} · % of GDP`]] : []),
+                ])}
+              />
               <div className="flex gap-4 text-[10px] font-sans" style={{ color: t.mutedText }}>
                 <span className="inline-flex items-center gap-1.5">
                   <span className="w-3 h-0.5" style={{ background: INK[5] }} aria-hidden /> {name}
