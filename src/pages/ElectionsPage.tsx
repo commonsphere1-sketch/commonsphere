@@ -19,8 +19,17 @@ import { COUNTRY_POLITICS, COUNTRY_POLITICS_SOURCE } from "../data/countryPoliti
 import { LIVING_DARK, LIVING_LIGHT } from "../lib/livingScore";
 import { useTheme } from "../contexts/ThemeContext";
 
-type Party = [name: string, vote: number | null, seats: number | null];
-type Election = { id?: string; date: string; name: string; kind: "Presidential" | "Legislative" | "General" | "Referendum"; winners?: string[]; cited?: true; parlgovOnly?: true; results?: { seats?: number; parties: Party[] } };
+/** A party's result: its share of the vote, its seats, and its place from left (0) to right (10) on ParlGov's scale. */
+type Party = [name: string, vote: number | null, seats: number | null, leftRight?: number | null];
+/** What a winner stood for, as Wikidata records it: a person's party at the election, and that party's - or a winning party's own - ideologies and alignment. */
+type Stood = { party?: string; ideology?: string[]; position?: string };
+type Election = { id?: string; date: string; name: string; kind: "Presidential" | "Legislative" | "General" | "Referendum"; winners?: string[]; stood?: Record<string, Stood>; cited?: true; parlgovOnly?: true; results?: { seats?: number; parties: Party[] } };
+/** A winner with what they stood for, in a line. */
+const stoodSaid = (name: string, s?: Stood) => {
+  if (!s) return name;
+  const bits = [s.party, s.position, s.ideology?.join(", ")].filter(Boolean);
+  return bits.length ? `${name} (${bits.join("; ")})` : name;
+};
 type Cabinet = { start: string; name: string; caretaker: boolean; parties: string[]; pmParty: string | null };
 /** A term of a head of state or of government: from (a day, or a year where the two records agree only on it), to where both records end it alike, `now` where the site's checked heads name the person, `end` where no end is agreed. */
 type Leader = { role: "state" | "government"; name: string; id: string; from: string; to?: string; now?: true; end?: string };
@@ -219,7 +228,10 @@ export default function ElectionsPage() {
           each cabinet, its parties and the prime minister's party. Regimes are V-Dem's Regimes of the World, a research classification of each year since 1789: no government publishes a history of
           its own regime. Leaders are Wikidata's heads of state and of government, each term kept only where the country's own record and the person's agree on who and the year it began; an end
           is given where both give it alike, and a term is said to be current only where the site's checked list of heads names the same person. Turning points are the revolutions, coups and wars
-          of the site's record of events, each as a whole, with its sources. Opinion polls are not held: no open record of them is published that the site may use.
+          of the site's record of events, each as a whole, with its sources. What a winner stood for is as the records give it: a person's party at the election, and that party's ideologies and political
+          alignment, from Wikidata; and each party's place from left (0) to right (10) on ParlGov's scale, from expert surveys. Neither is a platform: the records of parties' manifestos that exist may
+          not be used on a commercial site. Opinion polls and leaders' approval ratings are not held: they are published by polling firms under their own copyright, and no open record of them is
+          published that the site may use.
         </p>
         <SourceLink sources={[ELECTION_HISTORY_SOURCES.wikidata, ELECTION_HISTORY_SOURCES.parlgov, ELECTION_HISTORY_SOURCES.vdem, { label: COUNTRY_POLITICS_SOURCE.label, url: COUNTRY_POLITICS_SOURCE.url }]} />
       </div>
@@ -254,18 +266,19 @@ function Timeline({ data, today, regimeInk, turning, country }: { data: History;
   const lastElection = data.elections.length ? yearOf(data.elections[data.elections.length - 1].date) : year;
   const maxY = Math.max(year + 1, lastElection + 1);
   /* The period looked at: all of it, or from a year on - each offered only where the record reaches further back. */
+  // "All" is every record, back to the earliest turning point; the country's own records' first year where it is later; the last 25 years open it, as asked.
   const presets = (
     [
-      [`From ${coreY}`, coreY],
-      ...(minY < coreY ? ([[`From ${minY}`, minY]] as const) : []),
+      ["All", minY],
+      ...(coreY > minY ? ([[`From ${coreY}`, coreY]] as const) : []),
       ["Since 1900", 1900],
       ["Since 1945", 1945],
       ["Since 1990", 1990],
       ["Last 25 years", year - 25],
     ] as const
-  ).filter(([, y], i) => i === 0 || (y >= minY && y !== coreY));
-  const [from, setFrom] = useState(coreY);
-  useEffect(() => setFrom(coreY), [coreY]);
+  ).filter(([, y], i, all) => i === 0 || (y > minY && all.findIndex(([, z]) => z === y) === i));
+  const [from, setFrom] = useState(year - 25);
+  useEffect(() => setFrom(year - 25), [coreY, year]);
   const y0 = from;
   const y1 = maxY;
   const [tip, setTip] = useState<Tip | null>(null);
@@ -383,7 +396,7 @@ function Timeline({ data, today, regimeInk, turning, country }: { data: History;
                   {...hover(e.name, [
                     `${day(e.date)}${coming ? " · still to come" : ""}`,
                     e.kind,
-                    e.winners ? `Successful, as Wikidata records it: ${e.winners.slice(0, 4).join(", ")}${e.winners.length > 4 ? ` and ${e.winners.length - 4} more` : ""}` : "",
+                    e.winners ? `Successful, as Wikidata records it: ${e.winners.slice(0, 4).map((w) => stoodSaid(w, e.stood?.[w])).join(", ")}${e.winners.length > 4 ? ` and ${e.winners.length - 4} more` : ""}` : "",
                     ...top3,
                     e.parlgovOnly ? "ParlGov" : `Wikidata${e.results ? "; results ParlGov" : ""}`,
                   ])}
@@ -471,7 +484,7 @@ function Timeline({ data, today, regimeInk, turning, country }: { data: History;
         e.date,
         "",
         e.name,
-        [e.winners ? `successful (Wikidata): ${e.winners.join("; ")}` : "", ...(e.results?.parties ?? []).map(([p, v, s]) => `${p}: ${v ?? "-"}% ${s ?? "-"} seats`)].filter(Boolean).join(" | "),
+        [e.winners ? `successful (Wikidata): ${e.winners.map((w) => stoodSaid(w, e.stood?.[w])).join("; ")}` : "", ...(e.results?.parties ?? []).map(([p, v, s, lr]) => `${p}: ${v ?? "-"}% ${s ?? "-"} seats${lr != null ? `, left-right ${lr}` : ""}`)].filter(Boolean).join(" | "),
         e.parlgovOnly ? "ParlGov" : `Wikidata${e.results ? "; ParlGov" : ""}`,
         e.id ? `https://www.wikidata.org/wiki/${e.id}` : "https://doi.org/10.7910/DVN/2VZ5ZC",
       ]);
@@ -490,7 +503,7 @@ function Timeline({ data, today, regimeInk, turning, country }: { data: History;
     <section className="modal-tile rounded-xl px-4 py-3 mb-4">
       <div className="flex flex-wrap items-center gap-2 mb-2">
         <p className="text-[10px] font-mono uppercase tracking-widest text-muted-foreground flex-1 min-w-[12rem]">
-          The timeline · {y0} to {y1}
+          The timeline · {y0 < 0 ? `−${-y0}` : y0} to {y1}
         </p>
         {presets.length > 1 &&
           presets.map(([label, y]) => (
@@ -533,7 +546,7 @@ function Timeline({ data, today, regimeInk, turning, country }: { data: History;
               <line x1={x(t)} x2={x(t)} y1={4} y2={axis} className="stroke-border" strokeOpacity={0.6} strokeWidth={0.6} />
               {Math.abs(x(t) - xd(today)) > 34 && (
                 <text x={x(t)} y={axis + 14} textAnchor="middle" className="fill-muted-foreground" fontSize={9.5} fontFamily="ui-monospace, monospace">
-                  {t}
+                  {t < 0 ? `−${-t}` : t}
                 </text>
               )}
             </g>
@@ -760,7 +773,7 @@ function EventRow({ e, today, regimeInk }: { e: Event; today: string; regimeInk:
           )}
           {coming && <span className="text-muted-foreground"> · to come</span>}
           {/* Wikidata's "successful candidate": the winner of a presidential vote, and every party that won seats in a parliamentary one - said as it records it. */}
-          {el.winners && <span> · successful, as Wikidata records it: {el.winners.join(", ")}</span>}
+          {el.winners && <span> · successful, as Wikidata records it: {el.winners.map((w) => stoodSaid(w, el.stood?.[w])).join(", ")}</span>}
           <span className="text-muted-foreground">
             {" "}
             · {el.parlgovOnly ? "ParlGov" : `Wikidata${el.cited ? ", its date citing a source" : ""}`}
@@ -779,15 +792,17 @@ function EventRow({ e, today, regimeInk }: { e: Event; today: string; regimeInk:
             <tr className="text-muted-foreground">
               <th className="text-left font-normal pr-4">Party</th>
               <th className="text-right font-normal pr-4">Vote</th>
-              <th className="text-right font-normal">Seats{el.results?.seats ? ` of ${el.results.seats}` : ""}</th>
+              <th className="text-right font-normal pr-4">Seats{el.results?.seats ? ` of ${el.results.seats}` : ""}</th>
+              <th className="text-right font-normal" title="ParlGov's place for the party, from 0 (left) to 10 (right), from expert surveys">Left–right (0–10)</th>
             </tr>
           </thead>
           <tbody>
-            {parties.map(([p, v, s]) => (
+            {parties.map(([p, v, s, lr]) => (
               <tr key={p}>
                 <td className="pr-4 font-sans">{p}</td>
                 <td className="text-right pr-4">{v === null ? "-" : `${v.toFixed(1)}%`}</td>
-                <td className="text-right">{s === null ? "-" : s}</td>
+                <td className="text-right pr-4">{s === null ? "-" : s}</td>
+                <td className="text-right">{lr == null ? "-" : lr.toFixed(1)}</td>
               </tr>
             ))}
           </tbody>

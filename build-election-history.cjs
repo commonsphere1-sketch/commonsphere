@@ -13,6 +13,12 @@
  *   and         seats at each parliamentary election in 37 European and OECD democracies, and each cabinet - its name,
  *   cabinets    the day it took office, its parties, the prime minister's party, and whether it was a caretaker. A
  *               ParlGov election is set beside Wikidata's of the same day; one Wikidata does not hold is given alone.
+ *   Positions   What the parties stood for, as the records give it: each ParlGov party's place from left (0) to right (10),
+ *               its own scale from expert surveys; and for Wikidata's successful candidates, the party a person stood for
+ *               at the election (P102, where its dates take in the election day, or the person's one party) and that
+ *               party's - or a winning party's own - ideologies (P1142) and political alignment (P1387). Not a platform:
+ *               no open record of manifestos may be used here (the Manifesto Project's is non-commercial), and no open
+ *               record of leaders' approval is published.
  *   Regimes     V-Dem's Regimes of the World (Lührmann, Tannenberg and Lindberg, 2018), as Our World in Data publishes it
  *               (V-Dem 2026, CC BY-SA; Our World in Data's processing CC BY): the country's type each year since 1789,
  *               as runs of years. A change is a year whose type is not the year before's.
@@ -165,6 +171,75 @@ async function qlever(name, query) {
     (e) => [...e.jurs].every((j) => j === e.country) && ![...e.parents].some((p) => els.has(p)) && SITE.has(e.cc) && !NOT_NATIONAL.test(e.name) && !namesDivision(e) && (kindOf(e) !== "Referendum" || namesCountry(e)),
   );
 
+  /* ── What the winners stood for: a person's party at the election, and the party's ideologies and alignment ── */
+  const winnerRows = await qlever(
+    "winners.json",
+    `SELECT ?e ?w ?wName ?human ?party ?partyName ?pStart ?pEnd WHERE {
+  VALUES ?base { ${Object.keys(KINDS).map((q) => `wd:${q}`).join(" ")} }
+  ?type wdt:P279* ?base .
+  ?e wdt:P31 ?type ; wdt:P17 ?country ; wdt:P991 ?w .
+  ?country wdt:P297 ?cc .
+  ?w rdfs:label ?wName . FILTER(LANG(?wName) = "en")
+  OPTIONAL { ?w wdt:P31 ?human . FILTER(?human = wd:Q5) }
+  OPTIONAL { ?w p:P102 ?ps . ?ps ps:P102 ?party . ?party rdfs:label ?partyName . FILTER(LANG(?partyName) = "en") OPTIONAL { ?ps pq:P580 ?pStart } OPTIONAL { ?ps pq:P582 ?pEnd } }
+}`,
+  );
+  const orgs = new Set();
+  for (const b of winnerRows) {
+    if (b.party) orgs.add(b.party.value.split("/").pop());
+    if (!b.human) orgs.add(b.w.value.split("/").pop());
+  }
+  const orgRows = await qlever(
+    "winner-orgs.json",
+    `SELECT ?o ?ideo ?align WHERE {
+  VALUES ?o { ${[...orgs].map((q) => `wd:${q}`).join(" ")} }
+  OPTIONAL { ?o wdt:P1142 ?i . ?i rdfs:label ?ideo . FILTER(LANG(?ideo) = "en") }
+  OPTIONAL { ?o wdt:P1387 ?a . ?a rdfs:label ?align . FILTER(LANG(?align) = "en") }
+}`,
+  );
+  const stance = new Map();
+  for (const b of orgRows) {
+    const id = b.o.value.split("/").pop();
+    const s = stance.get(id) ?? { ideology: new Set(), position: new Set() };
+    if (b.ideo) s.ideology.add(b.ideo.value);
+    if (b.align) s.position.add(b.align.value);
+    stance.set(id, s);
+  }
+  /* Each election's winners with what they stood for: a person's party whose dates take in the election day, or the person's one party. */
+  const standsFor = new Map();
+  {
+    const by = new Map();
+    for (const b of winnerRows) {
+      const e = b.e.value.split("/").pop();
+      const w = b.w.value.split("/").pop();
+      const key = `${e}|${w}`;
+      const x = by.get(key) ?? { e, w, name: b.wName.value, human: Boolean(b.human), parties: new Map() };
+      if (b.party) x.parties.set(b.party.value.split("/").pop(), { name: b.partyName.value, from: b.pStart?.value?.slice(0, 10), to: b.pEnd?.value?.slice(0, 10) });
+      by.set(key, x);
+    }
+    for (const x of by.values()) {
+      const date = els.get(x.e)?.date;
+      if (!date) continue;
+      let partyId = null;
+      if (x.human) {
+        const all = [...x.parties.entries()];
+        const dated = all.filter(([, p]) => (!p.from || p.from <= date) && (!p.to || p.to >= date) && (p.from || p.to));
+        partyId = dated.length === 1 ? dated[0][0] : all.length === 1 ? all[0][0] : null;
+      }
+      const org = x.human ? partyId : x.w;
+      const s = org ? stance.get(org) : undefined;
+      const info = {
+        ...(x.human && partyId ? { party: x.parties.get(partyId).name } : {}),
+        ...(s && s.ideology.size ? { ideology: [...s.ideology].sort().slice(0, 4) } : {}),
+        ...(s && s.position.size ? { position: [...s.position].sort().join(", ") } : {}),
+      };
+      if (!Object.keys(info).length) continue;
+      const m = standsFor.get(x.e) ?? {};
+      m[x.name] = info;
+      standsFor.set(x.e, m);
+    }
+  }
+
   /* ── Heads of state and of government, where the country's record and the person's agree ── */
   const leaderRows = await qlever(
     "leaders.json",
@@ -245,7 +320,8 @@ async function qlever(name, query) {
     const el = at.get(r.election_id) ?? { date: r.election_date, seats: Number(r.seats_total) || undefined, parties: [] };
     const vote = r.vote_share === "" ? undefined : Number(r.vote_share);
     const seats = r.seats === "" ? undefined : Number(r.seats);
-    el.parties.push([r.party_name_english || r.party_name, Number.isFinite(vote) ? vote : null, Number.isFinite(seats) ? seats : null]);
+    const lr = r.left_right === "" ? undefined : Number(r.left_right);
+    el.parties.push([r.party_name_english || r.party_name, Number.isFinite(vote) ? vote : null, Number.isFinite(seats) ? seats : null, Number.isFinite(lr) ? Math.round(lr * 10) / 10 : null]);
     at.set(r.election_id, el);
     pgByCountry.set(cc, at);
   }
@@ -305,6 +381,7 @@ async function qlever(name, query) {
         name: e.name,
         kind: kindOf(e),
         ...(e.winners.size ? { winners: [...e.winners].sort() } : {}),
+        ...(standsFor.has(e.id) ? { stood: standsFor.get(e.id) } : {}),
         ...(e.cited ? { cited: true } : {}),
         ...(match ? { results: { seats: match.seats, parties: match.parties.sort((a, b) => (b[1] ?? -1) - (a[1] ?? -1)) } } : {}),
       };
