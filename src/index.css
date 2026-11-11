@@ -972,23 +972,6 @@ html.dark article.cursor-pointer:hover {
     0 12px 30px rgba(255, 255, 255, 0.11) !important;
 }
 
-/* ── Place cards that light up in their flag's colour ────
-   A place's card - a country's, a state's, a country's divisions or cities -
-   lit when pointed at, as the Dashboard's commodity rows light in theirs: a
-   fine edge and a soft halo in its flag's colour (--glow, set on the card).
-   A card whose flag has no colour lights in the page's ink. !important, and
-   the theme's class in the selector, because .modal-tile and the light
-   theme's card shadow set the border and shadow that way. */
-.cs-glow-card.modal-tile:hover,
-html.light .cs-glow-card.modal-tile:hover {
-  border-color: color-mix(in srgb, var(--glow, var(--color-foreground)) 70%, transparent) !important;
-  box-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, 0.25),
-    0 0 0 1px color-mix(in srgb, var(--glow, var(--color-foreground)) 55%, transparent),
-    0 0 32px -6px var(--glow, var(--color-foreground)),
-    0 12px 32px -14px rgba(0, 0, 0, 0.55) !important;
-}
-
 /* .modal-tile cards keep the sheen along their top edge. */
 html.light .modal-tile.cursor-pointer {
   box-shadow:
@@ -1013,6 +996,28 @@ html.dark .modal-tile.cursor-pointer:hover {
     inset 0 1px 0 rgba(255, 255, 255, 0.45),
     0 2px 6px rgba(255, 255, 255, 0.09),
     0 12px 30px rgba(255, 255, 255, 0.11) !important;
+}
+
+/* ── Every card lights up when pointed at ────────────────
+   As the Dashboard's commodity rows light in theirs, as asked: a fine edge and
+   a soft halo in the card's own colour - a place's flag's (--glow, set on the
+   card: a country's, a state's, a division's, a city's, an economy's) - and in
+   the page's ink where a card has none. Every card the rules above count as a
+   card: one that is pressed, with a card's corners, or a .modal-tile.
+
+   Last of the card rules, and of their weight - the theme's class, two of the
+   card's and :hover - so that it is this halo that shows, not the plain shadow
+   above: the place cards' own rule, which came before those, was outweighed
+   by them, and only its edge ever lit. !important as theirs are. */
+html:is(.dark, .light) :is(.cursor-pointer, button, [role="button"]):is(.rounded-xl, .rounded-2xl):hover,
+html:is(.dark, .light) article.cursor-pointer:hover,
+html:is(.dark, .light) .modal-tile.cursor-pointer:hover {
+  border-color: color-mix(in srgb, var(--glow, var(--color-foreground)) 70%, transparent) !important;
+  box-shadow:
+    var(--card-glow),
+    0 0 0 1px color-mix(in srgb, var(--glow, var(--color-foreground)) 55%, transparent),
+    0 0 32px -6px var(--glow, var(--color-foreground)),
+    0 12px 32px -14px rgba(0, 0, 0, 0.55) !important;
 }
 
 /* ── Dropdown panels ──────────────────────────────────────

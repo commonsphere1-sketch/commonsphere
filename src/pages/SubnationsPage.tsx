@@ -92,6 +92,7 @@ import { DIVISION_DETAILS_SOURCES, useDivisionDetails, type DivisionDetails, typ
 import { liveRecord, type LiveRecord } from "../lib/liveRecord";
 import { framed, outlineParts, outlinesOf, placesWithin, useAdmin1, useCountyOutline } from "../lib/outlines";
 import { flagColor } from "../lib/flagColor";
+import { divisionColor } from "../lib/divisionColor";
 import { byPeople, countryPeople, peopleSource, peopleSources } from "../lib/countryPeople";
 import { lockScroll } from "../lib/scrollLock";
 import CountryQuality, { inSentence, qualityOf } from "../components/CountryQuality";
@@ -1517,7 +1518,13 @@ function DivisionCard({ s, inside, onOpen }: { s: Subnation; /** What GeoNames l
     ["Towns and villages", inside === undefined ? "…" : inside ? whole(inside.rows.length) : undefined],
   ];
   return (
-    <button type="button" onClick={onOpen} className="modal-tile relative isolate overflow-hidden rounded-xl p-4 text-left cursor-pointer transition-colors hover:border-secondary/40 flex flex-col gap-2 min-w-0">
+    <button
+      type="button"
+      onClick={onOpen}
+      // Lit in its flag's colour when pointed at, as every card is: the division's own, or its country's.
+      className="cs-glow-card modal-tile relative isolate overflow-hidden rounded-xl p-4 text-left cursor-pointer transition-colors flex flex-col gap-2 min-w-0"
+      style={{ "--glow": divisionColor(s.cc, s.name) } as React.CSSProperties}
+    >
       {/* Its flag behind the whole card, dimmed, as a country's card has its own: the division's own where one is held, and its country's where none is. */}
       <img
         src={commonsFlag(s, 500) ?? flag(s.cc, 640)}

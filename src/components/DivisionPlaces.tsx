@@ -74,6 +74,7 @@ import { PLACE_KINDS, PLACES_SOURCE, type PlaceRow, type PlacesFile } from "../d
 import type { Subnation } from "../data/subnations";
 import { SUBNATION_FLAG_FILE } from "../data/subnationFlagFiles";
 import { flagColor } from "../lib/flagColor";
+import { divisionColor } from "../lib/divisionColor";
 import { outlinesOf, useAdmin1, type Outline } from "../lib/outlines";
 import { SourceLink } from "./SourceLink";
 import { FollowStar, placeFollowId } from "./FollowStar";
@@ -270,7 +271,7 @@ export function DivisionPlaces({
       {/* A card for each place: its name and what it is, its county, its people, and its head where one is confirmed. Each opens a window of its own. */}
       <div className="grid gap-3 [grid-template-columns:repeat(auto-fill,minmax(min(100%,15rem),1fr))]">
         {rows.slice(0, shown).map((p) => (
-          <PlaceCard key={p[6]} p={p} file={file!} flag={cardFlag(s)} saved={savedFlag(s)} district={file!.districts[p[7]]} cc={s.cc} onOpen={() => setOpen(p)} />
+          <PlaceCard key={p[6]} p={p} file={file!} flag={cardFlag(s)} saved={savedFlag(s)} district={file!.districts[p[7]]} cc={s.cc} glow={divisionColor(s.cc, s.name)} onOpen={() => setOpen(p)} />
         ))}
       </div>
       {rows.length === 0 && <p className="text-[11px] font-sans text-muted-foreground py-2">None by that name.</p>}
@@ -339,13 +340,13 @@ const cardFlag = (s: Subnation) =>
 /** The small copy of that flag saved with the site, where there is one: what the card falls back to if the larger image does not come. */
 const savedFlag = (s: Subnation) => (s.flag && SUBNATION_FLAG_FILE[s.id] ? `/flags/divisions/${SUBNATION_FLAG_FILE[s.id]}` : undefined);
 
-function PlaceCard({ p, file, flag, saved, district, cc, onOpen }: { p: PlaceRow; file: PlacesFile; /** Its country's code: where its window opens is kept with it when it is followed. */ cc?: string; /** The flag behind the card: its division's, or its country's. */ flag?: string; /** The copy of it saved with the site, drawn if the larger image does not come. */ saved?: string; /** The county or district GeoNames files it under. */ district?: string; onOpen: () => void }) {
+function PlaceCard({ p, file, flag, saved, district, cc, glow, onOpen }: { /** The colour it lights in when pointed at: its division's flag's. */ glow?: string; p: PlaceRow; file: PlacesFile; /** Its country's code: where its window opens is kept with it when it is followed. */ cc?: string; /** The flag behind the card: its division's, or its country's. */ flag?: string; /** The copy of it saved with the site, drawn if the larger image does not come. */ saved?: string; /** The county or district GeoNames files it under. */ district?: string; onOpen: () => void }) {
   const facts: [string, string | undefined][] = [
     ["People", p[3] > 0 ? whole(p[3]) : undefined],
     ["County or district", district || undefined],
   ];
   return (
-    <button type="button" onClick={onOpen} className="modal-tile relative isolate overflow-hidden rounded-xl p-4 text-left cursor-pointer transition-colors hover:border-secondary/40 flex flex-col gap-2 min-w-0">
+    <button type="button" onClick={onOpen} className="cs-glow-card modal-tile relative isolate overflow-hidden rounded-xl p-4 text-left cursor-pointer transition-colors flex flex-col gap-2 min-w-0" style={{ "--glow": glow } as React.CSSProperties}>
       {/* Its division's flag behind the whole card, dimmed, as the division's own card has it. */}
       {flag && <img src={flag} data-fallback={saved} alt="" aria-hidden="true" loading="lazy" className="absolute inset-0 -z-10 w-full h-full object-cover card-flag scale-105 select-none pointer-events-none" onError={flagFallback} />}
       <span className="flex items-start gap-2 min-w-0">
@@ -480,7 +481,7 @@ export function PlacesInside({
       )}
       <div className="grid gap-3 [grid-template-columns:repeat(auto-fill,minmax(min(100%,15rem),1fr))]">
         {found.slice(0, shown).map((p) => (
-          <PlaceCard key={p[6]} p={p} file={file} flag={cardFlag(division(p))} saved={savedFlag(division(p))} district={file.districts[p[7]]} cc={division(p).cc} onOpen={() => setOpen(p)} />
+          <PlaceCard key={p[6]} p={p} file={file} flag={cardFlag(division(p))} saved={savedFlag(division(p))} district={file.districts[p[7]]} cc={division(p).cc} glow={divisionColor(division(p).cc, division(p).name)} onOpen={() => setOpen(p)} />
         ))}
       </div>
       {found.length === 0 && rows.length > 0 && <p className="text-[11px] font-sans text-muted-foreground py-2">None by that name.</p>}

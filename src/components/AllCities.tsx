@@ -454,7 +454,7 @@ const POP_SOURCES = peopleSources(ROWS.map((r) => r.cc));
 function CityCard({ c, onOpen }: { c: UnCity; onOpen: () => void }) {
   const since = change(c[7], c[8]);
   return (
-    <button type="button" onClick={onOpen} className="modal-tile relative isolate overflow-hidden rounded-xl p-4 text-left cursor-pointer transition-colors hover:border-secondary/40 flex flex-col gap-2 min-w-0">
+    <button type="button" onClick={onOpen} className="cs-glow-card modal-tile relative isolate overflow-hidden rounded-xl p-4 text-left cursor-pointer transition-colors flex flex-col gap-2 min-w-0" style={{ "--glow": flagColor(c[0]) ?? undefined } as React.CSSProperties}>
       {/* Its country's flag behind the whole card, dimmed, as the country's own card has it: for every country's cities alike. */}
       <img src={flag(c[0], 640)} alt="" aria-hidden="true" loading="lazy" className="absolute inset-0 -z-10 w-full h-full object-cover card-flag scale-105 select-none pointer-events-none" onError={(e) => (e.currentTarget.style.display = "none")} />
       <span className="flex items-center gap-2.5 min-w-0">

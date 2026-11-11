@@ -3,6 +3,7 @@ import { SiteMark } from "../components/SiteMark";
 import { na, has, sortKey } from "../lib/na";
 import { usdFromBillions } from "../lib/money";
 import React, { useState, useCallback } from "react";
+import { flagColor } from "../lib/flagColor";
 import {
   CurrencyDollar,
   TrendUp,
@@ -2646,7 +2647,9 @@ export function EconomiesPage() {
                   {/* ── Main card ── */}
                   <article
                     onClick={() => setModalEconomy(economy)}
-                    className="modal-tile relative overflow-hidden rounded-xl p-2 pl-3.5 cursor-pointer transition-all duration-200 hover:scale-[1.01] hover:shadow-lg hover:border-secondary/40 flex-1 min-w-0"
+                    className="cs-glow-card modal-tile relative overflow-hidden rounded-xl p-2 pl-3.5 cursor-pointer transition-all duration-200 hover:scale-[1.01] flex-1 min-w-0"
+                    // Lit in its flag's colour when pointed at, as every card is.
+                    style={{ "--glow": (economyCode(economy) && flagColor(economyCode(economy)!)) || undefined } as React.CSSProperties}
                     title={statusOf(economy).detail}
                   >
                     {/* Its flag behind the whole card, dimmed, as the country and state cards have theirs: under the inflation tab and everything written on the card. */}
