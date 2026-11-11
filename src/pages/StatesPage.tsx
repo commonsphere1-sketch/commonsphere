@@ -7237,7 +7237,8 @@ export function StatesPage() {
           ].map((s) => (
             <div
               key={s.label}
-              className="bg-card border border-border rounded-lg p-4"
+              // The bezel along the top kept, as asked, and the one along the bottom taken off.
+              className="bg-card border border-border border-b-transparent rounded-lg p-4"
             >
               <p className="text-xs text-muted-foreground font-sans">
                 {s.label}
