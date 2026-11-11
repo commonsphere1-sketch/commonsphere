@@ -20,7 +20,9 @@
  *     World Bank or the body that publishes it gives the world's figure for
  *     the same indicator and the same year - the world's, as a tick on the
  *     bar and in words;
- *   - nothing moves: a bar is where its figure puts it.
+ *   - nothing moves: a bar is where its figure puts it;
+ *   - every chart's figures can be taken away, as asked, for research: a CSV of what it draws, each figure as
+ *     printed and as a number, under the chart (lib/csv).
  *
  * The colours of parts are the fixed order the palette validator passed on
  * the light and the dark surface (the one the Worldview and Trends charts
@@ -33,6 +35,28 @@
 import { useId, useState, type ReactNode } from "react";
 import { WORLD } from "../data/worldview";
 import { semanticColor } from "../lib/semanticColors";
+import { downloadCsv, numberOf, type CsvCell } from "../lib/csv";
+
+/** The control under a chart that downloads its figures as a CSV: small, in the site's mono capitals, at the chart's right. */
+export function CsvButton({ name, header, rows, className = "" }: { /** What the chart shows: the file's name. */ name: string; header: string[]; rows: CsvCell[][]; className?: string }) {
+  if (!rows.length) return null;
+  return (
+    <div className={`flex justify-end ${className}`}>
+      <button
+        type="button"
+        onClick={() => downloadCsv(name, header, rows)}
+        className="inline-flex items-center gap-1 px-2 h-5 rounded-full border border-border/70 bg-background/40 text-[9px] font-mono uppercase tracking-wider text-muted-foreground/80 hover:text-foreground cursor-pointer transition-colors"
+        title={`Download these figures as a spreadsheet (CSV): ${name}`}
+      >
+        CSV
+        <svg width="8" height="8" viewBox="0 0 256 256" fill="currentColor" aria-hidden>
+          <path d="M224,152v56a16,16,0,0,1-16,16H48a16,16,0,0,1-16-16V152a8,8,0,0,1,16,0v56H208V152a8,8,0,0,1,16,0Zm-101.66,5.66a8,8,0,0,0,11.32,0l40-40a8,8,0,0,0-11.32-11.32L136,132.69V40a8,8,0,0,0-16,0v92.69L93.66,106.34a8,8,0,0,0-11.32,11.32Z" />
+        </svg>
+      </button>
+    </div>
+  );
+}
+
 
 /** The colours of the parts of a whole, in the order they are assigned. */
 export const PART_COLORS = ["#d97706", "#2563eb", "#0d9488", "#c026d3", "#65a30d", "#7c3aed", "#b45309"];
@@ -95,10 +119,11 @@ export interface MeasureRow {
  * a thin bar under it on a scale all the rows share. `max` is that scale's
  * end - 100 for shares; left out, it is the largest figure shown.
  */
-export function MeasureBars({ rows, max, color = ACCENT, label, refName = "world" }: { rows: MeasureRow[]; max?: number; color?: string; /** What the chart shows, for a screen reader. */ label?: string; /** Whose figure the tick on each bar is: the world's, unless another's - "the nation", "EU". */ refName?: string }) {
+export function MeasureBars({ rows, max, color = ACCENT, label, refName = "world", csv = true }: { rows: MeasureRow[]; max?: number; color?: string; /** What the chart shows, for a screen reader - and the name of its CSV. */ label?: string; /** Whose figure the tick on each bar is: the world's, unless another's - "the nation", "EU". */ refName?: string; /** Whether its figures can be downloaded under it. */ csv?: boolean }) {
   const top = max ?? Math.max(0, ...rows.flatMap((r) => [r.value ?? 0, r.world?.value ?? 0]));
   const at = (v: number) => `${top > 0 ? Math.min(100, Math.max(0, (100 * v) / top)) : 0}%`;
   return (
+    <>
     <ul className="flex flex-col gap-2" aria-label={label}>
       {rows.map((r) => (
         <li key={r.key ?? r.label}>
@@ -131,6 +156,15 @@ export function MeasureBars({ rows, max, color = ACCENT, label, refName = "world
         </li>
       ))}
     </ul>
+    {csv && (
+      <CsvButton
+        className="mt-1.5"
+        name={label ?? "figures"}
+        header={["label", "figure", "number", "unit or year", `${refName}`, `${refName} number`]}
+        rows={rows.map((r) => [r.label, r.text, r.value ?? numberOf(r.text), r.sub, r.world?.text, r.world?.value])}
+      />
+    )}
+    </>
   );
 }
 
@@ -177,6 +211,7 @@ export function PartsBar({ parts, colors = PART_COLORS, label, columns = 2 }: { 
           </li>
         ))}
       </ul>
+      <CsvButton className="mt-1.5" name={label} header={["part", "figure", "value"]} rows={shown.map((p) => [p.label, p.text, p.value])} />
     </div>
   );
 }
@@ -270,6 +305,9 @@ export function PartsDonut({ parts, colors = PART_COLORS, label }: { parts: Part
             <span className="text-[11px] font-mono font-semibold text-foreground ml-auto whitespace-nowrap">{p.text}</span>
           </li>
         ))}
+        <li className="list-none">
+          <CsvButton className="mt-1" name={label} header={["part", "figure", "value"]} rows={shown.map((p) => [p.label, p.text, p.value])} />
+        </li>
       </ul>
     </div>
   );

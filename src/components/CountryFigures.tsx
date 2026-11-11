@@ -20,7 +20,9 @@
  * how far the government watches, filters, shuts down and arrests for what
  * people say online, and whether the law protects their data.
  */
-import { Children, isValidElement, type ReactElement, type ReactNode } from "react";
+import { CsvButton } from "./ModalCharts";
+import { numberOf, type CsvCell } from "../lib/csv";
+import { Children, isValidElement, type ReactElement, type ReactNode, createContext, useCallback, useContext, useEffect, useId, useMemo, useState } from "react";
 import { Area, AreaChart, CartesianGrid, Cell, Pie, PieChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
 import { COUNTRY_PANELS, PANEL_SOURCES, type PanelField } from "../data/countryPanels";
 import { COUNTRY_INDICATORS, COUNTRY_INDICATORS_SOURCE } from "../data/countryIndicators";
@@ -69,10 +71,36 @@ const shareOf = (s: Share) => `${s.bound === "atMost" ? "<" : s.bound === "atLea
 /** The tables of the largest producers the site holds - USGS's minerals, and the EIA's and OPEC's fuels - by commodity. */
 const PRODUCED = Object.entries({ ...RESOURCE_PRODUCERS, ...ENERGY_PRODUCERS });
 
-/** A panel: its heading in capitals, a line beside it, and what it holds - as tall as the others in its row. */
+/* The figures a panel's charts draw, handed to the panel so that its heading can download them all as one CSV, as asked. */
+type PanelRows = { set: (key: string, rows: CsvCell[][] | null) => void };
+const PanelData = createContext<PanelRows | null>(null);
+/** Hands a chart's rows - [what, figure as printed, its number, its year or unit] - to the panel it is in. */
+function usePanelRows(rows: CsvCell[][]) {
+  const panel = useContext(PanelData);
+  const key = useId();
+  const json = JSON.stringify(rows);
+  useEffect(() => {
+    if (!panel) return;
+    panel.set(key, JSON.parse(json));
+    return () => panel.set(key, null);
+  }, [panel, key, json]);
+}
+
+/** A panel: its heading in capitals, a line beside it, and what it holds - as tall as the others in its row - with the figures its charts draw downloadable from its heading. */
 export function Panel({ t, title, meta, children, className = "" }: { t: Tokens; title: string; meta?: string; children: ReactNode; className?: string }) {
+  const [held, setHeld] = useState<Record<string, CsvCell[][]>>({});
+  const set = useCallback((key: string, rows: CsvCell[][] | null) => setHeld((h) => {
+    if (rows === null) {
+      if (!(key in h)) return h;
+      const { [key]: _gone, ...rest } = h;
+      return rest;
+    }
+    return JSON.stringify(h[key]) === JSON.stringify(rows) ? h : { ...h, [key]: rows };
+  }), []);
+  const ctx = useMemo(() => ({ set }), [set]);
   // Nothing held: the panel is left out rather than left saying so, as asked - no gaps.
   if (empty(children)) return null;
+  const rows = Object.values(held).flat();
   return (
     <section className={`rounded-xl flex flex-col min-w-0 grow basis-full md:basis-[calc(50%-0.375rem)] xl:basis-[calc(33.333%-0.5rem)] ${className}`} style={{ background: t.cardBg, border: t.cardBorder }}>
       <div className="flex items-baseline gap-2 px-3.5 pt-3 pb-2 border-b" style={{ borderColor: t.gridLine }}>
@@ -84,8 +112,11 @@ export function Panel({ t, title, meta, children, className = "" }: { t: Tokens;
             {meta}
           </span>
         )}
+        {rows.length > 0 && <CsvButton name={`${title}${meta ? ` ${meta}` : ""}`} header={["what", "figure", "number", "year or unit"]} rows={rows} className="shrink-0 self-center" />}
       </div>
-      <div className="p-3.5 flex flex-col gap-2.5 flex-1">{children}</div>
+      <PanelData.Provider value={ctx}>
+        <div className="p-3.5 flex flex-col gap-2.5 flex-1">{children}</div>
+      </PanelData.Provider>
     </section>
   );
 }
@@ -112,6 +143,7 @@ export const Foot = ({ sources }: { sources: (Src | undefined)[] }) => {
 
 /** Rows of bars, each its figure and year: `share` is the bar's length out of 100. */
 function Bars({ t, rows, wide = false }: { t: Tokens; rows: { label: string; text: string; y?: string | number; share: number; color?: string }[]; /** Two across, for a panel the width of its row. */ wide?: boolean }) {
+  usePanelRows(rows.map((r) => [r.label, r.text, numberOf(r.text), r.y]));
   return (
     <ul className={wide ? "grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-2.5" : "flex flex-col gap-2"}>
       {rows.map((r, i) => (
@@ -134,6 +166,7 @@ function Bars({ t, rows, wide = false }: { t: Tokens; rows: { label: string; tex
 /** A ring of shares, with its largest parts listed beside it. */
 export function Ring({ t, slices, unit = "%" }: { t: Tokens; slices: { name: string; v: number; color?: string }[]; unit?: string }) {
   const parts = slices.map((s, i) => ({ ...s, color: s.color ?? INK[i % INK.length] }));
+  usePanelRows(parts.map((s) => [s.name, `${s.v.toFixed(1)}${unit}`, s.v, unit]));
   const tip = { contentStyle: { background: t.tooltipBg, border: t.cardBorder, borderRadius: 8, fontSize: 11 }, itemStyle: { color: t.headText } };
   return (
     // The legend goes under the ring where the panel is too narrow for both side by side.
@@ -180,6 +213,7 @@ export function Ring({ t, slices, unit = "%" }: { t: Tokens; slices: { name: str
 export function Stack({ t, parts }: { t: Tokens; parts: { name: string; v: number; color?: string }[] }) {
   const shown = parts.filter((p) => p.v > 0).map((p, i) => ({ ...p, color: p.color ?? INK[i % INK.length] }));
   const total = shown.reduce((n, p) => n + p.v, 0) || 1;
+  usePanelRows(shown.map((p) => [p.name, `${p.v.toFixed(1)}%`, p.v, "%"]));
   return (
     <>
       <div className="flex h-2.5 gap-[3px]" role="img" aria-label={shown.map((p) => `${p.name} ${p.v.toFixed(1)}%`).join(", ")}>
@@ -247,6 +281,7 @@ function Shares({ t, of }: { t: Tokens; of: PeopleShares }) {
 }
 /** Figures two across, parted by lines, as asked, in place of a box each: a line between the columns and one between the rows. */
 export function Tiles({ t, items }: { t: Tokens; items: { label: string; text: string; y?: string | number }[] }) {
+  usePanelRows(items.map((i) => [i.label, i.text, numberOf(i.text), i.y]));
   return (
     <div className="grid grid-cols-2">
       {items.map((i, n) => (
@@ -277,6 +312,7 @@ export function Tiles({ t, items }: { t: Tokens; items: { label: string; text: s
 }
 /** A score on its scale with the range its maker is sure of: the band is the range, the dot the score. */
 function Range({ t, label, v, lo, hi, text, color }: { t: Tokens; label: string; v: number; lo: number; hi: number; text: string; color: string }) {
+  usePanelRows([[label, text, v, `likely ${lo} to ${hi}, of 100`]]);
   return (
     <div>
       <div className="flex items-baseline justify-between gap-2">
