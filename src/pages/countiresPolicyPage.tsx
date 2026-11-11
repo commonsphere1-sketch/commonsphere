@@ -10722,13 +10722,48 @@ function EntityFlag({ group }: { group: EntityGroup }) {
   );
 }
 
-function EntityRow({ group }: { group: EntityGroup }) {
-  const [open, setOpen] = useState(false);
+/**
+ * A place's policy areas: its cards in a row that scrolls sideways, the whole of what it spends after them, and the
+ * details of the one pressed under the row - on its row here, and on the Worldview page for the country picked there.
+ */
+function PolicyAreaCards({ group }: { group: EntityGroup }) {
   /* The card whose details are open under the row of cards: one at a time. */
   const [detail, setDetail] = useState<string | null>(null);
   const detailCard = group.policies.find((p) => p.id === detail) ?? null;
   // A state and a country can share an id ("ca"), so the panel's is made from both.
   const panelId = `policy-details-${group.entityType}-${group.entityId}`;
+  return (
+    <>
+      {/* Stretched, so every card is as tall as the tallest. */}
+      <div
+        // Room round the cards, so the row does not cut off a card that lifts or its shadow.
+        className="flex items-stretch gap-3 mt-1 -mx-1 px-1 pt-2 pb-3 overflow-x-auto snap-x"
+        tabIndex={0}
+        role="group"
+        aria-label="Policy areas — scrolls sideways"
+      >
+        {group.policies.map((card) => (
+          <PolicyCardItem key={card.id} card={card} open={detail === card.id} onToggle={() => setDetail((d) => (d === card.id ? null : card.id))} panelId={panelId} />
+        ))}
+        {/* The whole of what it spends, after its areas, as asked. */}
+        <TotalSpendingCard group={group} open={detail === "total"} onToggle={() => setDetail((d) => (d === "total" ? null : "total"))} panelId={panelId} />
+      </div>
+      {/* Outside the sideways-scrolling row, so nothing cuts it off. */}
+      {detailCard && <PolicyDetails card={detailCard} id={panelId} onClose={() => setDetail(null)} />}
+      {detail === "total" && <TotalSpendingDetails group={group} id={panelId} onClose={() => setDetail(null)} />}
+    </>
+  );
+}
+
+/** A country's policy areas, by its ISO code, as the Policy page draws them - for the Worldview page, as asked. Nothing where the page holds none for it. */
+export function CountryPolicyAreas({ code }: { code: string }) {
+  const group = useMemo(() => groupByEntity(countryCards().filter((c) => c.code.toLowerCase() === code.toLowerCase()))[0], [code]);
+  if (!group) return null;
+  return <PolicyAreaCards group={group} />;
+}
+
+function EntityRow({ group }: { group: EntityGroup }) {
+  const [open, setOpen] = useState(false);
 
   // Each area's share of what the government spends, where its figure is one: the only shares that sit on one scale.
   const shares = useMemo(
@@ -10897,23 +10932,7 @@ function EntityRow({ group }: { group: EntityGroup }) {
 
       {open && (
         <div className="px-5 pb-5 pt-1 border-t border-border/40 min-w-0">
-          {/* Stretched, so every card is as tall as the tallest. */}
-          <div
-            // Room round the cards, so the row does not cut off a card that lifts or its shadow.
-            className="flex items-stretch gap-3 mt-1 -mx-1 px-1 pt-2 pb-3 overflow-x-auto snap-x"
-            tabIndex={0}
-            role="group"
-            aria-label="Policy areas — scrolls sideways"
-          >
-            {group.policies.map((card) => (
-              <PolicyCardItem key={card.id} card={card} open={detail === card.id} onToggle={() => setDetail((d) => (d === card.id ? null : card.id))} panelId={panelId} />
-            ))}
-            {/* The whole of what it spends, after its areas, as asked. */}
-            <TotalSpendingCard group={group} open={detail === "total"} onToggle={() => setDetail((d) => (d === "total" ? null : "total"))} panelId={panelId} />
-          </div>
-          {/* Outside the sideways-scrolling row, so nothing cuts it off. */}
-          {detailCard && <PolicyDetails card={detailCard} id={panelId} onClose={() => setDetail(null)} />}
-          {detail === "total" && <TotalSpendingDetails group={group} id={panelId} onClose={() => setDetail(null)} />}
+          <PolicyAreaCards group={group} />
         </div>
       )}
     </div>

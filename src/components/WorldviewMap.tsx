@@ -34,7 +34,8 @@
  * under the map with its own figures (CountryDashboard), as asked; the page
  * opens on the United States.
  */
-import { type ReactNode, useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { type ReactNode, lazy, Suspense, useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { SiteLoading } from "./SiteLoading";
 import { ArrowCounterClockwise, MagnifyingGlassMinus, MagnifyingGlassPlus } from "@phosphor-icons/react";
 import { CountryHoverCard, type CountryHoverHandle } from "./CountryHoverCard";
 import PlaceSearch, { type Hit, type Locate } from "./PlaceSearch";
@@ -173,6 +174,9 @@ const SHAPES = WORLD.features.flatMap((f) => {
   const c = countryForFeature(f.properties.name);
   return [{ name: c?.name ?? f.properties.name, code: c?.code ?? null, d, b: PATH.bounds(f as never), a: anchorOf(PATH, f) }];
 });
+/** The Policy page's policy areas, as asked, for the country picked: fetched with that page's code when first shown. */
+const CountryPolicyAreas = lazy(() => import("../pages/countiresPolicyPage").then((m) => ({ default: m.CountryPolicyAreas })));
+
 /** A country's name, as the map draws it, or as the browser's own list of regions has it where the map draws none. */
 const REGION_NAMES = typeof Intl !== "undefined" && "DisplayNames" in Intl ? new Intl.DisplayNames(["en"], { type: "region" }) : null;
 const nameOfCode = (code: string) => SHAPES.find((s) => s.code === code)?.name ?? REGION_NAMES?.of(code) ?? code;
@@ -1438,6 +1442,22 @@ export default function WorldviewMap() {
       );
     })()}
     <CountryDashboard code={picked} name={pickedName} />
+    {/* The country's policy areas, as the Policy page draws them, as asked: its cards, sideways, and what it spends on each. */}
+    <section id="policy-areas" className="scroll-mt-36 rounded-2xl overflow-hidden" style={{ background: t.cardBg, border: t.cardBorder, boxShadow: t.cardShadow }} aria-label={`${pickedName}'s policy areas`}>
+      <div className="flex flex-wrap items-baseline gap-x-4 gap-y-1 px-4 py-3 border-b" style={{ borderColor: t.gridLine }}>
+        <p className="text-[10px] font-mono uppercase tracking-widest flex-1" style={{ color: t.mutedText }}>
+          Policy areas · {pickedName}
+        </p>
+        <Link to="/dashboard/policy" className="text-[10px] font-sans hover:underline" style={{ color: t.mutedText }}>
+          Every country's, on the Policy page
+        </Link>
+      </div>
+      <div className="px-4 pb-4 pt-1 min-w-0">
+        <Suspense fallback={<SiteLoading label="Loading its policy areas" />}>
+          <CountryPolicyAreas key={picked} code={picked} />
+        </Suspense>
+      </div>
+    </section>
     {/* The News page's historic accounts, for the country picked here, as asked: its unrest, revolutions, wars, terrorism, disasters and epidemics as the records hold them. */}
     <NewsHistory id="place-history" initial={picked} under='nav[aria-label="Worldview sections"]' />
     </>
