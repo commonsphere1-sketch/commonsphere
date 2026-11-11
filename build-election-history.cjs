@@ -17,8 +17,14 @@
  *               (V-Dem 2026, CC BY-SA; Our World in Data's processing CC BY): the country's type each year since 1789,
  *               as runs of years. A change is a year whose type is not the year before's.
  *
- * Nothing is estimated or worked out but runs of V-Dem's own years. Changes of head of state and government worldwide,
- * kept where the records agree, are a later step; ParlGov's cabinets stand for them where it has them.
+ *   Leaders     Wikidata's heads of state (P35) and of government (P6), each term kept only where two records of it agree:
+ *               the country's own statement naming the person, and the person's own "position held" (P39) of the
+ *               country's office (P1906, P1313) - the same person, starting the same year. A day is given where both give
+ *               the same day, else the year; an end only where both give one and they agree. A term neither record ends
+ *               is said to be current only where the site's checked list of heads (data/representatives.ts, three records)
+ *               names the same person; otherwise its end is "not recorded".
+ *
+ * Nothing is estimated or worked out but runs of V-Dem's own years.
  *
  *   node build-election-history.cjs
  */
@@ -56,6 +62,8 @@ const PREFIX = `PREFIX wd: <http://www.wikidata.org/entity/>
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>
 PREFIX p: <http://www.wikidata.org/prop/>
 PREFIX ps: <http://www.wikidata.org/prop/statement/>
+PREFIX pq: <http://www.wikidata.org/prop/qualifier/>
+PREFIX pqv: <http://www.wikidata.org/prop/qualifier/value/>
 PREFIX psv: <http://www.wikidata.org/prop/statement/value/>
 PREFIX prov: <http://www.w3.org/ns/prov#>
 PREFIX wikibase: <http://wikiba.se/ontology#>
@@ -121,6 +129,67 @@ async function qlever(name, query) {
   const NOT_NATIONAL = /by-?election|bye-election|primar(y|ies)|recall|caucus|leadership/i;
   const national = [...els.values()].filter((e) => [...e.jurs].every((j) => j === e.country) && ![...e.parents].some((p) => els.has(p)) && SITE.has(e.cc) && !NOT_NATIONAL.test(e.name));
   const kindOf = (e) => (e.kinds.has("Presidential") ? (e.kinds.has("Legislative") || e.kinds.has("General") ? "General" : "Presidential") : e.kinds.has("Legislative") ? "Legislative" : e.kinds.has("Referendum") ? "Referendum" : "General");
+
+  /* ── Heads of state and of government, where the country's record and the person's agree ── */
+  const leaderRows = await qlever(
+    "leaders.json",
+    `SELECT ?cc ?role ?person ?name ?start ?startPrec ?end ?pstart ?pstartPrec ?pend WHERE {
+  ?country wdt:P297 ?cc .
+  { ?country p:P35 ?st . ?st ps:P35 ?person . ?country wdt:P1906 ?office . BIND("state" AS ?role) }
+  UNION
+  { ?country p:P6 ?st . ?st ps:P6 ?person . ?country wdt:P1313 ?office . BIND("government" AS ?role) }
+  ?st pqv:P580 ?sv . ?sv wikibase:timeValue ?start ; wikibase:timePrecision ?startPrec .
+  OPTIONAL { ?st pq:P582 ?end }
+  ?person p:P39 ?ps . ?ps ps:P39 ?office . ?ps pqv:P580 ?psv . ?psv wikibase:timeValue ?pstart ; wikibase:timePrecision ?pstartPrec .
+  OPTIONAL { ?ps pq:P582 ?pend }
+  ?person rdfs:label ?name . FILTER(LANG(?name) = "en")
+}`,
+  );
+  // The site's checked heads now (three records): a term no record ends is current only where its person is among them.
+  const fold = (s) => String(s).normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase().replace(/[^a-z0-9]+/g, " ").trim();
+  const nowHeads = new Map();
+  {
+    const src = fs.readFileSync(path.join(__dirname, "src/data/representatives.ts"), "utf8");
+    const body = src.slice(src.indexOf("export const NATIONAL_HEADS"));
+    for (const m of body.matchAll(/\["([A-Z]{2})","[^"]*",[-\d.]+,[-\d.]+,(\[\[.*?\]\])\]/g)) {
+      const heads = JSON.parse(m[2]);
+      nowHeads.set(m[1], heads.map((h) => fold(String(h[1]).split(" – ").pop()).split(" ").filter((w) => w.length > 1)));
+    }
+  }
+  /* The same person where every word of the site's name for them (initials aside) is in Wikidata's, or every word of Wikidata's in the site's. */
+  const isNow = (cc, name) => {
+    const words = fold(name).split(" ").filter((w) => w.length > 1);
+    return (nowHeads.get(cc) ?? []).some((h) => h.length > 1 && (h.every((w) => words.includes(w)) || words.every((w) => h.includes(w))));
+  };
+  const leadersByCountry = new Map();
+  const y = (d) => d.slice(0, 4);
+  for (const b of leaderRows) {
+    const cc = b.cc.value;
+    if (!SITE.has(cc)) continue;
+    const s = b.start.value;
+    const ps = b.pstart.value;
+    if (y(s) !== y(ps) || +b.startPrec.value < 9 || +b.pstartPrec.value < 9) continue;
+    const day = +b.startPrec.value >= 11 && +b.pstartPrec.value >= 11 && s.slice(0, 10) === ps.slice(0, 10);
+    const e = b.end?.value;
+    const pe = b.pend?.value;
+    const to = e && pe && y(e) === y(pe) ? (e.slice(0, 10) === pe.slice(0, 10) ? e.slice(0, 10) : y(e)) : undefined;
+    const open = !e && !pe;
+    const id = b.person.value.split("/").pop();
+    const list = leadersByCountry.get(cc) ?? [];
+    const key = `${b.role.value}|${id}|${y(s)}`;
+    if (list.some((l) => l.key === key)) continue;
+    list.push({
+      key,
+      role: b.role.value,
+      name: b.name.value,
+      id,
+      from: day ? s.slice(0, 10) : y(s),
+      ...(to ? { to } : {}),
+      ...(open && isNow(cc, b.name.value) ? { now: true } : {}),
+      ...(!to && !(open && isNow(cc, b.name.value)) ? { end: open ? "not recorded" : "the records differ" } : {}),
+    });
+    leadersByCountry.set(cc, list);
+  }
 
   /* ── ParlGov ── */
   const wbCountries = JSON.parse(await cached("wb-countries.json", "https://api.worldbank.org/v2/country?format=json&per_page=400", 24 * 30))[1];
@@ -211,9 +280,10 @@ async function qlever(name, query) {
     elections.sort((a, b) => a.date.localeCompare(b.date));
     const cabinets = [...(cabByCountry.get(cc)?.values() ?? [])].sort((a, b) => a.start.localeCompare(b.start));
     const regimes = years.has(cc) ? runs(years.get(cc)) : [];
-    if (!elections.length && !regimes.length && !cabinets.length) continue;
-    fs.writeFileSync(path.join(OUT_DIR, `${cc}.json`), JSON.stringify({ cc, elections, cabinets, regimes }));
-    index.push([cc, elections.filter((e) => e.date <= today).length, elections.filter((e) => e.date > today).length, cabinets.length, regimes.length ? regimes[0][0] : null, regimes.length ? regimes[regimes.length - 1][1] : null]);
+    const leaders = (leadersByCountry.get(cc) ?? []).map(({ key, ...l }) => l).sort((a, b) => a.from.localeCompare(b.from) || a.role.localeCompare(b.role));
+    if (!elections.length && !regimes.length && !cabinets.length && !leaders.length) continue;
+    fs.writeFileSync(path.join(OUT_DIR, `${cc}.json`), JSON.stringify({ cc, elections, cabinets, regimes, leaders }));
+    index.push([cc, elections.filter((e) => e.date <= today).length, elections.filter((e) => e.date > today).length, cabinets.length, regimes.length ? regimes[0][0] : null, regimes.length ? regimes[regimes.length - 1][1] : null, leaders.length]);
   }
 
   const ts = `/**
@@ -231,11 +301,12 @@ export const ELECTION_HISTORY_SOURCES = {
   parlgov: { label: "ParlGov — Döring & Manow, Parliaments and governments database, Release 2024 (Harvard Dataverse, CC0)", url: "https://doi.org/10.7910/DVN/2VZ5ZC" },
   vdem: { label: "V-Dem — Regimes of the World (Lührmann, Tannenberg & Lindberg), via Our World in Data (CC BY-SA)", url: "https://ourworldindata.org/grapher/political-regime" },
 };
-/** [code, elections held, elections to come, cabinets, first and last year of V-Dem's regimes]. */
-export const ELECTION_HISTORY_INDEX: [cc: string, held: number, coming: number, cabinets: number, from: number | null, to: number | null][] = ${JSON.stringify(index)};
+/** [code, elections held, elections to come, cabinets, first and last year of V-Dem's regimes, leaders' terms]. */
+export const ELECTION_HISTORY_INDEX: [cc: string, held: number, coming: number, cabinets: number, from: number | null, to: number | null, leaders: number][] = ${JSON.stringify(index)};
 `;
   fs.writeFileSync(META, ts);
   const tot = index.reduce((s, r) => s + r[1] + r[2], 0);
+  console.log(`leaders: ${index.reduce((s, r) => s + r[6], 0)} terms agreed of ${leaderRows.length} rows read, ${index.filter((r) => r[6]).length} countries`);
   console.log(`wrote ${index.length} countries: ${tot} elections (${national.length} national from Wikidata of ${els.size} read), ${index.reduce((s, r) => s + r[3], 0)} cabinets, regimes for ${index.filter((r) => r[4]).length}`);
 })().catch((e) => {
   console.error(e);

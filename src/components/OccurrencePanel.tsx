@@ -39,7 +39,7 @@ const COUNTRIES = countriesData.filter((c) => !c.uninhabited).map((c) => ({ code
 const fold = (s: string) => s.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
 
 /** The section's search, as asked: any country, chosen to have its conflicts and disasters told - made as the Dashboard's place search is. */
-export function CountryFind({ onPick }: { onPick: (c: { code: string; name: string }) => void }) {
+export function CountryFind({ onPick, label = "Choose a country to see its conflicts and disasters" }: { onPick: (c: { code: string; name: string }) => void; /** What the search is for, said to a screen reader. */ label?: string }) {
   const [q, setQ] = useState("");
   const [open, setOpen] = useState(false);
   const [at, setAt] = useState(0);
@@ -85,7 +85,7 @@ export function CountryFind({ onPick }: { onPick: (c: { code: string; name: stri
             e.preventDefault();
           }}
           placeholder="Search a country"
-          aria-label="Choose a country to see its conflicts and disasters"
+          aria-label={label}
           role="combobox"
           aria-expanded={open && hits.length > 0}
           aria-controls="occurrence-country-hits"
