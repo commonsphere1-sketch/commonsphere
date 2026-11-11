@@ -8,7 +8,7 @@
  *
  * Opinion polls are not held: no open record of them is published that the site may use. Nothing here is estimated.
  */
-import { useEffect, useMemo, useState } from "react";
+import { type ReactNode, useEffect, useMemo, useRef, useState } from "react";
 import { PageHeader } from "../components/PageHeader";
 import { SourceLink } from "../components/SourceLink";
 import { CountryFind } from "../components/OccurrencePanel";
@@ -128,7 +128,7 @@ export default function ElectionsPage() {
 
       {data === undefined && <p className="text-[11px] font-sans text-muted-foreground px-1">Reading its history…</p>}
       {data === null && <p className="text-[11px] font-sans text-muted-foreground px-1">No elections, governments or regimes are held for {country.name}.</p>}
-      {data && <Timeline data={data} today={today} regimeInk={regimeInk} turning={turning} />}
+      {data && <Timeline key={country.code} data={data} today={today} regimeInk={regimeInk} turning={turning} country={country.name} />}
       {data && data.regimes.length > 0 && <RegimeBreakdown data={data} turning={turning} today={today} regimeInk={regimeInk} />}
 
       {/* The Factbook's most recent election for each chamber, beside the history. */}
@@ -227,119 +227,341 @@ export default function ElectionsPage() {
   );
 }
 
-/** The timeline: the regime as coloured runs of years, each election a dot (hollow where it is still to come), each government a tick. */
-function Timeline({ data, today, regimeInk, turning }: { data: History; today: string; regimeInk: (r: number) => string; turning: Turning[] }) {
-  const leaders = data.leaders ?? [];
+/**
+ * The timeline, made for research, as asked: each row named in a column of its own with its source, the years in a grid
+ * under all of them, a period to look at, the details of anything pointed at in a card, and the whole of it to download.
+ *
+ *   Regime          V-Dem's type for each run of years
+ *   Turning points  revolutions, coups and wars, a diamond each (fainter where the country took part abroad)
+ *   Elections       a row for each kind held: presidential, legislative and general, referendums (hollow: still to come)
+ *   Heads           of state and of government: each term a bar, named where the name fits, overlapping terms on lines of
+ *                   their own; a term whose end the records do not agree on is a mark at its start
+ *   Governments     ParlGov's cabinets, where it holds the country
+ */
+type Tip = { x: number; y: number; title: string; lines: string[] };
+type Row = { key: string; label: string; source: string; height: number; draw: (top: number) => ReactNode };
+
+function Timeline({ data, today, regimeInk, turning, country }: { data: History; today: string; regimeInk: (r: number) => string; turning: Turning[]; country: string }) {
   const year = +today.slice(0, 4);
-  const firsts = [data.regimes[0]?.[0], data.elections[0] ? +data.elections[0].date.slice(0, 4) : undefined, data.cabinets[0] ? +data.cabinets[0].start.slice(0, 4) : undefined, leaders[0] ? yearOf(leaders[0].from) : undefined].filter((v): v is number => typeof v === "number");
-  const y0 = Math.min(...firsts, year - 10);
-  const lastElection = data.elections.length ? +data.elections[data.elections.length - 1].date.slice(0, 4) : year;
-  const y1 = Math.max(year + 1, lastElection + 1);
+  const leaders = data.leaders ?? [];
+  // The years the country's own records cover - its regimes, elections, leaders and governments - open the timeline;
+  // a turning point from before them (a war of the eleventh century) is a button away, not the whole width.
+  const firsts = [data.regimes[0]?.[0], data.elections[0] ? yearOf(data.elections[0].date) : undefined, data.cabinets[0] ? yearOf(data.cabinets[0].start) : undefined, leaders[0] ? yearOf(leaders[0].from) : undefined].filter(
+    (v): v is number => typeof v === "number",
+  );
+  const coreY = Math.min(...firsts, year - 10);
+  const minY = Math.min(coreY, turning[0]?.y ?? coreY);
+  const lastElection = data.elections.length ? yearOf(data.elections[data.elections.length - 1].date) : year;
+  const maxY = Math.max(year + 1, lastElection + 1);
+  /* The period looked at: all of it, or from a year on - each offered only where the record reaches further back. */
+  const presets = (
+    [
+      [`From ${coreY}`, coreY],
+      ...(minY < coreY ? ([[`From ${minY}`, minY]] as const) : []),
+      ["Since 1900", 1900],
+      ["Since 1945", 1945],
+      ["Since 1990", 1990],
+      ["Last 25 years", year - 25],
+    ] as const
+  ).filter(([, y], i) => i === 0 || (y >= minY && y !== coreY));
+  const [from, setFrom] = useState(coreY);
+  useEffect(() => setFrom(coreY), [coreY]);
+  const y0 = from;
+  const y1 = maxY;
+  const [tip, setTip] = useState<Tip | null>(null);
+  const box = useRef<HTMLDivElement>(null);
+
   const W = 1000;
-  const L = 8;
-  const R = 8;
-  const x = (y: number) => L + ((y - y0) / (y1 - y0)) * (W - L - R);
-  const xd = (d: string) => x(+d.slice(0, 4) + (Date.parse(`${d}T00:00:00Z`) - Date.parse(`${d.slice(0, 4)}-01-01T00:00:00Z`)) / (365.25 * 864e5));
-  const span = y1 - y0;
-  const step = span > 150 ? 25 : span > 60 ? 10 : 5;
+  const G = 176; // the column the rows are named in
+  const R = 12;
+  const x = (y: number) => G + ((y - y0) / (y1 - y0)) * (W - G - R);
+  const xd = (d: string) => x(yearOf(d) + (Date.parse(`${d}T00:00:00Z`) - Date.parse(`${d.slice(0, 4)}-01-01T00:00:00Z`)) / (365.25 * 864e5));
+  const xs = (s: string) => (s.length > 4 ? xd(s) : x(yearOf(s)));
+  const spanY = y1 - y0;
+  // About a dozen years labelled, whatever the period.
+  const step = [1, 2, 5, 10, 20, 25, 50, 100, 200, 250, 500].find((s) => spanY / s <= 12) ?? 1000;
   const ticks: number[] = [];
   for (let t = Math.ceil(y0 / step) * step; t <= y1; t += step) ticks.push(t);
-  return (
-    <section className="modal-tile rounded-xl px-4 py-3 mb-4">
-      <p className="text-[10px] font-mono uppercase tracking-widest text-muted-foreground mb-2">
-        The timeline · {y0} to {y1}
-      </p>
-      <svg viewBox={`0 0 ${W} 210`} className="w-full h-auto" role="img" aria-label={`Timeline from ${y0} to ${y1}: regime, turning points, elections, leaders and governments`}>
-        {/* Regime */}
-        <text x={L} y={14} className="fill-muted-foreground" fontSize={10} fontFamily="ui-monospace, monospace">
-          REGIME (V-DEM)
-        </text>
-        {data.regimes.map(([from, to, type]) => (
-          <rect key={from} x={x(from)} y={20} width={Math.max(1, x(to + 1) - x(from))} height={22} fill={regimeInk(type)} fillOpacity={0.75}>
-            <title>{`${from} to ${to}: ${REGIME_TYPES[type].name} - ${REGIME_TYPES[type].said}`}</title>
-          </rect>
-        ))}
-        {/* Elections */}
-        {/* Turning points: revolutions, coups and wars, each a diamond in its year. */}
-        <text x={L} y={56} className="fill-muted-foreground" fontSize={10} fontFamily="ui-monospace, monospace">
-          TURNING POINTS
-        </text>
-        {turning
+
+  /* The card by the pointer, placed in the timeline's box. */
+  const show = (e: React.MouseEvent, title: string, lines: string[]) => {
+    const r = box.current?.getBoundingClientRect();
+    if (r) setTip({ x: e.clientX - r.left, y: e.clientY - r.top, title, lines: lines.filter(Boolean) });
+  };
+  const hover = (title: string, lines: string[]) => ({
+    onMouseMove: (e: React.MouseEvent) => show(e, title, lines),
+    onMouseLeave: () => setTip(null),
+  });
+
+  /* Terms on lines of their own where they overlap, so none is hidden under another. */
+  const lanes = (role: Leader["role"]) => {
+    const ends: number[] = [];
+    return leaders
+      .filter((l) => l.role === role)
+      .map((l) => {
+        const a = xs(l.from);
+        const b = l.to ? (l.to.length > 4 ? xd(l.to) : x(yearOf(l.to) + 1)) : l.now ? xd(today) : a;
+        let lane = ends.findIndex((end) => end <= a - 1);
+        if (lane < 0) lane = ends.push(b) - 1;
+        else ends[lane] = b;
+        return { l, a, b, lane };
+      });
+  };
+  const electionRows = [
+    { key: "presidential", label: "Presidential elections", kinds: ["Presidential"] },
+    { key: "legislative", label: "Legislative & general", kinds: ["Legislative", "General"] },
+    { key: "referendum", label: "Referendums", kinds: ["Referendum"] },
+  ].filter((r) => data.elections.some((e) => r.kinds.includes(e.kind)));
+
+  const rows: Row[] = [
+    {
+      key: "regime",
+      label: "Regime",
+      source: "V-Dem",
+      height: 26,
+      draw: (top) =>
+        data.regimes.map(([a, b, type]) => {
+          const left = Math.max(x(a), G);
+          const w = x(b + 1) - left;
+          if (w <= 0) return null;
+          return (
+            <g key={a} {...hover(REGIME_TYPES[type].name, [`${a} to ${b}`, REGIME_TYPES[type].said, "V-Dem, Regimes of the World"])}>
+              <rect x={left} y={top + 4} width={w} height={18} fill={regimeInk(type)} fillOpacity={0.8} />
+              {w > REGIME_TYPES[type].name.length * 5.6 + 8 && (
+                <text x={left + 4} y={top + 16.5} fontSize={9.5} className="fill-white" fontFamily="ui-sans-serif, sans-serif" pointerEvents="none">
+                  {REGIME_TYPES[type].name}
+                </text>
+              )}
+            </g>
+          );
+        }),
+    },
+    {
+      key: "turning",
+      label: "Turning points",
+      source: "site's record of events",
+      height: 20,
+      draw: (top) =>
+        turning
           .filter((tp) => tp.y >= y0)
           .map((tp, i) => {
             const cx = x(tp.y + 0.5);
             return (
-              <path key={`tp-${i}`} d={`M${cx},60 l4,5 l-4,5 l-4,-5 z`} className="fill-foreground" fillOpacity={tp.abroad ? 0.35 : 0.75}>
-                <title>{`${tp.y}: ${tp.title} - ${tp.kind}${tp.abroad ? ", taken part in" : ""}`}</title>
-              </path>
+              <path
+                key={`tp-${i}`}
+                d={`M${cx},${top + 4} l5,6 l-5,6 l-5,-6 z`}
+                className="fill-foreground"
+                fillOpacity={tp.abroad ? 0.35 : 0.8}
+                {...hover(tp.title, [`${tp.when ?? tp.y}`, `${tp.kind}${tp.abroad ? ", taken part in abroad" : ""}`, tp.desc ?? "", tp.sources.map((s) => s[0]).join(", ")])}
+              />
             );
-          })}
-        <text x={L} y={86} className="fill-muted-foreground" fontSize={10} fontFamily="ui-monospace, monospace">
-          ELECTIONS
-        </text>
-        <line x1={L} x2={W - R} y1={100} y2={100} className="stroke-border" strokeWidth={1} />
-        {data.elections.map((e, i) => {
-          const coming = e.date > today;
-          return (
-            <circle key={`${e.date}-${i}`} cx={xd(e.date)} cy={100} r={4} fill={coming ? "none" : KIND_INK[e.kind]} stroke={KIND_INK[e.kind]} strokeWidth={1.5} fillOpacity={0.85}>
-              <title>{`${day(e.date)}: ${e.name}${e.winners ? ` - successful, as Wikidata records it: ${e.winners.join(", ")}` : ""}${coming ? " (to come)" : ""}`}</title>
-            </circle>
-          );
-        })}
-        {/* Governments */}
-        {/* The heads of state and of government: each term a bar from its start to its end - to today where it is current - and only a mark at its start where no end is agreed. */}
-        {(["state", "government"] as const).map((role, r) => {
-          const top = 122 + r * 22;
-          return (
-            <g key={role}>
-              <text x={L} y={top - 4} className="fill-muted-foreground" fontSize={10} fontFamily="ui-monospace, monospace">
-                {role === "state" ? "HEADS OF STATE" : "HEADS OF GOVERNMENT"}
+          }),
+    },
+    ...electionRows.map((er) => ({
+      key: er.key,
+      label: er.label,
+      source: data.elections.some((e) => e.parlgovOnly) ? "Wikidata, ParlGov" : "Wikidata",
+      height: 20,
+      draw: (top: number) => (
+        <>
+          <line x1={G} x2={W - R} y1={top + 10} y2={top + 10} className="stroke-border" strokeWidth={0.8} />
+          {data.elections
+            .filter((e) => er.kinds.includes(e.kind) && yearOf(e.date) >= y0)
+            .map((e, i) => {
+              const coming = e.date > today;
+              const top3 = (e.results?.parties ?? []).slice(0, 3).map(([p, v, s]) => `${p}${v !== null ? ` ${v.toFixed(1)}%` : ""}${s !== null ? `, ${s} seats` : ""}`);
+              return (
+                <circle
+                  key={`${e.date}-${i}`}
+                  cx={xd(e.date)}
+                  cy={top + 10}
+                  r={4.2}
+                  fill={coming ? "none" : KIND_INK[e.kind]}
+                  stroke={KIND_INK[e.kind]}
+                  strokeWidth={1.5}
+                  fillOpacity={0.9}
+                  {...hover(e.name, [
+                    `${day(e.date)}${coming ? " · still to come" : ""}`,
+                    e.kind,
+                    e.winners ? `Successful, as Wikidata records it: ${e.winners.slice(0, 4).join(", ")}${e.winners.length > 4 ? ` and ${e.winners.length - 4} more` : ""}` : "",
+                    ...top3,
+                    e.parlgovOnly ? "ParlGov" : `Wikidata${e.results ? "; results ParlGov" : ""}`,
+                  ])}
+                />
+              );
+            })}
+        </>
+      ),
+    })),
+    ...(["state", "government"] as const)
+      .filter((role) => leaders.some((l) => l.role === role))
+      .map((role) => {
+        const terms = lanes(role);
+        const n = Math.max(1, ...terms.map((t) => t.lane + 1));
+        return {
+          key: role,
+          label: role === "state" ? "Heads of state" : "Heads of government",
+          source: "Wikidata, two records",
+          height: 6 + n * 14,
+          draw: (top: number) =>
+            terms
+              .filter((t) => t.b >= G)
+              .map(({ l, a, b, lane }, i) => {
+                const left = Math.max(a, G);
+                const w = Math.max(3, b - left);
+                const yy = top + 4 + lane * 14;
+                return (
+                  <g key={`${role}-${i}`} {...hover(l.name, [ROLE[l.role], termOf(l), "Wikidata: the country's record and the person's agree"])}>
+                    <rect x={left} y={yy} width={w} height={11} rx={2} className="fill-foreground" fillOpacity={l.to || l.now ? (i % 2 ? 0.42 : 0.62) : 0.3} />
+                    {w > l.name.length * 5.1 + 6 && (
+                      <text x={left + 3} y={yy + 8.5} fontSize={8.5} className="fill-background" fontFamily="ui-sans-serif, sans-serif" pointerEvents="none">
+                        {l.name}
+                      </text>
+                    )}
+                  </g>
+                );
+              }),
+        };
+      }),
+    ...(data.cabinets.length
+      ? [
+          {
+            key: "cabinets",
+            label: "Governments",
+            source: "ParlGov",
+            height: 20,
+            draw: (top: number) =>
+              data.cabinets
+                .filter((c) => yearOf(c.start) >= y0)
+                .map((c, i) => (
+                  <line
+                    key={`${c.start}-${i}`}
+                    x1={xd(c.start)}
+                    x2={xd(c.start)}
+                    y1={top + 3}
+                    y2={top + 17}
+                    className="stroke-foreground"
+                    strokeOpacity={0.65}
+                    strokeWidth={1.6}
+                    {...hover(`${c.name} cabinet`, [day(c.start), c.caretaker ? "Caretaker" : "", c.parties.join(", "), c.pmParty ? `Prime minister's party: ${c.pmParty}` : "", "ParlGov"])}
+                  />
+                )),
+          },
+        ]
+      : []),
+  ];
+  const tops: number[] = [];
+  let h = 8;
+  for (const r of rows) {
+    tops.push(h);
+    h += r.height + 6;
+  }
+  const axis = h + 4;
+  const H = axis + 22;
+
+  /* The whole of it, for a reader's own work: one row a thing, with its source and its link. */
+  const download = () => {
+    const q = (v: string | number | undefined) => `"${String(v ?? "").replace(/"/g, '""')}"`;
+    const out: (string | number | undefined)[][] = [["type", "start", "end", "name", "detail", "source", "link"]];
+    for (const [a, b, type] of data.regimes) out.push(["regime", a, b, REGIME_TYPES[type].name, REGIME_TYPES[type].said, "V-Dem, Regimes of the World (via Our World in Data)", "https://ourworldindata.org/grapher/political-regime"]);
+    for (const tp of turning) out.push(["turning point", tp.when ?? tp.y, "", tp.title, `${tp.kind}${tp.abroad ? ", taken part in abroad" : ""}`, tp.sources.map((s) => s[0]).join("; "), tp.sources[0]?.[1]]);
+    for (const e of data.elections)
+      out.push([
+        `${e.kind.toLowerCase()} election`,
+        e.date,
+        "",
+        e.name,
+        [e.winners ? `successful (Wikidata): ${e.winners.join("; ")}` : "", ...(e.results?.parties ?? []).map(([p, v, s]) => `${p}: ${v ?? "-"}% ${s ?? "-"} seats`)].filter(Boolean).join(" | "),
+        e.parlgovOnly ? "ParlGov" : `Wikidata${e.results ? "; ParlGov" : ""}`,
+        e.id ? `https://www.wikidata.org/wiki/${e.id}` : "https://doi.org/10.7910/DVN/2VZ5ZC",
+      ]);
+    for (const l of leaders) out.push([l.role === "state" ? "head of state" : "head of government", l.from, l.to ?? (l.now ? "now" : ""), l.name, l.end ? `end ${l.end}` : "", "Wikidata (two records agreeing)", `https://www.wikidata.org/wiki/${l.id}`]);
+    for (const c of data.cabinets) out.push(["government", c.start, "", c.name, [c.caretaker ? "caretaker" : "", c.parties.join("; "), c.pmParty ? `PM's party: ${c.pmParty}` : ""].filter(Boolean).join(" | "), "ParlGov", "https://doi.org/10.7910/DVN/2VZ5ZC"]);
+    const csv = out.map((r) => r.map(q).join(",")).join("\r\n");
+    const url = URL.createObjectURL(new Blob([`﻿${csv}`], { type: "text/csv;charset=utf-8" }));
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `${data.cc}-political-history-${today}.csv`;
+    a.click();
+    URL.revokeObjectURL(url);
+  };
+
+  return (
+    <section className="modal-tile rounded-xl px-4 py-3 mb-4">
+      <div className="flex flex-wrap items-center gap-2 mb-2">
+        <p className="text-[10px] font-mono uppercase tracking-widest text-muted-foreground flex-1 min-w-[12rem]">
+          The timeline · {y0} to {y1}
+        </p>
+        {presets.length > 1 &&
+          presets.map(([label, y]) => (
+            <button
+              key={label}
+              type="button"
+              onClick={() => setFrom(y)}
+              aria-pressed={y0 === y}
+              className={`px-2.5 py-0.5 rounded-full text-[10px] font-sans border transition-colors cursor-pointer ${y0 === y ? "border-foreground text-foreground" : "border-border text-muted-foreground hover:text-foreground"}`}
+            >
+              {label}
+            </button>
+          ))}
+        <button type="button" onClick={download} className="px-2.5 py-0.5 rounded-full text-[10px] font-sans border border-border text-muted-foreground hover:text-foreground cursor-pointer" title="Every row of the timeline, with its source and link, as a spreadsheet">
+          Download CSV
+        </button>
+      </div>
+      <div ref={box} className="relative" onMouseLeave={() => setTip(null)}>
+        <svg viewBox={`0 0 ${W} ${H}`} className="w-full h-auto" role="img" aria-label={`${country}'s timeline from ${y0} to ${y1}: ${rows.map((r) => r.label.toLowerCase()).join(", ")}`}>
+          <defs>
+            <clipPath id="timeline-plot">
+              <rect x={G} y={0} width={W - G - R + 6} height={H} />
+            </clipPath>
+          </defs>
+          {/* Each row on a faint band of its own, named with its source in the column at the left. */}
+          {rows.map((r, i) => (
+            <g key={r.key}>
+              {i % 2 === 0 && <rect x={0} y={tops[i] - 3} width={W} height={r.height + 6} className="fill-foreground" fillOpacity={0.025} />}
+              <text x={4} y={tops[i] + Math.min(r.height, 22) / 2 + 2} fontSize={10.5} className="fill-foreground" fontFamily="ui-sans-serif, sans-serif">
+                {r.label}
               </text>
-              {leaders
-                .filter((l) => l.role === role)
-                .map((l, i) => {
-                  const a = l.from.length > 4 ? xd(l.from) : x(yearOf(l.from));
-                  const b = l.to ? (l.to.length > 4 ? xd(l.to) : x(yearOf(l.to) + 1)) : l.now ? xd(today) : a + 2;
-                  return (
-                    <rect key={`${role}-${i}`} x={a} y={top} width={Math.max(2, b - a)} height={8} rx={2} className="fill-foreground" fillOpacity={i % 2 ? 0.35 : 0.6}>
-                      <title>{`${l.name}: ${termOf(l)}`}</title>
-                    </rect>
-                  );
-                })}
+              <text x={4} y={tops[i] + Math.min(r.height, 22) / 2 + 13} fontSize={8} className="fill-muted-foreground" fontFamily="ui-monospace, monospace">
+                {r.source}
+              </text>
             </g>
-          );
-        })}
-        <text x={L} y={170} className="fill-muted-foreground" fontSize={10} fontFamily="ui-monospace, monospace">
-          GOVERNMENTS (PARLGOV)
-        </text>
-        {data.cabinets.map((c, i) => (
-          <line key={`${c.start}-${i}`} x1={xd(c.start)} x2={xd(c.start)} y1={174} y2={186} className="stroke-foreground" strokeOpacity={0.6} strokeWidth={1.2}>
-            <title>{`${day(c.start)}: ${c.name}${c.caretaker ? " (caretaker)" : ""}${c.parties.length ? ` - ${c.parties.join(", ")}` : ""}`}</title>
-          </line>
-        ))}
-        {!data.cabinets.length && (
-          <text x={L + 150} y={170} className="fill-muted-foreground" fontSize={10} fontFamily="ui-sans-serif, sans-serif">
-            not held: ParlGov holds 37 European and OECD democracies
+          ))}
+          {/* The years: a line under every row at each, and the axis. */}
+          {ticks.map((t) => (
+            <g key={t}>
+              <line x1={x(t)} x2={x(t)} y1={4} y2={axis} className="stroke-border" strokeOpacity={0.6} strokeWidth={0.6} />
+              {Math.abs(x(t) - xd(today)) > 34 && (
+                <text x={x(t)} y={axis + 14} textAnchor="middle" className="fill-muted-foreground" fontSize={9.5} fontFamily="ui-monospace, monospace">
+                  {t}
+                </text>
+              )}
+            </g>
+          ))}
+          <line x1={G} x2={W - R} y1={axis} y2={axis} className="stroke-border" />
+          <g clipPath="url(#timeline-plot)">{rows.map((r, i) => <g key={r.key}>{r.draw(tops[i])}</g>)}</g>
+          {/* Today. */}
+          <line x1={xd(today)} x2={xd(today)} y1={4} y2={axis} className="stroke-foreground" strokeDasharray="3 3" strokeOpacity={0.55} />
+          <text x={xd(today) - 3} y={axis + 14} textAnchor="end" className="fill-foreground" fontSize={8.5} fontFamily="ui-monospace, monospace">
+            today
           </text>
+        </svg>
+        {tip && (
+          <div className="absolute z-10 pointer-events-none rounded-lg border border-border bg-card shadow-lg px-2.5 py-2 max-w-[18rem]" style={{ left: Math.min(tip.x + 14, (box.current?.clientWidth ?? 600) - 290), top: tip.y + 14 }}>
+            <p className="text-[11px] font-semibold font-sans text-foreground leading-snug">{tip.title}</p>
+            {tip.lines.map((l, i) => (
+              <p key={i} className="text-[10px] font-sans text-muted-foreground leading-snug mt-0.5">
+                {l}
+              </p>
+            ))}
+          </div>
         )}
-        {/* Years */}
-        {ticks.map((t) => (
-          <g key={t}>
-            <line x1={x(t)} x2={x(t)} y1={190} y2={194} className="stroke-border" />
-            <text x={x(t)} y={206} textAnchor="middle" className="fill-muted-foreground" fontSize={10} fontFamily="ui-monospace, monospace">
-              {t}
-            </text>
-          </g>
-        ))}
-        <line x1={x(year)} x2={x(year)} y1={18} y2={190} className="stroke-foreground" strokeDasharray="2 3" strokeOpacity={0.5}>
-          <title>Today</title>
-        </line>
-      </svg>
-      {/* The key. */}
-      <div className="flex flex-wrap items-center gap-x-4 gap-y-1 mt-1">
+      </div>
+      {/* The key, and how to cite it. */}
+      <div className="flex flex-wrap items-center gap-x-4 gap-y-1 mt-2">
         {REGIME_TYPES.map((r, i) => (
           <span key={r.name} className="inline-flex items-center gap-1.5 text-[10px] font-sans text-muted-foreground" title={r.said}>
-            <span className="w-3 h-2 rounded-sm" style={{ background: regimeInk(i), opacity: 0.75 }} />
+            <span className="w-3 h-2 rounded-sm" style={{ background: regimeInk(i), opacity: 0.8 }} />
             {r.name}
           </span>
         ))}
@@ -349,8 +571,12 @@ function Timeline({ data, today, regimeInk, turning }: { data: History; today: s
             {k}
           </span>
         ))}
-        <span className="text-[10px] font-sans text-muted-foreground">a hollow dot is still to come</span>
+        <span className="text-[10px] font-sans text-muted-foreground">hollow: still to come · faint bar: end not agreed · faint diamond: taken part in abroad</span>
       </div>
+      <p className="text-[10px] font-sans text-muted-foreground mt-1.5 leading-snug">
+        Point at anything for its details and source. To cite: CommonSphere, "Polls & Elections: {country}", read {day(today)} - from V-Dem's Regimes of the World, Wikidata, ParlGov and the records of events each row
+        names.
+      </p>
     </section>
   );
 }

@@ -99,8 +99,8 @@ async function qlever(name, query) {
 
   /* ── Wikidata's national elections ── */
   const rows = await qlever(
-    "elections.json",
-    `SELECT ?e ?name ?date ?cc ?country ?base ?jur ?parent ?winner ?cited WHERE {
+    "elections-2.json",
+    `SELECT ?e ?name ?date ?cc ?country ?base ?jur ?loc ?tjur ?parent ?winner ?cited WHERE {
   VALUES ?base { ${Object.keys(KINDS).map((q) => `wd:${q}`).join(" ")} }
   ?type wdt:P279* ?base .
   ?e wdt:P31 ?type ; wdt:P17 ?country .
@@ -108,6 +108,8 @@ async function qlever(name, query) {
   ?e p:P585 ?st . ?st psv:P585 ?dv . ?dv wikibase:timeValue ?date ; wikibase:timePrecision 11 .
   ?e rdfs:label ?name . FILTER(LANG(?name) = "en")
   OPTIONAL { ?e wdt:P1001 ?jur }
+  OPTIONAL { ?e wdt:P131 ?loc }
+  OPTIONAL { ?type wdt:P1001 ?tjur }
   OPTIONAL { ?e wdt:P361 ?parent }
   OPTIONAL { ?e wdt:P991 ?w . ?w rdfs:label ?winner . FILTER(LANG(?winner) = "en") }
   OPTIONAL { ?st prov:wasDerivedFrom ?cited }
@@ -119,16 +121,49 @@ async function qlever(name, query) {
     const e = els.get(id) ?? { id, name: b.name.value, date: b.date.value.slice(0, 10), cc: b.cc.value, country: b.country.value, kinds: new Set(), jurs: new Set(), parents: new Set(), winners: new Set(), cited: false };
     e.kinds.add(KINDS[b.base.value.split("/").pop()]);
     if (b.jur) e.jurs.add(b.jur.value);
+    if (b.loc) e.jurs.add(b.loc.value);
+    if (b.tjur) e.jurs.add(b.tjur.value);
     if (b.parent) e.parents.add(b.parent.value.split("/").pop());
     if (b.winner) e.winners.add(b.winner.value);
     if (b.cited) e.cited = true;
     els.set(id, e);
   }
   // National: applying to no place but the country, and no part of another election held.
-  // By-elections, primaries and recalls are not a national vote, though Wikidata files some under the national kinds.
-  const NOT_NATIONAL = /by-?election|bye-election|primar(y|ies)|recall|caucus|leadership/i;
-  const national = [...els.values()].filter((e) => [...e.jurs].every((j) => j === e.country) && ![...e.parents].some((p) => els.has(p)) && SITE.has(e.cc) && !NOT_NATIONAL.test(e.name));
+  // By-elections, primaries, recalls and a chamber's own votes are not a national vote, though Wikidata files some under the national kinds.
+  const NOT_NATIONAL = /by-?election|bye-election|primar(y|ies)|recall|caucus|leadership|speaker|super tuesday|convention|committee|chairmanship|olympic|\blocal\b|municipal/i;
+  /* Nor is a vote whose name names one of the country's own divisions - "2020 California Proposition 21", "1956 Iowa Senate
+     election" - where Wikidata does not place it there: a division whose name is in the country's own (Mexico's México,
+     Luxembourg's Luxembourg) is not counted. */
+  const foldName = (s) => String(s).normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
+  const divisions = new Map();
+  {
+    const src = fs.readFileSync(path.join(__dirname, "src/data/subnations.ts"), "utf8");
+    for (const m of src.matchAll(/\\"cc\\":\\"([A-Z]{2})\\",\\"name\\":\\"((?:[^"\\]|\\\\.)*?)\\"/g)) {
+      const cc = m[1];
+      const nm = foldName(m[2]);
+      if (nm.length < 4 || foldName(SITE.get(cc) ?? "").includes(nm)) continue;
+      (divisions.get(cc) ?? divisions.set(cc, []).get(cc)).push(new RegExp(`\\b${nm.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}\\b`));
+    }
+  }
+  // A vote named for another country or territory the site holds - the Northern Mariana Islands' under the United States - is that place's.
+  const others = [...SITE].map(([cc, nm]) => [cc, foldName(nm)]).filter(([, nm]) => nm.length >= 4);
+  const namesDivision = (e) =>
+    (divisions.get(e.cc) ?? []).some((re) => re.test(foldName(e.name))) || others.some(([cc, nm]) => cc !== e.cc && !foldName(SITE.get(e.cc) ?? "").includes(nm) && foldName(e.name).includes(nm));
   const kindOf = (e) => (e.kinds.has("Presidential") ? (e.kinds.has("Legislative") || e.kinds.has("General") ? "General" : "Presidential") : e.kinds.has("Legislative") ? "Legislative" : e.kinds.has("Referendum") ? "Referendum" : "General");
+  /* A referendum is the country's only where its name names the country - its name, or Wikidata's word for its people
+     ("French constitutional referendum") - or it amends the country's constitution ("Third Amendment of the Constitution
+     Bill"): Wikidata seldom says what a referendum applies to, and states', territories' and colleges' votes are filed
+     under the country (California's propositions, the Northern Mariana Islands', Dartmouth's). */
+  const demonymRows = await qlever("demonyms.json", `SELECT ?cc ?dem WHERE { ?c wdt:P297 ?cc ; wdt:P1549 ?dem . FILTER(LANG(?dem) = "en") }`);
+  const peoples = new Map();
+  for (const b of demonymRows) (peoples.get(b.cc.value) ?? peoples.set(b.cc.value, []).get(b.cc.value)).push(foldName(b.dem.value));
+  const namesCountry = (e) => {
+    const n = foldName(e.name);
+    return n.includes(foldName(SITE.get(e.cc) ?? "~")) || (peoples.get(e.cc) ?? []).some((d) => d.length >= 4 && new RegExp(`\\b${d}\\b`).test(n)) || /amendment of the constitution/.test(n);
+  };
+  const national = [...els.values()].filter(
+    (e) => [...e.jurs].every((j) => j === e.country) && ![...e.parents].some((p) => els.has(p)) && SITE.has(e.cc) && !NOT_NATIONAL.test(e.name) && !namesDivision(e) && (kindOf(e) !== "Referendum" || namesCountry(e)),
+  );
 
   /* ── Heads of state and of government, where the country's record and the person's agree ── */
   const leaderRows = await qlever(
