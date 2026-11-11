@@ -24,7 +24,7 @@ export const CRITICAL_BY: { id: CriticalBy; chip: string; is: string }[] = [
   { id: "disaster", chip: "Red alert", is: "a red alert from GDACS now: its estimate that help from abroad is expected to be needed" },
   { id: "humanitarian", chip: "UN appeal", is: "a UN humanitarian response plan or flash appeal running now" },
 ];
-/** What names a country, and - `what` - the kind of disturbance it is, in the body's own terms: UCDP's kinds of violence and the sides with the most deaths, the State Department's own sentence of why, the kind of disaster, the kind of appeal. */
+/** What names a country, and - `what` - the kind of disturbance it is, in the body's own terms: UCDP's kinds of violence and the sides with the most deaths, the kind of disaster, the kind of appeal. The State Department's summary of why was taken off, as asked. */
 export type CriticalReason = { by: CriticalBy; said: string; url?: string; what?: string };
 export type CriticalZones = {
   /** Each country named, by its code, with what names it. */
@@ -61,7 +61,7 @@ export function useCriticalZones(enabled: boolean, conflicts: ConflictLayer | nu
     };
     if (status)
       for (const [cc, s] of Object.entries(status.COUNTRY_STATUS)) {
-        for (const a of s.us ?? []) if (a.level === 4) add(cc, { by: "travel", said: `US State Department: ${a.name} - Level 4, ${a.advice}, since ${dayOf(a.issued)}`, url: a.url, ...(a.why ? { what: a.why } : {}) });
+        for (const a of s.us ?? []) if (a.level === 4) add(cc, { by: "travel", said: `US State Department: ${a.name} - Level 4, ${a.advice}, since ${dayOf(a.issued)}`, url: a.url });
         if (s.uk?.status.includes("avoid_all_travel_to_whole_country"))
           add(cc, { by: "travel", said: `UK Foreign Office: ${s.uk.name} - advises against all travel to the whole country, as of ${dayOf(s.uk.updated)}`, url: s.uk.url });
       }
@@ -117,8 +117,6 @@ export function criticalRows(rs: CriticalReason[]): [string, string][] {
   const rows: [string, string][] = [["Critical", CRITICAL_BY.filter((b) => rs.some((r) => r.by === b.id)).map((b) => b.chip).join(" · ")]];
   const conflict = rs.find((r) => r.by === "conflict");
   if (conflict?.what) rows.push(["Conflict", conflict.what]);
-  const advice = rs.find((r) => r.by === "travel" && r.what);
-  if (advice?.what) rows.push(["US advice", advice.what]);
   const disasters = [...new Set(rs.filter((r) => r.by === "disaster").map((r) => r.what))].filter(Boolean);
   if (disasters.length) rows.push(["Disaster", `Red alert: ${disasters.join(", ").toLowerCase()}`]);
   const appeal = rs.find((r) => r.by === "humanitarian");
