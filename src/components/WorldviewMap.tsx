@@ -66,6 +66,9 @@ import { OccurrencePanel, type Occurrence } from "./OccurrencePanel";
 import { useGdacsLive, type HazardAlert } from "../lib/gdacsLive";
 import { alertInks, conflictInks, useConflictEvents } from "../lib/conflictEvents";
 import { criticalRows, namedBy, useCriticalZones } from "../lib/criticalZones";
+import { conflictPinRows, conflictsByCountry, countryConflictRow, countryDisastersRow, disastersByCountry, hazardName, hazardPinRows } from "../lib/layerSaid";
+import { HAZARD_KINDS } from "../lib/gdacsLive";
+import { CONFLICT_KINDS } from "../data/conflictEventsMeta";
 import { CriticalZonesPanel } from "./CriticalZonesPanel";
 import { Link } from "react-router-dom";
 import { usStatesData } from "../data/statesData";
@@ -629,6 +632,19 @@ export default function WorldviewMap() {
   const conflictData = useConflictEvents(live.conflicts || live.critical);
   const gdacs = useGdacsLive(live.hazards || live.critical);
   const critical = useCriticalZones(live.critical, conflictData.data, gdacs.events);
+  /* Each country's conflicts and disasters, for the card by the pointer, as asked: said while their layers - or the critical zones - are on. */
+  const conflictOf = useMemo(() => (conflictData.data ? conflictsByCountry(conflictData.data) : null), [conflictData.data]);
+  const disastersOf = useMemo(() => (gdacs.events ? disastersByCountry(gdacs.events) : null), [gdacs.events]);
+  const layerRows = (code: string): [string, string][] => {
+    const named = live.critical ? critical?.zones.get(code) : undefined;
+    const rows: [string, string][] = named ? criticalRows(named).slice(0, 1) : [];
+    const c = conflictOf?.get(code);
+    if (c && conflictData.data && (live.conflicts || named?.some((r) => r.by === "conflict"))) rows.push(countryConflictRow(c, conflictData.data.month));
+    const hs = disastersOf?.get(code);
+    if (hs && live.hazards) rows.push(countryDisastersRow(hs));
+    if (named) rows.push(...criticalRows(named).slice(1).filter(([label]) => !(live.hazards && hs && label === "Disaster")));
+    return rows;
+  };
   const panelRef = useRef<HTMLDivElement | null>(null);
   useEffect(() => {
     setRegion(null);
@@ -997,7 +1013,12 @@ export default function WorldviewMap() {
                   if (!dragged.current) choose({ kind: "conflict", i });
                 }}
                 onMouseEnter={() => setHoverPin(`${r[5]}: ${r[4].toLocaleString("en")} killed`)}
-                onMouseLeave={() => setHoverPin(null)}
+                // Described in the card by the pointer, as asked: its deaths, its kind of violence, its sides.
+                onMouseMove={(e) => conflictData.data && card.current?.show(e, { name: r[5], kicker: `${CONFLICT_KINDS[r[2]]} · ${SHAPES.find((s) => s.code === r[11])?.name ?? r[11]}`, zone: { kind: "country", cc: r[11] }, figures: conflictPinRows(conflictData.data, r) }, PROJECTION)}
+                onMouseLeave={() => {
+                  setHoverPin(null);
+                  card.current?.hide();
+                }}
               />
             );
           })
@@ -1020,7 +1041,12 @@ export default function WorldviewMap() {
                     if (!dragged.current) choose({ kind: "hazard", id: h.id });
                   }}
                   onMouseEnter={() => setHoverPin(`${h.name}: ${h.alert} alert`)}
-                  onMouseLeave={() => setHoverPin(null)}
+                  // Described in the card by the pointer, as asked: what its alert means, its severity, its days, where it reaches.
+                  onMouseMove={(e) => card.current?.show(e, { name: hazardName(h), kicker: `${HAZARD_KINDS[h.kind]} · ${h.alert} alert`, zone: { kind: "country", cc: h.codes[0] ?? "" }, figures: hazardPinRows(h) }, PROJECTION)}
+                  onMouseLeave={() => {
+                    setHoverPin(null);
+                    card.current?.hide();
+                  }}
                 >
                   <circle cx={p[0]} cy={p[1]} r={r} fill="none" stroke={halo} strokeWidth={2.6 / z} />
                   <circle cx={p[0]} cy={p[1]} r={r} fill={aInk[h.alert]} fillOpacity={0.25} stroke={aInk[h.alert]} strokeWidth={1.3 / z} />
@@ -1168,7 +1194,7 @@ export default function WorldviewMap() {
                   stroke={s.code ? inkOf(s.code) : t.isLight ? "#cbd5e1" : "#3a3a44"}
                   strokeWidth={0.7 / view.k}
                   onMouseEnter={() => s.code && setHover(s.code)}
-                  onMouseMove={(e) => s.code && !drag.current?.moved && card.current?.show(e, { name: s.name, zone: { kind: "country", cc: s.code }, ...(live.critical && critical?.zones.get(s.code) ? { figures: criticalRows(critical.zones.get(s.code)!) } : {}) }, PROJECTION)}
+                  onMouseMove={(e) => s.code && !drag.current?.moved && card.current?.show(e, { name: s.name, zone: { kind: "country", cc: s.code }, ...(live.critical || live.conflicts || live.hazards ? { figures: layerRows(s.code) } : {}) }, PROJECTION)}
                   onMouseLeave={() => {
                     setHover(null);
                     card.current?.hide();
