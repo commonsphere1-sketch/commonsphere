@@ -55,15 +55,17 @@ const OUT = path.join(__dirname, "src/data/countryStatus.ts");
 const UA = "commonsphere-data-build/1.0 (+https://github.com/commonsphere1-sketch/commonsphere)";
 const CACHE = path.join(os.tmpdir(), "commonsphere-country-status");
 fs.mkdirSync(CACHE, { recursive: true });
-const TODAY = new Date().toISOString().slice(0, 10);
+const { syncClock, nowIso } = require("./build-clock.cjs");
+/* The day it was read, by a server's clock (build-clock.cjs): the computer a build runs on can have its clock set wrong, and this one's ran hours fast - a day ahead, of an evening. Set before anything is read. */
+let TODAY = new Date().toISOString().slice(0, 10);
 
 const US_FEED = "https://travel.state.gov/_res/rss/TAsTWs.xml";
 const UK_INDEX = "https://www.gov.uk/api/content/foreign-travel-advice";
 const CDC_FEED = "https://wwwnc.cdc.gov/travel/rss/notices.xml";
 /** How long ago a disaster alert may have ended and still be given. */
 const HAZARD_DAYS = 30;
-const daysAgo = (n) => new Date(Date.now() - n * 864e5).toISOString().slice(0, 10);
-const GDACS = `https://www.gdacs.org/gdacsapi/api/events/geteventlist/SEARCH?alertlevel=orange;red&fromDate=${daysAgo(365)}&toDate=${TODAY}`;
+const daysAgo = (n) => new Date(Date.parse(nowIso()) - n * 864e5).toISOString().slice(0, 10);
+const GDACS = () => `https://www.gdacs.org/gdacsapi/api/events/geteventlist/SEARCH?alertlevel=orange;red&fromDate=${daysAgo(365)}&toDate=${TODAY}`;
 
 async function cached(name, url) {
   const at = path.join(CACHE, name);
@@ -317,7 +319,7 @@ async function cdc() {
 /* ── GDACS ── */
 const HAZARDS = { EQ: "Earthquake", TC: "Tropical cyclone", FL: "Flood", VO: "Volcanic eruption", DR: "Drought", WF: "Wildfire", TS: "Tsunami" };
 async function gdacs() {
-  const d = JSON.parse(await cached("gdacs.json", GDACS));
+  const d = JSON.parse(await cached("gdacs.json", GDACS()));
   if (!Array.isArray(d.features)) throw new Error("GDACS: no list of events");
   const since = daysAgo(HAZARD_DAYS);
   let n = 0;
@@ -356,6 +358,8 @@ async function gdacs() {
 }
 
 (async () => {
+  await syncClock();
+  TODAY = nowIso().slice(0, 10);
   const us = await unitedStates();
   const uk = await unitedKingdom();
   const health = await cdc();

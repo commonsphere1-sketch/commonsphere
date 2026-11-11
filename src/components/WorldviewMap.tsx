@@ -65,6 +65,8 @@ import { useElectionSeason } from "../lib/electionSeason";
 import { OccurrencePanel, type Occurrence } from "./OccurrencePanel";
 import { useGdacsLive, type HazardAlert } from "../lib/gdacsLive";
 import { alertInks, conflictInks, useConflictEvents } from "../lib/conflictEvents";
+import { namedBy, useCriticalZones } from "../lib/criticalZones";
+import { CriticalZonesPanel } from "./CriticalZonesPanel";
 import { Link } from "react-router-dom";
 import { usStatesData } from "../data/statesData";
 import { citiesData } from "../data/citiesData";
@@ -168,6 +170,11 @@ const SHAPES = WORLD.features.flatMap((f) => {
   const c = countryForFeature(f.properties.name);
   return [{ name: c?.name ?? f.properties.name, code: c?.code ?? null, d, b: PATH.bounds(f as never), a: anchorOf(PATH, f) }];
 });
+/** A country's name, as the map draws it, or as the browser's own list of regions has it where the map draws none. */
+const REGION_NAMES = typeof Intl !== "undefined" && "DisplayNames" in Intl ? new Intl.DisplayNames(["en"], { type: "region" }) : null;
+const nameOfCode = (code: string) => SHAPES.find((s) => s.code === code)?.name ?? REGION_NAMES?.of(code) ?? code;
+/** The red the critical zones are drawn in: apart from the conflicts' and the disasters' own. */
+const criticalInk = (isLight: boolean) => (isLight ? "#be123c" : "#fb7185");
 /** The country of the site's a point lies in, by the outlines the map draws; none at sea or on a shape too small to draw. */
 const countryAt = (lon: number, lat: number) => {
   const f = WORLD.features.find((x) => geoContains(x as never, [lon, lat]));
@@ -615,11 +622,13 @@ export default function WorldviewMap() {
   const [hoverRegion, setHoverRegion] = useState<string | null>(null);
   const [pressed, setPressed] = useState<Pressed | null>(null);
   /* The conflicts and the disasters going on, as asked: each on the map while its chip is pressed, and the one pressed told under it. */
-  const [live, setLive] = useState({ conflicts: false, hazards: false });
+  const [live, setLive] = useState({ conflicts: false, hazards: false, critical: false });
   const [occurrence, setOccurrence] = useState<Occurrence | null>(null);
   const [hoverPin, setHoverPin] = useState<string | null>(null);
-  const conflictData = useConflictEvents(live.conflicts);
-  const gdacs = useGdacsLive(live.hazards);
+  // The critical zones read the conflicts and the disasters too, without pinning them.
+  const conflictData = useConflictEvents(live.conflicts || live.critical);
+  const gdacs = useGdacsLive(live.hazards || live.critical);
+  const critical = useCriticalZones(live.critical, conflictData.data, gdacs.events);
   const panelRef = useRef<HTMLDivElement | null>(null);
   useEffect(() => {
     setRegion(null);
@@ -1076,6 +1085,13 @@ export default function WorldviewMap() {
             [
               ["conflicts", "Conflicts", conflictInks(t.isLight)[0], conflictData, "Pin the armed conflicts of the latest month: every event in which someone was killed, as the Uppsala Conflict Data Program recorded it"],
               ["hazards", "Disasters", alertInks(t.isLight).Red, gdacs, "Pin the disasters going on now - earthquakes, cyclones, floods, volcanoes, droughts, forest fires - read live from GDACS"],
+              [
+                "critical",
+                "Critical zones",
+                criticalInk(t.isLight),
+                { loading: live.critical && (!critical?.read.travel || conflictData.loading || gdacs.loading), failed: false },
+                "Draw in red every country a travel ban, deadly conflict, a red disaster alert or a UN humanitarian appeal names - each its body's own word, listed under the map",
+              ],
             ] as const
           ).map(([id, label, ink, state, title]) => (
             <button
@@ -1094,8 +1110,9 @@ export default function WorldviewMap() {
             >
               <span aria-hidden className="shrink-0 w-2 h-2 rounded-full" style={{ background: live[id] ? ink : "currentColor", opacity: live[id] ? 1 : 0.45 }} />
               {label}
-              {state.loading && <span className="font-mono opacity-70">…</span>}
-              {state.failed && <span className="font-mono opacity-70">unavailable</span>}
+              {/* Only the chip pressed says it is reading: the critical zones read the conflicts and the disasters without their chips. */}
+              {live[id] && state.loading && <span className="font-mono opacity-70">…</span>}
+              {live[id] && state.failed && <span className="font-mono opacity-70">unavailable</span>}
             </button>
           ))}
         </div>
@@ -1159,6 +1176,18 @@ export default function WorldviewMap() {
                 />
               );
             })}
+            {/* The critical zones, as asked: each country named drawn in red over its own colour - the more of the four that name it, the more solid - and not pressed itself. */}
+            {live.critical && critical && (
+              <g pointerEvents="none" aria-hidden>
+                {SHAPES.map((s, i) => {
+                  const rs = s.code ? critical.zones.get(s.code) : undefined;
+                  if (!rs) return null;
+                  const n = namedBy(rs);
+                  // Named by one of the four, a faint red; by each more, more solid and a heavier edge.
+                  return <path key={`crit-${i}`} d={s.d} fill={criticalInk(t.isLight)} fillOpacity={0.06 + 0.13 * (n - 1)} stroke={criticalInk(t.isLight)} strokeOpacity={0.45 + 0.18 * (n - 1)} strokeWidth={(0.6 + 0.5 * (n - 1)) / view.k} strokeLinejoin="round" />;
+                })}
+              </g>
+            )}
             {/* The borders inside each country, in its own colour and dimmer than its edge, kept inside the land as drawn here. */}
             <defs>
               <clipPath id="worldview-land">
@@ -1319,6 +1348,19 @@ export default function WorldviewMap() {
       </div>
     </section>
     {/* The account of the conflict or disaster pressed, as asked: under the map, while either is on it. */}
+    {/* The critical zones listed, as asked: under the map while their chip is pressed. */}
+    {live.critical && critical && (
+      <CriticalZonesPanel
+        t={t}
+        data={critical}
+        ink={criticalInk(t.isLight)}
+        nameOf={nameOfCode}
+        onPick={(code) => {
+          pick(code);
+          document.getElementById("world-map")?.scrollIntoView({ block: "start", behavior: "smooth" });
+        }}
+      />
+    )}
     {(live.conflicts || live.hazards) && (
       <div ref={panelRef} className="scroll-mt-36">
         <OccurrencePanel
