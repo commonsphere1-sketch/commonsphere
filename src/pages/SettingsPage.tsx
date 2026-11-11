@@ -1081,7 +1081,7 @@ function ElectionSeasonSetting() {
       <p className="text-xs text-muted-foreground font-sans mb-4 leading-relaxed">
         The 2026 midterms as the states count them: a bar at the head of every page with the balance of the Senate, the
         governors and the House and the states you follow, and each state in the colour of whoever leads its count on the
-        map of the United States. Each count is the state's own, unofficial until it certifies. Saved in this browser.
+        map of the United States. Each count is the state's own, unofficial until it certifies. Off until you turn it on; saved in this browser.
       </p>
       <div className="flex items-center justify-between gap-4">
         <p className="text-sm font-sans text-foreground">Show the midterm counts across the site</p>
