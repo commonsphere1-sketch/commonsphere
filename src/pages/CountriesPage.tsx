@@ -1,5 +1,4 @@
 import { na, has, orZero, sortKey } from "../lib/na";
-import { PlacePhoto } from "../components/PlacePhoto";
 import { SLIM_TRACK, slimFill } from "../components/SlimBars";
 import { SiteMark } from "../components/SiteMark";
 import { PublicServicesSection, ServiceBadges } from "../components/PublicServices";
@@ -689,10 +688,6 @@ function CountryModal({
               <X size={18} />
             </button>
           </WindowTitle>
-          {/* Its photo at ground level, as asked: the one its Wikidata record names, from Wikimedia Commons, credited. */}
-          <div className="mb-4">
-            <PlacePhoto kind="countries" id={country.code} name={country.name} />
-          </div>
 
           <div className="flex items-start justify-between mb-6">
             <div className="flex items-center gap-4">

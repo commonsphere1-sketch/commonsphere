@@ -1,5 +1,4 @@
 import * as Popover from "@radix-ui/react-popover";
-import { PlacePhoto } from "../components/PlacePhoto";
 import { SUBNATION_FLAG_COLOR } from "../data/subnationFlagColors";
 import { seen } from "../lib/flagColor";
 import React, { useState, useEffect, lazy, Suspense } from "react";
@@ -6190,10 +6189,6 @@ function StateModal({
               <X size={18} />
             </button>
           </WindowTitle>
-          {/* Its photo at ground level, as asked: the one its Wikidata record names, from Wikimedia Commons, credited. */}
-          <div className="mb-4">
-            <PlacePhoto kind="divisions" id={`US-${state.abbreviation}`} name={state.name} />
-          </div>
 
           <div className="flex items-start justify-between mb-4">
             <div className="flex items-center gap-4">

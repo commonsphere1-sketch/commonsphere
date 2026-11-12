@@ -69,7 +69,6 @@
  * ?country=<code>&name=<name> the division a map names - the Dashboard's map
  * sends its presses here that way.
  */
-import { PlacePhoto } from "../components/PlacePhoto";
 import { PageHeader } from "../components/PageHeader";
 import { SLIM_TRACK, slimFill } from "../components/SlimBars";
 import { lazy, Suspense, useCallback, useEffect, useMemo, useState, type ReactNode } from "react";
@@ -338,7 +337,6 @@ function Window({
   top = true,
   hidden = false,
   zone,
-  photo,
 }: {
   /** Where its clock's time is taken: the place's zone (LocalTime). */
   zone?: ZoneOf;
@@ -359,8 +357,6 @@ function Window({
   top?: boolean;
   /** Out of sight while a window opened from it is the one being read: one window at a time, as asked. It keeps its place for the way back. */
   hidden?: boolean;
-  /** Its photo at ground level, under the title bar (PlacePhoto). */
-  photo?: ReactNode;
 }) {
   useEffect(() => {
     if (!top) return;
@@ -399,7 +395,6 @@ function Window({
               <X size={18} />
             </button>
           </WindowTitle>
-          {photo}
 
           <div className="flex items-start justify-between gap-3">
             <div className="flex items-center gap-4 min-w-0">
@@ -876,7 +871,7 @@ function SubnationWindow({ s, onBack, onClose, onCounties }: { s: Subnation; /**
     ...(s.article ? [{ label: `Wikipedia — ${s.article}`, url: `https://en.wikipedia.org/wiki/${encodeURIComponent(s.article.replace(/ /g, "_"))}` }] : []),
   ];
   return (
-    <Window photo={<PlacePhoto kind="divisions" id={s.id} name={s.name} at={typeof s.lat === "number" && typeof s.lon === "number" ? { lat: s.lat, lon: s.lon } : null} />} zone={{ kind: "division", cc: s.cc, id: s.id, name: s.name }} follow={<DivisionStar s={s} where="window" />} mapTo={`/dashboard/maps?country=${s.cc}`} top={!placeOpen} hidden={placeOpen} onBack={onBack} title={s.name} kicker={`${s.kind || "Division"} · ${c?.name ?? s.cc}`} flagSrc=
+    <Window zone={{ kind: "division", cc: s.cc, id: s.id, name: s.name }} follow={<DivisionStar s={s} where="window" />} mapTo={`/dashboard/maps?country=${s.cc}`} top={!placeOpen} hidden={placeOpen} onBack={onBack} title={s.name} kicker={`${s.kind || "Division"} · ${c?.name ?? s.cc}`} flagSrc=
 {ownFlag(s, 250) ?? flag(s.cc, 160)} chips={[...(s.code ? [s.code] : []), ...(s.capital ? [`Capital: ${s.capital}`] : []), ...(s.region ? [s.region] : [])]} onClose={onClose}>
       <div className="flex flex-wrap gap-2">
         {c && <LinkButton onClick={() => navigate(`/dashboard/countries?open=${c.id}`)}>Open {c.name}</LinkButton>}
@@ -1105,7 +1100,7 @@ function CountyWindow({ county, data, onBack, onClose }: { county: UsCounty; dat
     },
   ];
   return (
-    <Window photo={<PlacePhoto kind="counties" id={fips} name={name} at={county[3] != null && county[4] != null ? { lat: county[3], lon: county[4] } : null} />} zone={{ kind: "county", state: abbr, fips }} follow={<FollowStar where="window" id={`county:${fips}`} name={name} />} mapTo="/dashboard/maps?country=US" top={!placeOpen} hidden={placeOpen} onBack={onBack} title={name} kicker={`County · ${state?.name ?? abbr}`} flagSrc={flag("US", 160)} chips={[`FIPS ${fips}`, state?.name ?? abbr, ...(rows ? [`${whole(rows.length)} places listed`] : [])]} onClose={onClose}>
+    <Window zone={{ kind: "county", state: abbr, fips }} follow={<FollowStar where="window" id={`county:${fips}`} name={name} />} mapTo="/dashboard/maps?country=US" top={!placeOpen} hidden={placeOpen} onBack={onBack} title={name} kicker={`County · ${state?.name ?? abbr}`} flagSrc={flag("US", 160)} chips={[`FIPS ${fips}`, state?.name ?? abbr, ...(rows ? [`${whole(rows.length)} places listed`] : [])]} onClose={onClose}>
       <div className="flex flex-wrap gap-2">
         {state && <LinkButton onClick={() => navigate(`/dashboard/subnations?open=US-${state.abbreviation}`)}>{state.name}'s record</LinkButton>}
         {state && <LinkButton onClick={() => navigate(`/dashboard/states?open=${state.id}`)}>Open {state.name} on the US States page</LinkButton>}
