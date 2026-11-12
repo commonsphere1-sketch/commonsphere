@@ -700,19 +700,19 @@ function Timeline({ data, today, regimeInk, turning, country }: { data: History;
       <div className="flex flex-wrap items-center gap-x-4 gap-y-1 mt-2">
         {REGIME_TYPES.map((r, i) => (
           <span key={r.name} className="inline-flex items-center gap-1.5 text-[10px] font-sans text-muted-foreground" title={r.said}>
-            <span className="w-3 h-2 rounded-sm" style={{ background: regimeInk(i), opacity: 0.8 }} />
+            <span className="inline-block w-2 h-2 min-w-2 min-h-2 aspect-square rounded-full shrink-0" style={{ background: regimeInk(i), opacity: 0.85 }} aria-hidden />
             {r.name}
           </span>
         ))}
         {(Object.keys(KIND_INK) as (keyof typeof KIND_INK)[]).map((k) => (
           <span key={k} className="inline-flex items-center gap-1.5 text-[10px] font-sans text-muted-foreground">
-            <span className="w-2 h-2 rounded-full" style={{ background: KIND_INK[k] }} />
+            <span className="inline-block w-2 h-2 min-w-2 min-h-2 aspect-square rounded-full shrink-0" style={{ background: KIND_INK[k] }} aria-hidden />
             {k}
           </span>
         ))}
         {freedoms.map((fr) => (
           <span key={fr.key} className="inline-flex items-center gap-1.5 text-[10px] font-sans text-muted-foreground">
-            <span className="w-3 h-0.5" style={{ background: fr.ink }} />
+            <span className="inline-block w-2 h-2 min-w-2 min-h-2 aspect-square rounded-full shrink-0" style={{ background: fr.ink }} aria-hidden />
             {fr.name}
           </span>
         ))}
