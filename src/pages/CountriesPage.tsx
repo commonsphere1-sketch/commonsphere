@@ -993,32 +993,7 @@ function CountryModal({
                   </div>
                 </div>
 
-                {/* Languages & Government */}
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-4">
-                  <div className="modal-tile rounded-lg p-4">
-                    <p className="text-xs text-muted-foreground font-sans mb-2">
-                      Government
-                    </p>
-                    <p className="text-sm font-semibold font-sans text-foreground">
-                      {country.governmentType}
-                    </p>
-                    <p className="text-xs text-muted-foreground font-sans mt-1">
-                      {country.headOfState}
-                    </p>
-                  </div>
-                  <div className="modal-tile rounded-lg p-4">
-                    <p className="text-xs text-muted-foreground font-sans mb-2">
-                      Languages · Currency
-                    </p>
-                    <p className="text-sm font-semibold font-sans text-foreground">
-                      {country.officialLanguages.join(", ")}
-                    </p>
-                    <p className="text-xs text-muted-foreground font-sans mt-1">
-                      {country.currency}
-                      {has(country.gdpGrowth) ? (country.gdpGrowth > 0 ? " · Growing" : " · Contracting") : ""}
-                    </p>
-                  </div>
-                </div>
+                {/* The Government and Languages · Currency tiles that stood here were taken off, as asked: the identity row above names the system and the language. */}
 
                 {/* ── SOCIAL & HUMAN DEVELOPMENT CATEGORY ── */}
                 <div className="mb-4">
