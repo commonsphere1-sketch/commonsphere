@@ -13,11 +13,14 @@ import { useEffect, useState } from "react";
 /** The files, by name: each is fetched, and one that does not come is left out. */
 const FILES = ["oecd", "statcan", "abs", "ons"] as const;
 
-export type RegionalUnit = "pct" | "years" | "per100k" | "usd_ppp" | "cad" | "aud" | "gbp" | "count";
+/** How a value is written: "gini" is a coefficient from 0 to 1, written out of 100 as the site writes every Gini index; "*_millions" are millions of that currency. */
+export type RegionalUnit = "pct" | "years" | "per100k" | "usd_ppp" | "cad" | "aud" | "gbp" | "count" | "gini" | "cad_millions" | "aud_millions" | "gbp_millions";
 export type RegionalDef = { label: string; part: string; unit: RegionalUnit; say: string };
 type RegionalFile = {
   agency: string;
   source: { label: string; url: string };
+  /** What the body's own marks beside a value mean, where the file gives them. */
+  flags?: Record<string, string>;
   defs: Record<string, RegionalDef>;
   divisions: Record<string, { code: string; name: string; figures: Record<string, [number, number, string?]> }>;
 };
@@ -28,6 +31,8 @@ export type RegionalFigure = {
   year: number;
   value: number;
   flag?: string;
+  /** What its flag means, in words. */
+  flagText?: string;
   agency: string;
   /** The body's code and name for the region the figure is published for. */
   code: string;
@@ -51,7 +56,9 @@ const load = () =>
         for (const [key, def] of Object.entries(file.defs)) {
           const f = d.figures[key];
           if (!f) continue;
-          (out[id] ??= []).push({ key, def, year: f[0], value: f[1], flag: f[2], agency: file.agency, code: d.code, region: d.name, source: file.source });
+          const words = { B: "a break in the series", P: "provisional", ...(file.flags ?? {}) } as Record<string, string>;
+          const flagText = f[2] ? f[2].split("").map((c) => words[c] ?? c).join(", ") : undefined;
+          (out[id] ??= []).push({ key, def, year: f[0], value: f[1], flag: f[2], flagText, agency: file.agency, code: d.code, region: d.name, source: file.source });
         }
     }
     return out;
@@ -88,13 +95,21 @@ export function regionalValue(f: RegionalFigure): string {
       return `A$${whole(f.value)}`;
     case "gbp":
       return `£${whole(f.value)}`;
+    case "gini":
+      return (f.value * 100).toFixed(1);
+    case "cad_millions":
+    case "aud_millions":
+    case "gbp_millions": {
+      const sign = f.def.unit === "cad_millions" ? "C$" : f.def.unit === "aud_millions" ? "A$" : "£";
+      return f.value >= 1e6 ? `${sign}${(f.value / 1e6).toFixed(2)} trillion` : f.value >= 1e3 ? `${sign}${(f.value / 1e3).toFixed(1)} billion` : `${sign}${whole(f.value)} million`;
+    }
     default:
       return whole(f.value);
   }
 }
 /** What is said beneath it: its year, that it is its own, the body, what it measures, and the body's name for the region where it is spelled otherwise. */
 export function regionalSaid(f: RegionalFigure, name: string): string {
-  const flag = f.flag ? ` · ${f.flag.split("").map((c) => ({ B: "a break in the series", P: "provisional" })[c] ?? c).join(", ")}` : "";
+  const flag = f.flagText ? ` · ${f.flagText}` : "";
   const region = f.region.toLowerCase() !== name.toLowerCase() ? ` · its region "${f.region}"` : "";
   return `${f.year} · its own · ${f.agency}, ${f.def.say}${flag}${region}`;
 }

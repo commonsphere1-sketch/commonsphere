@@ -811,7 +811,7 @@ function partsOf(s: Subnation, d?: DivisionDetails, pov?: DivisionPoverty, eu?: 
             { ...row("Education", "Adults who can read"), label: "Education: adults who can read" },
             { ...row("Education", "Years of schooling"), label: "Education: years of schooling" },
             { ...row("Health", "Life expectancy"), label: "Health: life expectancy" },
-            ...(poorOwn?.gini != null ? [] : [{ label: "Inequality", value: null }]),
+            ...(poorOwn?.gini != null || regional?.some((f) => f.key === "gini") ? [] : [{ label: "Inequality", value: null }]),
             { ...row("Economy", "Below the national poverty line"), label: "Poverty: below the national poverty line" },
             { ...row("Business", "People using the internet"), label: "Development: people using the internet" },
           ],
@@ -1668,13 +1668,17 @@ const TIPS: Record<string, string> = {
     "The Gini index of income: 0 if every household or person had the same, 100 if one had it all. It measures income (or, in some countries, spending), not wealth.",
   "At risk of poverty":
     "The share of its people whose household income, for its size, is under 60% of their country's median - Eurostat, from the EU survey of income and living conditions. It is how far below the rest of the country, not a fixed line.",
+  "Below the national poverty line": "The share of its people below their country's official poverty line, as its national statistics office publishes it for the division",
 };
 /**
  * A division's poverty and inequality, where held for the division itself: a US state's from the American Community Survey - the Gini index as the Census Bureau gives it (0 to 1), shown out of 100 as the World Bank gives a country's -
  * another country's division's from the World Bank's survey of that region, and a European one's share at risk of poverty from Eurostat, each with its year.
  */
-function povertyOf(s: Subnation, stateId: string | undefined, pov: DivisionPoverty | undefined, eu?: EuPoverty): [string, string | undefined][] {
-  if (s.cc !== "US")
+function povertyOf(s: Subnation, stateId: string | undefined, pov: DivisionPoverty | undefined, eu?: EuPoverty, regional?: RegionalFigure[]): [string, string | undefined][] {
+  if (s.cc !== "US") {
+    // A national statistics office's own, where it publishes them for the division: its official poverty line, and its Gini index where the World Bank's is not held.
+    const line = regional?.find((f) => f.key === "poverty");
+    const gini = pov?.gini == null ? regional?.find((f) => f.key === "gini" && f.def.unit === "gini") : undefined;
     return [
       ...(pov
         ? ([
@@ -1682,8 +1686,11 @@ function povertyOf(s: Subnation, stateId: string | undefined, pov: DivisionPover
             ["Inequality (Gini)", pov.gini != null ? `${pov.gini.toFixed(1)} · ${pov.y}` : undefined],
           ] as [string, string | undefined][])
         : []),
+      ...(line ? ([["Below the national poverty line", `${line.value.toFixed(1)}% · ${line.year}`]] as [string, string | undefined][]) : []),
+      ...(gini ? ([["Inequality (Gini)", `${(gini.value * 100).toFixed(1)} · ${gini.year}`]] as [string, string | undefined][]) : []),
       ...(eu?.arop ? ([["At risk of poverty", `${eu.arop[1].toFixed(1)}% · ${eu.arop[0]}`]] as [string, string | undefined][]) : []),
     ];
+  }
   if (!stateId) return [];
   const below = STATE_INDICATORS[stateId]?.poverty;
   const pct = below?.groups.find((g) => g.label === "Below poverty line")?.pct;
@@ -1700,6 +1707,7 @@ function DivisionCard({
   inside,
   pov,
   eu,
+  regional,
   onOpen,
 }: {
   s: Subnation;
@@ -1709,6 +1717,8 @@ function DivisionCard({
   pov?: DivisionPoverty;
   /** Its share at risk of poverty, where Eurostat publishes it for it. */
   eu?: EuPoverty;
+  /** Its own figures from official regional statistics. */
+  regional?: RegionalFigure[];
   onOpen: () => void;
 }) {
   // A US state's population is the one its window gives: the Census Bureau's. The "Head" line the card had was taken off as asked: it said "Not held" for nearly every division.
@@ -1719,7 +1729,7 @@ function DivisionCard({
     ["Area", s.areaKm2 ? `${whole(s.areaKm2)} km²` : undefined],
     ["Capital", s.capital],
     // Poverty and inequality, as asked, where they are held for the division itself: a US state's are the Census Bureau's (American Community Survey); another country's division's, the World Bank's survey of it.
-    ...povertyOf(s, state?.id, pov, eu),
+    ...povertyOf(s, state?.id, pov, eu, regional),
 
     // What lies inside it, as GeoNames lists it: the counties or districts with a listed place, and the towns, cities and villages of more than 500 people.
     ["Counties or districts", inside === undefined ? "…" : inside && inside.order === 1 && inside.districts.length ? whole(inside.districts.length) : undefined],
@@ -1933,6 +1943,7 @@ function CountryWindow({
   /* Each division's own poverty and inequality, where the World Bank publishes them for it (outside the United States). */
   const poverty = useDivisionPoverty();
   const euPoverty = useDivisionEuPoverty();
+  const regionalFigures = useRegionalFigures();
   /* The map at the head of its window: its divisions as the site's maps draw them, opening on its main part with its far-off parts a swipe away, with its largest listed places as dots. */
   const drawn = useAdmin1(row.cc);
   const second = useSecondOrder(row.cc);
@@ -2045,7 +2056,7 @@ function CountryWindow({
           </h3>
           <div className="grid gap-3 [grid-template-columns:repeat(auto-fill,minmax(min(100%,15rem),1fr))]">
             {shown.map((s) => (
-              <DivisionCard key={s.id} s={s} inside={places === undefined ? undefined : (insides?.get(s.id) ?? null)} pov={poverty?.[s.id]} eu={euPoverty?.[s.id]} onOpen={() => onOpen(s)} />
+              <DivisionCard key={s.id} s={s} inside={places === undefined ? undefined : (insides?.get(s.id) ?? null)} pov={poverty?.[s.id]} eu={euPoverty?.[s.id]} regional={regionalFigures?.[s.id]} onOpen={() => onOpen(s)} />
 
             ))}
           </div>
@@ -2062,6 +2073,13 @@ function CountryWindow({
           // The World Bank's and Eurostat's, where its cards show a division's own poverty and inequality.
           ...(poverty && row.divisions.some((d) => poverty[d.id]) ? [DIVISION_POVERTY_SOURCE] : []),
           ...(euPoverty && row.divisions.some((d) => euPoverty[d.id]?.arop) ? [EU_POVERTY_SOURCES.arop] : []),
+          // A national statistics office's, where its cards show the office's poverty line or Gini index.
+          ...new Map(
+            row.divisions
+              .flatMap((d) => regionalFigures?.[d.id] ?? [])
+              .filter((f) => f.key === "poverty" || f.key === "gini")
+              .map((f) => [f.source.label, f.source] as const),
+          ).values(),
         ]}
       />
       {picked && places && <PlaceHost place={picked} file={places} division={divisionOf} country={row.name} onPlace={setPlaceOpen} onDone={() => setPicked(null)} onCloseAll={onClose} />}
