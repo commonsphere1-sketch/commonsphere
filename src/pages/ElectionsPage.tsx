@@ -373,7 +373,7 @@ function Timeline({ data, today, regimeInk, turning, country }: { data: History;
           if (w <= 0) return null;
           return (
             <g key={a} {...hover(REGIME_TYPES[type].name, [`${a} to ${b}`, REGIME_TYPES[type].said, "V-Dem, Regimes of the World"])}>
-              <rect x={left} y={top + 4} width={w} height={18} fill={regimeInk(type)} fillOpacity={0.8} />
+              <rect x={left} y={top + 4} width={w} height={18} rx={Math.min(9, w / 2)} fill={regimeInk(type)} fillOpacity={0.8} />
               {w > REGIME_TYPES[type].name.length * 5.6 + 8 && (
                 <text x={left + 4} y={top + 16.5} fontSize={9.5} className="fill-white" fontFamily="ui-sans-serif, sans-serif" pointerEvents="none">
                   {REGIME_TYPES[type].name}
@@ -459,7 +459,7 @@ function Timeline({ data, today, regimeInk, turning, country }: { data: History;
                 const yy = top + 4 + lane * 14;
                 return (
                   <g key={`${role}-${i}`} {...hover(l.name, [ROLE[l.role], termOf(l), l.role === "pope" ? "Wikidata: the pope's own record and the conclave that elected him agree on the year it began" : "Wikidata: the country's record and the person's agree"])}>
-                    <rect x={left} y={yy} width={w} height={11} rx={2} className="fill-foreground" fillOpacity={l.to || l.now ? (i % 2 ? 0.42 : 0.62) : 0.3} />
+                    <rect x={left} y={yy} width={w} height={11} rx={Math.min(5.5, w / 2)} className="fill-foreground" fillOpacity={l.to || l.now ? (i % 2 ? 0.42 : 0.62) : 0.3} />
                     {w > l.name.length * 5.1 + 6 && (
                       <text x={left + 3} y={yy + 8.5} fontSize={8.5} className="fill-background" fontFamily="ui-sans-serif, sans-serif" pointerEvents="none">
                         {l.name}
@@ -535,7 +535,7 @@ function Timeline({ data, today, regimeInk, turning, country }: { data: History;
                         const yy = yOf(c.pmLeftRight!, 10);
                         return (
                           <g key={`${c.start}-${i}`} {...hover(`${c.name} cabinet`, [`${day(c.start)} to ${pgLean[i + 1] ? day(next) : "now or its end"}`, `Prime minister's party: ${c.pmParty} - ${c.pmLeftRight} on ParlGov's scale, left (0) to right (10)`, "ParlGov"])}>
-                            <line x1={a} x2={Math.max(a + 2, b)} y1={yy} y2={yy} className="stroke-foreground" strokeWidth={2.4} strokeOpacity={0.75} />
+                            <line x1={a} x2={Math.max(a + 2, b)} y1={yy} y2={yy} className="stroke-foreground" strokeWidth={2.4} strokeOpacity={0.75} strokeLinecap="round" />
                             <circle cx={a} cy={yy} r={2.2} className="fill-foreground" />
                           </g>
                         );
@@ -546,7 +546,7 @@ function Timeline({ data, today, regimeInk, turning, country }: { data: History;
                         const yy = yOf(alignAt(l.align)!, 6);
                         return (
                           <g key={`${l.id}-${i}`} {...hover(l.name, [termOf(l), `${l.party}: ${l.align}`, "Wikidata: the party at the start of the term, and its political alignment"])}>
-                            <line x1={a} x2={Math.max(a + 2, b)} y1={yy} y2={yy} className="stroke-foreground" strokeWidth={2.4} strokeOpacity={0.75} />
+                            <line x1={a} x2={Math.max(a + 2, b)} y1={yy} y2={yy} className="stroke-foreground" strokeWidth={2.4} strokeOpacity={0.75} strokeLinecap="round" />
                             <circle cx={a} cy={yy} r={2.2} className="fill-foreground" />
                           </g>
                         );
