@@ -91,6 +91,7 @@ import { ADMIN2_SOURCE, useAdmin2, useAdmin2Manifest } from "../lib/admin2";
 import { DIVISION_DETAILS_SOURCES, useDivisionDetails, type DivisionDetails, type Money } from "../lib/divisionDetails";
 import { DIVISION_POVERTY_SOURCE, EU_FLAG, EU_POVERTY_SOURCES, useDivisionEuPoverty, useDivisionPoverty, type DivisionPoverty, type EuFigure, type EuPoverty } from "../lib/divisionPoverty";
 import { useCountyBea, type BeaFile } from "../lib/countyBea";
+import { regionalSaid, regionalValue, useRegionalFigures, type RegionalFigure } from "../lib/regionalFigures";
 import { liveRecord, type LiveRecord } from "../lib/liveRecord";
 import { framed, outlineParts, outlinesOf, placesWithin, useAdmin1, useCountyOutline } from "../lib/outlines";
 import { flagColor } from "../lib/flagColor";
@@ -483,7 +484,7 @@ const money = (m: Money) => `${m[1] >= 1e12 ? `${(m[1] / 1e12).toFixed(2)} trill
 /** A field that is there only where something is held for it: what more a division's record gives is not the same from one division to the next. */
 const held = (label: string, value: string | undefined | null | false, sub?: string): Field[] => (value ? [{ label, value, sub }] : []);
 
-function partsOf(s: Subnation, d?: DivisionDetails, pov?: DivisionPoverty, eu?: EuPoverty): { parts: Part[]; sources: Source[] } {
+function partsOf(s: Subnation, d?: DivisionDetails, pov?: DivisionPoverty, eu?: EuPoverty, regional?: RegionalFigure[]): { parts: Part[]; sources: Source[] } {
   const c = COUNTRY.get(s.cc);
   const country = c?.name ?? s.cc;
   const state = STATE_BY_CODE.get(s.code ?? "");
@@ -848,6 +849,23 @@ function partsOf(s: Subnation, d?: DivisionDetails, pov?: DivisionPoverty, eu?: 
       extra: s.series ? <SeriesChart points={s.series} label={`${s.name}'s population`} /> : undefined,
     },
   ];
+  /* Its own figures from official regional statistics - the OECD's, and national statistics offices' - outside the United States, each in the part it belongs to, after the other figures of its own and before its country's. Said with the body, its year and what it measures. */
+  if (!m && regional?.length) {
+    const agencies = new Map<string, Set<string>>();
+    for (const f of regional) {
+      const part = parts.find((p) => p.title === f.def.part);
+      if (!part) continue;
+      cite(f.source);
+      const at = part.fields.findIndex((x) => !x.label.endsWith("· its own"));
+      part.fields.splice(at < 0 ? part.fields.length : at, 0, { label: `${f.def.label} · its own`, value: regionalValue(f), sub: regionalSaid(f, s.name) });
+      (agencies.get(part.title) ?? agencies.set(part.title, new Set()).get(part.title)!).add(f.agency);
+    }
+    for (const [title, who] of agencies) {
+      const part = parts.find((p) => p.title === title)!;
+      const said = `Its figures marked its own from ${[...who].join(" and ")} are ${who.size > 1 ? "their" : "its"} regional statistics, each with its year.`;
+      part.note = part.note ? `${part.note} ${said}` : said;
+    }
+  }
   return { parts, sources: [...sources.values()] };
 }
 
@@ -892,7 +910,9 @@ function SubnationWindow({ s, onBack, onClose, onCounties }: { s: Subnation; /**
   /* Its own poverty and inequality, where the World Bank publishes them for it. */
   const pov = useDivisionPoverty()?.[s.id];
   const eu = useDivisionEuPoverty()?.[s.id];
-  const { parts, sources } = useMemo(() => partsOf(s, details, pov, eu), [s, details, pov, eu]);
+  /* Its own figures from the OECD's and national offices' regional statistics. */
+  const regional = useRegionalFigures()?.[s.id];
+  const { parts, sources } = useMemo(() => partsOf(s, details, pov, eu, regional), [s, details, pov, eu, regional]);
 
   /* Its outline, among the ones the site's maps draw for its country, and the places GeoNames lists in it: the map at the head of its window. */
   const drawn = useAdmin1(s.cc);
