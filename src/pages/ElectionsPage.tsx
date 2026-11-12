@@ -35,7 +35,19 @@ type Cabinet = { start: string; name: string; caretaker: boolean; parties: strin
 type Leader = { role: "state" | "government" | "pope"; name: string; id: string; from: string; to?: string; now?: true; end?: string; /** The party at the start of the term, and its political alignment, as Wikidata records them. */ party?: string; align?: string };
 /** V-Dem's indices, each [first year, a value (0 to 1) for each year on, null where none]. */
 type Indices = Partial<Record<"civ" | "expr" | "women", (number | null)[]>>;
-type History = { cc: string; elections: Election[]; cabinets: Cabinet[]; regimes: [from: number, to: number, type: 0 | 1 | 2 | 3][]; leaders?: Leader[]; indices?: Indices };
+/** The country's development each year, each [first year, a value for each year on, null where none]. */
+type Development = Partial<Record<"pop" | "gdp" | "life" | "child" | "urban", (number | null)[]>>;
+type History = { cc: string; elections: Election[]; cabinets: Cabinet[]; regimes: [from: number, to: number, type: 0 | 1 | 2 | 3][]; leaders?: Leader[]; indices?: Indices; dev?: Development };
+
+/** The development series drawn: what each is, whose it is, and how a figure is written. */
+const compact = (v: number) => (v >= 1e9 ? `${(v / 1e9).toFixed(2)}B` : v >= 1e6 ? `${(v / 1e6).toFixed(1)}M` : v >= 1e4 ? `${Math.round(v / 1e3)}K` : Math.round(v).toLocaleString("en-US"));
+const DEVELOPMENT = [
+  { key: "pop", name: "Population", source: "HYDE, Gapminder, UN WPP", fmt: (v: number) => `${compact(v)} people` },
+  { key: "gdp", name: "GDP per person", source: "Maddison, 2011 int-$", fmt: (v: number) => `$${Math.round(v).toLocaleString("en-US")} (2011 int-$)` },
+  { key: "life", name: "Life expectancy", source: "Riley, HMD, UN WPP", fmt: (v: number) => `${v.toFixed(1)} years at birth` },
+  { key: "child", name: "Child mortality", source: "Gapminder, UN IGME", fmt: (v: number) => `${v.toFixed(1)} of 100 dying before five` },
+  { key: "urban", name: "Living in towns", source: "UN DESA", fmt: (v: number) => `${v.toFixed(1)}% of people` },
+] as const;
 
 /** The three freedoms drawn, V-Dem's indices: what each is, and its colour. */
 const FREEDOMS = [
@@ -251,7 +263,10 @@ export default function ElectionsPage() {
           not be used on a commercial site. Opinion polls and leaders' approval ratings are not held: they are published by polling firms under their own copyright, and no open record of them is
           published that the site may use. Freedoms are V-Dem's yearly indices, 0 (none) to 1 (fullest), as Our World in Data publishes them: civil liberties,
           freedom of expression, and women's political empowerment. A government's leaning is ParlGov's place for the prime minister's party, left (0) to right (10), where it holds the country,
-          and elsewhere the political alignment Wikidata records for the head of government's party at the start of the term.
+          and elsewhere the political alignment Wikidata records for the head of government's party at the start of the term. Its development each year is as Our World in Data publishes it
+          from its sources: population (HYDE, Gapminder, UN World Population Prospects), GDP per person in 2011 international dollars (the Maddison Project Database 2023), life expectancy
+          at birth (Riley, Zijdeman et al., the Human Mortality Database, UN WPP), child mortality - deaths before the age of five per 100 born alive (Gapminder, UN IGME) - and the share
+          living in towns (UN DESA); each row is drawn on its own scale for the years shown, its lowest and highest figures named beside it.
         </p>
         <SourceLink sources={[ELECTION_HISTORY_SOURCES.wikidata, ELECTION_HISTORY_SOURCES.parlgov, ELECTION_HISTORY_SOURCES.vdem, { label: COUNTRY_POLITICS_SOURCE.label, url: COUNTRY_POLITICS_SOURCE.url }]} />
       </div>
@@ -512,6 +527,55 @@ function Timeline({ data, today, regimeInk, turning, country }: { data: History;
           },
         ]
       : []),
+    /* The country's development, a row each, each on its own scale over the years shown - its range said in the column at the left. */
+    ...DEVELOPMENT.filter((dv) => {
+      const s = data.dev?.[dv.key];
+      return s && s.slice(1).some((v, i) => v !== null && (s[0] as number) + i >= y0);
+    }).map((dv) => {
+      const s = data.dev![dv.key]!;
+      const first = s[0] as number;
+      const seen = s.slice(1).flatMap((v, i) => (v !== null && first + i >= y0 ? [v] : []));
+      const lo = Math.min(...seen);
+      const hi = Math.max(...seen);
+      return {
+        key: `dev-${dv.key}`,
+        label: dv.name,
+        source: `${dv.source} · ${dv.fmt(lo).split(" ")[0]}–${dv.fmt(hi).split(" ")[0]}`,
+        height: 34,
+        draw: (top: number) => {
+          const yOf = (v: number) => top + 30 - (hi > lo ? (v - lo) / (hi - lo) : 0.5) * 26;
+          const parts: string[] = [];
+          let run: string[] = [];
+          for (let i = 1; i < s.length; i++) {
+            const y = first + i - 1;
+            const v = s[i];
+            if (y < y0 || v === null) {
+              if (run.length > 1) parts.push(run.join(" "));
+              if (v === null && run.length) run = [];
+              continue;
+            }
+            run.push(`${x(y + 0.5).toFixed(1)},${yOf(v).toFixed(1)}`);
+          }
+          if (run.length) parts.push(run.join(" "));
+          return (
+            <g
+              onMouseMove={(e) => {
+                const y = yearAtPointer(e);
+                if (y === null) return;
+                const v = y >= first ? s[1 + y - first] : null;
+                show(e, `${dv.name}, ${y}`, [v === null || v === undefined ? "No figure for this year" : dv.fmt(v), `${dv.source}, via Our World in Data`]);
+              }}
+              onMouseLeave={() => setTip(null)}
+            >
+              <rect x={G} y={top} width={W - G - R} height={34} fill="transparent" />
+              {parts.map((p, i) => (
+                <polyline key={i} points={p} fill="none" className="stroke-foreground" strokeOpacity={0.7} strokeWidth={1.5} strokeLinejoin="round" pointerEvents="none" />
+              ))}
+            </g>
+          );
+        },
+      };
+    }),
     ...(pgLean.length || wdLean.length
       ? [
           {
@@ -611,6 +675,11 @@ function Timeline({ data, today, regimeInk, turning, country }: { data: History;
       ]);
     for (const l of leaders) out.push([l.role === "pope" ? "pope" : l.role === "state" ? "head of state" : "head of government", l.from, l.to ?? (l.now ? "now" : ""), l.name, [l.end ? `end ${l.end}` : "", l.party ? `party: ${l.party}${l.align ? ` (${l.align})` : ""}` : ""].filter(Boolean).join(" | "), "Wikidata (two records agreeing)", `https://www.wikidata.org/wiki/${l.id}`]);
     for (const c of data.cabinets) out.push(["government", c.start, "", c.name, [c.caretaker ? "caretaker" : "", c.parties.join("; "), c.pmParty ? `PM's party: ${c.pmParty}${c.pmLeftRight != null ? ` (${c.pmLeftRight} on ParlGov's 0-10 left-right scale)` : ""}` : ""].filter(Boolean).join(" | "), "ParlGov", "https://doi.org/10.7910/DVN/2VZ5ZC"]);
+    for (const dv of DEVELOPMENT) {
+      const s = data.dev?.[dv.key];
+      if (!s) continue;
+      for (let i = 1; i < s.length; i++) if (s[i] !== null) out.push([dv.name.toLowerCase(), (s[0] as number) + i - 1, "", dv.name, String(s[i]), `${dv.source}, via Our World in Data`, "https://ourworldindata.org/"]);
+    }
     for (const fr of FREEDOMS) {
       const s = data.indices?.[fr.key];
       if (!s) continue;

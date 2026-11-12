@@ -29,6 +29,10 @@
  *               of the term (Wikidata, P102 with dates that take in the day, or the person's one party) with that
  *               party's political alignment (P1387). Opinion polls and approval ratings are not held: polling firms
  *               publish them under their own copyright.
+ *   Development The country's development each year from 1750, via Our World in Data: population (HYDE, Gapminder, UN
+ *               WPP), GDP per person in 2011 international dollars (the Maddison Project Database 2023), life expectancy
+ *               at birth (Riley, Zijdeman et al., the Human Mortality Database, UN WPP), child mortality, deaths before
+ *               five per 100 born alive (Gapminder, UN IGME), and the share living in towns (UN DESA, Population Division).
  *   Regimes     V-Dem's Regimes of the World (Lührmann, Tannenberg and Lindberg, 2018), as Our World in Data publishes it
  *               (V-Dem 2026, CC BY-SA; Our World in Data's processing CC BY): the country's type each year since 1789,
  *               as runs of years. A change is a year whose type is not the year before's.
@@ -470,6 +474,41 @@ async function qlever(name, query) {
       ((indexBy[cc] ??= {})[key] = [from, ...Array.from(vals, (v) => (v === undefined ? null : v))]);
     }
   }
+  /* The country's development, each year from 1750: [first year, a value for each year on] - null for a year none is given. */
+  const DEV = {
+    pop: ["population", "population_historical", 0],
+    gdp: ["gdp-per-capita-maddison-project-database", "gdp_per_capita", 0],
+    life: ["life-expectancy", "life_expectancy_0", 1],
+    child: ["child-mortality", "child_mortality_rate", 2],
+    urban: ["share-of-population-urban", "share__area_type_urban__data_type_estimates", 1],
+  };
+  const devBy = {};
+  for (const [key, [slug, column, decimals]] of Object.entries(DEV)) {
+    const text = await cached(`${slug}.csv`, `https://ourworldindata.org/grapher/${slug}.csv?v=1&csvType=full&useColumnShortNames=true`, 24 * 7);
+    const [h, ...ls] = text.trim().split(/\r?\n/);
+    const cols = h.split(",");
+    const iCode = cols.indexOf("code");
+    const iYear = cols.indexOf("year");
+    const iVal = cols.indexOf(column);
+    if (iCode < 0 || iYear < 0 || iVal < 0) throw new Error(`${slug}: columns ${h}`);
+    const per = new Map();
+    for (const line of ls) {
+      const fields = line.match(/("[^"]*"|[^,]*)(,|$)/g).map((x) => x.replace(/,$/, ""));
+      const cc = iso2.get(fields[iCode]);
+      const y = +fields[iYear];
+      const v = fields[iVal];
+      if (!cc || !SITE.has(cc) || v === "" || y < 1750) continue;
+      (per.get(cc) ?? per.set(cc, []).get(cc)).push([y, +v]);
+    }
+    const k = 10 ** decimals;
+    for (const [cc, ys] of per) {
+      ys.sort((a, b) => a[0] - b[0]);
+      const from = ys[0][0];
+      const vals = [];
+      for (const [y, v] of ys) vals[y - from] = Math.round(v * k) / k;
+      ((devBy[cc] ??= {})[key] = [from, ...Array.from(vals, (v) => (v === undefined ? null : v))]);
+    }
+  }
   const runs = (ys) => {
     const out = [];
     for (const [y, v] of ys.sort((a, b) => a[0] - b[0])) {
@@ -513,7 +552,7 @@ async function qlever(name, query) {
     if (cc === "VA") leaders = [...leaders.filter((l) => l.role !== "state"), ...popes];
     leaders.sort((a, b) => a.from.localeCompare(b.from) || a.role.localeCompare(b.role));
     if (!elections.length && !regimes.length && !cabinets.length && !leaders.length) continue;
-    fs.writeFileSync(path.join(OUT_DIR, `${cc}.json`), JSON.stringify({ cc, elections, cabinets, regimes, leaders, ...(indexBy[cc] ? { indices: indexBy[cc] } : {}) }));
+    fs.writeFileSync(path.join(OUT_DIR, `${cc}.json`), JSON.stringify({ cc, elections, cabinets, regimes, leaders, ...(indexBy[cc] ? { indices: indexBy[cc] } : {}), ...(devBy[cc] ? { dev: devBy[cc] } : {}) }));
     index.push([cc, elections.filter((e) => e.date <= today).length, elections.filter((e) => e.date > today).length, cabinets.length, regimes.length ? regimes[0][0] : null, regimes.length ? regimes[regimes.length - 1][1] : null, leaders.length]);
   }
 
@@ -531,6 +570,7 @@ export const ELECTION_HISTORY_SOURCES = {
   wikidata: { label: "Wikidata (CC0) — each national election's own record, read through QLever (University of Freiburg)", url: "https://www.wikidata.org/" },
   parlgov: { label: "ParlGov — Döring & Manow, Parliaments and governments database, Release 2024 (Harvard Dataverse, CC0)", url: "https://doi.org/10.7910/DVN/2VZ5ZC" },
   vdem: { label: "V-Dem — Regimes of the World (Lührmann, Tannenberg & Lindberg), via Our World in Data (CC BY-SA)", url: "https://ourworldindata.org/grapher/political-regime" },
+  development: { label: "Our World in Data — population (HYDE, Gapminder, UN WPP), GDP per person (Maddison Project Database 2023), life expectancy (Riley, Zijdeman et al., HMD, UN WPP), child mortality (Gapminder, UN IGME), urban share (UN DESA)", url: "https://ourworldindata.org/" },
   vdemIndices: { label: "V-Dem — civil liberties, freedom of expression and women's political empowerment indices, via Our World in Data", url: "https://ourworldindata.org/grapher/human-rights-index-vdem" },
 };
 /** [code, elections held, elections to come, cabinets, first and last year of V-Dem's regimes, leaders' terms]. */
