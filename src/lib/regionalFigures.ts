@@ -14,7 +14,7 @@ import { useEffect, useState } from "react";
 const FILES = ["oecd", "statcan", "abs", "ons"] as const;
 
 /** How a value is written: "gini" is a coefficient from 0 to 1, written out of 100 as the site writes every Gini index; "*_millions" are millions of that currency. */
-export type RegionalUnit = "pct" | "years" | "per100k" | "usd_ppp" | "cad" | "aud" | "gbp" | "count" | "gini" | "cad_millions" | "aud_millions" | "gbp_millions";
+export type RegionalUnit = "pct" | "years" | "per100k" | "usd_ppp" | "cad" | "aud" | "gbp" | "count" | "gini" | "cad_millions" | "aud_millions" | "gbp_millions" | "score10";
 export type RegionalDef = { label: string; part: string; unit: RegionalUnit; say: string };
 type RegionalFile = {
   agency: string;
@@ -97,6 +97,8 @@ export function regionalValue(f: RegionalFigure): string {
       return `£${whole(f.value)}`;
     case "gini":
       return (f.value * 100).toFixed(1);
+    case "score10":
+      return `${f.value.toFixed(2)} of 10`;
     case "cad_millions":
     case "aud_millions":
     case "gbp_millions": {
