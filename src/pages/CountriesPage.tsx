@@ -965,7 +965,8 @@ function CountryModal({
                         label: "Government Type",
                         value: country.governmentType,
                         sub: "political system",
-                        color: "text-secondary",
+                        // In ink like the others, as asked: it was in the accent colour.
+                        color: "text-foreground",
                       },
                       {
                         label: "Languages",
