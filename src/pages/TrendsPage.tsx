@@ -17,6 +17,7 @@
  * publishes them, so the scenarios shown are the ones a body does publish -
  * the UN's low and high variants - with no likelihood put on either.
  */
+import { CsvButton } from "../components/ModalCharts";
 import { PageHeader } from "../components/PageHeader";
 import { useEffect, useMemo, useState, type ReactNode } from "react";
 import { Area, AreaChart, Bar, BarChart, CartesianGrid, Line, LineChart, ReferenceArea, ReferenceLine, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
@@ -286,6 +287,7 @@ function SplitArea({ series, split, color, name, fmt, tick, height = 250, mark, 
           <Area type="monotone" dataKey="p" stroke={color} strokeWidth={2} strokeDasharray="5 4" fill={`url(#${id})`} fillOpacity={0.5} isAnimationActive={false} connectNulls={false} />
         </AreaChart>
       </ResponsiveContainer>
+      <CsvButton className="mt-1" name={name} header={["year", name, "number", "estimate or projection"]} rows={series.map(([y, v]) => [y, fmt(v), v, y < split ? "estimate" : "projection"])} />
     </div>
   );
 }
@@ -327,6 +329,12 @@ function OutlookLines({ lines, split, fmt, height = 230, from, tick }: { lines: 
           ])}
         </LineChart>
       </ResponsiveContainer>
+      <CsvButton
+        className="mt-1"
+        name={lines.map((l) => l.label).join(", ")}
+        header={["series", "year", "figure", "number", "estimate or projection"]}
+        rows={lines.flatMap((l) => l.series.filter(([y]) => !from || y >= from).map(([y, v]) => [l.label, y, fmt(v), v, y < split ? "estimate" : "projection"]))}
+      />
     </div>
   );
 }
@@ -709,6 +717,12 @@ function MultiLine({ data, lines, fmt, tick, label, height = 250 }: { data: Reco
           ))}
         </LineChart>
       </ResponsiveContainer>
+      <CsvButton
+        className="mt-1"
+        name={label}
+        header={["series", "year", "figure", "number"]}
+        rows={lines.flatMap((l) => data.flatMap((d) => (typeof d[l.key] === "number" ? [[l.label, d.year, fmt(d[l.key] as number), d[l.key]]] : [])))}
+      />
     </div>
   );
 }
@@ -717,11 +731,14 @@ function MultiLine({ data, lines, fmt, tick, label, height = 250 }: { data: Reco
 function LeaderList({ label, rows, color }: { label: string; rows: { name: string; code?: string; value: number; text: string; sub?: string }[]; color: string }) {
   const top = Math.max(...rows.map((r) => r.value), 1);
   return (
+    <>
+    <CsvButton className="mb-1" name={label} header={["rank", "name", "code", "figure", "number", "of"]} rows={rows.map((r, i) => [i + 1, r.name, r.code, r.text, r.value, r.sub])} />
     <ul className="flex flex-col gap-2.5" aria-label={label}>
       {rows.map((r) => (
         <RankRow key={r.name} name={r.name} code={r.code ?? null} value={r.value} top={top} text={r.text} sub={r.sub} color={color} />
       ))}
     </ul>
+    </>
   );
 }
 
@@ -984,6 +1001,7 @@ function RenewablesSection() {
                 ))}
               </BarChart>
             </ResponsiveContainer>
+            <CsvButton className="mt-1" name="New investment in renewable power, by technology" header={["year", "technology", "figure", "US$ billion"]} rows={inv.flatMap((r) => invKeys.map((k) => [r.year, k.label, usdBn(r[k.key] as number), r[k.key] as number]))} />
           </div>
           <Legend items={invKeys.map((k) => ({ color: k.color, label: `${k.label}, ${invLast.year}`, value: `${usdBn(invLast[k.key])} · ${shareText(invLast[k.key], invTotal(invLast))}` }))} />
           <Note>
@@ -1264,6 +1282,7 @@ function TechnologySection() {
                 ))}
               </BarChart>
             </ResponsiveContainer>
+            <CsvButton className="mt-1" name="Corporate deals involving AI companies, by type" header={["year", "type", "figure", "US$ billion, 2021 prices"]} rows={AI_DEALS.flatMap((r) => dealKinds.map((k) => [r.year, k.label, usdBn(r[k.key] as number), r[k.key] as number]))} />
           </div>
           <Legend items={dealKinds.map((k) => ({ color: k.color, label: `${k.label}, ${dealNow.year}`, value: `${usdBn(dealNow[k.key])} · ${shareText(dealNow[k.key], dealNow.total)}` }))} />
           <Note>
@@ -1339,6 +1358,7 @@ function TechnologySection() {
                 <Bar dataKey="other" stackId="nv" fill="url(#tg-nv-1)" maxBarSize={18} stroke={look.card.background} strokeWidth={1} radius={[5, 5, 0, 0]} isAnimationActive={false} />
               </BarChart>
             </ResponsiveContainer>
+            <CsvButton className="mt-1" name="NVIDIA quarterly revenue" header={["quarter", "data centres and AI, US$ billion", "everything else, US$ billion"]} rows={NVIDIA_REVENUE.map((r) => [r.quarter, r.dataCentres, r.other])} />
           </div>
           <Legend
             items={[
@@ -1375,6 +1395,7 @@ function TechnologySection() {
                 ))}
               </BarChart>
             </ResponsiveContainer>
+            <CsvButton className="mt-1" name="Notable AI systems by who built them" header={["year", "built by", "systems"]} rows={AI_MODELS.flatMap((r) => modelKinds.map((k) => [r.year, k.label, r[k.key] as number]))} />
           </div>
           <Legend items={modelKinds.map((k) => ({ color: k.color, label: `${k.label}, ${modelsNow.year}`, value: `${modelsNow[k.key]} · ${shareText(modelsNow[k.key], modelTotal(modelsNow))}` }))} />
           <Note>
