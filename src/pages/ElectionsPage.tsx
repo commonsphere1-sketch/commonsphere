@@ -23,7 +23,7 @@ import { useTheme } from "../contexts/ThemeContext";
 type Party = [name: string, vote: number | null, seats: number | null, leftRight?: number | null];
 /** What a winner stood for, as Wikidata records it: a person's party at the election, and that party's - or a winning party's own - ideologies and alignment. */
 type Stood = { party?: string; ideology?: string[]; position?: string };
-type Election = { id?: string; date: string; name: string; kind: "Presidential" | "Legislative" | "General" | "Referendum"; winners?: string[]; stood?: Record<string, Stood>; cited?: true; parlgovOnly?: true; results?: { seats?: number; parties: Party[] } };
+type Election = { id?: string; date: string; name: string; kind: "Presidential" | "Legislative" | "General" | "Referendum" | "Conclave"; winners?: string[]; stood?: Record<string, Stood>; cited?: true; parlgovOnly?: true; results?: { seats?: number; parties: Party[] } };
 /** A winner with what they stood for, in a line. */
 const stoodSaid = (name: string, s?: Stood) => {
   if (!s) return name;
@@ -32,7 +32,7 @@ const stoodSaid = (name: string, s?: Stood) => {
 };
 type Cabinet = { start: string; name: string; caretaker: boolean; parties: string[]; pmParty: string | null; /** The prime minister's party on ParlGov's scale, left (0) to right (10). */ pmLeftRight?: number };
 /** A term of a head of state or of government: from (a day, or a year where the two records agree only on it), to where both records end it alike, `now` where the site's checked heads name the person, `end` where no end is agreed. */
-type Leader = { role: "state" | "government"; name: string; id: string; from: string; to?: string; now?: true; end?: string; /** The party at the start of the term, and its political alignment, as Wikidata records them. */ party?: string; align?: string };
+type Leader = { role: "state" | "government" | "pope"; name: string; id: string; from: string; to?: string; now?: true; end?: string; /** The party at the start of the term, and its political alignment, as Wikidata records them. */ party?: string; align?: string };
 /** V-Dem's indices, each [first year, a value (0 to 1) for each year on, null where none]. */
 type Indices = Partial<Record<"civ" | "expr" | "women", (number | null)[]>>;
 type History = { cc: string; elections: Election[]; cabinets: Cabinet[]; regimes: [from: number, to: number, type: 0 | 1 | 2 | 3][]; leaders?: Leader[]; indices?: Indices };
@@ -62,11 +62,11 @@ const TURNING = new Set(["Revolution", "Coup d'état", "Attempted coup d'état",
 type Turning = { y: number; when?: string; title: string; kind: string; abroad?: true; desc?: string; sources: [string, string][] };
 const yearOf = (d: string) => +d.slice(0, 4);
 const termOf = (l: Leader) => `${l.from.length > 4 ? day(l.from) : l.from} to ${l.to ? (l.to.length > 4 ? day(l.to) : l.to) : l.now ? "now" : `- (end ${l.end})`}`;
-const ROLE = { state: "Head of state", government: "Head of government" } as const;
+const ROLE = { state: "Head of state", government: "Head of government", pope: "Pope" } as const;
 
 const NAME = new Map(countriesData.map((c) => [c.code, c.name]));
 const INDEX = new Map(ELECTION_HISTORY_INDEX.map((r) => [r[0], r]));
-const KIND_INK = { Presidential: "#a78bfa", Legislative: "#60a5fa", General: "#f472b6", Referendum: "#fbbf24" } as const;
+const KIND_INK = { Presidential: "#a78bfa", Legislative: "#60a5fa", General: "#f472b6", Referendum: "#fbbf24", Conclave: "#b91c1c" } as const;
 const day = (d: string) => new Date(`${d}T00:00:00Z`).toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric", timeZone: "UTC" });
 const whole = (v: number) => v.toLocaleString("en-US");
 
@@ -344,6 +344,7 @@ function Timeline({ data, today, regimeInk, turning, country }: { data: History;
     { key: "presidential", label: "Presidential elections", kinds: ["Presidential"] },
     { key: "legislative", label: "Legislative & general", kinds: ["Legislative", "General"] },
     { key: "referendum", label: "Referendums", kinds: ["Referendum"] },
+    { key: "conclave", label: "Papal conclaves", kinds: ["Conclave"] },
   ].filter((r) => data.elections.some((e) => r.kinds.includes(e.kind)));
 
   /* The governments' leaning: ParlGov's prime minister's party where it holds the country, else each head of government's - or, where none, head of state's - party's alignment, as Wikidata records it. */
@@ -439,15 +440,15 @@ function Timeline({ data, today, regimeInk, turning, country }: { data: History;
         </>
       ),
     })),
-    ...(["state", "government"] as const)
+    ...(["pope", "state", "government"] as const)
       .filter((role) => leaders.some((l) => l.role === role))
       .map((role) => {
         const terms = lanes(role);
         const n = Math.max(1, ...terms.map((t) => t.lane + 1));
         return {
           key: role,
-          label: role === "state" ? "Heads of state" : "Heads of government",
-          source: "Wikidata, two records",
+          label: role === "pope" ? "Popes" : role === "state" ? "Heads of state" : "Heads of government",
+          source: role === "pope" ? "Wikidata, pope & conclave" : "Wikidata, two records",
           height: 6 + n * 14,
           draw: (top: number) =>
             terms
@@ -457,7 +458,7 @@ function Timeline({ data, today, regimeInk, turning, country }: { data: History;
                 const w = Math.max(3, b - left);
                 const yy = top + 4 + lane * 14;
                 return (
-                  <g key={`${role}-${i}`} {...hover(l.name, [ROLE[l.role], termOf(l), "Wikidata: the country's record and the person's agree"])}>
+                  <g key={`${role}-${i}`} {...hover(l.name, [ROLE[l.role], termOf(l), l.role === "pope" ? "Wikidata: the pope's own record and the conclave that elected him agree on the year it began" : "Wikidata: the country's record and the person's agree"])}>
                     <rect x={left} y={yy} width={w} height={11} rx={2} className="fill-foreground" fillOpacity={l.to || l.now ? (i % 2 ? 0.42 : 0.62) : 0.3} />
                     {w > l.name.length * 5.1 + 6 && (
                       <text x={left + 3} y={yy + 8.5} fontSize={8.5} className="fill-background" fontFamily="ui-sans-serif, sans-serif" pointerEvents="none">
@@ -608,7 +609,7 @@ function Timeline({ data, today, regimeInk, turning, country }: { data: History;
         e.parlgovOnly ? "ParlGov" : `Wikidata${e.results ? "; ParlGov" : ""}`,
         e.id ? `https://www.wikidata.org/wiki/${e.id}` : "https://doi.org/10.7910/DVN/2VZ5ZC",
       ]);
-    for (const l of leaders) out.push([l.role === "state" ? "head of state" : "head of government", l.from, l.to ?? (l.now ? "now" : ""), l.name, [l.end ? `end ${l.end}` : "", l.party ? `party: ${l.party}${l.align ? ` (${l.align})` : ""}` : ""].filter(Boolean).join(" | "), "Wikidata (two records agreeing)", `https://www.wikidata.org/wiki/${l.id}`]);
+    for (const l of leaders) out.push([l.role === "pope" ? "pope" : l.role === "state" ? "head of state" : "head of government", l.from, l.to ?? (l.now ? "now" : ""), l.name, [l.end ? `end ${l.end}` : "", l.party ? `party: ${l.party}${l.align ? ` (${l.align})` : ""}` : ""].filter(Boolean).join(" | "), "Wikidata (two records agreeing)", `https://www.wikidata.org/wiki/${l.id}`]);
     for (const c of data.cabinets) out.push(["government", c.start, "", c.name, [c.caretaker ? "caretaker" : "", c.parties.join("; "), c.pmParty ? `PM's party: ${c.pmParty}${c.pmLeftRight != null ? ` (${c.pmLeftRight} on ParlGov's 0-10 left-right scale)` : ""}` : ""].filter(Boolean).join(" | "), "ParlGov", "https://doi.org/10.7910/DVN/2VZ5ZC"]);
     for (const fr of FREEDOMS) {
       const s = data.indices?.[fr.key];
@@ -783,7 +784,7 @@ function RegimeBreakdown({ data, turning, today, regimeInk }: { data: History; t
                           <a href={`https://www.wikidata.org/wiki/${l.id}`} target="_blank" rel="noopener noreferrer" className="hover:underline">
                             {l.name}
                           </a>
-                          <span className="text-muted-foreground"> · {l.role === "state" ? "state" : "government"} · {termOf(l)}</span>
+                          <span className="text-muted-foreground"> · {l.role === "pope" ? "pope" : l.role === "state" ? "state" : "government"} · {termOf(l)}</span>
                         </li>
                       ))}
                     </ul>

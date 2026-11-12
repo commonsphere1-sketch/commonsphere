@@ -9,6 +9,10 @@
  *               dated to the day, that is not a part of another (a first round, one state's share of a federal vote),
  *               applies to no smaller place than the country, and is not a by-election, a primary or a recall. Each with its own Wikidata record, its winners where the
  *               record names them, and whether its date cites a source.
+ *   Conclaves   For Vatican City, the papal conclaves - the elections of the popes - Wikidata dates to the day (Q186431), each
+ *               with the pope it elected (P991). The popes: each pontificate (P39 pope, Q19546) kept where the pope's own record
+ *               of it and the conclave that elected him agree on the year it began - two records, as for every leader; its end
+ *               is the pope's own record's. They stand for Vatican City's heads of state, which the popes have been since 1929.
  *   Results     ParlGov (Döring and Manow, Release 2024, Harvard Dataverse; CC0): every party's share of the vote and
  *   and         seats at each parliamentary election in 37 European and OECD democracies, and each cabinet - its name,
  *   cabinets    the day it took office, its parties, the prime minister's party, and whether it was a caretaker. A
@@ -67,6 +71,8 @@ const SITE = new Map();
 {
   const src = fs.readFileSync(path.join(__dirname, "src/data/countriesData.ts"), "utf8");
   for (const m of src.matchAll(/name:\s*"([^"]+)",[^}]*?\bcode:\s*"([A-Z]{2})"/gs)) SITE.set(m[2], m[1]);
+  // And the places listed in its other form - ["va", "Vatican City", "VA", ...] - the territories, Hong Kong, Macau and the Vatican, which were missed.
+  for (const m of src.matchAll(/\["[a-z]{2}", "([^"]+)", "([A-Z]{2})"/g)) if (!SITE.has(m[2])) SITE.set(m[2], m[1]);
 }
 
 const KINDS = { Q858439: "Presidential", Q15283424: "Legislative", Q1076105: "General", Q43109: "Referendum" };
@@ -176,6 +182,47 @@ async function qlever(name, query) {
   const national = [...els.values()].filter(
     (e) => [...e.jurs].every((j) => j === e.country) && ![...e.parents].some((p) => els.has(p)) && SITE.has(e.cc) && !NOT_NATIONAL.test(e.name) && !namesDivision(e) && (kindOf(e) !== "Referendum" || namesCountry(e)),
   );
+
+  /* ── The papal conclaves: Vatican City's elections, each with the pope it elected ── */
+  const conclaveRows = await qlever(
+    "conclaves-2.json",
+    `SELECT ?e ?name ?date ?w ?winner WHERE {
+  ?e wdt:P31 wd:Q186431 ; rdfs:label ?name . FILTER(LANG(?name) = "en")
+  { ?e p:P585 ?st . ?st psv:P585 ?dv } UNION { ?e p:P580 ?st . ?st psv:P580 ?dv }
+  ?dv wikibase:timeValue ?date ; wikibase:timePrecision ?prec . FILTER(?prec >= 11)
+  OPTIONAL { ?e wdt:P991 ?w . ?w rdfs:label ?winner . FILTER(LANG(?winner) = "en") }
+}`,
+  );
+  const conclaves = new Map();
+  for (const b of conclaveRows) {
+    const id = b.e.value.split("/").pop();
+    const c = conclaves.get(id) ?? { id, date: b.date.value.slice(0, 10), name: b.name.value, winners: new Set() };
+    if (b.date.value.slice(0, 10) < c.date) c.date = b.date.value.slice(0, 10);
+    if (b.winner) c.winners.add(b.winner.value);
+    if (b.w) (c.winnerIds ??= new Set()).add(b.w.value.split("/").pop());
+    conclaves.set(id, c);
+  }
+  /* The popes, each pontificate where the pope's own record and the conclave that elected him agree on the year it began. */
+  const popeRows = await qlever(
+    "popes.json",
+    `SELECT ?p ?name ?start ?startPrec ?end WHERE {
+  ?p p:P39 ?st . ?st ps:P39 wd:Q19546 .
+  ?st pqv:P580 ?sv . ?sv wikibase:timeValue ?start ; wikibase:timePrecision ?startPrec .
+  OPTIONAL { ?st pq:P582 ?end }
+  ?p rdfs:label ?name . FILTER(LANG(?name) = "en")
+}`,
+  );
+  const electedIn = new Map();
+  for (const c of conclaves.values()) for (const w of c.winnerIds ?? []) (electedIn.get(w) ?? electedIn.set(w, []).get(w)).push(c.date);
+  const popes = [];
+  for (const b of popeRows) {
+    const id = b.p.value.split("/").pop();
+    const start = b.start.value.slice(0, 10);
+    if (+b.startPrec.value < 9 || !(electedIn.get(id) ?? []).some((d) => d.slice(0, 4) === start.slice(0, 4))) continue;
+    if (popes.some((p) => p.id === id && p.from.slice(0, 4) === start.slice(0, 4))) continue;
+    const end = b.end?.value?.slice(0, 10);
+    popes.push({ role: "pope", name: b.name.value, id, from: +b.startPrec.value >= 11 ? start : start.slice(0, 4), ...(end ? { to: end } : { now: true }) });
+  }
 
   /* ── What the winners stood for: a person's party at the election, and the party's ideologies and alignment ── */
   const winnerRows = await qlever(
@@ -453,13 +500,18 @@ async function qlever(name, query) {
         ...(match ? { results: { seats: match.seats, parties: match.parties.sort((a, b) => (b[1] ?? -1) - (a[1] ?? -1)) } } : {}),
       };
     });
+    if (cc === "VA")
+      for (const c of conclaves.values()) elections.push({ id: c.id, date: c.date, name: c.name, kind: "Conclave", ...(c.winners.size ? { winners: [...c.winners].sort() } : {}) });
     for (const p of pg)
       if (!used.has(p))
         elections.push({ date: p.date, name: `Parliamentary election, ${p.date.slice(0, 4)}`, kind: "Legislative", parlgovOnly: true, results: { seats: p.seats, parties: p.parties.sort((a, b) => (b[1] ?? -1) - (a[1] ?? -1)) } });
     elections.sort((a, b) => a.date.localeCompare(b.date));
     const cabinets = [...(cabByCountry.get(cc)?.values() ?? [])].sort((a, b) => a.start.localeCompare(b.start));
     const regimes = years.has(cc) ? runs(years.get(cc)) : [];
-    const leaders = (leadersByCountry.get(cc) ?? []).map(({ key, ...l }) => l).sort((a, b) => a.from.localeCompare(b.from) || a.role.localeCompare(b.role));
+    let leaders = (leadersByCountry.get(cc) ?? []).map(({ key, ...l }) => l);
+    // Vatican City: the popes in a row of their own, every pontificate the records agree on, in place of its heads of state, who are they.
+    if (cc === "VA") leaders = [...leaders.filter((l) => l.role !== "state"), ...popes];
+    leaders.sort((a, b) => a.from.localeCompare(b.from) || a.role.localeCompare(b.role));
     if (!elections.length && !regimes.length && !cabinets.length && !leaders.length) continue;
     fs.writeFileSync(path.join(OUT_DIR, `${cc}.json`), JSON.stringify({ cc, elections, cabinets, regimes, leaders, ...(indexBy[cc] ? { indices: indexBy[cc] } : {}) }));
     index.push([cc, elections.filter((e) => e.date <= today).length, elections.filter((e) => e.date > today).length, cabinets.length, regimes.length ? regimes[0][0] : null, regimes.length ? regimes[regimes.length - 1][1] : null, leaders.length]);
