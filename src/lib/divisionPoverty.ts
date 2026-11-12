@@ -48,3 +48,46 @@ export function useDivisionPoverty(): Record<string, DivisionPoverty> | null | u
   }, []);
   return got;
 }
+
+/**
+ * A European division's share of people at risk of poverty: Eurostat's, from the EU survey of income and living conditions
+ * (static/poverty/eurostat.json, built by build-division-eurostat.cjs). Matched by the division's NUTS code, and only where
+ * that code's name is the division's. At risk of poverty is relative: household income, for its size, under 60% of the
+ * country's median - how far below the rest of the country, not a fixed line.
+ */
+export type EuFigure = [year: number, pct: number, flag?: string];
+export type EuPoverty = {
+  /** The NUTS code the figures are published under. */
+  code: string;
+  /** At risk of poverty: under 60% of the national median income (ilc_li41). */
+  arop?: EuFigure;
+  /** At risk of poverty or social exclusion (ilc_peps11n). */
+  arope?: EuFigure;
+};
+type EuFile = { sources: { arop: { label: string; url: string }; arope: { label: string; url: string } }; divisions: Record<string, EuPoverty> };
+export const EU_POVERTY_SOURCES = {
+  arop: { label: "Eurostat — At-risk-of-poverty rate by NUTS region (ilc_li41), EU-SILC", url: "https://ec.europa.eu/eurostat/databrowser/view/ilc_li41/default/table" },
+  arope: { label: "Eurostat — People at risk of poverty or social exclusion by NUTS region (ilc_peps11n), EU-SILC", url: "https://ec.europa.eu/eurostat/databrowser/view/ilc_peps11n/default/table" },
+};
+/** What Eurostat's flag beside a figure says. */
+export const EU_FLAG: Record<string, string> = { b: "a break in the series", p: "provisional", e: "estimated by Eurostat", d: "its definition differs" };
+
+let euFile: Promise<Record<string, EuPoverty> | null> | null = null;
+const loadEu = () =>
+  (euFile ??= fetch("/poverty/eurostat.json")
+    .then((r) => (r.ok ? (r.json() as Promise<EuFile>) : null))
+    .then((j) => j?.divisions ?? null)
+    .catch(() => null));
+
+/** Every European division's at-risk-of-poverty figures held, by division id: undefined while fetched, null where the file did not come. */
+export function useDivisionEuPoverty(): Record<string, EuPoverty> | null | undefined {
+  const [got, setGot] = useState<Record<string, EuPoverty> | null | undefined>(undefined);
+  useEffect(() => {
+    let off = false;
+    loadEu().then((f) => !off && setGot(f));
+    return () => {
+      off = true;
+    };
+  }, []);
+  return got;
+}

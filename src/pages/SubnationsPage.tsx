@@ -89,7 +89,7 @@ import { ArrowLeft, ArrowRight, ArrowsIn, ArrowsOut, Buildings, ClockCounterCloc
 import { TONE } from "@/lib/chipTone";
 import { ADMIN2_SOURCE, useAdmin2, useAdmin2Manifest } from "../lib/admin2";
 import { DIVISION_DETAILS_SOURCES, useDivisionDetails, type DivisionDetails, type Money } from "../lib/divisionDetails";
-import { DIVISION_POVERTY_SOURCE, useDivisionPoverty, type DivisionPoverty } from "../lib/divisionPoverty";
+import { DIVISION_POVERTY_SOURCE, EU_FLAG, EU_POVERTY_SOURCES, useDivisionEuPoverty, useDivisionPoverty, type DivisionPoverty, type EuFigure, type EuPoverty } from "../lib/divisionPoverty";
 import { useCountyBea, type BeaFile } from "../lib/countyBea";
 import { liveRecord, type LiveRecord } from "../lib/liveRecord";
 import { framed, outlineParts, outlinesOf, placesWithin, useAdmin1, useCountyOutline } from "../lib/outlines";
@@ -483,7 +483,7 @@ const money = (m: Money) => `${m[1] >= 1e12 ? `${(m[1] / 1e12).toFixed(2)} trill
 /** A field that is there only where something is held for it: what more a division's record gives is not the same from one division to the next. */
 const held = (label: string, value: string | undefined | null | false, sub?: string): Field[] => (value ? [{ label, value, sub }] : []);
 
-function partsOf(s: Subnation, d?: DivisionDetails, pov?: DivisionPoverty): { parts: Part[]; sources: Source[] } {
+function partsOf(s: Subnation, d?: DivisionDetails, pov?: DivisionPoverty, eu?: EuPoverty): { parts: Part[]; sources: Source[] } {
   const c = COUNTRY.get(s.cc);
   const country = c?.name ?? s.cc;
   const state = STATE_BY_CODE.get(s.code ?? "");
@@ -522,6 +522,11 @@ function partsOf(s: Subnation, d?: DivisionDetails, pov?: DivisionPoverty): { pa
   const surveyed = poorOwn
     ? `${poorOwn.y} · its own · World Bank, from the ${poorOwn.s} household survey, by ${poorOwn.w}${poorOwn.n.toLowerCase() !== s.name.toLowerCase() ? ` · the survey's region "${poorOwn.n}"` : ""}`
     : undefined;
+  /* Its share at risk of poverty, in Europe, where Eurostat publishes it for it: said with its year, its NUTS code, and Eurostat's flag where it gives one. */
+  const euOwn = !m && eu && (eu.arop || eu.arope) ? eu : undefined;
+  if (euOwn?.arop) cite(EU_POVERTY_SOURCES.arop);
+  if (euOwn?.arope) cite(EU_POVERTY_SOURCES.arope);
+  const euSaid = (f: EuFigure) => `${f[0]} · its own · Eurostat, EU survey of income and living conditions · NUTS ${euOwn?.code}${f[2] ? ` · ${f[2].split("").map((c) => EU_FLAG[c] ?? c).join(", ")}` : ""}`;
 
   /* ── Its charts, each in the category it belongs to and drawn with the site's own: parts of a whole as one bar, one measure across things as bars on a shared scale. Each is there only where its figures are. ── */
   const tone = flagColor(s.cc) ?? COLOR;
@@ -774,8 +779,15 @@ function partsOf(s: Subnation, d?: DivisionDetails, pov?: DivisionPoverty): { pa
       title: "Society",
       note: m
         ? undefined
-        : poorOwn
-          ? `Its poverty and inequality marked its own are the World Bank's, from a household survey of the region, in 2021 prices adjusted for what money buys there (PPP). The rest, as with its economy, are ${country}'s.`
+        : poorOwn || euOwn
+          ? [
+              poorOwn && "Its poverty and inequality marked its own are the World Bank's, from a household survey of the region, in 2021 prices adjusted for what money buys there (PPP).",
+              euOwn &&
+                `Its share at risk of poverty is Eurostat's: people whose household income, for its size, is under 60% of ${country}'s median - how far below the rest of the country, not a fixed line.`,
+              `The rest, as with its economy, are ${country}'s.`,
+            ]
+              .filter(Boolean)
+              .join(" ")
           : `As with its economy, these are ${country}'s.`,
       fields: m
         ? [
@@ -793,6 +805,8 @@ function partsOf(s: Subnation, d?: DivisionDetails, pov?: DivisionPoverty): { pa
             ...held("Poverty: under $4.20 a day · its own", poorOwn?.p420 != null && `${poorOwn.p420.toFixed(1)}% of people`, surveyed),
             ...held("Poverty: under $8.30 a day · its own", poorOwn?.p830 != null && `${poorOwn.p830.toFixed(1)}% of people`, surveyed),
             ...held("Inequality (Gini) · its own", poorOwn?.gini != null && poorOwn.gini.toFixed(1), surveyed && `${surveyed} · 0 if all had the same, 100 if one had it all`),
+            ...held("Poverty: at risk, under 60% of the national median income · its own", euOwn?.arop && `${euOwn.arop[1].toFixed(1)}% of people`, euOwn?.arop && euSaid(euOwn.arop)),
+            ...held("Poverty or social exclusion: at risk · its own", euOwn?.arope && `${euOwn.arope[1].toFixed(1)}% of people`, euOwn?.arope && `${euSaid(euOwn.arope)} · at risk of poverty, in severe material and social deprivation, or in a household where little work is done`),
             { ...row("Education", "Adults who can read"), label: "Education: adults who can read" },
             { ...row("Education", "Years of schooling"), label: "Education: years of schooling" },
             { ...row("Health", "Life expectancy"), label: "Health: life expectancy" },
@@ -877,7 +891,8 @@ function SubnationWindow({ s, onBack, onClose, onCounties }: { s: Subnation; /**
   const details = useDivisionDetails(s.cc)?.[s.id];
   /* Its own poverty and inequality, where the World Bank publishes them for it. */
   const pov = useDivisionPoverty()?.[s.id];
-  const { parts, sources } = useMemo(() => partsOf(s, details, pov), [s, details, pov]);
+  const eu = useDivisionEuPoverty()?.[s.id];
+  const { parts, sources } = useMemo(() => partsOf(s, details, pov, eu), [s, details, pov, eu]);
 
   /* Its outline, among the ones the site's maps draw for its country, and the places GeoNames lists in it: the map at the head of its window. */
   const drawn = useAdmin1(s.cc);
@@ -1631,19 +1646,24 @@ const TIPS: Record<string, string> = {
   "Under $3.00 a day": `The share of its people living on under ${POVERTY_LINE} - the World Bank's international poverty line, from a household survey of the region (its Subnational Poverty and Inequality Database)`,
   "Inequality (Gini)":
     "The Gini index of income: 0 if every household or person had the same, 100 if one had it all. It measures income (or, in some countries, spending), not wealth.",
+  "At risk of poverty":
+    "The share of its people whose household income, for its size, is under 60% of their country's median - Eurostat, from the EU survey of income and living conditions. It is how far below the rest of the country, not a fixed line.",
 };
 /**
  * A division's poverty and inequality, where held for the division itself: a US state's from the American Community Survey - the Gini index as the Census Bureau gives it (0 to 1), shown out of 100 as the World Bank gives a country's -
- * and another country's division's from the World Bank's survey of that region, with the survey's year.
+ * another country's division's from the World Bank's survey of that region, and a European one's share at risk of poverty from Eurostat, each with its year.
  */
-function povertyOf(s: Subnation, stateId: string | undefined, pov: DivisionPoverty | undefined): [string, string | undefined][] {
+function povertyOf(s: Subnation, stateId: string | undefined, pov: DivisionPoverty | undefined, eu?: EuPoverty): [string, string | undefined][] {
   if (s.cc !== "US")
-    return pov
-      ? [
-          ["Under $3.00 a day", pov.p300 != null ? `${pov.p300.toFixed(1)}% · ${pov.y}` : undefined],
-          ["Inequality (Gini)", pov.gini != null ? `${pov.gini.toFixed(1)} · ${pov.y}` : undefined],
-        ]
-      : [];
+    return [
+      ...(pov
+        ? ([
+            ["Under $3.00 a day", pov.p300 != null ? `${pov.p300.toFixed(1)}% · ${pov.y}` : undefined],
+            ["Inequality (Gini)", pov.gini != null ? `${pov.gini.toFixed(1)} · ${pov.y}` : undefined],
+          ] as [string, string | undefined][])
+        : []),
+      ...(eu?.arop ? ([["At risk of poverty", `${eu.arop[1].toFixed(1)}% · ${eu.arop[0]}`]] as [string, string | undefined][]) : []),
+    ];
   if (!stateId) return [];
   const below = STATE_INDICATORS[stateId]?.poverty;
   const pct = below?.groups.find((g) => g.label === "Below poverty line")?.pct;
@@ -1659,6 +1679,7 @@ function DivisionCard({
   s,
   inside,
   pov,
+  eu,
   onOpen,
 }: {
   s: Subnation;
@@ -1666,6 +1687,8 @@ function DivisionCard({
   inside: Inside | null | undefined;
   /** Its own poverty and inequality, where the World Bank publishes them for it. */
   pov?: DivisionPoverty;
+  /** Its share at risk of poverty, where Eurostat publishes it for it. */
+  eu?: EuPoverty;
   onOpen: () => void;
 }) {
   // A US state's population is the one its window gives: the Census Bureau's. The "Head" line the card had was taken off as asked: it said "Not held" for nearly every division.
@@ -1676,7 +1699,7 @@ function DivisionCard({
     ["Area", s.areaKm2 ? `${whole(s.areaKm2)} km²` : undefined],
     ["Capital", s.capital],
     // Poverty and inequality, as asked, where they are held for the division itself: a US state's are the Census Bureau's (American Community Survey); another country's division's, the World Bank's survey of it.
-    ...povertyOf(s, state?.id, pov),
+    ...povertyOf(s, state?.id, pov, eu),
 
     // What lies inside it, as GeoNames lists it: the counties or districts with a listed place, and the towns, cities and villages of more than 500 people.
     ["Counties or districts", inside === undefined ? "…" : inside && inside.order === 1 && inside.districts.length ? whole(inside.districts.length) : undefined],
@@ -1889,6 +1912,7 @@ function CountryWindow({
   const insides = useMemo(() => (places ? new Map(row.divisions.map((d) => [d.id, insideOf(places, d)])) : null), [places, row]);
   /* Each division's own poverty and inequality, where the World Bank publishes them for it (outside the United States). */
   const poverty = useDivisionPoverty();
+  const euPoverty = useDivisionEuPoverty();
   /* The map at the head of its window: its divisions as the site's maps draw them, opening on its main part with its far-off parts a swipe away, with its largest listed places as dots. */
   const drawn = useAdmin1(row.cc);
   const second = useSecondOrder(row.cc);
@@ -2001,7 +2025,7 @@ function CountryWindow({
           </h3>
           <div className="grid gap-3 [grid-template-columns:repeat(auto-fill,minmax(min(100%,15rem),1fr))]">
             {shown.map((s) => (
-              <DivisionCard key={s.id} s={s} inside={places === undefined ? undefined : (insides?.get(s.id) ?? null)} pov={poverty?.[s.id]} onOpen={() => onOpen(s)} />
+              <DivisionCard key={s.id} s={s} inside={places === undefined ? undefined : (insides?.get(s.id) ?? null)} pov={poverty?.[s.id]} eu={euPoverty?.[s.id]} onOpen={() => onOpen(s)} />
 
             ))}
           </div>
@@ -2015,8 +2039,9 @@ function CountryWindow({
           SUBNATIONS_SOURCES.commons,
           SUBNATIONS_SOURCES.geonames,
           REPRESENTATIVES_SOURCES.wikidata,
-          // The World Bank's, where its cards show a division's own poverty and inequality.
+          // The World Bank's and Eurostat's, where its cards show a division's own poverty and inequality.
           ...(poverty && row.divisions.some((d) => poverty[d.id]) ? [DIVISION_POVERTY_SOURCE] : []),
+          ...(euPoverty && row.divisions.some((d) => euPoverty[d.id]?.arop) ? [EU_POVERTY_SOURCES.arop] : []),
         ]}
       />
       {picked && places && <PlaceHost place={picked} file={places} division={divisionOf} country={row.name} onPlace={setPlaceOpen} onDone={() => setPicked(null)} onCloseAll={onClose} />}
