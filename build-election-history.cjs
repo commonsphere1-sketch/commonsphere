@@ -93,7 +93,7 @@ async function qlever(name, query) {
   if (!(fs.existsSync(file) && Date.now() - fs.statSync(file).mtimeMs < 20 * 3600e3)) {
     // Asked again after a pause where QLever says it has had too many requests: a minute, then two, then three, five times at most.
     for (let tries = 1; ; tries++) {
-      const res = await fetch("https://qlever.cs.uni-freiburg.de/api/wikidata", {
+      const res = await fetch("https://qlever.dev/api/wikidata", {
         method: "POST",
         headers: { "User-Agent": UA, Accept: "application/sparql-results+json", "Content-Type": "application/x-www-form-urlencoded" },
         body: `query=${encodeURIComponent(PREFIX + query)}`,
