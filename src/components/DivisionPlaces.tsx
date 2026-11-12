@@ -39,6 +39,7 @@
  * the colleges and universities whose Wikidata description names the place;
  * and the nearest other places in GeoNames' list, each a way to its window.
  */
+import { PlacePhoto } from "./PlacePhoto";
 import { lazy, Suspense, useEffect, useMemo, useState, type ReactNode } from "react";
 import { createPortal } from "react-dom";
 import { useNavigate } from "react-router-dom";
@@ -824,6 +825,10 @@ function PlaceWindow({
               <X size={18} />
             </button>
           </WindowTitle>
+          {/* Its photo at ground level, as asked: the one its Wikidata record names, from Wikimedia Commons, credited. */}
+          <div className="mb-4">
+            <PlacePhoto kind="places" id={String(id)} cc={s.cc} name={name} at={{ lat: p[1], lon: p[2] }} />
+          </div>
 
           <div className="flex items-start justify-between mb-4">
             <div className="flex items-center gap-4 min-w-0">
