@@ -37,7 +37,7 @@
  */
 import { useEffect, useId, useMemo, useRef, useState } from "react";
 import { CaretLeft, CaretRight, MagnifyingGlassMinus, MagnifyingGlassPlus } from "@phosphor-icons/react";
-import { geoAzimuthalEqualArea, geoBounds, geoCentroid, geoMercator, geoPath } from "d3-geo";
+import { geoAzimuthalEqualArea, geoCentroid, geoMercator, geoPath } from "d3-geo";
 import type { PlaceRow, PlacesFile } from "../data/placesIndex";
 import { outlineParts, type Outline } from "../lib/outlines";
 import { MapLabels, placeLabels, type LabelCandidate } from "./MapLabels";
@@ -214,38 +214,6 @@ export function OutlineMap({
       mark: mark ? at(mark)[0] : undefined,
     };
   }, [shapes, inner, dots, mark, slides, groups, onSlide]);
-  /* The official satellite views of what the map shows, as asked: NASA Worldview framed on its bounds, the day before
-     today's (a full day's pass), and the EU's Copernicus Browser at its middle, as close as its size allows. A place marked
-     on the map is framed on a small box round it, about 30 km across. Links only: nothing is fetched from them here. */
-  const space = useMemo(() => {
-    let w: number;
-    let s: number;
-    let e: number;
-    let n: number;
-    if (mark) {
-      const dy = 0.15;
-      const dx = dy / Math.max(0.2, Math.cos((mark.lat * Math.PI) / 180));
-      [w, s, e, n] = [mark.lon - dx, mark.lat - dy, mark.lon + dx, mark.lat + dy];
-    } else {
-      const on = { type: "FeatureCollection", features: slides ? groups[onSlide].features : shapes };
-      const [[a, b], [c, d]] = geoBounds(on as never);
-      if (![a, b, c, d].every(Number.isFinite)) return null;
-      // Across the 180th meridian, the east edge is carried past 180 so that the box runs the short way round.
-      [w, s, e, n] = [a, b, c < a ? c + 360 : c, d];
-      const px = (e - w) * 0.06;
-      const py = (n - s) * 0.06;
-      [w, s, e, n] = [w - px, Math.max(-85, s - py), e + px, Math.min(85, n + py)];
-    }
-    const day = new Date(Date.now() - 864e5).toISOString().slice(0, 10);
-    const r = (v: number) => Math.round(v * 1000) / 1000;
-    const lat = (s + n) / 2;
-    const lng = ((((w + e) / 2 + 540) % 360) - 180);
-    const zoom = Math.max(3, Math.min(14, Math.round(Math.log2(360 / Math.max(e - w, (n - s) * 1.6, 0.01)))));
-    return {
-      worldview: `https://worldview.earthdata.nasa.gov/?v=${r(w)},${r(s)},${r(e)},${r(n)}&t=${day}`,
-      copernicus: `https://browser.dataspace.copernicus.eu/?zoom=${zoom}&lat=${r(lat)}&lng=${r(lng)}`,
-    };
-  }, [mark, slides, groups, onSlide, shapes]);
   /* The places inside, each with its outline, its middle and where it lies: worked out when the map is first drawn close enough for them. */
   const wantParts = (view.k >= PARTS_FROM || Boolean(partFillOf)) && Boolean(parts?.length);
   const partPaths = useMemo(() => {
@@ -537,18 +505,6 @@ export function OutlineMap({
           {tip.sub && <p className="text-[10px] font-sans text-muted-foreground leading-snug mt-0.5">{tip.sub}</p>}
 
         </div>
-      )}
-      {/* Seen from space, as asked: the space agencies' own satellite views of it - their imagery, open, on their sites. */}
-      {space && (
-        <p className="flex flex-wrap items-center justify-end gap-x-2 gap-y-1 mt-1.5 text-[9px] font-mono uppercase tracking-wider text-muted-foreground">
-          <span>See it from space</span>
-          <a href={space.worldview} target="_blank" rel="noopener noreferrer" className="px-2 h-5 inline-flex items-center rounded-full border border-border/70 bg-background/40 hover:text-foreground transition-colors" title={`${label}: NASA Worldview - the satellites' daily pictures of it, NASA's, public domain`}>
-            NASA Worldview ↗
-          </a>
-          <a href={space.copernicus} target="_blank" rel="noopener noreferrer" className="px-2 h-5 inline-flex items-center rounded-full border border-border/70 bg-background/40 hover:text-foreground transition-colors" title={`${label}: the EU's Copernicus Browser - Sentinel satellites' pictures of it, free and open; it asks a visitor to sign in or go on without`}>
-            Copernicus ↗
-          </a>
-        </p>
       )}
     </div>
   );
