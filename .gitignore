@@ -57,3 +57,6 @@ admin1-10m-raw.geojson
 
 # Wrangler local state (dry runs, dev sessions)
 .wrangler/
+
+# Raw downloads a build reads from (the World Bank SPID file, the FBI estimates): kept out of the repository.
+data-raw/

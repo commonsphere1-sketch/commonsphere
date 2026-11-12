@@ -89,6 +89,8 @@ import { ArrowLeft, ArrowRight, ArrowsIn, ArrowsOut, Buildings, ClockCounterCloc
 import { TONE } from "@/lib/chipTone";
 import { ADMIN2_SOURCE, useAdmin2, useAdmin2Manifest } from "../lib/admin2";
 import { DIVISION_DETAILS_SOURCES, useDivisionDetails, type DivisionDetails, type Money } from "../lib/divisionDetails";
+import { DIVISION_POVERTY_SOURCE, useDivisionPoverty, type DivisionPoverty } from "../lib/divisionPoverty";
+import { useCountyBea, type BeaFile } from "../lib/countyBea";
 import { liveRecord, type LiveRecord } from "../lib/liveRecord";
 import { framed, outlineParts, outlinesOf, placesWithin, useAdmin1, useCountyOutline } from "../lib/outlines";
 import { flagColor } from "../lib/flagColor";
@@ -101,7 +103,7 @@ import { FilterBar } from "../components/FilterBar";
 import { ArticlePanel } from "../components/HistoryPanel";
 import { WindowTitle } from "../components/WindowTitle";
 import { LocalTime, type ZoneOf } from "../components/LocalTime";
-import { ChartNote, ChartTitle, FigureRow, MeasureBars, PartsBar, PartsDonut } from "../components/ModalCharts";
+import { ChartNote, ChartTitle, CsvButton, FigureRow, MeasureBars, PartsBar, PartsDonut } from "../components/ModalCharts";
 import PostalCodes from "../components/PostalCodes";
 import PlaceIndexes from "../components/PlaceIndexes";
 import TaxPanel, { StateTaxPanel } from "../components/TaxPanel";
@@ -278,9 +280,27 @@ function Section({ part }: { part: Part }) {
 }
 
 /** A population over the years, as a line with its years and its figures. */
-function SeriesChart({ points, label }: { points: [number, number][]; label: string }) {
+function SeriesChart({
+  points,
+  label,
+  axis = people,
+  full = whole,
+  name = "People",
+  title,
+}: {
+  points: [number, number][];
+  label: string;
+  /** How a value is written on the axis, and in full at the pointer: people by default. */
+  axis?: (v: number) => string;
+  full?: (v: number) => string;
+  name?: string;
+  title?: ReactNode;
+}) {
   return (
-    <div className="modal-tile rounded-xl p-3 mt-2" role="img" aria-label={`${label}: ${points.map(([y, v]) => `${y} ${people(v)}`).join(", ")}.`}>
+    <div className="modal-tile rounded-xl p-3 mt-2" role="img" aria-label={`${label}: ${points.map(([y, v]) => `${y} ${full(v)}`).join(", ")}.`}>
+      {/* Its figures as a spreadsheet, as every chart of the site's has them: the year and the value as published. */}
+      <CsvButton name={label} header={["Year", name]} rows={points.map(([y, v]) => [y, v])} className="mb-1" />
+      {title && <ChartTitle>{title}</ChartTitle>}
       <ResponsiveContainer width="100%" height={170}>
         <AreaChart data={points.map(([year, v]) => ({ year, v }))} margin={{ top: 6, right: 8, left: 0, bottom: 0 }}>
           <defs>
@@ -291,8 +311,8 @@ function SeriesChart({ points, label }: { points: [number, number][]; label: str
           </defs>
           <CartesianGrid stroke="currentColor" strokeOpacity={0.08} vertical={false} />
           <XAxis dataKey="year" type="number" domain={["dataMin", "dataMax"]} tick={{ fontSize: 9, fontFamily: "monospace", fill: "currentColor" }} axisLine={false} tickLine={false} tickCount={6} />
-          <YAxis tick={{ fontSize: 9, fontFamily: "monospace", fill: "currentColor" }} axisLine={false} tickLine={false} width={48} tickFormatter={(v: number) => people(v)} domain={[0, "auto"]} />
-          <Tooltip formatter={(v: number) => [whole(v), "People"]} labelFormatter={(y) => String(y)} contentStyle={{ background: "var(--color-background)", border: "1px solid var(--color-border)", borderRadius: 10, fontSize: 11 }} />
+          <YAxis tick={{ fontSize: 9, fontFamily: "monospace", fill: "currentColor" }} axisLine={false} tickLine={false} width={48} tickFormatter={(v: number) => axis(v)} domain={[0, "auto"]} />
+          <Tooltip formatter={(v: number) => [full(v), name]} labelFormatter={(y) => String(y)} contentStyle={{ background: "var(--color-background)", border: "1px solid var(--color-border)", borderRadius: 10, fontSize: 11 }} />
           <Area type="monotone" dataKey="v" stroke={COLOR} strokeWidth={1.75} fill="url(#subnation-series)" dot={{ r: 2, fill: COLOR }} isAnimationActive={false} />
         </AreaChart>
       </ResponsiveContainer>
@@ -463,7 +483,7 @@ const money = (m: Money) => `${m[1] >= 1e12 ? `${(m[1] / 1e12).toFixed(2)} trill
 /** A field that is there only where something is held for it: what more a division's record gives is not the same from one division to the next. */
 const held = (label: string, value: string | undefined | null | false, sub?: string): Field[] => (value ? [{ label, value, sub }] : []);
 
-function partsOf(s: Subnation, d?: DivisionDetails): { parts: Part[]; sources: Source[] } {
+function partsOf(s: Subnation, d?: DivisionDetails, pov?: DivisionPoverty): { parts: Part[]; sources: Source[] } {
   const c = COUNTRY.get(s.cc);
   const country = c?.name ?? s.cc;
   const state = STATE_BY_CODE.get(s.code ?? "");
@@ -496,6 +516,12 @@ function partsOf(s: Subnation, d?: DivisionDetails): { parts: Part[]; sources: S
   /** Said beside a figure that is the division's own, from its record: its year, and that the record cites a source for it. */
   const own = (year: number) => `${year} · its own · a dated, sourced figure in ${wd}`;
   const ownMoney = Boolean(d?.gdp || d?.gdpPc || d?.income || d?.unemployment);
+  /* Its own poverty and inequality, outside the United States, where the World Bank publishes them for it: said with the survey, its year, what it measures, and the region's name in it where that is spelled otherwise. */
+  const poorOwn = !m && pov ? pov : undefined;
+  if (poorOwn) cite(DIVISION_POVERTY_SOURCE);
+  const surveyed = poorOwn
+    ? `${poorOwn.y} · its own · World Bank, from the ${poorOwn.s} household survey, by ${poorOwn.w}${poorOwn.n.toLowerCase() !== s.name.toLowerCase() ? ` · the survey's region "${poorOwn.n}"` : ""}`
+    : undefined;
 
   /* ── Its charts, each in the category it belongs to and drawn with the site's own: parts of a whole as one bar, one measure across things as bars on a shared scale. Each is there only where its figures are. ── */
   const tone = flagColor(s.cc) ?? COLOR;
@@ -746,7 +772,11 @@ function partsOf(s: Subnation, d?: DivisionDetails): { parts: Part[]; sources: S
     },
     {
       title: "Society",
-      note: m ? undefined : `As with its economy, these are ${country}'s.`,
+      note: m
+        ? undefined
+        : poorOwn
+          ? `Its poverty and inequality marked its own are the World Bank's, from a household survey of the region, in 2021 prices adjusted for what money buys there (PPP). The rest, as with its economy, are ${country}'s.`
+          : `As with its economy, these are ${country}'s.`,
       fields: m
         ? [
             { label: "Education: a bachelor's degree or higher", value: `${m.education.bachelorsOrHigherPct}%`, sub: `of people 25 and over · ${m.education.y}` },
@@ -759,10 +789,14 @@ function partsOf(s: Subnation, d?: DivisionDetails): { parts: Part[]; sources: S
         : [
             ...held("Education: adults who can read · its own", d?.literacy && `${d.literacy[1]}%`, d?.literacy && own(d.literacy[0])),
             ...held("Health: life expectancy · its own", d?.lifeExp && `${d.lifeExp[1]} years`, d?.lifeExp && own(d.lifeExp[0])),
+            ...held("Poverty: under $3.00 a day · its own", poorOwn?.p300 != null && `${poorOwn.p300.toFixed(1)}% of people`, surveyed),
+            ...held("Poverty: under $4.20 a day · its own", poorOwn?.p420 != null && `${poorOwn.p420.toFixed(1)}% of people`, surveyed),
+            ...held("Poverty: under $8.30 a day · its own", poorOwn?.p830 != null && `${poorOwn.p830.toFixed(1)}% of people`, surveyed),
+            ...held("Inequality (Gini) · its own", poorOwn?.gini != null && poorOwn.gini.toFixed(1), surveyed && `${surveyed} · 0 if all had the same, 100 if one had it all`),
             { ...row("Education", "Adults who can read"), label: "Education: adults who can read" },
             { ...row("Education", "Years of schooling"), label: "Education: years of schooling" },
             { ...row("Health", "Life expectancy"), label: "Health: life expectancy" },
-            { label: "Inequality", value: null },
+            ...(poorOwn?.gini != null ? [] : [{ label: "Inequality", value: null }]),
             { ...row("Economy", "Below the national poverty line"), label: "Poverty: below the national poverty line" },
             { ...row("Business", "People using the internet"), label: "Development: people using the internet" },
           ],
@@ -841,7 +875,9 @@ function SubnationWindow({ s, onBack, onClose, onCounties }: { s: Subnation; /**
   const state = STATE_BY_CODE.get(s.code ?? "");
   /* What more is held of it - its postal and other codes, its languages, its own economy and people - fetched with its country's file. */
   const details = useDivisionDetails(s.cc)?.[s.id];
-  const { parts, sources } = useMemo(() => partsOf(s, details), [s, details]);
+  /* Its own poverty and inequality, where the World Bank publishes them for it. */
+  const pov = useDivisionPoverty()?.[s.id];
+  const { parts, sources } = useMemo(() => partsOf(s, details, pov), [s, details, pov]);
 
   /* Its outline, among the ones the site's maps draw for its country, and the places GeoNames lists in it: the map at the head of its window. */
   const drawn = useAdmin1(s.cc);
@@ -963,6 +999,91 @@ function SubnationWindow({ s, onBack, onClose, onCounties }: { s: Subnation; /**
 
 // ── A county's window ───────────────────────────────────────────────────────
 
+/**
+ * A US county's economy and society, as asked: its income and output from the Bureau of Economic Analysis, and how its
+ * people work, earn and were schooled from the USDA Economic Research Service's county data sets - each with its year, its
+ * state's and the nation's beside it. Only what is held for the county is shown; the growth of its real GDP is worked out
+ * here from BEA's two years.
+ */
+function countyMoneyParts(county: UsCounty, stateName: string, bea: BeaFile | null | undefined, econ: typeof import("../data/usCountyEcon") | null): Part[] {
+  const fips = county[0];
+  const a = bea?.areas[fips];
+  const st = bea?.areas[`${fips.slice(0, 2)}000`];
+  const us = bea?.areas["00000"];
+  const ec = econ?.COUNTY_ECON_ROWS[fips];
+  const ecSt = econ?.STATE_ECON[fips.slice(0, 2)];
+  const ecUs = econ?.NATION_ECON;
+  const last = <T,>(xs?: (T | null)[]) => (xs ? ([...xs].reverse().find((v) => v !== null) ?? null) : null);
+  const thenSay = (stV: string | null, usV: string | null) => [stV && `${stateName} ${stV}`, usV && `the United States ${usV}`].filter(Boolean).join(" · ");
+  const parts: Part[] = [];
+
+  if (a || ec) {
+    const pc = last(a?.pc);
+    const real = a?.real ?? [];
+    const n = real.length;
+    const growth = n > 1 && real[n - 1] !== null && real[n - 2] ? (100 * ((real[n - 1] as number) - (real[n - 2] as number))) / (real[n - 2] as number) : null;
+    const bn = (thousands: number) => (thousands === 0 ? "$0" : billions(thousands / 1e6));
+    const fields: Field[] = [
+      ...held("Personal income per person", pc !== null && usd(pc), bea ? `${bea.incomeYear} · Bureau of Economic Analysis · ${thenSay(last(st?.pc) !== null ? usd(last(st?.pc)!) : null, last(us?.pc) !== null ? usd(last(us?.pc)!) : null)}` : undefined),
+      ...held("Personal income, all its people's", a?.pi != null && bn(a.pi), bea ? `${bea.incomeYear} · current dollars · Bureau of Economic Analysis` : undefined),
+      ...held("GDP", a?.gdp != null && bn(a.gdp), bea ? `${bea.gdpYear} · current dollars · Bureau of Economic Analysis` : undefined),
+      ...held("GDP growth, real", growth !== null && signed(growth), bea ? `${bea.gdpYear} on ${bea.gdpYear - 1} · worked out here from BEA's real GDP in chained 2017 dollars` : undefined),
+      ...held("Median household income", ec?.[2] != null && usd(ec[2]), econ ? `a year · ${econ.COUNTY_ECON.povertyYear} · Census Bureau (SAIPE), via the USDA Economic Research Service · ${thenSay(ecSt?.[2] != null ? usd(ecSt[2]) : null, ecUs?.[2] != null ? usd(ecUs[2]) : null)}` : undefined),
+      ...held("Unemployment", last(ec?.[0]) !== null && `${last(ec?.[0])}%`, econ ? `of the labour force · ${econ.COUNTY_ECON.laborYear} · BLS, via the USDA Economic Research Service · ${thenSay(last(ecSt?.[0]) !== null ? `${last(ecSt?.[0])}%` : null, last(ecUs?.[0]) !== null ? `${last(ecUs?.[0])}%` : null)}` : undefined),
+      ...held("Labour force", ec?.[1] != null && whole(ec[1]), econ ? `people · ${econ.COUNTY_ECON.laborYear}` : undefined),
+    ];
+    const years = bea?.years ?? [];
+    const pcPoints = (a?.pc ?? []).flatMap((v, i): [number, number][] => (v === null ? [] : [[years[i], v]]));
+    const realPoints = real.flatMap((v, i): [number, number][] => (v === null ? [] : [[years[i], v]]));
+    parts.push({
+      title: "Economy",
+      note: "Its own figures, each with its year; its state's and the nation's are set beside the ones published for all three.",
+      fields,
+      extra:
+        pcPoints.length > 1 || realPoints.length > 1 ? (
+          <div className="chart-fill">
+            {pcPoints.length > 1 && (
+              <SeriesChart
+                title={`Personal income per person · $ · ${pcPoints[0][0]}–${pcPoints[pcPoints.length - 1][0]}`}
+                points={pcPoints}
+                label={`Personal income per person in ${county[1]}, current dollars`}
+                axis={(v) => `$${v >= 1000 ? `${Math.round(v / 1000)}k` : whole(v)}`}
+                full={usd}
+                name="Per person"
+              />
+            )}
+            {realPoints.length > 1 && (
+              <SeriesChart
+                title={`Real GDP · chained 2017 dollars · ${realPoints[0][0]}–${realPoints[realPoints.length - 1][0]}`}
+                points={realPoints}
+                label={`The real GDP of ${county[1]}, in chained 2017 dollars`}
+                axis={bn}
+                full={bn}
+                name="Real GDP"
+              />
+            )}
+          </div>
+        ) : undefined,
+    });
+  }
+
+  if (ec && econ) {
+    const rucc = ec[6];
+    parts.push({
+      title: "Society",
+      note: "Its own figures, from the Census Bureau and the USDA, each with its year.",
+      fields: [
+        ...held("Poverty: below the poverty line", ec[3] != null && `${ec[3]}%`, `of all people · ${econ.COUNTY_ECON.povertyYear} · Census Bureau (SAIPE), via the USDA Economic Research Service · ${thenSay(ecSt?.[3] != null ? `${ecSt[3]}%` : null, ecUs?.[3] != null ? `${ecUs[3]}%` : null)}`),
+        ...held("Poverty: children under 18", ec[4] != null && `${ec[4]}%`, `of children · ${econ.COUNTY_ECON.povertyYear} · ${thenSay(ecSt?.[4] != null ? `${ecSt[4]}%` : null, ecUs?.[4] != null ? `${ecUs[4]}%` : null)}`),
+        ...held("Education: a bachelor's degree or more", ec[5][3] != null && `${ec[5][3]}%`, `of adults 25 and over · ${econ.COUNTY_ECON.schooling} · American Community Survey, via the USDA Economic Research Service`),
+        ...held("Education: no high school diploma", ec[5][0] != null && `${ec[5][0]}%`, `of adults 25 and over · ${econ.COUNTY_ECON.schooling}`),
+        ...held("Development: rural or urban", rucc != null && econ.RUCC[rucc], rucc != null ? `USDA Rural-Urban Continuum Code ${rucc}, 2023` : undefined),
+      ],
+    });
+  }
+  return parts;
+}
+
 function CountyWindow({ county, data, onBack, onClose }: { county: UsCounty; data: CountyData; /** Back to the list of its state's counties. */ onBack: () => void; onClose: () => void }) {
   const navigate = useNavigate();
   const [fips, name, abbr, lat, lon, land, water, pops, births, deaths, international, domestic] = county;
@@ -985,6 +1106,16 @@ function CountyWindow({ county, data, onBack, onClose }: { county: UsCounty; dat
   const rows = useMemo(() => (outline && listed ? placesWithin(outline, listed.places) : null), [outline, listed]);
   const dots = useMemo(() => placeDots(rows ?? [], 300, listed), [rows, listed]);
   const stateRecord = useMemo(() => SUBNATIONS.find((s) => s.code === `US-${abbr}`), [abbr]);
+  /* Its income and output - the Bureau of Economic Analysis's - and how its people work and live - the USDA Economic Research Service's county data sets - each fetched when the window opens, with its state's and the nation's. */
+  const bea = useCountyBea(fips.slice(0, 2));
+  const [econ, setEcon] = useState<typeof import("../data/usCountyEcon") | null>(null);
+  useEffect(() => {
+    let off = false;
+    import("../data/usCountyEcon").then((m) => !off && setEcon(m));
+    return () => {
+      off = true;
+    };
+  }, []);
   /* Where it stands among its state's counties and the country's, by the same year's population: counted here from the Census Bureau's figures. */
   const end = (x: UsCounty) => x[7][x[7].length - 1];
   const peers = useMemo(() => data.US_COUNTIES.filter((x) => x[2] === abbr).sort((a, b) => b[7][b[7].length - 1] - a[7][a[7].length - 1]), [data, abbr]);
@@ -1087,9 +1218,10 @@ function CountyWindow({ county, data, onBack, onClose }: { county: UsCounty; dat
       ],
     },
     analysed,
+    ...countyMoneyParts(county, state?.name ?? abbr, bea, econ),
     {
-      title: "Government · Economy · Society · Political data",
-      note: `The site holds none of these for a county. ${state?.name ?? "The state"}'s are in its own window.`,
+      title: "Government · Political data",
+      note: `The site holds neither for a county. ${state?.name ?? "The state"}'s are in its own window.`,
       fields: [],
     },
     {
@@ -1191,7 +1323,17 @@ function CountyWindow({ county, data, onBack, onClose }: { county: UsCounty; dat
           onCloseAll={onClose}
         />
       )}
-      <SourceLink sources={[data.US_COUNTY_SOURCES.estimates, data.US_COUNTY_SOURCES.gazetteer, { label: "US Census Bureau — cartographic boundary files, via us-atlas", url: "https://www.census.gov/geographies/mapping-files/time-series/geo/cartographic-boundary.html" }, { label: PLACES_SOURCE.geonames.label, url: PLACES_SOURCE.geonames.url }]} />
+      <SourceLink
+        sources={[
+          data.US_COUNTY_SOURCES.estimates,
+          data.US_COUNTY_SOURCES.gazetteer,
+          // Its income, output, work and schooling, where held for it.
+          ...(bea?.areas[fips] ? [bea.sources.income, bea.sources.gdp] : []),
+          ...(econ?.COUNTY_ECON_ROWS[fips] ? [econ.COUNTY_ECON_SOURCES.unemployment, econ.COUNTY_ECON_SOURCES.poverty, econ.COUNTY_ECON_SOURCES.education, econ.COUNTY_ECON_SOURCES.rucc] : []),
+          { label: "US Census Bureau — cartographic boundary files, via us-atlas", url: "https://www.census.gov/geographies/mapping-files/time-series/geo/cartographic-boundary.html" },
+          { label: PLACES_SOURCE.geonames.label, url: PLACES_SOURCE.geonames.url },
+        ]}
+      />
     </Window>
   );
 }
@@ -1486,12 +1628,23 @@ const answers = (s: Subnation, q: string) => s.name.toLowerCase().includes(q) ||
 /** What a figure on a card is, said when it is pointed at. */
 const TIPS: Record<string, string> = {
   "Below poverty line": "The share of its people below the official US poverty line - US Census Bureau, American Community Survey, 1-year",
+  "Under $3.00 a day": `The share of its people living on under ${POVERTY_LINE} - the World Bank's international poverty line, from a household survey of the region (its Subnational Poverty and Inequality Database)`,
   "Inequality (Gini)":
     "The Gini index of income: 0 if every household or person had the same, 100 if one had it all. It measures income (or, in some countries, spending), not wealth.",
 };
-/** A division's poverty and inequality, where held for it: a US state's from the American Community Survey - the Gini index as the Census Bureau gives it (0 to 1), shown out of 100 as the World Bank gives a country's. */
-function povertyOf(s: Subnation, stateId: string | undefined): [string, string | undefined][] {
-  if (s.cc !== "US" || !stateId) return [];
+/**
+ * A division's poverty and inequality, where held for the division itself: a US state's from the American Community Survey - the Gini index as the Census Bureau gives it (0 to 1), shown out of 100 as the World Bank gives a country's -
+ * and another country's division's from the World Bank's survey of that region, with the survey's year.
+ */
+function povertyOf(s: Subnation, stateId: string | undefined, pov: DivisionPoverty | undefined): [string, string | undefined][] {
+  if (s.cc !== "US")
+    return pov
+      ? [
+          ["Under $3.00 a day", pov.p300 != null ? `${pov.p300.toFixed(1)}% · ${pov.y}` : undefined],
+          ["Inequality (Gini)", pov.gini != null ? `${pov.gini.toFixed(1)} · ${pov.y}` : undefined],
+        ]
+      : [];
+  if (!stateId) return [];
   const below = STATE_INDICATORS[stateId]?.poverty;
   const pct = below?.groups.find((g) => g.label === "Below poverty line")?.pct;
   const gini = STATE_PEOPLE[stateId]?.gini;
@@ -1502,7 +1655,19 @@ function povertyOf(s: Subnation, stateId: string | undefined): [string, string |
 }
 
 /** A division's card, inside its country's window. */
-function DivisionCard({ s, inside, onOpen }: { s: Subnation; /** What GeoNames lists inside it: undefined while its country's places are fetched, null where it has none by the division's name. */ inside: Inside | null | undefined; onOpen: () => void }) {
+function DivisionCard({
+  s,
+  inside,
+  pov,
+  onOpen,
+}: {
+  s: Subnation;
+  /** What GeoNames lists inside it: undefined while its country's places are fetched, null where it has none by the division's name. */
+  inside: Inside | null | undefined;
+  /** Its own poverty and inequality, where the World Bank publishes them for it. */
+  pov?: DivisionPoverty;
+  onOpen: () => void;
+}) {
   // A US state's population is the one its window gives: the Census Bureau's. The "Head" line the card had was taken off as asked: it said "Not held" for nearly every division.
   const state = STATE_BY_CODE.get(s.code ?? "");
   const m = state ? STATE_INDICATORS[state.id] : undefined;
@@ -1510,8 +1675,8 @@ function DivisionCard({ s, inside, onOpen }: { s: Subnation; /** What GeoNames l
     ["Population", m ? `${people(m.population.v)} · ${m.population.y}` : s.pop ? `${people(s.pop[1])} · ${s.pop[0]}` : undefined],
     ["Area", s.areaKm2 ? `${whole(s.areaKm2)} km²` : undefined],
     ["Capital", s.capital],
-    // Poverty and inequality, as asked, where they are held for the division itself: a US state's are the Census Bureau's (American Community Survey).
-    ...povertyOf(s, state?.id),
+    // Poverty and inequality, as asked, where they are held for the division itself: a US state's are the Census Bureau's (American Community Survey); another country's division's, the World Bank's survey of it.
+    ...povertyOf(s, state?.id, pov),
 
     // What lies inside it, as GeoNames lists it: the counties or districts with a listed place, and the towns, cities and villages of more than 500 people.
     ["Counties or districts", inside === undefined ? "…" : inside && inside.order === 1 && inside.districts.length ? whole(inside.districts.length) : undefined],
@@ -1722,6 +1887,8 @@ function CountryWindow({
   /* What lies inside each division, counted from the country's places once they are fetched. */
   const places = usePlaces(row.cc);
   const insides = useMemo(() => (places ? new Map(row.divisions.map((d) => [d.id, insideOf(places, d)])) : null), [places, row]);
+  /* Each division's own poverty and inequality, where the World Bank publishes them for it (outside the United States). */
+  const poverty = useDivisionPoverty();
   /* The map at the head of its window: its divisions as the site's maps draw them, opening on its main part with its far-off parts a swipe away, with its largest listed places as dots. */
   const drawn = useAdmin1(row.cc);
   const second = useSecondOrder(row.cc);
@@ -1834,14 +2001,24 @@ function CountryWindow({
           </h3>
           <div className="grid gap-3 [grid-template-columns:repeat(auto-fill,minmax(min(100%,15rem),1fr))]">
             {shown.map((s) => (
-              <DivisionCard key={s.id} s={s} inside={places === undefined ? undefined : (insides?.get(s.id) ?? null)} onOpen={() => onOpen(s)} />
+              <DivisionCard key={s.id} s={s} inside={places === undefined ? undefined : (insides?.get(s.id) ?? null)} pov={poverty?.[s.id]} onOpen={() => onOpen(s)} />
 
             ))}
           </div>
           {shown.length === 0 && <p className="text-[12px] font-sans text-muted-foreground">Nothing matches.</p>}
         </section>
       )}
-      <SourceLink sources={[SUBNATIONS_SOURCES.naturalEarth, SUBNATIONS_SOURCES.wikidata, SUBNATIONS_SOURCES.commons, SUBNATIONS_SOURCES.geonames, REPRESENTATIVES_SOURCES.wikidata]} />
+      <SourceLink
+        sources={[
+          SUBNATIONS_SOURCES.naturalEarth,
+          SUBNATIONS_SOURCES.wikidata,
+          SUBNATIONS_SOURCES.commons,
+          SUBNATIONS_SOURCES.geonames,
+          REPRESENTATIVES_SOURCES.wikidata,
+          // The World Bank's, where its cards show a division's own poverty and inequality.
+          ...(poverty && row.divisions.some((d) => poverty[d.id]) ? [DIVISION_POVERTY_SOURCE] : []),
+        ]}
+      />
       {picked && places && <PlaceHost place={picked} file={places} division={divisionOf} country={row.name} onPlace={setPlaceOpen} onDone={() => setPicked(null)} onCloseAll={onClose} />}
     </Window>
   );
