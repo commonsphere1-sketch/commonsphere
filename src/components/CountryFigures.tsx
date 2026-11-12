@@ -51,6 +51,7 @@ import { CRITICAL_MINERALS, CRITICAL_MINERALS_SOURCE } from "../data/criticalMin
 import { countryForFeature } from "../data/mapJoin";
 import { ALLIANCES, ALLIANCE_KIND_PLURAL } from "../data/alliances";
 import { SURVEILLANCE, SURVEILLANCE_SCALES, SURVEILLANCE_SOURCE, type SurveillanceMeasure } from "../data/surveillance";
+import { COUNTRY_LABOUR, COUNTRY_LABOUR_SOURCES } from "../data/countryLabour";
 import { useTokens, type Tokens } from "./DataExplorer";
 import { SourceLink } from "./SourceLink";
 import SlimBars, { SlimColumns, gradId } from "./SlimBars";
@@ -376,6 +377,8 @@ export default function CountryFigures({ code, name }: { code: string; name: str
   const justice = justiceKey ? JUSTICE_PROCESS[justiceKey] : undefined;
   const legal = pick(LEGAL_SYSTEMS, code);
   const military = pick(MILITARY_MEASURED, code);
+  // How its people work, as the ILO counts it: from the country's own surveys and records.
+  const labour = pick(COUNTRY_LABOUR, code);
   const energy = pick(COUNTRY_ENERGY, code);
   const land = pick(LAND_USE, code);
   const indexes = pick(COUNTRY_INDEXES, code) ?? {};
@@ -493,6 +496,37 @@ export default function CountryFigures({ code, name }: { code: string; name: str
             </>
           ) : (
             <None t={t}>No figures of work are held for {name}.</None>
+          )}
+        </Panel>
+        {/* How its people work, as the ILO counts it, as asked: the country's own surveys and records, each with its year - not the ILO's modelled estimates. */}
+        <Panel t={t} title="How people work" meta="ILOSTAT · its own counts">
+          {labour && (labour.informal || labour.neet || labour.union || labour.bargaining || labour.hours) ? (
+            <>
+              <Bars
+                t={t}
+                rows={[
+                  ...(labour.informal ? [{ label: "In informal work, of all in work", text: pct(labour.informal[1]), y: labour.informal[0], share: labour.informal[1] }] : []),
+                  ...(labour.neet ? [{ label: "Aged 15–24, not in school, work or training", text: pct(labour.neet[1]), y: labour.neet[0], share: labour.neet[1] }] : []),
+                  ...(labour.union ? [{ label: "Employees in a trade union", text: pct(labour.union[1]), y: labour.union[0], share: labour.union[1] }] : []),
+                  ...(labour.bargaining ? [{ label: "Employees under a collective agreement", text: pct(labour.bargaining[1]), y: labour.bargaining[0], share: labour.bargaining[1] }] : []),
+                ]}
+              />
+              {labour.hours && <Tiles t={t} items={[{ label: "Hours worked a week", text: labour.hours[1].toFixed(1), y: `${labour.hours[0]} · on average, per person in work` }]} />}
+              <Note t={t}>
+                {labour.informal ? "Informal work is work without the legal and social cover - a contract, social security, paid leave - that formal work has. " : ""}Each figure is the country's latest own count.
+              </Note>
+              <Foot
+                sources={[
+                  labour.informal ? COUNTRY_LABOUR_SOURCES.informal : undefined,
+                  labour.neet ? COUNTRY_LABOUR_SOURCES.neet : undefined,
+                  labour.hours ? COUNTRY_LABOUR_SOURCES.hours : undefined,
+                  labour.union ? COUNTRY_LABOUR_SOURCES.union : undefined,
+                  labour.bargaining ? COUNTRY_LABOUR_SOURCES.bargaining : undefined,
+                ]}
+              />
+            </>
+          ) : (
+            <None t={t}>The ILO holds no count of how {name}'s people work from its own surveys.</None>
           )}
         </Panel>
         <Panel t={t} title="How its income is shared" meta={people?.income ? `share by fifth · ${people.income.y}` : undefined}>
