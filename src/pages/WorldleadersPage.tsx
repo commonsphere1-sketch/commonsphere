@@ -15030,7 +15030,8 @@ function LeaderCard({
   return (
     <button
       onClick={onClick}
-      className={`w-full text-left rounded-xl border transition-all duration-200 overflow-hidden group ${
+      // Plain, as asked: no bezel and no light-up (.cs-plain-card), only its own hover.
+      className={`cs-plain-card w-full text-left rounded-xl border transition-all duration-200 overflow-hidden group ${
         isSelected
           ? "border-secondary/70 bg-secondary/5 ring-1 ring-secondary/30"
           : "border-border bg-card hover:border-secondary/40 hover:bg-card/80 hover:scale-[1.01] hover:shadow-lg"
@@ -15879,7 +15880,8 @@ function MonarchCard({
   return (
     <button
       onClick={onClick}
-      className={`w-full text-left rounded-xl border transition-all duration-200 overflow-hidden group ${
+      // Plain, as asked: no bezel and no light-up (.cs-plain-card), only its own hover.
+      className={`cs-plain-card w-full text-left rounded-xl border transition-all duration-200 overflow-hidden group ${
         isSelected
           ? "border-yellow-500/50 bg-yellow-500/5 ring-1 ring-yellow-500/20"
           : "border-border bg-card hover:border-yellow-500/30 hover:bg-card/80 hover:scale-[1.01] hover:shadow-lg"

@@ -1006,15 +1006,30 @@ html.dark .modal-tile.cursor-pointer:hover {
    card's and :hover - so that it is this halo that shows, not the plain shadow
    above: the place cards' own rule, which came before those, was outweighed
    by them, and only its edge ever lit. !important as theirs are. */
-html:is(.dark, .light) :is(.cursor-pointer, button, [role="button"]):is(.rounded-xl, .rounded-2xl):hover,
-html:is(.dark, .light) article.cursor-pointer:hover,
-html:is(.dark, .light) .modal-tile.cursor-pointer:hover {
+html:is(.dark, .light) :is(.cursor-pointer, button, [role="button"]):is(.rounded-xl, .rounded-2xl):not(.cs-plain-card):hover,
+html:is(.dark, .light) article.cursor-pointer:not(.cs-plain-card):hover,
+html:is(.dark, .light) .modal-tile.cursor-pointer:not(.cs-plain-card):hover {
   border-color: color-mix(in srgb, var(--glow, var(--color-foreground)) 70%, transparent) !important;
   box-shadow:
     var(--card-glow),
     0 0 0 1px color-mix(in srgb, var(--glow, var(--color-foreground)) 55%, transparent),
     0 0 32px -6px var(--glow, var(--color-foreground)),
     0 12px 32px -14px rgba(0, 0, 0, 0.55) !important;
+}
+
+/* ── Plain cards: no bezel, no halo ──────────────────────
+   A card marked .cs-plain-card - the World Leaders page's leaders, as asked -
+   has neither the inset sheen along its top nor the light-up above: flat at
+   rest, and pointed at, only its own hover (its utilities' shadow, tinted edge
+   and lift), as it was before the light-up. Of the card rules' weight and
+   more, so that it is this that holds. */
+html:is(.dark, .light) button.cs-plain-card:is(.rounded-xl, .rounded-2xl) {
+  box-shadow: none !important;
+}
+html:is(.dark, .light) button.cs-plain-card:is(.rounded-xl, .rounded-2xl):hover {
+  box-shadow:
+    0 10px 15px -3px rgb(0 0 0 / 0.1),
+    0 4px 6px -4px rgb(0 0 0 / 0.1) !important;
 }
 
 /* ── Dropdown panels ──────────────────────────────────────
