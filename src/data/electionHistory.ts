@@ -12,7 +12,6 @@ export const ELECTION_HISTORY_SOURCES = {
   wikidata: { label: "Wikidata (CC0) — each national election's own record, read through QLever (University of Freiburg)", url: "https://www.wikidata.org/" },
   parlgov: { label: "ParlGov — Döring & Manow, Parliaments and governments database, Release 2024 (Harvard Dataverse, CC0)", url: "https://doi.org/10.7910/DVN/2VZ5ZC" },
   vdem: { label: "V-Dem — Regimes of the World (Lührmann, Tannenberg & Lindberg), via Our World in Data (CC BY-SA)", url: "https://ourworldindata.org/grapher/political-regime" },
-  development: { label: "Our World in Data — population (HYDE, Gapminder, UN WPP), GDP per person (Maddison Project Database 2023), life expectancy (Riley, Zijdeman et al., HMD, UN WPP), child mortality (Gapminder, UN IGME), urban share (UN DESA)", url: "https://ourworldindata.org/" },
   vdemIndices: { label: "V-Dem — civil liberties, freedom of expression and women's political empowerment indices, via Our World in Data", url: "https://ourworldindata.org/grapher/human-rights-index-vdem" },
 };
 /** [code, elections held, elections to come, cabinets, first and last year of V-Dem's regimes, leaders' terms]. */
