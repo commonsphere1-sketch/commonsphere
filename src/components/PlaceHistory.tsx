@@ -40,14 +40,15 @@ const whole = (v: number) => v.toLocaleString("en-US");
 function said(v: number, unit: string) {
   const a = Math.abs(v);
   const n = a >= 100 ? Math.round(v).toLocaleString("en-US") : a >= 10 ? v.toFixed(1) : v.toFixed(2);
-  const UNIT: Record<string, string> = { per100k: " per 100,000", degC: " °C", degF: " °F", mm: " mm", in: " in", mt: " million t", t: " t", days: " days", dd: " degree-days", months: " months" };
+  const UNIT: Record<string, string> = { per100k: " per 100,000", degC: " °C", degF: " °F", mm: " mm", in: " in", mt: " million t", t: " t", days: " days", dd: " degree-days", months: " months", ugm3: " µg/m³", pct: "%" };
   if (unit === "magnitude") return `M${v.toFixed(1)}`;
+  if (unit === "aqi") return `AQI ${Math.round(v)}`;
   return unit === "count" ? Math.round(v).toLocaleString("en-US") : `${n}${UNIT[unit] ?? ""}`;
 }
 /** A scale's figure, short. */
 const tick = (v: number) => (Math.abs(v) >= 1000 ? `${Math.round(v / 100) / 10}k` : Math.abs(v) >= 10 ? `${Math.round(v)}` : `${Math.round(v * 10) / 10}`);
 /** The unit in a heading. */
-const UNIT_SAID: Record<string, string> = { per100k: "per 100,000 people", degC: "°C", degF: "°F", mm: "mm", in: "inches", mt: "million tonnes", t: "tonnes", index: "index", count: "number", days: "days a year", dd: "degree-days, °F", months: "months a year" };
+const UNIT_SAID: Record<string, string> = { per100k: "per 100,000 people", degC: "°C", degF: "°F", mm: "mm", in: "inches", mt: "million tonnes", t: "tonnes", index: "index", count: "number", days: "days a year", dd: "degree-days, °F", months: "months a year", ugm3: "micrograms per cubic metre", pct: "% of people", aqi: "Air Quality Index", magnitude: "magnitude" };
 const isTemperature = (unit: string) => unit === "degC" || unit === "degF";
 
 const at = (s: Series, y: number) => (y >= (s[0] as number) ? (s[1 + y - (s[0] as number)] ?? null) : null);
@@ -581,8 +582,12 @@ function RankCard({ t, accent, k, places, file, shown, whole: total }: { t: Toke
   const counts = new Map<string, number>();
   for (const p of places) if (p.series[k]) counts.set(p.from[k], (counts.get(p.from[k]) ?? 0) + 1);
   const src = [...counts.entries()].sort((a, b) => b[1] - a[1])[0]?.[0];
+  // One kind of place only - counties with counties, cities with cities: the kind being read, or the commonest.
+  const kinds = new Map<string, number>();
+  for (const p of places) if (p.series[k] && p.from[k] === src) kinds.set(p.kind, (kinds.get(p.kind) ?? 0) + 1);
+  const kindPick = kinds.has(shown.kind) ? shown.kind : [...kinds.entries()].sort((a, b) => b[1] - a[1])[0]?.[0];
   const list = places
-    .filter((p) => p.series[k] && p.from[k] === src)
+    .filter((p) => p.series[k] && p.from[k] === src && p.kind === kindPick)
     .flatMap((p) => {
       const l = latest(p.series[k]);
       return l ? [{ p, y: l[0], v: l[1] }] : [];
