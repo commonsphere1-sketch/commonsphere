@@ -15624,7 +15624,8 @@ function ExplorerFact({ t, label, value }: { t: Tokens; label: string; value: Re
  * profile a click away. It is drawn from the same list the cards are
  * (LEADERS) and works out nothing but the sums of years the cards also show.
  */
-function LeadersExplorer({ onOpen }: { onOpen: (l: Leader) => void }) {
+// Taken off the page as asked - only the Dashboard keeps its explorer; kept here, unmounted, should it be wanted back.
+export function LeadersExplorer({ onOpen }: { onOpen: (l: Leader) => void }) {
   const t = useTokens();
   const [search, setSearch] = useState("");
   const [status, setStatus] = useState<Status | null>(null);
@@ -17833,8 +17834,7 @@ export function WorldLeadersPage() {
           )}
         />
 
-        {/* The page's own explorer: every politician profiled, a list beside a detail pane. */}
-        <LeadersExplorer onOpen={setSelected} />
+        {/* The explorer of leaders stood here; it was taken off as asked - only the Dashboard keeps its explorer. */}
 
         {/* View Mode Toggle */}
         <div className="flex flex-wrap items-center gap-2 mb-4">

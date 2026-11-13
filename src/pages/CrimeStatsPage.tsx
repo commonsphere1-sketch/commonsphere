@@ -1,14 +1,12 @@
 import { PageHeader } from "../components/PageHeader";
 import { SLIM_TRACK, slimFill } from "../components/SlimBars";
-import { lazy, Suspense, useState } from "react";
+import { useState } from "react";
 import { useTheme } from "../contexts/ThemeContext";
 import { SourceLink } from "../components/SourceLink";
 import SlimBars, { gradId } from "../components/SlimBars";
 import { HeadlinesBanner } from "../components/HeadlinesBanner";
 import { PlaceHistory } from "../components/PlaceHistory";
 
-// The explorer of revolutions, protests, boycotts and internal conflicts, with its accounts: loaded when the page reaches it.
-const UnrestExplorer = lazy(() => import("../components/UnrestExplorer"));
 import { RecordedCrime } from "../components/RecordedCrime";
 import { JusticeSection } from "../components/JusticeSection";
 import { SlaveryForms, TraffickingAndSlavery } from "../components/TraffickingAndSlavery";
@@ -723,12 +721,8 @@ export function CrimeStatsPage() {
           }
         />
 
-        {/* ── THE PAGE'S OWN EXPLORER: every published crime and justice figure, a list beside its detail ── */}
-        {/* The Crime & justice explorer stood here; it was taken off as asked (its component stays in the repo) and the explorer of
-            revolutions, protests, boycotts and internal conflicts shown in its place. */}
-        <Suspense fallback={null}>
-          <UnrestExplorer />
-        </Suspense>
+        {/* The explorer of revolutions, protests, boycotts and internal conflicts (UnrestExplorer) stood here; it was taken off
+            as asked - only the Dashboard keeps its explorer. */}
 
         {/* ── KPI PILLS ──────────────────────────────────────────── */}
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">

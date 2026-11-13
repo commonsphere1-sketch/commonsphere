@@ -89,8 +89,6 @@ import {
 } from "../data/criticalMinerals";
 import { TONE, CHIP_TEXT } from "@/lib/chipTone";
 import { economyStatus, ECONOMY_STATUS_KEY } from "@/lib/economyStatus";
-import { DataExplorer } from "@/components/DataExplorer";
-import { ResourceExplorer } from "@/components/ResourceExplorer";
 import { RESOURCES } from "@/data/resourceList";
 import { CommodityStanding } from "@/components/EconomyResources";
 import { EconomyCompanies, EconomyHasNeeds, EconomyTrade, hasEconomyHasNeeds } from "@/components/EconomyStanding";
@@ -2446,9 +2444,8 @@ export function EconomiesPage() {
           )}
         />
 
-        {/* ── Data explorer: the Dashboard's economies panel, on its own; in the
-            Resources view, the same panel for commodities ── */}
-        <div className="mb-6">{viewMode === "resources" ? <ResourceExplorer resources={RESOURCES_DATA} onOpen={setSelectedResource} /> : <DataExplorer only="economies" />}</div>
+        {/* The explorers of economies and of resources (DataExplorer, ResourceExplorer) stood here; they were taken off as
+            asked - only the Dashboard keeps its explorer. */}
 
         {modalEconomy && (
           <EconomyModal

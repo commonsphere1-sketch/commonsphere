@@ -16,7 +16,6 @@ import {
 import type { FigureCard } from "../data/climateFigures";
 import { LIFE_CARDS, LIFE_CHECKED } from "../data/lifeOnEarth";
 import { EndangeredSpeciesList, NewSpeciesList } from "../components/SpeciesLists";
-import ClimateNowExplorer from "../components/ClimateNowExplorer";
 import { PlaceHistory } from "../components/PlaceHistory";
 import ClimateWatch from "../components/ClimateWatch";
 import EarthStatus from "../components/EarthStatus";
@@ -548,10 +547,8 @@ export function PlanetaryBoundariesPage() {
           }
         />
 
-        {/* ── What is happening now, as a list beside a detail: the disasters under an alert, the countries struck, El Niño
-            and La Niña, the records and the latest readings. It stands where the explorer of the page's own contents -
-            boundaries, tipping points, treaties, figure cards - stood; that one (ClimateExplorer) is kept and not shown. ── */}
-        <ClimateNowExplorer />
+        {/* The explorer of what is happening now (ClimateNowExplorer) stood here; it was taken off as asked - only the
+            Dashboard keeps its explorer. */}
 
         {/* ── KPI STRIP ─────────────────────────────────────────────────── */}
         {/* Each figure is the source's own: the boundary count and the two

@@ -78,7 +78,6 @@ import {
 } from "../data/airQuality";
 import { StyledSelect } from "../components/StyledSelect";
 /** Who leads the world's regions and municipalities, with the places it maps: loaded after the page, which does not wait for it. */
-const RepresentativesExplorer = lazy(() => import("../components/RepresentativesExplorer"));
 /** The third map: one division of the country in focus, with its counties and its municipalities. Loaded when the page reaches it. */
 const DivisionAtlas = lazy(() => import("../components/DivisionAtlas"));
 import { citiesData } from "../data/citiesData";
@@ -4477,10 +4476,8 @@ export function WorldMapsPage() {
           </div>
         </div>
 
-        {/* ── Who leads the regions and municipalities: an explorer, with its own map ── */}
-        <Suspense fallback={<p className="text-xs font-sans text-muted-foreground mb-6">Loading the regions and municipalities…</p>}>
-          <RepresentativesExplorer />
-        </Suspense>
+        {/* The explorer of regions and municipalities (RepresentativesExplorer) stood here; it was taken off as asked - only
+            the Dashboard keeps its explorer. */}
 
         {/* ── World map ── */}
         <div

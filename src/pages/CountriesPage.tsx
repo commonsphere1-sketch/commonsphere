@@ -81,7 +81,6 @@ import { FilterBar } from "../components/FilterBar";
 import { TONE } from "@/lib/chipTone";
 import { useWatchlist } from "@/contexts/WatchlistContext";
 import { FollowedPlaces } from "@/components/FollowedPlaces";
-import { DataExplorer } from "@/components/DataExplorer";
 import { HistoryPanel } from "@/components/HistoryPanel";
 import { fmtArea, fmtGDP, fmtPop } from "@/lib/placeFormat";
 import { CountryOutline } from "@/components/PlaceOutlines";
@@ -9077,8 +9076,7 @@ export function CountriesPage() {
         {/* ── INTERNATIONAL SNAPSHOT ── */}
         <InternationalSnapshot countries={liveCountries} />
 
-        {/* ── DATA EXPLORER: the Dashboard's countries panel, on its own ── */}
-        <DataExplorer only="countries" onOpenCountry={setModalCountry} />
+        {/* The explorer of countries (DataExplorer) stood here; it was taken off as asked - only the Dashboard keeps its explorer. */}
 
         {/* ── SEARCH + FILTER BAR: set apart from the explorer above it, as asked, not touching it ── */}
         <FilterBar

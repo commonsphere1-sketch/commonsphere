@@ -45,7 +45,6 @@ import { STATE_INDICATORS, STATE_SOURCES } from "../data/stateIndicators";
 import { STATE_UNIVERSITIES, STATE_UNIVERSITIES_SOURCE } from "../data/stateUniversities";
 import { STATE_SCHOOLS, STATE_SCHOOLS_SOURCES } from "../data/stateSchools";
 import { UniversityList } from "../components/UniversityList";
-import { OfficialsExplorer, officialOf } from "../components/OfficialsExplorer";
 import StatePeoplePanel from "../components/StatePeoplePanel";
 import { WindowTitle } from "../components/WindowTitle";
 import { LocalTime } from "../components/LocalTime";
@@ -7175,7 +7174,6 @@ export function StatesPage() {
   >("gdp");
   const [modalState, setModalState] = useState<USState | null>(null);
   /** The official a tile of a state's window asked for: opened in the page's list of elected officials. */
-  const [officialOpen, setOfficialOpen] = useState<{ id: string; at: number } | null>(null);
 
   const {
     states: liveStates,
@@ -7287,14 +7285,8 @@ export function StatesPage() {
           }}
         />
 
-        {/* The page's own explorer: the senators, representatives, governors and big-city mayors, a list beside a detail pane. */}
-        <OfficialsExplorer
-          open={officialOpen}
-          onOpenState={(id) => {
-            const found = liveStates.find((s) => s.id === id);
-            if (found) setModalState(found);
-          }}
-        />
+        {/* The explorer of elected officials (OfficialsExplorer) stood here; it was taken off as asked - only the Dashboard
+            keeps its explorer. */}
 
         {/* Unified Search + Filter Bar */}
         <FilterBar
@@ -7354,13 +7346,6 @@ export function StatesPage() {
           <StateModal
             state={modalState}
             onClose={() => setModalState(null)}
-            // A governor, a senator or a representative pressed in the window: the window closes and the list opens on them. One the list does not hold leaves the window as it is.
-            onOfficial={(who) => {
-              const id = officialOf({ ...who, state: modalState.id });
-              if (!id) return;
-              setModalState(null);
-              setOfficialOpen({ id, at: Date.now() });
-            }}
           />
         )}
 
