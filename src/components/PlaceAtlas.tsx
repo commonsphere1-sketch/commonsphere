@@ -467,14 +467,16 @@ export default function PlaceAtlas() {
       off = true;
     };
   }, [showCities, cityData]);
-  /* Each of the world's finer layers is fetched a little before the map is close enough to draw it, and kept. */
+  /* The world's finer outlines are fetched a little before the map is close enough to draw them; its borders, with the map. Each is kept. */
   const [fineWorld, setFineWorld] = useState<Geo[] | null>(null);
   const [stateLines, setStateLines] = useState<unknown | null>(null);
   const [countyLines, setCountyLines] = useState<unknown | null>(null);
   const near = (from: number) => onWorld && view.k >= from * 0.8;
   const wantFiner = near(FINER_FROM) && !fineWorld;
-  const wantStates = near(STATE_LINES_FROM) && !stateLines;
-  const wantCountyLines = near(COUNTY_LINES_FROM) && !countyLines;
+  /* Every border inside the countries - states and provinces, counties and districts - fetched with the map and drawn ready, as
+     the Worldview page's map has them, as asked: closing in shows the counties' lines at once, not after they are fetched. */
+  const wantStates = onWorld && !stateLines;
+  const wantCountyLines = onWorld && !countyLines;
   useEffect(() => {
     if (!wantFiner) return;
     let off = false;
@@ -483,21 +485,22 @@ export default function PlaceAtlas() {
       off = true;
     };
   }, [wantFiner]);
-  useEffect(() => {
-    if (!wantStates && !wantCountyLines) return;
-    let off = false;
-    const lines = (url: string, set: (g: unknown) => void) =>
+  /* Each file of lines by itself, so that one arriving does not set the other's request aside to be asked for again. */
+  const useLines = (want: boolean, url: string, set: (g: unknown) => void) =>
+    useEffect(() => {
+      if (!want) return;
+      let off = false;
       fetch(url)
         .then((r) => (r.ok ? r.json() : Promise.reject(new Error(String(r.status)))))
         .then((topo: Topology) => !off && set(feature(topo, topo.objects.b)))
         // Without them the map still draws what it has.
         .catch(() => undefined);
-    if (wantStates) lines("/geo/admin1-borders.json", setStateLines);
-    if (wantCountyLines) lines("/geo/admin2-borders.json", setCountyLines);
-    return () => {
-      off = true;
-    };
-  }, [wantStates, wantCountyLines]);
+      return () => {
+        off = true;
+      };
+    }, [want, url, set]);
+  useLines(wantStates, "/geo/admin1-borders.json", setStateLines);
+  useLines(wantCountyLines, "/geo/admin2-borders.json", setCountyLines);
   const worldPath = useMemo(() => geoPath(WORLD_PROJECTION), []);
   /* The file of the districts' lines holds two sets a country: the borders between districts of one division, and those
      between its divisions - the states' borders from the districts' own tracing. Once the map is close enough for the
