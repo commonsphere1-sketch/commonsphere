@@ -275,17 +275,18 @@ export function PlaceHistory({
         )}
       </div>
 
-      {/* The years in colour first, across the whole width, as asked: above every other figure. */}
+      {/* The years in colour first, then the records, each across the whole width, as asked: above every other figure. */}
       {shown &&
         shownFile &&
         cards
-          .filter((g) => g.kind === "stripes")
+          .filter((g) => g.kind === "stripes" || g.kind === "records")
+          .sort((a, b) => (a.kind === "stripes" ? -1 : 0) - (b.kind === "stripes" ? -1 : 0))
           .map((g) => <HistoryCard key={`${shown.id}-${g.title}`} t={t} accent={accent} group={g} place={shown} file={shownFile} above={above} />)}
 
       {shown && shownFile && cards.length > 0 && (
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
           {cards
-            .filter((g) => g.kind !== "stripes")
+            .filter((g) => g.kind !== "stripes" && g.kind !== "records")
             .map((g) => (
               <HistoryCard key={`${shown.id}-${g.title}`} t={t} accent={accent} group={g} place={shown} file={shownFile} above={above} />
             ))}
@@ -657,38 +658,43 @@ function RecordsCard({ common, place, file, keys }: { common: Omit<Parameters<ty
       sub={`${common.sub} · worked out here from each series`}
       csv={{ name: `${place.name} - records`, header: ["figure", "unit", "highest", "in", "lowest", "in", "years read"], rows: rows.map((r) => [r.def.label, UNIT_SAID[r.def.unit] ?? r.def.unit, r.hi[1], r.hi[0], r.lo[1], r.lo[0], r.span]) }}
     >
-      <div className="flex flex-col">
-        <div className="grid grid-cols-[minmax(0,1fr)_auto_auto] gap-x-4 pb-1.5 text-[9px] font-mono uppercase tracking-wider" style={{ color: t.mutedText, borderBottom: `1px solid ${t.gridLine}` }}>
-          <span>Figure</span>
-          <span className="text-right">Highest</span>
-          <span className="text-right">Lowest</span>
-        </div>
-        {rows.map((r) => (
-          <div key={r.k} className="grid grid-cols-[minmax(0,1fr)_auto_auto] gap-x-4 py-1.5 items-baseline" style={{ borderBottom: `1px solid ${t.gridLine}` }} title={r.def.say}>
-            <span className="min-w-0">
-              <span className="block text-[11px] font-sans truncate" style={{ color: t.headText }}>
-                {r.def.label}
-              </span>
-              <span className="block text-[9px] font-mono" style={{ color: t.mutedText }}>
-                {r.span}
-              </span>
-            </span>
-            <span className="text-right">
-              <span className="block text-[11px] font-mono font-bold" style={{ color: "#ef4444" }}>
-                {said(r.hi[1], r.def.unit)}
-              </span>
-              <span className="block text-[9px] font-mono" style={{ color: t.mutedText }}>
-                {r.hi[0]}
-              </span>
-            </span>
-            <span className="text-right">
-              <span className="block text-[11px] font-mono font-bold" style={{ color: "#3b82f6" }}>
-                {said(r.lo[1], r.def.unit)}
-              </span>
-              <span className="block text-[9px] font-mono" style={{ color: t.mutedText }}>
-                {r.lo[0]}
-              </span>
-            </span>
+      {/* Across the whole width, as asked: the rows in two halves side by side on a wide screen, each with its head. */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-x-8">
+        {[rows.slice(0, Math.ceil(rows.length / 2)), rows.slice(Math.ceil(rows.length / 2))].map((half, n) => (
+          <div key={n} className="flex flex-col min-w-0">
+            <div className="grid grid-cols-[minmax(0,1fr)_auto_auto] gap-x-4 pb-1.5 text-[9px] font-mono uppercase tracking-wider" style={{ color: t.mutedText, borderBottom: `1px solid ${t.gridLine}` }}>
+              <span>Figure</span>
+              <span className="text-right">Highest</span>
+              <span className="text-right">Lowest</span>
+            </div>
+            {half.map((r) => (
+              <div key={r.k} className="grid grid-cols-[minmax(0,1fr)_auto_auto] gap-x-4 py-1.5 items-baseline" style={{ borderBottom: `1px solid ${t.gridLine}` }} title={r.def.say}>
+                <span className="min-w-0">
+                  <span className="block text-[11px] font-sans truncate" style={{ color: t.headText }}>
+                    {r.def.label}
+                  </span>
+                  <span className="block text-[9px] font-mono" style={{ color: t.mutedText }}>
+                    {r.span}
+                  </span>
+                </span>
+                <span className="text-right">
+                  <span className="block text-[11px] font-mono font-bold" style={{ color: "#ef4444" }}>
+                    {said(r.hi[1], r.def.unit)}
+                  </span>
+                  <span className="block text-[9px] font-mono" style={{ color: t.mutedText }}>
+                    {r.hi[0]}
+                  </span>
+                </span>
+                <span className="text-right">
+                  <span className="block text-[11px] font-mono font-bold" style={{ color: "#3b82f6" }}>
+                    {said(r.lo[1], r.def.unit)}
+                  </span>
+                  <span className="block text-[9px] font-mono" style={{ color: t.mutedText }}>
+                    {r.lo[0]}
+                  </span>
+                </span>
+              </div>
+            ))}
           </div>
         ))}
       </div>
