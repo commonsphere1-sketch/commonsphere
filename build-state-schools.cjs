@@ -1,0 +1,130 @@
+#!/usr/bin/env node
+/**
+ * Builds src/data/stateSchools.ts - each US state's public schools, as asked: the National Center for Education
+ * Statistics' Digest of Education Statistics (public domain), its state tables, downloaded to data-raw/nces/.
+ *
+ *   219.46  Public high school 4-year adjusted cohort graduation rate (ACGR), all students
+ *   236.65  Current expenditures per pupil in fall enrollment, unadjusted dollars
+ *   208.40  Pupil/teacher ratio in public elementary and secondary schools
+ *   203.20  Enrollment in public elementary and secondary schools
+ *
+ * Each table from the latest Digest edition that has it, and each figure from the column whose heading names the year
+ * read: a column whose heading is not the one expected stops the build rather than read the wrong year.
+ *
+ *   node build-state-schools.cjs
+ */
+const fs = require("fs");
+const path = require("path");
+const { execFileSync } = require("child_process");
+
+const UA = "CommonSphere-build/1.0 (https://commonsphere.vercel.app)";
+const RAW = path.join(__dirname, "data-raw/nces");
+const OUT = path.join(__dirname, "src/data/stateSchools.ts");
+fs.mkdirSync(RAW, { recursive: true });
+
+/** A Digest table's first sheet as rows of { column: text }, from the latest edition that has it. */
+function table(t) {
+  for (const d of ["d25", "d24", "d23"]) {
+    const file = path.join(RAW, `${d}-${t}.xlsx`);
+    if (!fs.existsSync(file)) {
+      try {
+        execFileSync("curl", ["-sL", "--fail", "--max-time", "120", "-A", UA, "-o", file, `https://nces.ed.gov/programs/digest/${d}/tables/xls/tabn${t}.xlsx`]);
+      } catch {
+        if (fs.existsSync(file)) fs.unlinkSync(file);
+        continue;
+      }
+    }
+    const dir = path.join(RAW, `${d}-${t}`);
+    execFileSync("unzip", ["-o", "-q", file, "-d", dir]);
+    const unescape = (s) => s.replace(/&lt;/g, "<").replace(/&gt;/g, ">").replace(/&quot;/g, '"').replace(/&apos;/g, "'").replace(/&amp;/g, "&");
+    const ss = path.join(dir, "xl/sharedStrings.xml");
+    const strings = fs.existsSync(ss) ? [...fs.readFileSync(ss, "utf8").matchAll(/<si>([\s\S]*?)<\/si>/g)].map((m) => unescape([...m[1].matchAll(/<t[^>]*>([\s\S]*?)<\/t>/g)].map((x) => x[1]).join(""))) : [];
+    const rows = [];
+    for (const m of fs.readFileSync(path.join(dir, "xl/worksheets/sheet1.xml"), "utf8").matchAll(/<row [^>]*?r="(\d+)"[^>]*>([\s\S]*?)<\/row>/g)) {
+      const cells = {};
+      for (const c of m[2].matchAll(/<c r="([A-Z]+)\d+"([^>]*?)(?:\/>|>([\s\S]*?)<\/c>)/g)) {
+        const [, col, attrs, inner] = c;
+        const v = inner ? ((inner.match(/<v>([\s\S]*?)<\/v>/) ?? [])[1] ?? (inner.match(/<t[^>]*>([\s\S]*?)<\/t>/) ?? [])[1]) : undefined;
+        if (v !== undefined) cells[col] = /t="s"/.test(attrs) ? strings[+v] : unescape(v);
+      }
+      rows.push(cells);
+    }
+    return { edition: d, rows };
+  }
+  throw new Error(`No Digest edition has table ${t}`);
+}
+
+// The states and the District of Columbia, by the names the site's US divisions go by.
+const STATES = new Set(
+  fs
+    .readFileSync(path.join(__dirname, "src/data/subnations.ts"), "utf8")
+    .split(/\r?\n/)
+    .map((l) => l.trim().replace(/,$/, ""))
+    .filter((s) => s.startsWith('"{'))
+    .map((s) => JSON.parse(JSON.parse(s)))
+    .filter((d) => d.cc === "US")
+    .map((d) => d.name),
+);
+const clean = (s) => String(s ?? "").replace(/\\[^\\]*\\/g, "").replace(/\s+/g, " ").trim();
+const num = (s) => {
+  const v = Number(String(s ?? "").replace(/,/g, ""));
+  return String(s ?? "").trim() && Number.isFinite(v) ? v : null;
+};
+/** One column's figure for each state, after checking its heading. */
+function column(t, col, expect, label) {
+  const { edition, rows } = table(t);
+  const heads = rows.slice(0, 6).map((r) => clean(r[col])).join(" ");
+  if (!expect.test(heads)) throw new Error(`${t} (${edition}): column ${col} is headed "${heads}", not ${expect}`);
+  const out = {};
+  for (const r of rows) {
+    const name = clean(r.A);
+    if (!STATES.has(name)) continue;
+    const v = num(r[col]);
+    if (v !== null) out[name] = v;
+  }
+  console.log(`${t} ${edition} ${col} (${label}): ${Object.keys(out).length} states`);
+  return { edition, out };
+}
+
+const grad = column("219.46", "P", /2021-\s?22/, "graduation rate, 2021-22");
+const spend = column("236.65", "R", /2020-21/, "spending per pupil, 2020-21");
+const ratio = column("208.40", "X", /Fall 2022.*Pupil\/teacher ratio/, "pupils per teacher, fall 2022");
+const enrol = column("203.20", "T", /Fall 2024/, "enrollment, fall 2024");
+
+const rows = [...STATES]
+  .sort()
+  .map((s) => `  ${JSON.stringify(s)}: ${JSON.stringify({ grad: grad.out[s] ?? null, spend: spend.out[s] != null ? Math.round(spend.out[s]) : null, ratio: ratio.out[s] != null ? Math.round(ratio.out[s] * 10) / 10 : null, pupils: enrol.out[s] ?? null })},`)
+  .join("\n");
+fs.writeFileSync(
+  OUT,
+  `/**
+ * Each US state's public schools: the National Center for Education Statistics' Digest of Education Statistics (public domain).
+ *
+ * GENERATED by build-state-schools.cjs - do not edit by hand; change the script and re-run it.
+ *
+ * null where the table gives no figure for the state.
+ */
+export const STATE_SCHOOLS_SOURCES = {
+  grad: { label: "NCES, Digest of Education Statistics ${grad.edition.slice(1)} — Table 219.46, public high school 4-year adjusted cohort graduation rate", url: "https://nces.ed.gov/programs/digest/${grad.edition}/tables/dt${grad.edition.slice(1)}_219.46.asp", year: "2021-22" },
+  spend: { label: "NCES, Digest of Education Statistics ${spend.edition.slice(1)} — Table 236.65, current expenditures per pupil", url: "https://nces.ed.gov/programs/digest/${spend.edition}/tables/dt${spend.edition.slice(1)}_236.65.asp", year: "2020-21" },
+  ratio: { label: "NCES, Digest of Education Statistics ${ratio.edition.slice(1)} — Table 208.40, pupil/teacher ratios", url: "https://nces.ed.gov/programs/digest/${ratio.edition}/tables/dt${ratio.edition.slice(1)}_208.40.asp", year: "fall 2022" },
+  pupils: { label: "NCES, Digest of Education Statistics ${enrol.edition.slice(1)} — Table 203.20, enrollment in public elementary and secondary schools", url: "https://nces.ed.gov/programs/digest/${enrol.edition}/tables/dt${enrol.edition.slice(1)}_203.20.asp", year: "fall 2024" },
+};
+export type StateSchools = {
+  /** The 4-year adjusted cohort graduation rate, %. */
+  grad: number | null;
+  /** Current expenditure per pupil, dollars of that school year. */
+  spend: number | null;
+  /** Pupils per teacher. */
+  ratio: number | null;
+  /** Pupils enrolled in public schools. */
+  pupils: number | null;
+};
+/** By the state's name. */
+export const STATE_SCHOOLS: Record<string, StateSchools> = {
+${rows}
+};
+`,
+);
+console.log("Wrote", OUT);
+for (const s of ["Maryland", "Texas", "District of Columbia", "Alabama"]) console.log(s, grad.out[s], spend.out[s], ratio.out[s], enrol.out[s]);

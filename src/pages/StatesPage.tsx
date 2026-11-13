@@ -43,6 +43,7 @@ import { civicDay, daysUntil, electionDay, upcomingCivicDates } from "../lib/usC
 import { usStatesData, type USState } from "../data/statesData";
 import { STATE_INDICATORS, STATE_SOURCES } from "../data/stateIndicators";
 import { STATE_UNIVERSITIES, STATE_UNIVERSITIES_SOURCE } from "../data/stateUniversities";
+import { STATE_SCHOOLS, STATE_SCHOOLS_SOURCES } from "../data/stateSchools";
 import { UniversityList } from "../components/UniversityList";
 import { OfficialsExplorer, officialOf } from "../components/OfficialsExplorer";
 import StatePeoplePanel from "../components/StatePeoplePanel";
@@ -1665,7 +1666,10 @@ const STATE_EDUCATION: Record<string, StateEducationData> = {
 function StateEducationPanel({ state }: { state: USState }) {
   const e = STATE_INDICATORS[state.id]?.education;
   const schools = STATE_EDUCATION[state.id]?.topSchools ?? [];
-  if (!e && schools.length === 0) return null;
+  // Its public schools, as asked: the National Center for Education Statistics' state tables, each with its year.
+  const pub = STATE_SCHOOLS[state.name];
+  const hasPub = Boolean(pub && (pub.grad != null || pub.spend != null || pub.ratio != null || pub.pupils != null));
+  if (!e && schools.length === 0 && !hasPub) return null;
 
   return (
     <div className="modal-tile rounded-lg p-4 mt-4">
@@ -1682,7 +1686,7 @@ function StateEducationPanel({ state }: { state: USState }) {
             Education
           </h3>
           <p className="text-[10px] text-muted-foreground font-sans mt-0.5">
-            {e ? `Adults 25 and over, American Community Survey ${e.y}` : "Major universities"}
+            {[e ? `Adults 25 and over, American Community Survey ${e.y}` : null, hasPub ? "its public schools, NCES" : null, !e && !hasPub ? "Major universities" : null].filter(Boolean).join(" · ")}
           </p>
         </div>
       </div>
@@ -1701,6 +1705,16 @@ function StateEducationPanel({ state }: { state: USState }) {
         </div>
       )}
 
+      {hasPub && pub && (
+        <div className="mb-4">
+          <ChartTitle>Its public schools · National Center for Education Statistics</ChartTitle>
+          {pub.grad != null && <FigureRow label="Finish high school in four years" value={`${pub.grad}%`} sub={`the adjusted cohort graduation rate · ${STATE_SCHOOLS_SOURCES.grad.year}`} />}
+          {pub.spend != null && <FigureRow label="Spent on each pupil" value={`$${pub.spend.toLocaleString("en-US")}`} sub={`current spending, a year · ${STATE_SCHOOLS_SOURCES.spend.year}`} />}
+          {pub.ratio != null && <FigureRow label="Pupils to a teacher" value={pub.ratio.toFixed(1)} sub={STATE_SCHOOLS_SOURCES.ratio.year} />}
+          {pub.pupils != null && <FigureRow label="Pupils in its public schools" value={pub.pupils.toLocaleString("en-US")} sub={STATE_SCHOOLS_SOURCES.pupils.year} />}
+        </div>
+      )}
+
       {schools.length > 0 && (
         <div className="mb-3">
           <ChartTitle>Major universities · open one for what it is about and known for</ChartTitle>
@@ -1711,7 +1725,17 @@ function StateEducationPanel({ state }: { state: USState }) {
           </ChartNote>
         </div>
       )}
-      <SourceLink sources={[...(e ? [STATE_SOURCES.acs] : []), ...(schools.length > 0 ? [STATE_UNIVERSITIES_SOURCE] : [])]} className="mt-2" />
+      <SourceLink
+        sources={[
+          ...(e ? [STATE_SOURCES.acs] : []),
+          ...(pub?.grad != null ? [STATE_SCHOOLS_SOURCES.grad] : []),
+          ...(pub?.spend != null ? [STATE_SCHOOLS_SOURCES.spend] : []),
+          ...(pub?.ratio != null ? [STATE_SCHOOLS_SOURCES.ratio] : []),
+          ...(pub?.pupils != null ? [STATE_SCHOOLS_SOURCES.pupils] : []),
+          ...(schools.length > 0 ? [STATE_UNIVERSITIES_SOURCE] : []),
+        ]}
+        className="mt-2"
+      />
     </div>
   );
 }

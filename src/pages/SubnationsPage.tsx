@@ -91,6 +91,7 @@ import { ADMIN2_SOURCE, useAdmin2, useAdmin2Manifest } from "../lib/admin2";
 import { DIVISION_DETAILS_SOURCES, useDivisionDetails, type DivisionDetails, type Money } from "../lib/divisionDetails";
 import { DIVISION_POVERTY_SOURCE, EU_FLAG, EU_POVERTY_SOURCES, useDivisionEuPoverty, useDivisionPoverty, type DivisionPoverty, type EuFigure, type EuPoverty } from "../lib/divisionPoverty";
 import { useCountyBea, type BeaFile } from "../lib/countyBea";
+import { STATE_SCHOOLS, STATE_SCHOOLS_SOURCES } from "../data/stateSchools";
 import { regionalSaid, regionalValue, useRegionalFigures, type RegionalFigure } from "../lib/regionalFigures";
 import { liveRecord, type LiveRecord } from "../lib/liveRecord";
 import { framed, outlineParts, outlinesOf, placesWithin, useAdmin1, useCountyOutline } from "../lib/outlines";
@@ -510,6 +511,9 @@ function partsOf(s: Subnation, d?: DivisionDetails, pov?: DivisionPoverty, eu?: 
     return { label, value: r?.value, sub: r ? `${theirs} · ${r.sub}` : undefined };
   };
   if (m) [STATE_SOURCES.population, STATE_SOURCES.acs, STATE_SOURCES.bea, STATE_SOURCES.bls, STATE_SOURCES.fec, STATE_SOURCES.congress].forEach(cite);
+  /* A US state's public schools, where NCES's tables give them. */
+  const pub = m ? STATE_SCHOOLS[s.name] : undefined;
+  if (pub) Object.values(STATE_SCHOOLS_SOURCES).forEach((x) => cite(x));
   else if (ci) cite({ label: COUNTRY_INDICATORS_SOURCE.label, url: COUNTRY_INDICATORS_SOURCE.url });
   if (head) cite(REPRESENTATIVES_SOURCES.wikidata), cite(REPRESENTATIVES_SOURCES.wikipedia);
   if (s.flag) cite(SUBNATIONS_SOURCES.commons);
@@ -794,6 +798,11 @@ function partsOf(s: Subnation, d?: DivisionDetails, pov?: DivisionPoverty, eu?: 
         ? [
             { label: "Education: a bachelor's degree or higher", value: `${m.education.bachelorsOrHigherPct}%`, sub: `of people 25 and over · ${m.education.y}` },
             { label: "Education: finished high school", value: `${m.education.highSchoolOrHigherPct}%`, sub: `of people 25 and over · ${m.education.y}` },
+            // Its public schools: the National Center for Education Statistics' state tables.
+            ...held("Education: public high school graduation rate", pub?.grad != null && `${pub.grad}%`, `finishing in four years · ${STATE_SCHOOLS_SOURCES.grad.year} · NCES`),
+            ...held("Education: spent on each public school pupil", pub?.spend != null && usd(pub.spend), `current spending, a year · ${STATE_SCHOOLS_SOURCES.spend.year} · NCES`),
+            ...held("Education: pupils to a teacher", pub?.ratio != null && pub.ratio.toFixed(1), `public schools · ${STATE_SCHOOLS_SOURCES.ratio.year} · NCES`),
+            ...held("Education: pupils in public schools", pub?.pupils != null && whole(pub.pupils), `${STATE_SCHOOLS_SOURCES.pupils.year} · NCES`),
             { label: "Health", value: null },
             { label: "Inequality", value: null },
             { label: "Poverty: below the poverty line", value: poor != null ? `${poor}%` : null, sub: `of people · ${m.poverty.y}` },
