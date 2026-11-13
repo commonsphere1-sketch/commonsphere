@@ -724,7 +724,9 @@ export function CrimeStatsPage() {
               A country's crime is as its own police and health records give it to UNODC, the United Nations Office on Drugs and Crime: victims of intentional homicide,
               and the offences its police recorded, each per 100,000 people, for each year from 2003 it reported. What counts as each offence, and how much of it is
               reported to the police, differ from country to country and change over time: a line's rise or fall can be a change in recording as well as in crime. A
-              year not reported is a gap in its line. The United Kingdom reports its three jurisdictions apart, and Iraq its Kurdistan Region apart from the rest. Drug
+              year not reported is a gap in its line. The United Kingdom reports its three jurisdictions apart, and Iraq its Kurdistan Region apart from the rest. A country's states,
+              provinces and regions are the OECD's regional homicide rates, from each country's own statistics as the OECD gathers them, for the 46 countries its regional
+              database holds, each year from 1995 it gives. Drug
               offences are not held place by place: UNODC's files of offences recorded do not give them.
             </p>
           }
