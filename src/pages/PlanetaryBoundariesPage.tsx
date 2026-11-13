@@ -17,6 +17,7 @@ import type { FigureCard } from "../data/climateFigures";
 import { LIFE_CARDS, LIFE_CHECKED } from "../data/lifeOnEarth";
 import { EndangeredSpeciesList, NewSpeciesList } from "../components/SpeciesLists";
 import ClimateNowExplorer from "../components/ClimateNowExplorer";
+import { PlaceHistory } from "../components/PlaceHistory";
 import ClimateWatch from "../components/ClimateWatch";
 import EarthStatus from "../components/EarthStatus";
 import {
@@ -529,6 +530,22 @@ export function PlanetaryBoundariesPage() {
               place a story is about, violet for more than one. Each links to the outlet.
             </>
           )}
+        />
+
+        {/* ── CLIMATE HISTORY, PLACE BY PLACE, as asked: each country's, and its divisions' where they are published ── */}
+        <PlaceHistory
+          topic="climate"
+          title="Climate history, place by place"
+          chooserLabel="Choose a country to see its climate history"
+          empty="No climate history is held for {country}."
+          notes={
+            <p>
+              A country's climate is the Climatic Research Unit's record of the world's weather stations (CRU TS 4.09), set on a grid and averaged over the country by the
+              World Bank's Climate Change Knowledge Portal, each year since 1901: its mean temperature, the means of its days' highs and lows, and the rain and snow of
+              the year. Its emissions of carbon dioxide are the Global Carbon Budget's, from fossil fuels and industry, as Our World in Data publishes them - not from
+              land use, and where they are produced, not where the goods are used. A year a source does not give is not held.
+            </p>
+          }
         />
 
         {/* ── What is happening now, as a list beside a detail: the disasters under an alert, the countries struck, El Niño

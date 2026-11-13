@@ -5,6 +5,7 @@ import { useTheme } from "../contexts/ThemeContext";
 import { SourceLink } from "../components/SourceLink";
 import SlimBars, { gradId } from "../components/SlimBars";
 import { HeadlinesBanner } from "../components/HeadlinesBanner";
+import { PlaceHistory } from "../components/PlaceHistory";
 
 // The explorer of revolutions, protests, boycotts and internal conflicts, with its accounts: loaded when the page reaches it.
 const UnrestExplorer = lazy(() => import("../components/UnrestExplorer"));
@@ -703,6 +704,23 @@ export function CrimeStatsPage() {
               is about, violet for more than one. Each links to the outlet.
             </>
           )}
+        />
+
+        {/* ── CRIME HISTORY, PLACE BY PLACE, as asked: each country's, and its divisions' where they are published ── */}
+        <PlaceHistory
+          topic="crime"
+          title="Crime history, place by place"
+          chooserLabel="Choose a country to see its crime history"
+          empty="No crime history is held for {country}: it has reported no year to UNODC."
+          className=""
+          notes={
+            <p>
+              A country's crime is as its own police and health records give it to UNODC, the United Nations Office on Drugs and Crime: victims of intentional homicide,
+              and the offences its police recorded, each per 100,000 people, for each year from 2003 it reported. What counts as each offence, and how much of it is
+              reported to the police, differ from country to country and change over time: a line's rise or fall can be a change in recording as well as in crime. A
+              year not reported is not held. The United Kingdom reports its three jurisdictions apart, and Iraq its Kurdistan Region apart from the rest.
+            </p>
+          }
         />
 
         {/* ── THE PAGE'S OWN EXPLORER: every published crime and justice figure, a list beside its detail ── */}

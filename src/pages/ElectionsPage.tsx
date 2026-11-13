@@ -21,6 +21,7 @@ import { useTheme } from "../contexts/ThemeContext";
 import { downloadCsv, type CsvCell } from "../lib/csv";
 import { lockScroll } from "../lib/scrollLock";
 import { WindowTitle } from "../components/WindowTitle";
+import { type Tip, TipCard } from "../components/TipCard";
 import { ArrowsIn, ArrowsOut, X } from "@phosphor-icons/react";
 
 /** A party's result: its share of the vote, its seats, and its place from left (0) to right (10) on ParlGov's scale. */
@@ -259,27 +260,6 @@ export default function ElectionsPage() {
         </p>
         <SourceLink sources={[ELECTION_HISTORY_SOURCES.wikidata, ELECTION_HISTORY_SOURCES.parlgov, ELECTION_HISTORY_SOURCES.vdem, { label: COUNTRY_POLITICS_SOURCE.label, url: COUNTRY_POLITICS_SOURCE.url }]} />
       </div>
-    </div>
-  );
-}
-
-type Tip = { x: number; y: number; title: string; lines: string[] };
-/**
- * The card by the pointer, for the timeline and the compass alike: frosted, as asked, so that it reads over what is under it
- * in a light page and a dark one; kept inside its box (`room`, the box's width).
- */
-function TipCard({ tip, room }: { tip: Tip; room: number }) {
-  return (
-    <div
-      className="absolute z-10 pointer-events-none rounded-lg border border-border bg-background/70 backdrop-blur-md backdrop-saturate-150 shadow-lg px-2.5 py-2 max-w-[18rem]"
-      style={{ left: Math.max(0, Math.min(tip.x + 14, room - 290)), top: tip.y + 14 }}
-    >
-      <p className="text-[11px] font-semibold font-sans text-foreground leading-snug">{tip.title}</p>
-      {tip.lines.map((l, i) => (
-        <p key={i} className="text-[10px] font-sans text-muted-foreground leading-snug mt-0.5">
-          {l}
-        </p>
-      ))}
     </div>
   );
 }
