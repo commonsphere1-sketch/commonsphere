@@ -285,42 +285,68 @@ function TipCard({ tip, room }: { tip: Tip; room: number }) {
 }
 
 /**
- * The governments' leaning, one way for the timeline and the compass alike: ParlGov's place for the prime minister's party,
- * left (0) to right (10), where ParlGov holds the country; elsewhere the political alignment Wikidata records for each head
- * of government's party at the start of the term - or, where no head of government's is recorded, each head of state's.
+ * The governments' leaning, as stretches of time, one way for the timeline and the compass alike. ParlGov's place for the
+ * prime minister's party, left (0) to right (10), where ParlGov holds the country - each cabinet until the next, or until
+ * a head of government it is not named after takes office (ParlGov's record ends before today: its last cabinet must not
+ * run on past the government that followed it); after its last, and wherever ParlGov does not hold the country, the
+ * political alignment Wikidata records for each head of government's party at the start of the term - or, where none is
+ * recorded for a head of government, each head of state's. A party given more than one alignment is not placed.
  */
-function leaningsOf(data: History) {
+type LeanSpan = { from: string; to: string; open: boolean; across: number; who: string; lean: string; source: "ParlGov" | "Wikidata" };
+/** A day from a date or a bare year. */
+const dayOf = (d: string, end = false) => (d.length > 4 ? d : `${d}-${end ? "12-31" : "01-01"}`);
+function leanSpans(data: History, today: string): LeanSpan[] {
   const leaders = data.leaders ?? [];
-  const pgLean = data.cabinets.filter((c) => typeof c.pmLeftRight === "number");
-  const leanRole: Leader["role"] = leaders.some((l) => l.role === "government" && alignAt(l.align) !== null) ? "government" : "state";
-  const wdLean = pgLean.length ? [] : leaders.filter((l) => l.role === leanRole && alignAt(l.align) !== null);
-  return { pgLean, wdLean, leanRole };
+  const pg = data.cabinets.filter((c) => typeof c.pmLeftRight === "number");
+  const govs = leaders.filter((l) => l.role === "government");
+  const wd = (l: Leader): LeanSpan | null => {
+    const step = alignAt(l.align);
+    if (step === null) return null;
+    const open = !l.to && Boolean(l.now);
+    return { from: dayOf(l.from), to: l.to ? dayOf(l.to, true) : open ? today : dayOf(l.from), open, across: (2 * step) / (ALIGN.length - 1) - 1, who: l.name, lean: `${l.party}: ${l.align}`, source: "Wikidata" };
+  };
+  if (!pg.length) {
+    const role: Leader["role"] = govs.some((l) => alignAt(l.align) !== null) ? "government" : "state";
+    return leaders.filter((l) => l.role === role).flatMap((l) => wd(l) ?? []);
+  }
+  const surname = (n: string) => n.trim().split(/\s+/).pop()!.toLowerCase();
+  const out: LeanSpan[] = [];
+  let until = "";
+  pg.forEach((c, i) => {
+    let to = pg[i + 1]?.start ?? today;
+    // A head of government the cabinet is not named after, taking office in its time: the cabinet's record ends there.
+    const other = govs.find((l) => dayOf(l.from) > c.start && dayOf(l.from) < to && !c.name.toLowerCase().includes(surname(l.name)));
+    if (other) to = dayOf(other.from);
+    out.push({ from: c.start, to, open: !pg[i + 1] && !other, across: (2 * c.pmLeftRight!) / 10 - 1, who: `${c.name} cabinet`, lean: `${c.pmParty}: ${c.pmLeftRight} on ParlGov's scale, left (0) to right (10)`, source: "ParlGov" });
+    until = to;
+  });
+  // After ParlGov's last cabinet, the heads of government Wikidata records, from where the cabinets end.
+  if (until < today)
+    for (const l of govs) {
+      const s = wd(l);
+      if (s && s.to > until) out.push({ ...s, from: s.from < until ? until : s.from });
+    }
+  return out;
 }
 
 /* ── The political compass, as asked ──────────────────────────────────────────
    Where the country stands in each year of the period chosen on the timeline: across, its government's leaning, left to
    right; up and down, how free its people are - V-Dem's civil liberties index - authoritarian at the top, libertarian at the
    foot. Two records set side by side, each with its source: not The Political Compass's own test, which scores a person's
-   answers and not a government. A year without both is not drawn. */
+   answers and not a government. A year without both is not drawn. build-compass-world.cjs places every country by these
+   same rules for the Dashboard. */
 type CompassPoint = { y: number; across: number; down: number; who: string; lean: string; source: string; civ: number };
-function compassPoints(data: History, from: number, to: number): CompassPoint[] {
-  const { pgLean, wdLean } = leaningsOf(data);
+function compassPoints(data: History, from: number, to: number, today: string): CompassPoint[] {
+  const spans = leanSpans(data, today);
   const out: CompassPoint[] = [];
   for (let y = from; y <= to; y++) {
     const civ = indexAt(data.indices?.civ, y);
     if (civ == null) continue;
-    // Who governed at the middle of the year.
+    // Who governed at the middle of the year: the last span begun by then that had not ended.
     const mid = `${y}-07-01`;
+    const s = [...spans].reverse().find((x) => x.from <= mid && (x.to > mid || (x.open && mid <= today)));
     // Libertarian (the freest) at the foot, authoritarian at the top: down is 1 at the foot.
-    const down = 2 * civ - 1;
-    if (pgLean.length) {
-      const c = [...pgLean].reverse().find((x) => x.start <= mid);
-      if (c) out.push({ y, across: (2 * c.pmLeftRight!) / 10 - 1, down, who: `${c.name} cabinet`, lean: `${c.pmParty}: ${c.pmLeftRight} on ParlGov's scale, left (0) to right (10)`, source: "ParlGov", civ });
-    } else {
-      const l = wdLean.find((x) => x.from <= mid && (x.to ? x.to >= mid : Boolean(x.now)));
-      const step = alignAt(l?.align);
-      if (l && step !== null) out.push({ y, across: (2 * step) / (ALIGN.length - 1) - 1, down, who: l.name, lean: `${l.party}: ${l.align}`, source: "Wikidata", civ });
-    }
+    if (s) out.push({ y, across: s.across, down: 2 * civ - 1, who: s.who, lean: s.lean, source: s.source, civ });
   }
   return out;
 }
@@ -389,8 +415,8 @@ const standing = (p: CompassPoint) =>
  * year drawn - that opens a window of its own, in the site's style, with the compass drawn large, each year's place in a
  * table, and what it is made of. It follows what the page shows: the country chosen, and the period chosen on the timeline.
  */
-function Compass({ data, from, to, country }: { data: History; from: number; to: number; country: string }) {
-  const points = useMemo(() => compassPoints(data, from, to), [data, from, to]);
+function Compass({ data, from, to, country, today }: { data: History; from: number; to: number; country: string; today: string }) {
+  const points = useMemo(() => compassPoints(data, from, to, today), [data, from, to, today]);
   const [open, setOpen] = useState(false);
   const last = points[points.length - 1];
   const label = `${country} on the political compass, ${from} to ${to}`;
@@ -623,7 +649,8 @@ function Timeline({ data, today, regimeInk, turning, country }: { data: History;
     { key: "conclave", label: "Papal conclaves", kinds: ["Conclave"] },
   ].filter((r) => data.elections.some((e) => r.kinds.includes(e.kind)));
 
-  const { pgLean, wdLean, leanRole } = leaningsOf(data);
+  /* The governments' leaning, as the compass reads it too. */
+  const spans = leanSpans(data, today);
   const freedoms = FREEDOMS.filter((fr) => data.indices?.[fr.key]);
   /* The year under the pointer, from where it is across the timeline. */
   const yearAtPointer = (e: React.MouseEvent) => {
@@ -785,45 +812,39 @@ function Timeline({ data, today, regimeInk, turning, country }: { data: History;
           },
         ]
       : []),
-    ...(pgLean.length || wdLean.length
+    ...(spans.length
       ? [
           {
             key: "leaning",
             label: "Government's leaning",
-            source: pgLean.length ? "ParlGov, PM's party 0–10" : `Wikidata, ${leanRole === "government" ? "head of gov't" : "head of state"}'s party`,
+            source: [...new Set(spans.map((s) => s.source))].length > 1 ? "ParlGov, then Wikidata" : spans[0].source === "ParlGov" ? "ParlGov, PM's party 0–10" : "Wikidata, head's party",
             height: 40,
             draw: (top: number) => {
-              const yOf = (pos: number, of: number) => top + 34 - (pos / of) * 28;
+              // Left (-1) at the foot, right (1) at the head.
+              const yOf = (across: number) => top + 34 - ((across + 1) / 2) * 28;
               return (
                 <>
-                  {/* The axis: left at the foot, right at the head. */}
                   <text x={G - 4} y={top + 10} textAnchor="end" fontSize={7.5} className="fill-muted-foreground" fontFamily="ui-monospace, monospace">right</text>
                   <text x={G - 4} y={top + 37} textAnchor="end" fontSize={7.5} className="fill-muted-foreground" fontFamily="ui-monospace, monospace">left</text>
-                  <line x1={G} x2={W - R} y1={yOf(1, 2)} y2={yOf(1, 2)} className="stroke-border" strokeOpacity={0.6} strokeDasharray="2 3" strokeWidth={0.6} />
-                  {pgLean.length
-                    ? pgLean.map((c, i) => {
-                        const a = xd(c.start);
-                        const next = pgLean[i + 1]?.start ?? today;
-                        const b = xd(next);
-                        const yy = yOf(c.pmLeftRight!, 10);
-                        return (
-                          <g key={`${c.start}-${i}`} {...hover(`${c.name} cabinet`, [`${day(c.start)} to ${pgLean[i + 1] ? day(next) : "now or its end"}`, `Prime minister's party: ${c.pmParty} - ${c.pmLeftRight} on ParlGov's scale, left (0) to right (10)`, "ParlGov"])}>
-                            <line x1={a} x2={Math.max(a + 2, b)} y1={yy} y2={yy} className="stroke-foreground" strokeWidth={2.4} strokeOpacity={0.75} strokeLinecap="round" />
-                            <circle cx={a} cy={yy} r={2.2} className="fill-foreground" />
-                          </g>
-                        );
-                      })
-                    : wdLean.map((l, i) => {
-                        const a = xs(l.from);
-                        const b = l.to ? (l.to.length > 4 ? xd(l.to) : x(yearOf(l.to) + 1)) : l.now ? xd(today) : a + 3;
-                        const yy = yOf(alignAt(l.align)!, 6);
-                        return (
-                          <g key={`${l.id}-${i}`} {...hover(l.name, [termOf(l), `${l.party}: ${l.align}`, "Wikidata: the party at the start of the term, and its political alignment"])}>
-                            <line x1={a} x2={Math.max(a + 2, b)} y1={yy} y2={yy} className="stroke-foreground" strokeWidth={2.4} strokeOpacity={0.75} strokeLinecap="round" />
-                            <circle cx={a} cy={yy} r={2.2} className="fill-foreground" />
-                          </g>
-                        );
-                      })}
+                  <line x1={G} x2={W - R} y1={yOf(0)} y2={yOf(0)} className="stroke-border" strokeOpacity={0.6} strokeDasharray="2 3" strokeWidth={0.6} />
+                  {spans.map((s, i) => {
+                    const a = xd(s.from);
+                    const b = xd(s.to);
+                    const yy = yOf(s.across);
+                    return (
+                      <g
+                        key={`${s.from}-${i}`}
+                        {...hover(s.who, [
+                          `${day(s.from)} to ${s.open ? "now or its end" : day(s.to)}`,
+                          s.lean,
+                          s.source === "ParlGov" ? "ParlGov: the prime minister's party, from experts' surveys" : "Wikidata: the party at the start of the term, and its political alignment",
+                        ])}
+                      >
+                        <line x1={a} x2={Math.max(a + 2, b)} y1={yy} y2={yy} className="stroke-foreground" strokeWidth={2.4} strokeOpacity={0.75} strokeLinecap="round" />
+                        <circle cx={a} cy={yy} r={2.2} className="fill-foreground" />
+                      </g>
+                    );
+                  })}
                 </>
               );
             },
@@ -983,7 +1004,7 @@ function Timeline({ data, today, regimeInk, turning, country }: { data: History;
       </p>
     </section>
     {/* The political compass, as asked: where the country stood in each year of the period chosen above. */}
-    <Compass data={data} from={y0} to={Math.min(year, y1)} country={country} />
+    <Compass data={data} from={y0} to={Math.min(year, y1)} country={country} today={today} />
     </>
   );
 }
