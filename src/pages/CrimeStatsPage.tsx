@@ -714,6 +714,7 @@ export function CrimeStatsPage() {
             { title: "Violent Crime", sub: "Recorded by the police, per 100,000 people", lines: [["robbery", "#ef4444"], ["assault", "#f59e0b"], ["kidnapping", "#6366f1"], ["sexualViolence", "#a855f7"], ["rape", "#ec4899"]] },
             { title: "Property Crime", sub: "Recorded by the police, per 100,000 people", lines: [["theft", "#f59e0b"], ["burglary", "#ef4444"], ["vehicleTheft", "#6366f1"], ["fraud", "#a855f7"]] },
             { title: "Cybercrime", sub: "Recorded by the police, per 100,000 people", lines: [["computerAccess", "#6366f1"]] },
+            { title: "Crime Severity", sub: "Statistics Canada's index · Canada in 2006 = 100", lines: [["csi", "#ef4444"], ["violentCsi", "#f59e0b"], ["nonViolentCsi", "#6366f1"]] },
             { title: "Corruption & Organised Crime", sub: "Recorded by the police, per 100,000 people", lines: [["corruption", "#ef4444"], ["bribery", "#f59e0b"], ["moneyLaundering", "#6366f1"], ["migrantSmuggling", "#a855f7"]] },
           ]}
           chooserLabel="Choose a country to see its crime history"
@@ -726,7 +727,8 @@ export function CrimeStatsPage() {
               reported to the police, differ from country to country and change over time: a line's rise or fall can be a change in recording as well as in crime. A
               year not reported is a gap in its line. The United Kingdom reports its three jurisdictions apart, and Iraq its Kurdistan Region apart from the rest. A country's states,
               provinces and regions are the OECD's regional homicide rates, from each country's own statistics as the OECD gathers them, for the 46 countries its regional
-              database holds, each year from 1995 it gives. Drug
+              database holds, each year from 1995 it gives. Canada, its provinces and territories and its 42 metropolitan areas have
+              Statistics Canada's crime severity index besides, each year since 1998: police-reported crime weighted by each offence's seriousness. Drug
               offences are not held place by place: UNODC's files of offences recorded do not give them.
             </p>
           }
