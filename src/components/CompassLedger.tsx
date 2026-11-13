@@ -57,8 +57,8 @@ export function CompassLedger() {
       <button
         type="button"
         onClick={() => setOpen(true)}
-        className="rounded-2xl p-5 w-full text-left flex items-center gap-5 cursor-pointer transition-opacity hover:opacity-90"
-        style={{ background: t.cardBg, border: t.cardBorder, boxShadow: t.cardShadow }}
+        // No frame, as asked: the bar sits on the page, and lights when pointed at.
+        className="rounded-2xl p-5 w-full text-left flex items-center gap-5 cursor-pointer transition-colors hover:bg-muted/50"
         aria-label="Open the political compass: every idea on its grid, and what each part means"
       >
         <span className="w-28 shrink-0 text-foreground">
