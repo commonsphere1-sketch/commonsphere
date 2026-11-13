@@ -15,7 +15,7 @@ import {
 } from "../data/planetaryBoundaries";
 import type { FigureCard } from "../data/climateFigures";
 import { LIFE_CARDS, LIFE_CHECKED } from "../data/lifeOnEarth";
-import { EndangeredSpeciesList, NewSpeciesList } from "../components/SpeciesLists";
+import { EndangeredSpeciesList, NewSpeciesList, type SpeciesWhere } from "../components/SpeciesLists";
 import { PlaceHistory } from "../components/PlaceHistory";
 import ClimateWatch from "../components/ClimateWatch";
 import EarthStatus from "../components/EarthStatus";
@@ -492,6 +492,8 @@ export function PlanetaryBoundariesPage() {
   const { theme } = useTheme();
   const isLight = theme === "light";
   const [selectedId, setSelectedId] = useState<string>("climate");
+  // The place chosen in the climate history, which the species lists follow, as asked.
+  const [where, setWhere] = useState<SpeciesWhere | undefined>(undefined);
 
   const mutedText = isLight ? "rgba(30,41,59,0.64)" : "rgba(255,255,255,0.66)";
   const headText = isLight ? "#0f172a" : "#f1f0ff";
@@ -535,6 +537,7 @@ export function PlanetaryBoundariesPage() {
         <PlaceHistory
           topic="climate"
           title="Climate history, place by place"
+          onPlace={setWhere}
           accent="#06b6d4"
           groups={[
             { title: "Temperature", sub: "Means of the year", lines: [["tempMax", "#ef4444"], ["temp", "#f59e0b"], ["tempMin", "#3b82f6"], ["tempMaxF", "#ef4444"], ["tempF", "#f59e0b"], ["tempMinF", "#3b82f6"]], kind: "band" },
@@ -757,8 +760,8 @@ export function PlanetaryBoundariesPage() {
             <FigureCardView key={card.id} card={card} isLight={isLight} headText={headText} mutedText={mutedText} gridLine={gridLine} />
           ))}
           {/* The species themselves: those newly named, and those endangered with about how many are left. */}
-          <NewSpeciesList />
-          <EndangeredSpeciesList />
+          <NewSpeciesList where={where} />
+          <EndangeredSpeciesList where={where} />
         </div>
 
         {/* The cards of the most-asked environmental figures (data/climateFigures.ts) stood here and were taken off as asked. */}

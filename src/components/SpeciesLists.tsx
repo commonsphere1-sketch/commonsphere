@@ -9,13 +9,72 @@
  * name, narrowed by a few chips, and scrolls inside itself, in the look of
  * the page's figure cards. A number left is the list's own wording; an
  * account of a new species is its article's own opening.
+ *
+ * As asked, both follow the place chosen in the page's climate history (`where`): the species living in its country - or
+ * in the division chosen, where a species' record names it - by where they live (build-species-places.cjs: the places
+ * Wikidata records each as endemic to or its taxon range, as countries, and for a new species the countries its own
+ * article names), with "All the world" a press away. A species no record places is shown only under all the world.
  */
-import { useMemo, useState, type ReactNode } from "react";
+import { useEffect, useMemo, useState, type ReactNode } from "react";
+import { countriesData } from "../data/countriesData";
 import { MagnifyingGlass, MapPin, TrendDown, TrendUp, X } from "@phosphor-icons/react";
 import { ENDANGERED_LISTS, ENDANGERED_SOURCES, ENDANGERED_SPECIES } from "../data/endangeredSpecies";
 import { NEW_SPECIES, NEW_SPECIES_SOURCES } from "../data/newSpecies";
 import { SourceLink } from "./SourceLink";
 import { StyledSelect } from "./StyledSelect";
+
+/** The place chosen in the page's climate history: its country, and the divisions within it chosen (the nearest first). */
+export type SpeciesWhere = { cc: string; country: string; divisions: string[] };
+type Placed = Record<string, { cc: string[]; places: { name: string; cc?: string; via: "endemic" | "range" | "article" }[] }>;
+const COUNTRY = new Map(countriesData.map((c) => [c.code, c.name]));
+let placesRead: Promise<Placed> | null = null;
+/** Where each species lives, read once for both lists. */
+function usePlaces() {
+  const [placed, setPlaced] = useState<Placed | null>(null);
+  useEffect(() => {
+    let live = true;
+    placesRead ??= fetch("/species/places.json").then((r) => (r.ok ? (r.json() as Promise<Placed>) : {}));
+    void placesRead.then((p) => live && setPlaced(p)).catch(() => live && setPlaced({}));
+    return () => {
+      live = false;
+    };
+  }, []);
+  return placed;
+}
+/**
+ * The species of a list that live in the place chosen: those whose record names the nearest division chosen, else those
+ * of its country; and what that place is called.
+ */
+function speciesHere<T extends { scientific: string }>(all: T[], placed: Placed | null, where?: SpeciesWhere): { here: T[]; at: string } | null {
+  if (!where || !placed) return null;
+  for (const d of where.divisions) {
+    const here = all.filter((s) => placed[s.scientific]?.places.some((p) => p.name === d));
+    if (here.length) return { here, at: d };
+  }
+  return { here: all.filter((s) => placed[s.scientific]?.cc.includes(where.cc)), at: where.country };
+}
+/** A species' countries, said short. */
+const countriesOf = (placed: Placed | null, scientific: string) => {
+  const cc = placed?.[scientific]?.cc ?? [];
+  const names = cc.map((c) => COUNTRY.get(c) ?? c);
+  return names.length > 3 ? `${names.slice(0, 3).join(", ")} and ${names.length - 3} more` : names.join(", ");
+};
+/** The chips that choose between the place and all the world. */
+function WhereChips({ where, at, n, here, setHere }: { where?: SpeciesWhere; at?: string; n: number; here: boolean; setHere: (v: boolean) => void }) {
+  if (!where || !at) return null;
+  return (
+    <div className="flex flex-wrap items-center gap-1.5">
+      <Chip on={here} onClick={() => setHere(true)}>
+        <MapPin size={10} weight="fill" aria-hidden /> {at} · {n}
+      </Chip>
+      <Chip on={!here} onClick={() => setHere(false)}>
+        All the world
+      </Chip>
+    </div>
+  );
+}
+const PLACES_NOTE =
+  "Where a species lives is the places Wikidata records it as endemic to or its taxon range, each as its country, and for a newly described species also the countries its own article names; a species no record places is shown only under all the world.";
 
 const wiki = (title: string) => `https://en.wikipedia.org/wiki/${encodeURIComponent(title.replace(/ /g, "_"))}`;
 const STATUS = {
@@ -68,24 +127,30 @@ function Chip({ on, onClick, color, children }: { on: boolean; onClick: () => vo
 }
 
 /** Endangered and critically endangered mammals and birds, fewest left first. */
-export function EndangeredSpeciesList() {
+export function EndangeredSpeciesList({ where }: { where?: SpeciesWhere }) {
+  const placed = usePlaces();
+  const [here, setHere] = useState(true);
+  useEffect(() => setHere(true), [where?.cc, where?.divisions.join()]);
+  const local = useMemo(() => speciesHere(ENDANGERED_SPECIES, placed, where), [placed, where]);
+  const base = here && local ? local.here : ENDANGERED_SPECIES;
   const [search, setSearch] = useState("");
   const [status, setStatus] = useState<"CR" | "EN" | null>(null);
   const [group, setGroup] = useState("all");
   const groups = useMemo(() => [...new Set(ENDANGERED_SPECIES.map((s) => s.group))].sort(), []);
   const q = search.trim().toLowerCase();
   const list = useMemo(
-    () => ENDANGERED_SPECIES.filter((s) => (!status || s.status === status) && (group === "all" || s.group === group) && (!q || s.name.toLowerCase().includes(q) || s.scientific.toLowerCase().includes(q))),
-    [q, status, group],
+    () => base.filter((s) => (!status || s.status === status) && (group === "all" || s.group === group) && (!q || s.name.toLowerCase().includes(q) || s.scientific.toLowerCase().includes(q))),
+    [base, q, status, group],
   );
-  const of = (st: "CR" | "EN") => ENDANGERED_SPECIES.filter((s) => s.status === st).length;
+  const of = (st: "CR" | "EN") => base.filter((s) => s.status === st).length;
   return (
     <ListCard
       kicker="Endangered species"
       title="Endangered species, and about how many are left"
-      count={`${list.length} of ${ENDANGERED_SPECIES.length} mammals and birds · fewest left first`}
+      count={here && local ? `${list.length} of the ${ENDANGERED_SPECIES.length} mammals and birds live in ${local.at} · fewest left first` : `${list.length} of ${ENDANGERED_SPECIES.length} mammals and birds · fewest left first`}
       controls={
         <div className="flex flex-col gap-2">
+          <WhereChips where={where} at={local?.at} n={local?.here.length ?? 0} here={here} setHere={setHere} />
           <Search value={search} onChange={setSearch} label="Search a species by name" />
           <div className="flex flex-wrap items-center gap-1.5">
             <Chip on={status === null} onClick={() => setStatus(null)}>
@@ -108,7 +173,8 @@ export function EndangeredSpeciesList() {
             Each row is from one of Wikipedia's lists of mammals and birds by population ({ENDANGERED_LISTS.length} lists), and is here only where Wikidata holds the same Red List category for the
             same scientific name: {ENDANGERED_SOURCES.kept} of {ENDANGERED_SOURCES.listed} rows. {ENDANGERED_SOURCES.noCategory + ENDANGERED_SOURCES.categoryDiffers} are left out because the two records
             do not agree - most are subspecies. The number left is an estimate in the list's own words, often of mature animals only. Reptiles, amphibians, fish, plants and insects are not in
-            these lists, so this is not every endangered species: the IUCN Red List is the list of record.
+            these lists, so this is not every endangered species: the IUCN Red List is the list of record. {PLACES_NOTE}{" "}
+            {placed ? `${ENDANGERED_SPECIES.filter((s) => placed[s.scientific]?.cc.length).length} of these ${ENDANGERED_SPECIES.length} are placed.` : ""}
           </p>
           <SourceLink sources={[ENDANGERED_SOURCES.hub, ENDANGERED_SOURCES.wikidata, ENDANGERED_SOURCES.redList]} className="mt-2" />
         </>
@@ -123,6 +189,7 @@ export function EndangeredSpeciesList() {
             </a>
             <span className="block text-[10px] font-sans text-muted-foreground truncate">
               <i>{s.scientific}</i> · {s.group} · {STATUS[s.status].label}
+              {countriesOf(placed, s.scientific) && ` · ${countriesOf(placed, s.scientific)}`}
             </span>
           </span>
           <span className="text-right shrink-0">
@@ -135,13 +202,18 @@ export function EndangeredSpeciesList() {
           </span>
         </li>
       ))}
-      {list.length === 0 && <li className="py-6 text-center text-[11px] font-sans text-muted-foreground">No species in the list matches.</li>}
+      {list.length === 0 && <li className="py-6 text-center text-[11px] font-sans text-muted-foreground">{here && local && !local.here.length ? `None of these species is recorded as living in ${local.at}.` : "No species in the list matches."}</li>}
     </ListCard>
   );
 }
 
 /** Species described in the last few years: what each is, and where it was found. */
-export function NewSpeciesList() {
+export function NewSpeciesList({ where }: { where?: SpeciesWhere }) {
+  const placed = usePlaces();
+  const [here, setHere] = useState(true);
+  useEffect(() => setHere(true), [where?.cc, where?.divisions.join()]);
+  const local = useMemo(() => speciesHere(NEW_SPECIES, placed, where), [placed, where]);
+  const base = here && local ? local.here : NEW_SPECIES;
   const [search, setSearch] = useState("");
   const [year, setYear] = useState<number | null>(null);
   const [group, setGroup] = useState("all");
@@ -149,16 +221,17 @@ export function NewSpeciesList() {
   const groups = useMemo(() => [...new Set(NEW_SPECIES.map((s) => s.group))].sort(), []);
   const q = search.trim().toLowerCase();
   const list = useMemo(
-    () => NEW_SPECIES.filter((s) => (!year || s.year === year) && (group === "all" || s.group === group) && (!q || [s.article, s.scientific, s.said, s.where ?? ""].some((x) => x.toLowerCase().includes(q)))),
-    [q, year, group],
+    () => base.filter((s) => (!year || s.year === year) && (group === "all" || s.group === group) && (!q || [s.article, s.scientific, s.said, s.where ?? ""].some((x) => x.toLowerCase().includes(q)))),
+    [base, q, year, group],
   );
   return (
     <ListCard
       kicker="Species discovered"
       title="Recently described species: what they are, and where they were found"
-      count={`${list.length} of ${NEW_SPECIES.length} species · newest first`}
+      count={here && local ? `${list.length} of the ${NEW_SPECIES.length} species live in ${local.at} · newest first` : `${list.length} of ${NEW_SPECIES.length} species · newest first`}
       controls={
         <div className="flex flex-col gap-2">
+          <WhereChips where={where} at={local?.at} n={local?.here.length ?? 0} here={here} setHere={setHere} />
           <Search value={search} onChange={setSearch} label="Search a species, a place or a word" />
           <div className="flex flex-wrap items-center gap-1.5">
             <Chip on={year === null} onClick={() => setYear(null)}>
@@ -166,7 +239,7 @@ export function NewSpeciesList() {
             </Chip>
             {years.map((y) => (
               <Chip key={y} on={year === y} onClick={() => setYear(year === y ? null : y)}>
-                {y} · {NEW_SPECIES.filter((s) => s.year === y).length}
+                {y} · {base.filter((s) => s.year === y).length}
               </Chip>
             ))}
             <span className="ml-auto">
@@ -180,7 +253,8 @@ export function NewSpeciesList() {
           <p className="text-[10px] font-sans leading-relaxed text-muted-foreground mt-3">
             From the {NEW_SPECIES_SOURCES.articles.toLocaleString("en-US")} articles Wikipedia files under species described in these years: kept where Wikidata also holds the subject as a species named in
             that year and the article's opening says enough ({NEW_SPECIES_SOURCES.agreed}), then the fullest few of each group and year. What is said of a species is its article's own opening, and
-            the place is its own words. It is a sample of what has been written up, not a count: some sixteen thousand species are described a year.
+            the place is its own words. It is a sample of what has been written up, not a count: some sixteen thousand species are described a year. {PLACES_NOTE}{" "}
+            {placed ? `${NEW_SPECIES.filter((s) => placed[s.scientific]?.cc.length).length} of these ${NEW_SPECIES.length} are placed.` : ""}
           </p>
           <SourceLink sources={[NEW_SPECIES_SOURCES.wikipedia, NEW_SPECIES_SOURCES.wikidata]} className="mt-2" />
         </>
@@ -204,7 +278,7 @@ export function NewSpeciesList() {
           <p className="text-[11px] font-sans leading-relaxed text-muted-foreground mt-1">{s.said}</p>
         </li>
       ))}
-      {list.length === 0 && <li className="py-6 text-center text-[11px] font-sans text-muted-foreground">No species in the list matches.</li>}
+      {list.length === 0 && <li className="py-6 text-center text-[11px] font-sans text-muted-foreground">{here && local && !local.here.length ? `None of these species is recorded as living in ${local.at}.` : "No species in the list matches."}</li>}
     </ListCard>
   );
 }

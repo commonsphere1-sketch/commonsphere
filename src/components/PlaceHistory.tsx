@@ -88,6 +88,7 @@ export function PlaceHistory({
   groups,
   tiles = [],
   compare = [],
+  onPlace,
   chooserLabel,
   notes,
   empty,
@@ -102,6 +103,8 @@ export function PlaceHistory({
   tiles?: string[];
   /** The figures to rank the place's parts by, where three or more of them have it. */
   compare?: string[];
+  /** Told the place chosen - its country, and the divisions within it chosen, the nearest first - for the rest of the page to follow. */
+  onPlace?: (where: { cc: string; country: string; divisions: string[] }) => void;
   chooserLabel: string;
   notes: ReactNode;
   /** Said where a country has no history held ("{country}" is its name). */
@@ -165,6 +168,10 @@ export function PlaceHistory({
   const shownFile = part ? parts! : file;
   // The place it is part of: a county's state, a state's country.
   const above = part ? place : shown?.parent ? file?.places.find((q) => q.id === shown.parent) : undefined;
+  useEffect(() => {
+    onPlace?.({ cc: country.code, country: country.name, divisions: [part?.name, place && place.kind !== "country" ? place.name : undefined].filter((n): n is string => Boolean(n)) });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [country.code, country.name, part?.id, place?.id]);
   const kinds = useMemo(() => {
     const g = new Map<string, Place[]>();
     for (const p of file?.places ?? []) g.set(p.kind, [...(g.get(p.kind) ?? []), p]);
