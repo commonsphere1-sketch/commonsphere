@@ -617,7 +617,11 @@ function AreaMiniMap({ t, code, country, place, city }: { t: Tokens; code: strin
   );
 }
 
-export default function WorldviewMap() {
+/**
+ * `onPlace` is told the place chosen on the map - its country, and the region and county or city pressed within it, the
+ * nearest first - for the page's other sections to follow (the climate strip and the species, as asked).
+ */
+export default function WorldviewMap({ onPlace }: { onPlace?: (where: { cc: string; country: string; divisions: string[] }) => void } = {}) {
   const t = useTokens();
   const [hover, setHover] = useState<string | null>(null);
   /** The country whose figures fill the panels under the map. */
@@ -1129,6 +1133,10 @@ export default function WorldviewMap() {
   }, [toFind, picked, regions, counties, countiesShown]);
   const shown = hover ? shapeOf(hover) : null;
   const pickedName = shapeOf(picked)?.name ?? picked;
+  useEffect(() => {
+    onPlace?.({ cc: picked, country: pickedName, divisions: [pressed?.name, region].filter((n): n is string => Boolean(n)) });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [picked, pickedName, region, pressed?.name]);
   return (
     <>
     <CountryHoverCard ref={card} />

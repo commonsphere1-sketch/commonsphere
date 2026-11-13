@@ -4,6 +4,9 @@ import { ChipRow } from "../components/ChipRow";
 import { createContext, lazy, Suspense, useCallback, useContext, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 /** The world map across the top of the page, with its outlines: loaded after the page. */
 const WorldviewMap = lazy(() => import("../components/WorldviewMap"));
+import { PlaceStripes } from "../components/PlaceHistory";
+import { LifeOnEarth } from "../components/LifeOnEarth";
+import type { SpeciesWhere } from "../components/SpeciesLists";
 import { useNavigate } from "react-router-dom";
 import {
   ArrowDownRight,
@@ -3208,6 +3211,8 @@ export function Rankings() {
 
 export function WorldviewPage() {
   const [modal, setModal] = useState<ModalState | null>(null);
+  // The place chosen on the map, which the climate strip and the species follow, as asked.
+  const [where, setWhere] = useState<SpeciesWhere | undefined>(undefined);
   const openWindow = useCallback((pillar: Pillar, figure?: Figure) => setModal({ pillar, figure: figure ?? null }), []);
   const closeWindow = useCallback(() => setModal(null), []);
   return (
@@ -3220,8 +3225,13 @@ export function WorldviewPage() {
         {/* ── The world, country by country, across the top: the page is set out after the reference design it was given -
             the map first, then a mosaic of panels - in the site's own colours, as asked. ── */}
         <Suspense fallback={<div className="rounded-2xl h-[28rem] modal-tile animate-pulse" aria-hidden />}>
-          <WorldviewMap />
+          <WorldviewMap onPlace={setWhere} />
         </Suspense>
+
+        {/* ── The place chosen on the map, as asked: its own years of temperature in colour, and Life on Earth - its species,
+            and what ecological projects have done - both moved here from the Climate page. ── */}
+        <PlaceStripes where={where} />
+        <LifeOnEarth where={where} />
 
         {/* ── Overview: the wheel of the pillars. The headline figures beside it (HeadlinePills) were taken off, as asked. ── */}
         <section id="overview" className="scroll-mt-36">

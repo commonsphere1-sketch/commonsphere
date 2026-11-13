@@ -792,3 +792,79 @@ function EventsCard({ t, accent, topic, cc, country }: { t: Tokens; accent: stri
     </div>
   );
 }
+
+/** A county's name without its kind ("Baldwin County" - "Baldwin"), for matching the map's names to the records'. */
+const bareName = (n: string) => n.replace(/ (County|Parish|Borough|Census Area|City and Borough|Municipality|city)$/i, "").trim();
+
+/**
+ * Each year in colour for a place chosen elsewhere on the site, as asked for the Worldview page: the place's own mean
+ * temperature record - its country's, or the division's or county's the map names where the records hold it - across the
+ * whole width, as the Climate page's history draws it.
+ */
+export function PlaceStripes({ where }: { where?: { cc: string; country: string; divisions: string[] } }) {
+  const t = useTokens();
+  const [found, setFound] = useState<{ place: Place; file: HistoryFile } | null>(null);
+  useEffect(() => {
+    let live = true;
+    setFound(null);
+    if (!where) return;
+    (async () => {
+      const r = await fetch(`/climate/history/${where.cc}.json`);
+      if (!r.ok || !r.headers.get("content-type")?.includes("json")) return;
+      const file = (await r.json()) as HistoryFile;
+      const match = (p: Place, d: string) => p.name === d || bareName(p.name) === bareName(d);
+      // The nearest division the record holds, and within it the county the map names, where its parts are held.
+      let place = file.places.find((p) => p.kind === "country");
+      let from = file;
+      for (const d of [...where.divisions].reverse()) {
+        const hit = from.places.find((p) => p.kind !== "country" && match(p, d));
+        if (!hit) continue;
+        place = hit;
+        if (from === file && file.more?.[hit.id]) {
+          const m = await fetch(`/climate/history/more/${hit.id}.json`);
+          if (m.ok) {
+            const parts = (await m.json()) as HistoryFile;
+            const county = where.divisions.map((x) => parts.places.find((p) => match(p, x))).find(Boolean);
+            if (county) {
+              place = county;
+              from = parts;
+            }
+          }
+        }
+        if (from !== file) break;
+      }
+      if (live && place) setFound({ place, file: from });
+    })().catch(() => {});
+    return () => {
+      live = false;
+    };
+  }, [where?.cc, where?.divisions.join("|")]);
+  if (!found) return null;
+  const k = ["temp", "tempF"].find((x) => found.place.series[x] && found.file.defs[x]);
+  if (!k) return null;
+  const s = found.place.series[k];
+  const lo = s[0] as number;
+  const hi = lastYear(s);
+  const def = found.file.defs[k];
+  const source = found.file.sources[found.place.from[k]];
+  const name = found.place.kind === "country" ? found.place.name : `${found.place.name}, ${where?.country}`;
+  return (
+    <StripesCard
+      common={{
+        t,
+        accent: "#06b6d4",
+        title: `Each Year in Colour · ${name}`,
+        sub: "The year's mean temperature",
+        years: `${lo}–${hi}`,
+        sources: source ? [source] : [],
+        csv: { name: `${name} - each year in colour`, header: ["year", `${def.label} (${UNIT_SAID[def.unit] ?? def.unit})`], rows: Array.from({ length: hi - lo + 1 }, (_, i) => [hi - i, at(s, hi - i)]) },
+        notes: source?.note,
+      }}
+      place={found.place}
+      k={k}
+      def={def}
+      lo={lo}
+      hi={hi}
+    />
+  );
+}
