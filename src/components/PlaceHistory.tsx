@@ -275,11 +275,20 @@ export function PlaceHistory({
         )}
       </div>
 
+      {/* The years in colour first, across the whole width, as asked: above every other figure. */}
+      {shown &&
+        shownFile &&
+        cards
+          .filter((g) => g.kind === "stripes")
+          .map((g) => <HistoryCard key={`${shown.id}-${g.title}`} t={t} accent={accent} group={g} place={shown} file={shownFile} above={above} />)}
+
       {shown && shownFile && cards.length > 0 && (
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-          {cards.map((g) => (
-            <HistoryCard key={`${shown.id}-${g.title}`} t={t} accent={accent} group={g} place={shown} file={shownFile} above={above} />
-          ))}
+          {cards
+            .filter((g) => g.kind !== "stripes")
+            .map((g) => (
+              <HistoryCard key={`${shown.id}-${g.title}`} t={t} accent={accent} group={g} place={shown} file={shownFile} above={above} />
+            ))}
           {amongFile &&
             ranks.map((k) => (
               <RankCard key={`rank-${k}`} t={t} accent={accent} k={k} places={among} file={amongFile} shown={shown} whole={shown.kind === "country" || !part ? shown : above} />
