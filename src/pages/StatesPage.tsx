@@ -3,6 +3,7 @@ import { SUBNATION_FLAG_COLOR } from "../data/subnationFlagColors";
 import { seen } from "../lib/flagColor";
 import React, { useState, useEffect, lazy, Suspense } from "react";
 import { SLIM_TRACK, slimFill } from "../components/SlimBars";
+import { FilterSelect } from "../components/FilterSelect";
 import { useNavigate } from "react-router-dom";
 import { SiteMark } from "../components/SiteMark";
 import {
@@ -7326,17 +7327,7 @@ export function StatesPage() {
             </button>
           ))}
           <div className="w-px h-5 bg-border shrink-0" />
-          <select
-            aria-label="Sort results"
-            value={sortBy}
-            onChange={(e) => setSortBy(e.target.value as any)}
-            className="bg-transparent text-[11px] font-medium text-muted-foreground font-sans focus:outline-none cursor-pointer shrink-0"
-          >
-            <option value="gdp">Sort: GDP</option>
-            <option value="population">Sort: Population</option>
-            <option value="medianIncome">Sort: Median Income</option>
-            <option value="unemploymentRate">Sort: Unemployment</option>
-          </select>
+          <FilterSelect label="Sort results" value={sortBy} onChange={(v) => setSortBy(v as any)} options={[{ value: "gdp", label: "Sort: GDP" }, { value: "population", label: "Sort: Population" }, { value: "medianIncome", label: "Sort: Median Income" }, { value: "unemploymentRate", label: "Sort: Unemployment" }]} />
         </FilterBar>
 
         {/* ── US headlines and dates to watch: national news, stories naming a state, elections, data releases ── */}

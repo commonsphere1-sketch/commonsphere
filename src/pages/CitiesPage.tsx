@@ -16,6 +16,7 @@
  * body publishes for every city alike is not shown.
  */
 import { PageHeader } from "../components/PageHeader";
+import { FilterSelect } from "../components/FilterSelect";
 import React, { useState, useEffect, useMemo, lazy, Suspense } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { CITY_PLACES } from "../data/cityPlaces";
@@ -938,21 +939,7 @@ export function CitiesPage() {
             </button>
           ))}
           <div className="w-px h-4 bg-border shrink-0" />
-          <select
-            aria-label="The order of the countries"
-            value={order}
-            onChange={(e) => setOrder(e.target.value as CityOrder)}
-            className="bg-transparent text-[11px] font-medium text-muted-foreground font-sans focus:outline-none cursor-pointer shrink-0"
-          >
-            <option value="populous">Sort: Most populated countries</option>
-            <option value="largest">Sort: Largest city</option>
-
-            <option value="people">Sort: People in their cities</option>
-            <option value="rich">Sort: Richest countries</option>
-            <option value="cities">Sort: Number of cities</option>
-            <option value="name">Sort: Name</option>
-
-          </select>
+          <FilterSelect label="The order of the countries" value={order} onChange={(v) => setOrder(v as CityOrder)} options={[{ value: "populous", label: "Sort: Most populated countries" }, { value: "largest", label: "Sort: Largest city" }, { value: "people", label: "Sort: People in their cities" }, { value: "rich", label: "Sort: Richest countries" }, { value: "cities", label: "Sort: Number of cities" }, { value: "name", label: "Sort: Name" }]} />
         </FilterBar>
 
         {/* ── City headlines: news naming a city profiled here ── */}

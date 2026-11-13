@@ -1,4 +1,5 @@
 import { WindowTitle } from "../components/WindowTitle";
+import { FilterSelect } from "../components/FilterSelect";
 import { SiteMark } from "../components/SiteMark";
 import { na, has, sortKey } from "../lib/na";
 import { usdFromBillions } from "../lib/money";
@@ -2413,17 +2414,7 @@ export function EconomiesPage() {
             </button>
           ))}
           <div className="w-px h-4 bg-border shrink-0" />
-          <select
-            aria-label="Sort results"
-            value={sortBy}
-            onChange={(e) => setSortBy(e.target.value as any)}
-            className="bg-transparent text-[11px] font-medium text-muted-foreground font-sans focus:outline-none cursor-pointer shrink-0"
-          >
-            <option value="gdpTrillions">Sort: GDP</option>
-            <option value="gdpGrowthRate">Sort: GDP Growth</option>
-            <option value="inflationRate">Sort: Inflation</option>
-            <option value="stockMarketCap">Sort: Mkt Cap</option>
-          </select>
+          <FilterSelect label="Sort results" value={sortBy} onChange={(v) => setSortBy(v as any)} options={[{ value: "gdpTrillions", label: "Sort: GDP" }, { value: "gdpGrowthRate", label: "Sort: GDP Growth" }, { value: "inflationRate", label: "Sort: Inflation" }, { value: "stockMarketCap", label: "Sort: Mkt Cap" }]} />
             </>
           )}
         </FilterBar>

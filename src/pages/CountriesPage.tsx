@@ -1,5 +1,6 @@
 import { na, has, orZero, sortKey } from "../lib/na";
 import { SLIM_TRACK, slimFill } from "../components/SlimBars";
+import { FilterSelect } from "../components/FilterSelect";
 import { SiteMark } from "../components/SiteMark";
 import { PublicServicesSection, ServiceBadges } from "../components/PublicServices";
 import { ACCENT, ChartNote, ChartTitle, FigureRow, FigureTile, HdiScale, MeasureBars, PartsBar, PartsDonut, worldFor, type MeasureRow } from "../components/ModalCharts";
@@ -9102,17 +9103,7 @@ export function CountriesPage() {
             </button>
           ))}
           <div className="w-px h-5 bg-border shrink-0" />
-          <select
-            aria-label="Sort results"
-            value={sortBy}
-            onChange={(e) => setSortBy(e.target.value as any)}
-            className="bg-transparent text-[11px] font-medium text-muted-foreground font-sans focus:outline-none cursor-pointer shrink-0"
-          >
-            <option value="gdp">Sort: GDP</option>
-            <option value="population">Sort: Population</option>
-            <option value="gdpGrowth">Sort: GDP Growth</option>
-            <option value="humanDevelopmentIndex">Sort: HDI</option>
-          </select>
+          <FilterSelect label="Sort results" value={sortBy} onChange={(v) => setSortBy(v as any)} options={[{ value: "gdp", label: "Sort: GDP" }, { value: "population", label: "Sort: Population" }, { value: "gdpGrowth", label: "Sort: GDP Growth" }, { value: "humanDevelopmentIndex", label: "Sort: HDI" }]} />
         </FilterBar>
 
         {/* ── Country headlines: the countries you follow first ── */}

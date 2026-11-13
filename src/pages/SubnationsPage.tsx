@@ -70,6 +70,7 @@
  * sends its presses here that way.
  */
 import { PageHeader } from "../components/PageHeader";
+import { FilterSelect } from "../components/FilterSelect";
 import { SLIM_TRACK, slimFill } from "../components/SlimBars";
 import { lazy, Suspense, useCallback, useEffect, useMemo, useState, type ReactNode } from "react";
 
@@ -2291,16 +2292,7 @@ export function SubnationsPage() {
             </button>
           ))}
           <div className="w-px h-4 bg-border shrink-0" />
-          <select
-            aria-label="The order of the countries"
-            value={order}
-            onChange={(e) => setOrder(e.target.value as Order)}
-            className="bg-transparent text-[11px] font-medium text-muted-foreground font-sans focus:outline-none cursor-pointer shrink-0"
-          >
-            <option value="people">Sort: Most populated</option>
-            <option value="name">Sort: Name</option>
-            <option value="divisions">Sort: Number of divisions</option>
-          </select>
+          <FilterSelect label="The order of the countries" value={order} onChange={(v) => setOrder(v as Order)} options={[{ value: "people", label: "Sort: Most populated" }, { value: "name", label: "Sort: Name" }, { value: "divisions", label: "Sort: Number of divisions" }]} />
         </FilterBar>
 
         {notice && <p className="text-[12px] font-sans text-foreground rounded-xl border border-border px-4 py-2.5">{notice}</p>}

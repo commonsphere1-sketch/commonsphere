@@ -1,4 +1,5 @@
 import { WindowTitle } from "../components/WindowTitle";
+import { FilterSelect } from "../components/FilterSelect";
 import { SiteMark } from "../components/SiteMark";
 import { ChipRow } from "../components/ChipRow";
 import { decodeEntities } from "../lib/security";
@@ -17803,17 +17804,7 @@ export function WorldLeadersPage() {
             </button>
           ))}
           <div className="w-px h-4 bg-border shrink-0" />
-          <select
-            value={ideology}
-            onChange={(e) => setIdeology(e.target.value)}
-            className="bg-transparent text-[11px] font-medium text-muted-foreground font-sans focus:outline-none cursor-pointer shrink-0"
-          >
-            {ideologies.map((i) => (
-              <option key={i} value={i}>
-                {i === "All" ? "Filter: Ideology" : i}
-              </option>
-            ))}
-          </select>
+          <FilterSelect label="Ideology" value={ideology} onChange={(v) => setIdeology(v)} options={ideologies.map((i) => ({ value: i, label: i === "All" ? "Filter: Ideology" : i }))} />
         </FilterBar>
 
         {/* Leaders in the news: headlines naming a leader profiled here */}
