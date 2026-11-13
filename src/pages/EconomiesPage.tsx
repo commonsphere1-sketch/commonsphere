@@ -492,13 +492,12 @@ function CurrencyConverter() {
     label: `${c} — ${CURRENCY_NAMES[c] ?? c}`,
   }));
 
-  // Teal, as asked: it was green, and a teal before that. The Policy page's calculator is a card of the same make.
-  const ACCENT = "#14b8a6";
+  // The site's clear glass, as asked, with no colour of its own: it was teal, green and teal before.
   return (
-    <div className="border rounded-2xl p-5 mb-6" style={{ background: `color-mix(in srgb, ${ACCENT} 12%, var(--color-card))`, borderColor: `color-mix(in srgb, ${ACCENT} 30%, var(--color-border))` }}>
+    <div className="modal-tile border rounded-2xl p-5 mb-6">
       <div className="flex items-center gap-2 mb-4">
-        <div className="p-1.5 rounded-lg" style={{ background: `color-mix(in srgb, ${ACCENT} 12%, transparent)` }}>
-          <ArrowsLeftRight size={16} weight="fill" style={{ color: ACCENT }} />
+        <div className="p-1.5 rounded-lg bg-muted/60 text-foreground">
+          <ArrowsLeftRight size={16} weight="fill" />
         </div>
         <div>
           <p className="text-sm font-semibold font-sans text-foreground leading-tight">
@@ -516,8 +515,7 @@ function CurrencyConverter() {
                 setFromCur(p.from);
                 setToCur(p.to);
               }}
-              className={`text-[10px] font-mono px-2 py-0.5 rounded-full border transition-colors cursor-pointer ${fromCur === p.from && toCur === p.to ? "border-border" : "border-border text-muted-foreground hover:text-foreground hover:bg-muted/60"}`}
-              style={fromCur === p.from && toCur === p.to ? { background: `color-mix(in srgb, ${ACCENT} 22%, transparent)`, borderColor: `color-mix(in srgb, ${ACCENT} 50%, transparent)`, color: ACCENT } : undefined}
+              className={`text-[10px] font-mono px-2 py-0.5 rounded-full border transition-colors cursor-pointer ${fromCur === p.from && toCur === p.to ? "chip-selected" : "border-border text-muted-foreground hover:text-foreground hover:bg-muted/60"}`}
             >
               {p.from}/{p.to}
             </button>
@@ -532,7 +530,7 @@ function CurrencyConverter() {
             Amount
           </label>
           <div className="flex items-center gap-2 bg-background/60 border border-border rounded-xl px-3 py-2.5">
-            <span className="text-sm font-bold font-mono shrink-0" style={{ color: ACCENT }}>
+            <span className="text-sm font-bold font-mono shrink-0 text-foreground">
               {fromSym}
             </span>
             <input
@@ -555,20 +553,7 @@ function CurrencyConverter() {
         {/* SWAP */}
         <button
           onClick={swap}
-          className="flex items-center justify-center w-9 h-9 rounded-full border transition-all cursor-pointer self-center shrink-0 sm:mt-6"
-          style={{
-            background: `color-mix(in srgb, ${ACCENT} 12%, transparent)`,
-            borderColor: `color-mix(in srgb, ${ACCENT} 38%, transparent)`,
-            color: ACCENT
-          }}
-          onMouseEnter={(e) => {
-            e.currentTarget.style.backgroundColor = `color-mix(in srgb, ${ACCENT} 22%, transparent)`;
-            e.currentTarget.style.borderColor = `color-mix(in srgb, ${ACCENT} 50%, transparent)`;
-          }}
-          onMouseLeave={(e) => {
-            e.currentTarget.style.backgroundColor = `color-mix(in srgb, ${ACCENT} 12%, transparent)`;
-            e.currentTarget.style.borderColor = `color-mix(in srgb, ${ACCENT} 38%, transparent)`;
-          }}
+          className="flex items-center justify-center w-9 h-9 rounded-full border border-border bg-background/60 text-foreground hover:bg-muted/60 transition-all cursor-pointer self-center shrink-0 sm:mt-6"
           aria-label="Swap currencies"
         >
           <ArrowsLeftRight size={14} weight="bold" />
