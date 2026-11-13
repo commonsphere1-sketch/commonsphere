@@ -538,6 +538,7 @@ export function PlanetaryBoundariesPage() {
           topic="climate"
           title="Climate history, place by place"
           onPlace={setWhere}
+          events
           accent="#06b6d4"
           groups={[
             { title: "Temperature", sub: "Means of the year", lines: [["tempMax", "#ef4444"], ["temp", "#f59e0b"], ["tempMin", "#3b82f6"], ["tempMaxF", "#ef4444"], ["tempF", "#f59e0b"], ["tempMinF", "#3b82f6"]], kind: "band" },
@@ -550,6 +551,8 @@ export function PlanetaryBoundariesPage() {
             { title: "Heating and Cooling Degree-Days", sub: "NOAA's degree-days in the year, °F below or above 65 °F", lines: [["heatingDD", "#3b82f6"], ["coolingDD", "#ef4444"]] },
             { title: "Drought", sub: "NOAA's Palmer Drought Severity Index, the year's average · -4 extreme, +4 extreme wet", lines: [["pdsi", "#d97706"]], kind: "bars" },
             { title: "Months in Drought", sub: "Months of moderate drought or worse in the year", lines: [["droughtMonths", "#b45309"]], kind: "bars" },
+            { title: "Disaster Alerts", sub: "Orange and red alerts in the year, by kind · GDACS", lines: [["quakeAlerts", "#a16207"], ["cycloneAlerts", "#6366f1"], ["floodAlerts", "#06b6d4"], ["droughtAlerts", "#d97706"], ["volcanoAlerts", "#ef4444"], ["fireAlerts", "#f97316"]], kind: "stack" },
+            { title: "Strongest Earthquake", sub: "The strongest alerted earthquake of the year, magnitude", lines: [["strongestQuake", "#a16207"]], kind: "bars" },
             { title: "Records", sub: "Each figure's highest and lowest year", lines: [["temp", ""], ["tempF", ""], ["tempMax", ""], ["tempMaxF", ""], ["tempMin", ""], ["tempMinF", ""], ["hottestDay", ""], ["coldestNight", ""], ["hotDays", ""], ["frostDays", ""], ["precip", ""], ["precipIn", ""], ["wettestDay", ""], ["drySpell", ""], ["heatingDD", ""], ["coolingDD", ""], ["pdsi", ""], ["droughtMonths", ""], ["co2", ""]], kind: "records" },
             { title: "Carbon Dioxide Emitted", sub: "Fossil fuels and industry", lines: [["co2", "#a855f7"]], kind: "area" },
             { title: "Carbon Dioxide per Person", sub: "Fossil fuels and industry", lines: [["co2PerHead", "#ec4899"]] },
@@ -565,7 +568,9 @@ export function PlanetaryBoundariesPage() {
               the year. Its emissions of carbon dioxide are the Global Carbon Budget's, from fossil fuels and industry, as Our World in Data publishes them - not from
               land use, and where they are produced, not where the goods are used. Its extremes since 1950 - the year's hottest day and coldest night, its hot days,
               warm nights and frost days, its wettest day, heavy rain and longest dry spell - are from ERA5, the Copernicus reanalysis, as the same portal gives them: each
-              place's own extreme, averaged over the country, not the single highest reading anywhere in it. Records are each series' highest and lowest year, worked out
+              place's own extreme, averaged over the country, not the single highest reading anywhere in it. Its disasters are the events
+              GDACS, the UN and European Commission's Global Disaster Alert and Coordination System, raised an orange or red alert for since 2000 - earthquakes, tropical
+              cyclones, floods, droughts, volcanic eruptions and wildfires - with each event's scale in GDACS's own words: its alerts, not every disaster. Records are each series' highest and lowest year, worked out
               here. The United States' states and counties are NOAA's own record, nClimDiv, each month since 1895 from its weather stations set on a
               5 km grid, in degrees Fahrenheit and inches; the year's figure is worked out here from its twelve months, only for a year with all twelve. A year a source does not
               give is a gap in its line. For the states and counties, NOAA's heating and cooling degree-days (how far, and on how many days, the

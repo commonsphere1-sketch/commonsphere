@@ -27,7 +27,7 @@ type Series = (number | null)[];
 type Place = { id: string; name: string; kind: string; parent?: string; series: Record<string, Series>; from: Record<string, string> };
 type HistoryFile = { cc: string; of?: string; defs: Record<string, Def>; sources: Record<string, Source>; places: Place[]; more?: Record<string, number> };
 /** How a kind of figure is drawn. */
-export type HistoryKind = "lines" | "area" | "bars" | "band" | "stripes" | "thenNow" | "records";
+export type HistoryKind = "lines" | "area" | "bars" | "band" | "stripes" | "thenNow" | "records" | "stack";
 /** One of the page's kinds of figure: a card, its title, the line over its title, the figures drawn in it with their colours, and how. */
 export type HistoryGroup = { title: string; sub: string; lines: [key: string, colour: string][]; kind?: HistoryKind };
 
@@ -41,6 +41,7 @@ function said(v: number, unit: string) {
   const a = Math.abs(v);
   const n = a >= 100 ? Math.round(v).toLocaleString("en-US") : a >= 10 ? v.toFixed(1) : v.toFixed(2);
   const UNIT: Record<string, string> = { per100k: " per 100,000", degC: " °C", degF: " °F", mm: " mm", in: " in", mt: " million t", t: " t", days: " days", dd: " degree-days", months: " months" };
+  if (unit === "magnitude") return `M${v.toFixed(1)}`;
   return unit === "count" ? Math.round(v).toLocaleString("en-US") : `${n}${UNIT[unit] ?? ""}`;
 }
 /** A scale's figure, short. */
@@ -89,11 +90,14 @@ export function PlaceHistory({
   tiles = [],
   compare = [],
   onPlace,
+  events = false,
   chooserLabel,
   notes,
   empty,
   className = "mb-6",
 }: {
+  /** Whether the country's alerted disasters are listed (static/<topic>/disasters/<CC>.json). */
+  events?: boolean;
   topic: "climate" | "crime";
   title: string;
   /** The page's own colour, for the lines over the cards' titles. */
@@ -279,6 +283,7 @@ export function PlaceHistory({
             ranks.map((k) => (
               <RankCard key={`rank-${k}`} t={t} accent={accent} k={k} places={among} file={amongFile} shown={shown} whole={shown.kind === "country" || !part ? shown : above} />
             ))}
+          {events && <EventsCard key={`events-${country.code}`} t={t} accent={accent} topic={topic} cc={country.code} country={country.name} />}
         </div>
       )}
 
@@ -454,6 +459,25 @@ function HistoryCard({ t, accent, group, place, file, above }: { t: Tokens; acce
   if (kind === "stripes") return <StripesCard common={common} place={place} k={k0} def={file.defs[k0]} lo={lo} hi={hi} />;
 
   if (kind === "records") return <RecordsCard common={common} place={place} file={file} keys={keys} />;
+
+  if (kind === "stack") {
+    // Parts of a whole by the year - the kinds of a count - one bar on another.
+    return (
+      <ChartCard {...common} legend={group.lines.map(([k, c]) => [label(k), c] as [string, string])}>
+        <ResponsiveContainer width="100%" height={240}>
+          <BarChart data={data} margin={{ top: 4, right: 6, left: -10, bottom: 0 }}>
+            <CartesianGrid stroke={t.gridLine} strokeDasharray="3 3" vertical={false} />
+            <XAxis dataKey="year" {...axis} minTickGap={18} />
+            {yAxis}
+            {tip()}
+            {group.lines.map(([k, c]) => (
+              <Bar key={k} dataKey={k} stackId="parts" fill={c} fillOpacity={0.88} isAnimationActive={false} />
+            ))}
+          </BarChart>
+        </ResponsiveContainer>
+      </ChartCard>
+    );
+  }
 
   if (kind === "thenNow") {
     // Each figure's latest year, its bar, and a tick where it stood ten years before.
@@ -655,5 +679,96 @@ function RecordsCard({ common, place, file, keys }: { common: Omit<Parameters<ty
         ))}
       </div>
     </ChartCard>
+  );
+}
+
+type AlertedEvent = { date: string; to?: string; kind: string; name: string; alert: "Orange" | "Red"; scale: string; url?: string };
+const ALERT_INK = { Red: "#ef4444", Orange: "#f59e0b" } as const;
+const dayOf = (d: string) => new Date(`${d}T00:00:00Z`).toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric", timeZone: "UTC" });
+
+/**
+ * The country's alerted disasters, newest first, as asked: each event GDACS raised an orange or red alert for, its date,
+ * kind, alert and scale in GDACS's own words, and its report; narrowed by kind, the first fifteen and the rest on asking.
+ */
+function EventsCard({ t, accent, topic, cc, country }: { t: Tokens; accent: string; topic: string; cc: string; country: string }) {
+  const [file, setFile] = useState<{ source: Source; events: AlertedEvent[] } | null | undefined>(undefined);
+  const [kind, setKind] = useState("all");
+  const [all, setAll] = useState(false);
+  useEffect(() => {
+    let live = true;
+    fetch(`/${topic}/disasters/${cc}.json`)
+      .then((r) => (r.ok && r.headers.get("content-type")?.includes("json") ? r.json() : null))
+      .then((j) => live && setFile(j))
+      .catch(() => live && setFile(null));
+    return () => {
+      live = false;
+    };
+  }, [topic, cc]);
+  if (file === undefined) return null;
+  const list = (file?.events ?? []).filter((e) => kind === "all" || e.kind === kind);
+  const kinds = [...new Set((file?.events ?? []).map((e) => e.kind))];
+  const years = file?.events.length ? `${file.events[file.events.length - 1].date.slice(0, 4)}–${file.events[0].date.slice(0, 4)}` : "since 2000";
+  return (
+    <div className="lg:col-span-2">
+      <ChartCard
+        t={t}
+        accent={accent}
+        title="Disasters alerted, newest first"
+        sub="GDACS's orange and red alerts · its scale in its own words"
+        years={years}
+        sources={file ? [file.source] : [{ label: "GDACS - Global Disaster Alert and Coordination System", url: "https://www.gdacs.org/" }]}
+        csv={{ name: `${country} - disasters alerted`, header: ["from", "to", "kind", "name", "alert", "scale"], rows: list.map((e) => [e.date, e.to ?? e.date, e.kind, e.name, e.alert, e.scale]) }}
+        notes="An orange alert is GDACS's judgement that international help may be needed, a red that it is; an event that struck several countries is listed under each. A green alert - little impact expected - is not listed."
+      >
+        {!file || !file.events.length ? (
+          <p className="text-[11px] font-sans" style={{ color: t.mutedText }}>
+            No orange or red alert is on GDACS's record for {country} since 2000.
+          </p>
+        ) : (
+          <>
+            <div className="flex flex-wrap gap-1.5 mb-2">
+              {["all", ...kinds].map((k) => (
+                <button
+                  key={k}
+                  type="button"
+                  onClick={() => setKind(k)}
+                  aria-pressed={kind === k}
+                  className={`px-2.5 py-0.5 rounded-full text-[10px] font-sans border transition-colors cursor-pointer ${kind === k ? "border-foreground text-foreground" : "border-border text-muted-foreground hover:text-foreground"}`}
+                >
+                  {k === "all" ? `All · ${file.events.length}` : `${k} · ${file.events.filter((e) => e.kind === k).length}`}
+                </button>
+              ))}
+            </div>
+            <ul className="divide-y" style={{ borderColor: t.gridLine }}>
+              {(all ? list : list.slice(0, 15)).map((e, i) => (
+                <li key={`${e.date}-${e.name}-${i}`} className="flex items-start gap-2.5 py-1.5" style={{ borderTop: i ? `1px solid ${t.gridLine}` : "none" }}>
+                  <span className="w-1.5 h-8 rounded-full shrink-0 mt-0.5" style={{ background: ALERT_INK[e.alert] }} title={`${e.alert} alert`} aria-hidden />
+                  <span className="min-w-0 flex-1">
+                    <span className="block text-[12px] font-semibold font-sans truncate" style={{ color: t.headText }}>
+                      {e.url ? (
+                        <a href={e.url} target="_blank" rel="noreferrer" className="hover:underline">
+                          {e.name || e.kind}
+                        </a>
+                      ) : (
+                        e.name || e.kind
+                      )}
+                    </span>
+                    <span className="block text-[10px] font-mono truncate" style={{ color: t.mutedText }}>
+                      {dayOf(e.date)}
+                      {e.to ? ` to ${dayOf(e.to)}` : ""} · {e.kind} · {e.alert} alert{e.scale ? ` · ${e.scale}` : ""}
+                    </span>
+                  </span>
+                </li>
+              ))}
+            </ul>
+            {!all && list.length > 15 && (
+              <button type="button" onClick={() => setAll(true)} className="mt-2 text-[11px] font-sans cursor-pointer hover:underline" style={{ color: t.mutedText }}>
+                Show all {list.length}
+              </button>
+            )}
+          </>
+        )}
+      </ChartCard>
+    </div>
   );
 }
