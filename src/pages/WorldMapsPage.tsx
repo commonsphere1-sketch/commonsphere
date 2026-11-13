@@ -43,7 +43,7 @@ import { GDACS_SOURCES, HAZARD_KINDS, HAZARD_PLURAL, useGdacsLive, type Hazard, 
 import { CONFLICT_PRECISION, acrossBorder, alertInks, conflictInks, dayOf, daysOf, monthOf, sidesOf, useConflictEvents } from "../lib/conflictEvents";
 import { COUNTRY_LIVING, COUNTRY_LIVING_LEAST, COUNTRY_LIVING_PARTS, LIVING_DARK, LIVING_LIGHT, STATE_LIVING, STATE_LIVING_PARTS, UNSCORED, partsSaid } from "../lib/livingScore";
 import { STATE_HEALTH_SAFETY_SOURCES } from "../data/stateHealthSafety";
-import { useAdmin2 } from "../lib/admin2";
+import { ADMIN2_SOURCE, loadAdmin2, useAdmin2 } from "../lib/admin2";
 import { inView, useFiner, type Bounds } from "../lib/finerShapes";
 import { usStatesData } from "../data/statesData";
 import { stepAmong } from "../lib/divisionFigures";
@@ -618,10 +618,34 @@ const POLLUTION_OPACITY = [0, 0.18, 0.3, 0.44, 0.6];
    median household income. The county steps start near the poorest and the richest tenth of counties. */
 const POOR_STEPS = [5, 15, 30, 50];
 const RICH_STEPS = [30, 50, 70, 90];
-const COUNTY_POOR_STEPS = [20, 25, 30, 40];
-const COUNTY_RICH_STEPS = [85_000, 100_000, 115_000, 130_000];
 const AREA_OPACITY = [0, 0.2, 0.34, 0.5, 0.68];
 const stepOf = (v: number, steps: number[]) => steps.filter((s) => v >= s).length;
+/**
+ * Each county's step among its own country's, as asked - ranked by its country's own measure, so that countries measured
+ * differently still read alike: the twentieth of them furthest toward the end shaded (the poorest, or the richest) 4,
+ * then the next three twentieths 3, 2 and 1; the rest 0. `far` is how far toward that end a county is: larger, further.
+ * Counties alike in their figure share a step: each is placed by how many of its country's are further than it.
+ */
+function rankSteps<T>(items: T[], far: (t: T) => number | null): Map<T, number> {
+  const held = items.flatMap((t) => {
+    const v = far(t);
+    return v == null || !Number.isFinite(v) ? [] : [[t, v] as const];
+  });
+  const sorted = held.map(([, v]) => v).sort((a, b) => b - a);
+  const out = new Map<T, number>();
+  for (const [t, v] of held) {
+    let lo = 0;
+    let hi = sorted.length;
+    while (lo < hi) {
+      const mid = (lo + hi) >> 1;
+      if (sorted[mid] > v) lo = mid + 1;
+      else hi = mid;
+    }
+    const share = lo / sorted.length;
+    out.set(t, share < 0.05 ? 4 : share < 0.1 ? 3 : share < 0.15 ? 2 : share < 0.2 ? 1 : 0);
+  }
+  return out;
+}
 
 /* Mineral sites are the one layer dense enough to bury the map underneath it:
    9,639 dots at full size turn Europe, China, Australia and the eastern United
@@ -2480,7 +2504,7 @@ export function WorldMapsPage() {
      consumption per person a day. A country none of whose regions has them, by its national figures (Poverty and
      Inequality Platform). Fetched when either chip is first pressed; the counties come in further down, with the zoom. ── */
   const [areaData, setAreaData] = useState<{
-    regions: { d: string; poor?: number; mean?: number }[];
+    regions: { d: string; cc: string; poor?: number; mean?: number }[];
     covered: Set<string>;
     national: Record<string, { y: number; v: number } | undefined>;
     nationalSource: { label: string; url: string };
@@ -2505,7 +2529,7 @@ export function WorldMapsPage() {
       const byCc = new Map<string, Subnation[]>();
       for (const s of subs.SUBNATIONS) byCc.set(s.cc, [...(byCc.get(s.cc) ?? []), s]);
       const ccs = [...new Set(Object.keys(held).flatMap((id) => (byId.get(id) ? [byId.get(id)!.cc] : [])))];
-      const regions: { d: string; poor?: number; mean?: number }[] = [];
+      const regions: { d: string; cc: string; poor?: number; mean?: number }[] = [];
       const covered = new Set<string>();
       await Promise.all(
         ccs.map(async (cc) => {
@@ -2518,7 +2542,7 @@ export function WorldMapsPage() {
             for (const f of outlinesOf(drawn, cc, s, peers)) {
               const d = worldPath.path(f as never);
               if (d) {
-                regions.push({ d, poor: h.p300, mean: h.mean });
+                regions.push({ d, cc, poor: h.p300, mean: h.mean });
                 covered.add(cc);
               }
             }
@@ -2654,9 +2678,12 @@ export function WorldMapsPage() {
      canvas, so they share a viewport, and it resets whenever the country
      changes. `zoom` is that shared level, which the label pass depends on. */
   const worldZoom = useMapZoom(WORLD_W, WORLD_H);
-  /* ── The poorest and richest areas by county, as asked: once the world is drawn close enough for its counties' borders,
-     the United States - the one country whose every county the site holds these for - is drawn by its counties, the
-     Census Bureau's figures (Small Area Income and Poverty Estimates, through the USDA), in place of its national one. ── */
+  /* ── The poorest and richest areas by county, as asked, for every country whose own statistics office publishes its
+     counties' figures: once the world is drawn close enough for counties' borders, each such country is drawn by its own
+     counties in place of its regions or its whole, each county ranked among its country's by that office's measure
+     (rankSteps). The United States by the Census Bureau's (SAIPE, through the USDA) on its counties' own outlines; the
+     others from static/poverty/counties (build-county-figures.cjs) on the site's outlines of their municipalities or
+     districts (geoBoundaries). A country with no county measure for a layer keeps its regions or its whole for it. ── */
   const areaByCounty = (poorest || richest) && worldZoom.zoom >= COUNTIES_FROM;
   const [countyEcon, setCountyEcon] = useState<typeof import("../data/usCountyEcon") | null>(null);
   useEffect(() => {
@@ -2675,7 +2702,7 @@ export function WorldMapsPage() {
       off = true;
     };
   }, [areaByCounty, usCounties]);
-  /* The counties drawn on the world map: each projected once, when first wanted. */
+  /* The United States' counties drawn on the world map: each projected once, when first wanted. */
   const worldCounties = useMemo(() => {
     if (!areaByCounty || !usCounties) return [];
     return (feature(usCounties, usCounties.objects.counties as never) as unknown as { features: { id?: string | number }[] }).features.flatMap((f) => {
@@ -2683,35 +2710,87 @@ export function WorldMapsPage() {
       return d ? [{ fips: String(f.id ?? "").padStart(5, "0"), d }] : [];
     });
   }, [areaByCounty, usCounties, worldPath]);
-  /** One layer's shading, merged into a path a step: regions and countries by the World Bank's figures, and the United States' counties by the Census Bureau's when drawn by county. */
+  /* Every other country's county figures, each on its own outlines: the index, then each country's file and outlines, asked for once. */
+  type CountyMeasure = { label: string; say: string; higherIsPoorer?: boolean };
+  type CountyLayer = { cc: string; level: string; year: number; source: { label: string; url: string }[]; poor: CountyMeasure | null; rich: CountyMeasure | null; places: { d: string; poor: number | null; rich: number | null }[] };
+  const [countyLayers, setCountyLayers] = useState<CountyLayer[]>([]);
+  const countyAsked = useRef(false);
+  useEffect(() => {
+    if (!areaByCounty || countyAsked.current) return;
+    countyAsked.current = true;
+    (async () => {
+      const index = (await fetch("/poverty/counties/index.json")
+        .then((r) => (r.ok ? r.json() : null))
+        .catch(() => null)) as { countries: string[] } | null;
+      const layers = await Promise.all(
+        (index?.countries ?? []).map(async (cc): Promise<CountyLayer | null> => {
+          const [file, drawn] = await Promise.all([
+            fetch(`/poverty/counties/${cc}.json`)
+              .then((r) => (r.ok ? r.json() : null))
+              .catch(() => null) as Promise<(Omit<CountyLayer, "places"> & { values: Record<string, [number | null, number | null]> }) | null>,
+            loadAdmin2(cc),
+          ]);
+          if (!file || !drawn) return null;
+          const places = drawn.shapes.flatMap((f) => {
+            const v = file.values[`${f.properties.p}|${f.properties.n}`];
+            const d = v ? worldPath.path(f as never) : null;
+            return v && d ? [{ d, poor: v[0], rich: v[1] }] : [];
+          });
+          return { cc, level: file.level, year: file.year, source: file.source, poor: file.poor, rich: file.rich, places };
+        }),
+      );
+      setCountyLayers(layers.filter((l): l is CountyLayer => Boolean(l && l.places.length)));
+    })().catch(() => {
+      // It may be asked for again the next time the map is drawn this close.
+      countyAsked.current = false;
+    });
+  }, [areaByCounty, worldPath]);
+  /** One layer's shading, merged into a path a step: regions and countries by the World Bank's figures, on the world's scale; and, drawn closer, each country with county figures by its counties, ranked within it. */
   const areaBands = (which: "poor" | "rich") => {
     if (!areaData) return [];
     const byBand = new Map<number, string[]>();
-    const add = (v: number | null | undefined, steps: number[], d: string) => {
-      if (v == null) return;
-      const band = stepOf(v, steps);
-      if (band > 0) byBand.set(band, [...(byBand.get(band) ?? []), d]);
-    };
-    const steps = which === "poor" ? POOR_STEPS : RICH_STEPS;
-    for (const r of areaData.regions) add(which === "poor" ? r.poor : r.mean, steps, r.d);
-    const byCounty = worldCounties.length > 0 && countyEcon !== null;
-    for (const { country, d } of worldShapes) {
-      if (!country || !d || areaData.covered.has(country.code) || (byCounty && country.code === "US")) continue;
-      add(which === "poor" ? areaData.national[country.code]?.v : COUNTRY_MEAN_INCOME[country.code]?.[1], steps, d);
+    const put = (band: number, d: string) => band > 0 && byBand.set(band, [...(byBand.get(band) ?? []), d]);
+    // The countries drawn by their counties for this layer.
+    const byCounty = new Set<string>();
+    if (areaByCounty) {
+      if (worldCounties.length && countyEcon) byCounty.add("US");
+      for (const l of countyLayers) if (which === "poor" ? l.poor : l.rich) byCounty.add(l.cc);
     }
-    if (byCounty)
-      for (const c of worldCounties) {
+    const steps = which === "poor" ? POOR_STEPS : RICH_STEPS;
+    for (const r of areaData.regions) {
+      const v = which === "poor" ? r.poor : r.mean;
+      if (v != null && !byCounty.has(r.cc)) put(stepOf(v, steps), r.d);
+    }
+    for (const { country, d } of worldShapes) {
+      if (!country || !d || areaData.covered.has(country.code) || byCounty.has(country.code)) continue;
+      const v = which === "poor" ? areaData.national[country.code]?.v : COUNTRY_MEAN_INCOME[country.code]?.[1];
+      if (v != null) put(stepOf(v, steps), d);
+    }
+    if (byCounty.has("US"))
+      for (const [c, step] of rankSteps(worldCounties, (c) => {
         const ec = countyEcon!.COUNTY_ECON_ROWS[c.fips];
-        add(which === "poor" ? ec?.[3] : ec?.[2], which === "poor" ? COUNTY_POOR_STEPS : COUNTY_RICH_STEPS, c.d);
-      }
+        // Poorest: the larger the share below the poverty line, the further; richest: the larger the median household income.
+        return (which === "poor" ? ec?.[3] : ec?.[2]) ?? null;
+      }))
+        put(step, c.d);
+    for (const l of countyLayers) {
+      if (!byCounty.has(l.cc)) continue;
+      const m = which === "poor" ? l.poor : l.rich;
+      for (const [p, step] of rankSteps(l.places, (p) => {
+        const v = which === "poor" ? p.poor : p.rich;
+        // Poorest: further the poorer - the larger a poverty share, or the smaller an income; richest: the larger.
+        return v == null ? null : which === "poor" && !m?.higherIsPoorer ? -v : v;
+      }))
+        put(step, p.d);
+    }
     return [...byBand.entries()].sort((a, b) => a[0] - b[0]).map(([band, ds]) => ({ band, d: ds.join(""), opacity: AREA_OPACITY[band] }));
   };
   const poorBands = useMemo(() => (poorest ? areaBands("poor") : []),
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [poorest, areaData, worldShapes, worldCounties, countyEcon]);
+    [poorest, areaData, worldShapes, worldCounties, countyEcon, countyLayers, areaByCounty]);
   const richBands = useMemo(() => (richest ? areaBands("rich") : []),
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [richest, areaData, worldShapes, worldCounties, countyEcon]);
+    [richest, areaData, worldShapes, worldCounties, countyEcon, countyLayers, areaByCounty]);
   /* Which of the focused country's parts that lie apart is shown: 0 its main part. A new country starts on its main part. */
   const [focusPart, setFocusPart] = useState(0);
   useEffect(() => setFocusPart(0), [focusCode]);
@@ -4914,7 +4993,16 @@ export function WorldMapsPage() {
                   {i < list.length - 1 ? `${say(s)}-${say(list[i + 1])}` : `${say(s)} ${last}`}
                 </span>
               ));
-            const dollars = (v: number) => `$${v >= 1000 ? `${v / 1000}k` : v}`;
+            const inks = [poorest ? povertyInk : null, richest ? richInk : null].filter((x): x is string => Boolean(x));
+            const countryName = (cc: string) => countriesData.find((c) => c.code === cc)?.name ?? cc;
+            // What each country's counties are ranked by, in the layers pressed.
+            const byCountyLines = [
+              `the United States by ${[poorest ? "the share of its people below the US poverty line" : null, richest ? "median household income" : null].filter(Boolean).join(" and ")} (Census Bureau, ${countyEcon?.COUNTY_ECON.povertyYear ?? 2023}), on its 3,143 counties`,
+              ...countyLayers.flatMap((l) => {
+                const said = [poorest && l.poor ? l.poor.say : null, richest && l.rich && l.rich.say !== l.poor?.say ? l.rich.say : null].filter(Boolean);
+                return said.length ? [`${countryName(l.cc)} by ${said.join("; and ")}, on ${l.places.length.toLocaleString("en-US")} of its ${l.level}`] : [];
+              }),
+            ];
             return (
               <>
                 {poorest && (
@@ -4923,10 +5011,8 @@ export function WorldMapsPage() {
                     <span className="font-medium text-foreground">Poorest areas</span> - by country and region, the share of people living on under $3.00 a day (2021 prices,
                     adjusted for what money buys in each country), the World Bank's international poverty line: each region by its own share where the World Bank measures a
                     country's regions from a household survey ({areaData ? `${areaData.covered.size} countries` : "52 countries"}; a region without a figure is left clear), every
-                    other country by its national share. The steps: {steps(POOR_STEPS, povertyInk, (v) => `${v}%`, "or more")}; under 5% is left clear. By county, once the map is
-                    drawn close enough for the counties' borders: each US county by the share of its people below the US poverty line (Census Bureau,{" "}
-                    {countyEcon?.COUNTY_ECON.povertyYear ?? 2023}) - a line far above $3.00 a day, so the two are not one scale: {steps(COUNTY_POOR_STEPS, povertyInk, (v) => `${v}%`, "or more")}
-                    ; under 20%, about nine counties in ten, is left clear. Each figure is of its own survey year.
+                    other country by its national share. The steps: {steps(POOR_STEPS, povertyInk, (v) => `${v}%`, "or more")}; under 5% is left clear. Each figure is of its
+                    own survey year.
                   </p>
                 )}
                 {richest && (
@@ -4935,17 +5021,33 @@ export function WorldMapsPage() {
                     <span className="font-medium text-foreground">Richest areas</span> - by country and region, the mean income or consumption per person a day in 2021 prices
                     adjusted for what money buys in each country, from the same World Bank household surveys: each region by its own where the World Bank measures it, every
                     other country by its national mean. Some surveys measure income and some spending, and spending runs lower, so a country counted by spending can look
-                    poorer than one counted by income. The steps: {steps(RICH_STEPS, richInk, (v) => `$${v}`, "or more a day")}; under $30 a day is left clear. By county, drawn
-                    closer: each US county by its median household income (Census Bureau, {countyEcon?.COUNTY_ECON.povertyYear ?? 2023}) - a household's a year, not a person's a
-                    day, so again not one scale: {steps(COUNTY_RICH_STEPS, richInk, dollars, "or more")}; under $85k, about nine counties in ten, is left clear.
+                    poorer than one counted by income. The steps: {steps(RICH_STEPS, richInk, (v) => `$${v}`, "or more a day")}; under $30 a day is left clear.
                   </p>
                 )}
+                {/* By county: ranked within each country, as asked, so that each country's own measure can be used. */}
+                <p className="text-[10px] font-sans text-muted-foreground leading-snug mt-2">
+                  <span className="font-medium text-foreground">By county</span>, once the map is drawn close enough for counties' borders: a country whose own statistics
+                  office publishes its counties' figures is drawn by its counties instead, each ranked among its own country's by that office's measure - so a county is
+                  shaded for being among the {poorest && richest ? "poorest or the richest" : poorest ? "poorest" : "richest"} in its country, not on the world's scale. The
+                  steps are each country's twentieths: the furthest twentieth deepest, then the next three -{" "}
+                  {inks.map((ink) => (
+                    <span key={ink} className="whitespace-nowrap">
+                      {[4, 3, 2, 1].map((band) => (
+                        <span key={band} aria-hidden className="inline-block w-2.5 h-2.5 rounded-sm mx-0.5 align-middle" style={{ background: ink, opacity: AREA_OPACITY[band] }} />
+                      ))}{" "}
+                    </span>
+                  ))}
+                  - a fifth of its counties in all. Ranked so: {byCountyLines.join("; ")}. A county without a figure, and a state the figures and the outlines do not agree on,
+                  are left clear; every other country keeps its regions or its whole.
+                </p>
                 <SourceLink
                   sources={[
                     DIVISION_POVERTY_SOURCE,
                     ...(poorest && areaData ? [areaData.nationalSource] : []),
                     ...(richest ? [COUNTRY_MEAN_INCOME_SOURCE] : []),
                     { label: "US Census Bureau — Small Area Income and Poverty Estimates, through the USDA Economic Research Service's county-level data sets", url: "https://www.ers.usda.gov/data-products/county-level-data-sets/county-level-data-sets-download-data" },
+                    ...countyLayers.filter((l) => (poorest && l.poor) || (richest && l.rich)).flatMap((l) => l.source),
+                    ADMIN2_SOURCE,
                   ]}
                   className="mt-1.5"
                 />
