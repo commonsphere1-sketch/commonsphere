@@ -666,6 +666,10 @@ export const EXPLAIN: Record<string, Explanation> = {
     what: "People forced to flee persecution, conflict, violence or human rights abuses - refugees, asylum-seekers, people displaced inside their own countries, Palestine refugees under UNRWA's mandate, and others in need of international protection - as UNHCR counts them.",
     why: "Displacement gathers the consequences of war and persecution in one number: people who have lost their homes, often for years, and the strain on the places that take them in.",
   },
+  militaryUsd: {
+    what: "What the world's countries spend on their armed forces - personnel, operations, weapons and military construction - in US dollars at the year's prices (Stockholm International Peace Research Institute, via the World Bank).",
+    why: "It shows how much the world puts into defence in money. Whether more is better depends on the threats countries face, so it carries no verdict.",
+  },
   militaryGdp: {
     what: "What the world's countries spend on their armed forces - personnel, operations, weapons and military construction - as a share of world output (Stockholm International Peace Research Institute, via the World Bank).",
     why: "It shows how much of the world's resources go to defence. Whether more is better depends on the threats countries face, so it carries no verdict.",

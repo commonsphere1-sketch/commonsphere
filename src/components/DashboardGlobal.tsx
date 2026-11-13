@@ -29,7 +29,7 @@
  * and the card says so where it gives one. Nothing on it is a forecast, a
  * score of the site's own or a ranking of who is winning.
  */
-import { useMemo, type ReactNode } from "react";
+import { useMemo, useRef, useState, type FocusEvent, type MouseEvent, type ReactNode } from "react";
 import { useNavigate } from "react-router-dom";
 import { Area, AreaChart, ResponsiveContainer } from "recharts";
 import { ArrowDown, ArrowRight, ArrowUp, GlobeHemisphereWest } from "@phosphor-icons/react";
@@ -38,6 +38,8 @@ import { countriesData } from "../data/countriesData";
 import { COUNTRY_INDICATORS, COUNTRY_INDICATORS_SOURCE } from "../data/countryIndicators";
 import { MILITARY_MEASURED, MILITARY_SOURCES } from "../data/militarySpending";
 import { WORLD, type WorldIndicator } from "../data/worldview";
+import { EXPLAIN } from "../data/worldviewExplain";
+import { type Tip, TipCard } from "./TipCard";
 import { useTokens, type Tokens } from "./DataExplorer";
 import { SourceLink } from "./SourceLink";
 import { SLIM_TRACK, slimFill } from "./SlimBars";
@@ -95,7 +97,7 @@ const TILES: Tile[] = [
 ];
 
 /** A world figure: its latest year, the change on the year before, and its whole series as a line. */
-function WorldTile({ t, x }: { t: Tokens; x: Tile }) {
+function WorldTile({ t, x, onHover, onLeave }: { t: Tokens; x: Tile; /** Pointed at: the card describing it. */ onHover?: (e: MouseEvent | FocusEvent, x: Tile) => void; onLeave?: () => void }) {
   const s = x.ind.series;
   const [year, now] = s[s.length - 1];
   const before = s.find(([y]) => y === year - 1)?.[1];
@@ -106,7 +108,15 @@ function WorldTile({ t, x }: { t: Tokens; x: Tile }) {
   const tone = good === null ? t.bodyText : good ? GREEN : RED;
   const grad = `global-${x.id}`;
   return (
-    <div className="rounded-xl px-3 py-2.5 min-w-0 flex flex-col" style={{ background: t.tile, border: `1px solid ${t.gridLine}` }} title={`${x.ind.label}, ${s[0][0]} to ${year} · ${x.ind.source.label}`}>
+    <div
+      className="rounded-xl px-3 py-2.5 min-w-0 flex flex-col outline-none focus-visible:ring-1 focus-visible:ring-foreground/40"
+      style={{ background: t.tile, border: `1px solid ${t.gridLine}` }}
+      tabIndex={0}
+      onMouseMove={onHover ? (e) => onHover(e, x) : undefined}
+      onMouseLeave={onLeave}
+      onFocus={onHover ? (e) => onHover(e, x) : undefined}
+      onBlur={onLeave}
+    >
       <span className="block text-[9px] font-mono uppercase tracking-widest leading-snug" style={{ color: t.mutedText }}>
         {x.label} · {year}
       </span>
@@ -337,6 +347,17 @@ function Blocs({ t }: { t: Tokens }) {
 export function GlobalAnalytics() {
   const t = useTokens();
   const navigate = useNavigate();
+  const grid = useRef<HTMLDivElement>(null);
+  const [tip, setTip] = useState<Tip | null>(null);
+  const describe = (e: MouseEvent | FocusEvent, x: Tile) => {
+    const box = grid.current?.getBoundingClientRect();
+    if (!box) return;
+    const el = (e.currentTarget as HTMLElement).getBoundingClientRect();
+    const at = "clientX" in e ? { x: e.clientX - box.left, y: e.clientY - box.top } : { x: el.left - box.left, y: el.bottom - box.top };
+    const ex = EXPLAIN[x.id];
+    const s = x.ind.series;
+    setTip({ ...at, title: x.ind.label, lines: [...(ex ? [ex.what, ex.why] : []), `${s[0][0]} to ${s[s.length - 1][0]} · ${x.ind.source.label}`] });
+  };
   const sources = [...new Map(TILES.map((x) => [x.ind.source.url, { label: publisher(x.ind.source.label), url: x.ind.source.url } as Source])).values()];
   return (
     <div className="rounded-2xl p-5" style={{ background: t.cardBg, border: t.cardBorder, boxShadow: t.cardShadow }}>
@@ -358,10 +379,12 @@ export function GlobalAnalytics() {
       </div>
 
       <Kicker t={t}>The world in figures · each one's latest year, its change on the year before, and its series</Kicker>
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-2">
+      {/* Each figure described when pointed at, as asked: what it counts and why it matters, in a frosted card. */}
+      <div ref={grid} className="relative grid grid-cols-2 lg:grid-cols-4 gap-2">
         {TILES.map((x) => (
-          <WorldTile key={x.id} t={t} x={x} />
+          <WorldTile key={x.id} t={t} x={x} onHover={describe} onLeave={() => setTip(null)} />
         ))}
+        {tip && <TipCard tip={tip} room={grid.current?.clientWidth ?? 600} />}
       </div>
       <Note t={t} className="mt-2">
         A change is worked out from the publisher's two figures: a percentage of the year before for a count or a sum of money, percentage points for a share. It is green or
