@@ -60,19 +60,11 @@ const LegalPage = lazy(() =>
 const AboutPage = lazy(() =>
   import("./pages/AboutPage").then((m) => ({ default: m.AboutPage })),
 );
-const PlanetaryBoundariesPage = lazy(() =>
-  import("./pages/PlanetaryBoundariesPage").then((m) => ({
-    default: m.PlanetaryBoundariesPage,
-  })),
-);
 const SubnationsPage = lazy(() =>
   import("./pages/SubnationsPage").then((m) => ({ default: m.SubnationsPage })),
 );
 const WorldviewPage = lazy(() =>
   import("./pages/WorldviewPage").then((m) => ({ default: m.WorldviewPage })),
-);
-const CrimeStatsPage = lazy(() =>
-  import("./pages/CrimeStatsPage").then((m) => ({ default: m.CrimeStatsPage })),
 );
 const RankingsPage = lazy(() =>
   import("./pages/RankingsPage").then((m) => ({ default: m.RankingsPage })),
@@ -136,14 +128,13 @@ export default function App() {
               <Route path="legal" element={<LegalPage />} />
               <Route path="membership" element={<MembershipsPage />} />
               <Route path="maps" element={<WorldMapsPage />} />
-              <Route
-                path="planetary-boundaries"
-                element={<PlanetaryBoundariesPage />}
-              />
+              {/* The Climate and Crime pages were taken off the site, as asked (pages/PlanetaryBoundariesPage and pages/CrimeStatsPage,
+                  kept unmounted): a link to either lands on the Dashboard. News and My Notes took their places in the side menu. */}
+              <Route path="planetary-boundaries" element={<Navigate to="/dashboard" replace />} />
               <Route path="worldview" element={<WorldviewPage />} />
               {/* The Developments page was taken off, as asked (pages/TrendsPage, kept unmounted): a link to it lands on the Dashboard. */}
               <Route path="trends" element={<Navigate to="/dashboard" replace />} />
-              <Route path="crime" element={<CrimeStatsPage />} />
+              <Route path="crime" element={<Navigate to="/dashboard" replace />} />
               <Route path="rankings" element={<RankingsPage />} />
               <Route path="indexes" element={<GlobalIndexesPage />} />
               {/* Catch-all: redirect unknown dashboard routes to /dashboard */}

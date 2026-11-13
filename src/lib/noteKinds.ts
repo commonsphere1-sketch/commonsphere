@@ -26,8 +26,6 @@ export const SITE_SECTIONS: { to: string; label: string; holds: string; was?: st
   { to: "/dashboard/policy", label: "Policy", holds: "what governments spend, by area" },
   { to: "/dashboard/rankings", label: "Compare", holds: "places side by side" },
   { to: "/dashboard/worldview", label: "Worldview", holds: "the world as a whole" },
-  { to: "/dashboard/planetary-boundaries", label: "Climate", holds: "the climate and the living world" },
-  { to: "/dashboard/crime", label: "Crime", holds: "crime and justice", was: ["Crime Statistics"] },
   { to: "/dashboard/maps", label: "World Maps", holds: "the maps" },
   { to: "/dashboard/news", label: "News", holds: "every headline, and each country's history" },
 ];

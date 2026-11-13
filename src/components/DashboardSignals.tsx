@@ -193,12 +193,11 @@ const places = (v: number) => (`${v}`.split(".")[1] ?? "").length;
 
 export function PlanetNow() {
   const t = useTokens();
-  const navigate = useNavigate();
   const color = "#10b981";
   const sources = [...new Map(CLIMATE_INDICATORS.map((c) => [publisher(c.source), { label: publisher(c.source), url: c.url }])).values()];
   return (
     <Card t={t}>
-      <Head t={t} icon={<Leaf size={16} weight="fill" />} label="Climate" badge={`${TRANSGRESSED} of ${BOUNDARIES.length} crossed`} color={color} cta="Climate" to="/dashboard/planetary-boundaries" />
+      <Head t={t} icon={<Leaf size={16} weight="fill" />} label="Climate" badge={`${TRANSGRESSED} of ${BOUNDARIES.length} crossed`} color={color} />
       <Kicker t={t}>The latest reading of each · and the same period ten years before</Kicker>
       <ul className="flex flex-col">
         {CLIMATE_INDICATORS.map((c, i) => {
@@ -261,11 +260,6 @@ export function PlanetNow() {
             </span>
           ))}
         </p>
-      </div>
-      <div className="mt-2">
-        <Go color={color} onClick={() => navigate("/dashboard/planetary-boundaries")}>
-          Cause and effect of each, on the Climate page
-        </Go>
       </div>
       <Note t={t}>
         Each reading is the latest its agency publishes, read on {CLIMATE_RETRIEVED}, beside the same period ten years earlier; nothing is projected. A single year of sea ice

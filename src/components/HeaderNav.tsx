@@ -109,8 +109,6 @@ const PAGES: [label: string, to: string, about: string][] = [
   ["Policy", "/dashboard/policy", "Policies, country by country"],
   ["Compare", "/dashboard/rankings", "Places side by side"],
   ["Worldview", "/dashboard/worldview", "The world's news and views"],
-  ["Climate", "/dashboard/planetary-boundaries", "The measured state of the climate"],
-  ["Crime", "/dashboard/crime", "Crime and justice figures"],
   ["World Maps", "/dashboard/maps", "The world, mapped by measure"],
   ["News", "/dashboard/news", "The latest headlines, by place and subject, and each country's historic accounts"],
   ["My Notes", "/dashboard/notes", "A note on any place or page"],

@@ -77,8 +77,8 @@ const TABS: TabDef[] = [
   // Geopolitics and the ideologies were one tab, and are two as asked: each is a half of the Worldview page's explorer.
   { id: "geopolitics", label: "Geopolitics", color: "#6366f1", path: "/dashboard/worldview", Icon: GlobeHemisphereWest },
   { id: "ideologies", label: "Ideologies", color: "#d946ef", path: "/dashboard/worldview", Icon: Lightbulb },
-  { id: "unrest", label: "Revolutions & protests", color: "#f97316", path: "/dashboard/crime", Icon: Megaphone },
-  { id: "climate", label: "Climate", color: "#10b981", path: "/dashboard/planetary-boundaries", Icon: Leaf },
+  { id: "unrest", label: "Revolutions & protests", color: "#f97316", path: "", Icon: Megaphone },
+  { id: "climate", label: "Climate", color: "#10b981", path: "", Icon: Leaf },
 ];
 /** The policy explorer: the Policy page's alone (`only`). It was the Dashboard's third tab, where Industries stands now. */
 const POLICY_TAB: TabDef = { id: "policies", label: "Policies", color: "#a855f7", path: "/dashboard/policy", Icon: Scales };
