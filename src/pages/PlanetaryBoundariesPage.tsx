@@ -396,17 +396,20 @@ function FigureCardView({
   headText,
   mutedText,
   gridLine,
+  wide = false,
 }: {
   card: FigureCard;
   isLight: boolean;
   headText: string;
   mutedText: string;
   gridLine: string;
+  /** Across the whole row, its rows in two columns, as asked for the ecological projects. */
+  wide?: boolean;
 }) {
   const tile = isLight ? "rgba(0,0,0,0.025)" : "rgba(255,255,255,0.04)";
   const track = isLight ? "rgba(0,0,0,0.07)" : "rgba(255,255,255,0.07)";
   return (
-    <div className="bg-card border border-border rounded-2xl p-5 flex flex-col">
+    <div className={`bg-card border border-border rounded-2xl p-5 flex flex-col ${wide ? "lg:col-span-2" : ""}`}>
       <p className="text-[10px] font-mono uppercase tracking-widest mb-0.5" style={{ color: mutedText }}>
         {card.kicker}
       </p>
@@ -453,7 +456,7 @@ function FigureCardView({
       )}
 
       {card.events && (
-        <div className="flex flex-col gap-0 mb-3">
+        <div className={wide ? "grid grid-cols-1 md:grid-cols-2 gap-x-8 mb-3" : "flex flex-col gap-0 mb-3"}>
           {card.events.map((e, i) => (
             <div
               key={e.title}
@@ -782,7 +785,7 @@ export function PlanetaryBoundariesPage() {
         </p>
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
           {LIFE_CARDS.map((card) => (
-            <FigureCardView key={card.id} card={card} isLight={isLight} headText={headText} mutedText={mutedText} gridLine={gridLine} />
+            <FigureCardView key={card.id} card={card} isLight={isLight} headText={headText} mutedText={mutedText} gridLine={gridLine} wide={card.id === "restoration"} />
           ))}
           {/* The species themselves: those newly named, and those endangered with about how many are left. */}
           <NewSpeciesList where={where} />
