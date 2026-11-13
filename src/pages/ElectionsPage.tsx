@@ -22,6 +22,7 @@ import { downloadCsv, type CsvCell } from "../lib/csv";
 import { lockScroll } from "../lib/scrollLock";
 import { WindowTitle } from "../components/WindowTitle";
 import { type Tip, TipCard } from "../components/TipCard";
+import { CompassPlot, CompassPositions, inQuarter, type CompassDot, type Quarter } from "../components/PoliticalCompass";
 import { ArrowsIn, ArrowsOut, X } from "@phosphor-icons/react";
 
 /** A party's result: its share of the vote, its seats, and its place from left (0) to right (10) on ParlGov's scale. */
@@ -315,7 +316,7 @@ function leanSpans(data: History, today: string): LeanSpan[] {
    foot. Two records set side by side, each with its source: not The Political Compass's own test, which scores a person's
    answers and not a government. A year without both is not drawn. build-compass-world.cjs places every country by these
    same rules for the Dashboard. */
-type CompassPoint = { y: number; across: number; down: number; who: string; lean: string; source: string; civ: number };
+type CompassPoint = { y: number; across: number; who: string; lean: string; source: string; civ: number };
 function compassPoints(data: History, from: number, to: number, today: string): CompassPoint[] {
   const spans = leanSpans(data, today);
   const out: CompassPoint[] = [];
@@ -325,92 +326,17 @@ function compassPoints(data: History, from: number, to: number, today: string): 
     // Who governed at the middle of the year: the last span begun by then that had not ended.
     const mid = `${y}-07-01`;
     const s = [...spans].reverse().find((x) => x.from <= mid && (x.to > mid || (x.open && mid <= today)));
-    // Libertarian (the freest) at the foot, authoritarian at the top: down is 1 at the foot.
-    if (s) out.push({ y, across: s.across, down: 2 * civ - 1, who: s.who, lean: s.lean, source: s.source, civ });
+    if (s) out.push({ y, across: s.across, who: s.who, lean: s.lean, source: s.source, civ });
   }
   return out;
 }
 
-/**
- * The compass's four positions, as asked, each said by what places a government there on this compass - its party's leaning
- * and its people's civil liberties in the year - and not by any one doctrine: authoritarian left and right above, libertarian
- * left and right below, each in the compass's own colour.
- */
-const LIBERTIES = "V-Dem's index of how free people are from the state's violence - torture, political killings - and free to speak, gather, move, worship, own property and work unforced";
-const QUARTERS = [
-  { name: "Authoritarian left", colour: "#ef4444", right: false, low: true, say: `A government of a party placed left of centre, in a year its people's civil liberties are in the lower half: below 0.5 on ${LIBERTIES}.` },
-  { name: "Authoritarian right", colour: "#3b82f6", right: true, low: true, say: `A government of a party placed right of centre, in a year its people's civil liberties are in the lower half: below 0.5 on ${LIBERTIES}.` },
-  { name: "Libertarian left", colour: "#22c55e", right: false, low: false, say: `A government of a party placed left of centre, in a year its people's civil liberties are in the upper half: 0.5 or more on ${LIBERTIES}.` },
-  { name: "Libertarian right", colour: "#a855f7", right: true, low: false, say: `A government of a party placed right of centre, in a year its people's civil liberties are in the upper half: 0.5 or more on ${LIBERTIES}.` },
-] as const;
-type Quarter = (typeof QUARTERS)[number];
-/** The years drawn in a quarter: off the middle lines, on its side of both. */
-const inQuarter = (p: CompassPoint, q: Quarter) => p.across !== 0 && p.across > 0 === q.right && p.civ < 0.5 === q.low;
-
-/** The compass drawn: its four quarters, its path through the years, each year's place. Pointed at, a year's card - where `onPoint` is given - and a quarter's, named in it, where `onQuarter` is. */
-function CompassPlot({ points, label, onPoint, onLeave, onQuarter }: { points: CompassPoint[]; label: string; onPoint?: (e: React.MouseEvent, p: CompassPoint) => void; onLeave?: () => void; onQuarter?: (e: React.MouseEvent, q: Quarter) => void }) {
-  const S = 300; // its side
-  const M = 26; // the margin its words stand in
-  const px = (v: number) => M + ((v + 1) / 2) * (S - 2 * M);
-  const last = points[points.length - 1];
-  const q = (S - 2 * M) / 2;
-  return (
-    <svg viewBox={`0 0 ${S} ${S}`} className="w-full h-auto" role="img" aria-label={label}>
-      {/* The four quarters, faintly in the compass's own colours; in the window each named in its outer corner, and described when pointed at. */}
-      {QUARTERS.map((Q) => {
-        const x = Q.right ? S / 2 : M;
-        const y = Q.low ? M : S / 2;
-        return (
-          <g key={Q.name} onMouseMove={onQuarter ? (e) => onQuarter(e, Q) : undefined} onMouseLeave={onQuarter ? onLeave : undefined}>
-            <rect x={x} y={y} width={q} height={q} fill={Q.colour} fillOpacity={0.1} />
-            {onQuarter && (
-              <text x={Q.right ? S - M - 5 : M + 5} y={Q.low ? M + 11 : S - M - 6} textAnchor={Q.right ? "end" : "start"} fontSize={7.5} fontWeight={600} fill={Q.colour} opacity={0.85}>
-                {Q.name}
-              </text>
-            )}
-          </g>
-        );
-      })}
-      <rect x={M} y={M} width={S - 2 * M} height={S - 2 * M} fill="none" stroke="currentColor" strokeOpacity={0.25} pointerEvents="none" />
-      <line x1={S / 2} y1={M} x2={S / 2} y2={S - M} stroke="currentColor" strokeOpacity={0.35} pointerEvents="none" />
-      <line x1={M} y1={S / 2} x2={S - M} y2={S / 2} stroke="currentColor" strokeOpacity={0.35} pointerEvents="none" />
-      <text x={S / 2} y={M - 9} textAnchor="middle" fontSize={9} fill="currentColor" opacity={0.75}>
-        Authoritarian
-      </text>
-      <text x={S / 2} y={S - M + 16} textAnchor="middle" fontSize={9} fill="currentColor" opacity={0.75}>
-        Libertarian
-      </text>
-      <text x={M - 12} y={S / 2} textAnchor="middle" fontSize={9} fill="currentColor" opacity={0.75} transform={`rotate(-90 ${M - 12} ${S / 2})`}>
-        Left
-      </text>
-      <text x={S - M + 12} y={S / 2} textAnchor="middle" fontSize={9} fill="currentColor" opacity={0.75} transform={`rotate(90 ${S - M + 12} ${S / 2})`}>
-        Right
-      </text>
-      {/* Its path through the years chosen, and each year's place; the last the solid one. */}
-      {points.length > 1 && <polyline points={points.map((p) => `${px(p.across)},${px(p.down)}`).join(" ")} fill="none" stroke="currentColor" strokeOpacity={0.3} strokeWidth={1} strokeLinejoin="round" pointerEvents="none" />}
-      {points.map((p) => (
-        <circle
-          key={p.y}
-          cx={px(p.across)}
-          cy={px(p.down)}
-          r={p === last ? 5.5 : 3}
-          fill={p === last ? "currentColor" : "#f59e0b"}
-          fillOpacity={p === last ? 1 : 0.75}
-          stroke={p === last ? "#f59e0b" : "none"}
-          strokeWidth={2}
-          className={onPoint ? "cursor-pointer" : undefined}
-          onMouseMove={onPoint ? (e) => onPoint(e, p) : undefined}
-          onMouseLeave={onLeave}
-        />
-      ))}
-      {last && (
-        <text x={px(last.across) > S - 70 ? px(last.across) - 8 : px(last.across) + 8} y={px(last.down) - 8} fontSize={9} fontWeight={700} fill="currentColor" textAnchor={px(last.across) > S - 70 ? "end" : "start"}>
-          {last.y}
-        </text>
-      )}
-    </svg>
-  );
-}
+/** The years as the compass's dots: each in amber, the last the solid one. */
+const dotsOf = (points: CompassPoint[]): CompassDot[] =>
+  points.map((p, i) => {
+    const last = i === points.length - 1;
+    return { key: p.y, across: p.across, civ: p.civ, r: last ? 5.5 : 3, fill: last ? "currentColor" : "#f59e0b", fillOpacity: last ? 1 : 0.75, stroke: last ? "#f59e0b" : "none" };
+  });
 
 /** Where the country stood in the last year drawn, in words. */
 const standing = (p: CompassPoint) =>
@@ -435,7 +361,7 @@ function Compass({ data, from, to, country, today }: { data: History; from: numb
         className="modal-tile rounded-xl px-4 py-3 mb-4 w-full text-left flex items-center gap-4 cursor-pointer disabled:cursor-default transition-colors hover:border-foreground/30"
         aria-label={points.length ? `Open ${label}` : `${country} on the political compass: not held for these years`}
       >
-        <span className="w-24 shrink-0 text-foreground">{points.length ? <CompassPlot points={points} label={label} /> : null}</span>
+        <span className="w-24 shrink-0 text-foreground">{points.length ? <CompassPlot dots={dotsOf(points)} label={label} path tag={{ key: last.y, text: String(last.y) }} /> : null}</span>
         <span className="min-w-0 flex-1">
           <span className="block text-[10px] font-mono uppercase tracking-widest text-muted-foreground">
             The political compass · {from} to {to}
@@ -482,7 +408,7 @@ function CompassWindow({ points, data, from, to, country, label, onClose }: { po
     const r = box.current?.getBoundingClientRect();
     if (r) setTip({ x: e.clientX - r.left, y: e.clientY - r.top, title: `${country}, ${p.y}`, lines: [`Governing: ${p.who}`, `Leaning: ${p.lean} (${p.source})`, `Civil liberties: ${p.civ.toFixed(3)} (V-Dem, 0 to 1)`] });
   };
-  const here = (Q: Quarter) => points.filter((p) => inQuarter(p, Q)).length;
+  const here = (Q: Quarter) => points.filter((p) => inQuarter(p.across, p.civ, Q)).length;
   const showQuarter = (e: React.MouseEvent, Q: Quarter) => {
     const r = box.current?.getBoundingClientRect();
     const n = here(Q);
@@ -508,7 +434,7 @@ function CompassWindow({ points, data, from, to, country, label, onClose }: { po
           </WindowTitle>
           <div className="grid grid-cols-1 md:grid-cols-[minmax(0,22rem)_1fr] gap-6 mt-4 items-start">
             <div ref={box} className="relative text-foreground">
-              <CompassPlot points={points} label={label} onPoint={show} onLeave={() => setTip(null)} onQuarter={showQuarter} />
+              <CompassPlot dots={dotsOf(points)} label={label} path tag={{ key: last.y, text: String(last.y) }} onDot={(e, i) => show(e, points[i])} onLeave={() => setTip(null)} onQuarter={showQuarter} />
               {tip && <TipCard tip={tip} room={box.current?.clientWidth ?? 300} />}
             </div>
             <div className="min-w-0 space-y-3">
@@ -570,31 +496,7 @@ function CompassWindow({ points, data, from, to, country, label, onClose }: { po
           </div>
 
           {/* The positions on the compass, as asked: each quarter, what puts a government there, and the years drawn in it. */}
-          <section aria-label="The positions on the compass" className="mt-6">
-            <p className="text-[10px] font-mono uppercase tracking-widest text-muted-foreground mb-2">The positions on the compass</p>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-              {QUARTERS.map((Q) => {
-                const n = here(Q);
-                return (
-                  <div key={Q.name} className="modal-tile rounded-xl px-3 py-2.5" style={{ borderColor: `${Q.colour}55` }}>
-                    <p className="text-[12px] font-semibold font-sans flex items-center gap-2" style={{ color: Q.colour }}>
-                      <span className="inline-block w-2.5 h-2.5 rounded-sm shrink-0" style={{ background: Q.colour, opacity: 0.6 }} aria-hidden />
-                      {Q.name}
-                      <span className="ml-auto text-[10px] font-mono font-normal text-muted-foreground">
-                        {n} of {points.length} {points.length === 1 ? "year" : "years"}
-                      </span>
-                    </p>
-                    <p className="text-[11px] font-sans text-muted-foreground leading-snug mt-1">{Q.say}</p>
-                  </div>
-                );
-              })}
-            </div>
-            <p className="text-[11px] font-sans text-muted-foreground leading-snug mt-3">
-              On the middle lines: across, a party placed at the centre - 5 on ParlGov's scale, or Wikidata's "centrism" - stands on the line up and down, in neither the left's quarters
-              nor the right's; up and down, civil liberties of exactly 0.5 stand on the line across. Left and right here are where the records place the party, not a judgement of its
-              policies; authoritarian and libertarian are only how free its people were that year by V-Dem's measure, whoever was to account for it.
-            </p>
-          </section>
+          <CompassPositions count={(Q) => `${here(Q)} of ${points.length} ${points.length === 1 ? "year" : "years"}`} />
         </div>
       </div>
     </div>
