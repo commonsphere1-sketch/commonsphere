@@ -35,7 +35,7 @@ import { useLocation, useNavigate } from "react-router-dom";
 import { Area, AreaChart, CartesianGrid, Line, LineChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
 import { SLIM_TRACK, SlimColumns, slimFill } from "./SlimBars";
 import { ArrowRight, ArrowSquareOut, ChartBar, Globe, GlobeHemisphereWest, Heart, Leaf, Lightbulb, MagnifyingGlass, MapPin, Megaphone, Scales, Tree, Users, X } from "@phosphor-icons/react";
-import { useTheme } from "../contexts/ThemeContext";
+import { useTokens, type Tokens } from "../lib/cardTokens";
 import { useLiveCountries } from "../contexts/LiveDataContext";
 import type { Country, DataSource, ReferenceField } from "../data/countriesData";
 import { IMF_INFLATION, INCOME_GROUPS, INCOME_OF, INCOME_SOURCE, REGIONS, REGION_OF, WORLD, type WorldPoint } from "../data/worldview";
@@ -99,24 +99,8 @@ const POLICY_TOPICS: { label: string; color: string; re: RegExp }[] = [
 /** How many of the week's policy headlines are read, newest first. */
 const POLICY_READ = 300;
 
-/** The site's card colours, as the Dashboard sets them, for light and dark. */
-export function useTokens() {
-  const { theme } = useTheme();
-  const isLight = theme === "light";
-  return {
-    isLight,
-    cardBg: isLight ? "#ffffff" : "rgba(255,255,255,0.04)",
-    cardBorder: isLight ? "1px solid rgba(0,0,0,0.09)" : "1px solid rgba(255,255,255,0.14)",
-    cardShadow: isLight ? "var(--card-glow), 0 1px 10px rgba(0,0,0,0.07)" : "var(--card-glow)",
-    mutedText: isLight ? "rgba(30,41,59,0.64)" : "rgba(255,255,255,0.66)",
-    bodyText: isLight ? "#1e293b" : "#e2e8f0",
-    headText: isLight ? "#0f172a" : "#f1f0ff",
-    gridLine: isLight ? "rgba(0,0,0,0.06)" : "rgba(255,255,255,0.12)",
-    tile: isLight ? "rgba(0,0,0,0.03)" : "rgba(255,255,255,0.04)",
-    tooltipBg: isLight ? "#ffffff" : "#1a1730",
-  };
-}
-export type Tokens = ReturnType<typeof useTokens>;
+// The card colours live in lib/cardTokens, shared with the pages' chart cards; given on from here as before.
+export { useTokens, type Tokens } from "../lib/cardTokens";
 
 const lastOf = (s: WorldPoint[]) => s[s.length - 1];
 const trillions = (usd: number) => `$${(usd / 1e12).toFixed(usd >= 1e13 ? 1 : 2)}T`;

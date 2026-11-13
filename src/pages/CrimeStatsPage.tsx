@@ -708,6 +708,14 @@ export function CrimeStatsPage() {
         <PlaceHistory
           topic="crime"
           title="Crime history, place by place"
+          accent="#ef4444"
+          groups={[
+            { title: "Murder & Homicide", sub: "Victims per 100,000 people", lines: [["homicide", "#ef4444"]] },
+            { title: "Violent Crime", sub: "Recorded by the police, per 100,000 people", lines: [["robbery", "#ef4444"], ["assault", "#f59e0b"], ["kidnapping", "#6366f1"], ["sexualViolence", "#a855f7"], ["rape", "#ec4899"]] },
+            { title: "Property Crime", sub: "Recorded by the police, per 100,000 people", lines: [["theft", "#f59e0b"], ["burglary", "#ef4444"], ["vehicleTheft", "#6366f1"], ["fraud", "#a855f7"]] },
+            { title: "Cybercrime", sub: "Recorded by the police, per 100,000 people", lines: [["computerAccess", "#6366f1"]] },
+            { title: "Corruption & Organised Crime", sub: "Recorded by the police, per 100,000 people", lines: [["corruption", "#ef4444"], ["bribery", "#f59e0b"], ["moneyLaundering", "#6366f1"], ["migrantSmuggling", "#a855f7"]] },
+          ]}
           chooserLabel="Choose a country to see its crime history"
           empty="No crime history is held for {country}: it has reported no year to UNODC."
           className=""
@@ -716,7 +724,8 @@ export function CrimeStatsPage() {
               A country's crime is as its own police and health records give it to UNODC, the United Nations Office on Drugs and Crime: victims of intentional homicide,
               and the offences its police recorded, each per 100,000 people, for each year from 2003 it reported. What counts as each offence, and how much of it is
               reported to the police, differ from country to country and change over time: a line's rise or fall can be a change in recording as well as in crime. A
-              year not reported is not held. The United Kingdom reports its three jurisdictions apart, and Iraq its Kurdistan Region apart from the rest.
+              year not reported is a gap in its line. The United Kingdom reports its three jurisdictions apart, and Iraq its Kurdistan Region apart from the rest. Drug
+              offences are not held place by place: UNODC's files of offences recorded do not give them.
             </p>
           }
         />

@@ -535,6 +535,13 @@ export function PlanetaryBoundariesPage() {
         <PlaceHistory
           topic="climate"
           title="Climate history, place by place"
+          accent="#06b6d4"
+          groups={[
+            { title: "Temperature", sub: "Means of the year, °C", lines: [["tempMax", "#ef4444"], ["temp", "#f59e0b"], ["tempMin", "#3b82f6"]] },
+            { title: "Precipitation", sub: "Rain and snow in the year", lines: [["precip", "#06b6d4"]] },
+            { title: "Carbon Dioxide Emitted", sub: "Fossil fuels and industry", lines: [["co2", "#a855f7"]] },
+            { title: "Carbon Dioxide per Person", sub: "Fossil fuels and industry", lines: [["co2PerHead", "#ec4899"]] },
+          ]}
           chooserLabel="Choose a country to see its climate history"
           empty="No climate history is held for {country}."
           notes={
@@ -542,7 +549,7 @@ export function PlanetaryBoundariesPage() {
               A country's climate is the Climatic Research Unit's record of the world's weather stations (CRU TS 4.09), set on a grid and averaged over the country by the
               World Bank's Climate Change Knowledge Portal, each year since 1901: its mean temperature, the means of its days' highs and lows, and the rain and snow of
               the year. Its emissions of carbon dioxide are the Global Carbon Budget's, from fossil fuels and industry, as Our World in Data publishes them - not from
-              land use, and where they are produced, not where the goods are used. A year a source does not give is not held.
+              land use, and where they are produced, not where the goods are used. A year a source does not give is a gap in its line.
             </p>
           }
         />
