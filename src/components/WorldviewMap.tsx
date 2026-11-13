@@ -172,8 +172,9 @@ const SHAPES = WORLD.features.flatMap((f) => {
   const d = PATH(f as never);
   if (!d || f.properties.name === "Antarctica") return [];
   const c = countryForFeature(f.properties.name);
-  return [{ name: c?.name ?? f.properties.name, code: c?.code ?? null, d, b: PATH.bounds(f as never), a: anchorOf(PATH, f) }];
+  return [{ name: c?.name ?? f.properties.name, code: c?.code ?? null, d, b: PATH.bounds(f as never), a: anchorOf(PATH, f), area: PATH.area(f as never) }];
 });
+type Shape = (typeof SHAPES)[number];
 /** The Policy page's policy areas, as asked, for the country picked: fetched with that page's code when first shown. */
 const CountryPolicyAreas = lazy(() => import("../pages/countiresPolicyPage").then((m) => ({ default: m.CountryPolicyAreas })));
 
@@ -188,8 +189,6 @@ const countryAt = (lon: number, lat: number) => {
   const c = f ? countryForFeature(f.properties.name) : null;
   return c ? { code: c.code, name: c.name } : null;
 };
-/** How many countries the map draws: small islands are too small to draw at this scale, and are not counted. */
-const DRAWN = new Set(SHAPES.flatMap((s) => (s.code ? [s.code] : []))).size;
 /** As close as the map is drawn: twelve times the whole. */
 const MAX_K = 12;
 /** How solid a country is drawn, and the one picked or pointed at: the World Maps page's middle neon step, and a step up. */
@@ -623,6 +622,37 @@ export default function WorldviewMap() {
   const [hover, setHover] = useState<string | null>(null);
   /** The country whose figures fill the panels under the map. */
   const [picked, setPicked] = useState("US");
+  /* The small countries the coarse world leaves out - island nations of the Pacific and the Caribbean, Malta, Singapore and
+     the like - as asked: from Natural Earth's finer 1:50m tracing, fetched once the map is drawn, each drawn, pointed at and
+     pressed as every other country is. */
+  const [isles, setIsles] = useState<Shape[]>([]);
+  useEffect(() => {
+    let off = false;
+    import("world-atlas/countries-50m.json")
+      .then((m) => {
+        if (off) return;
+        const fine = (m.default ?? m) as unknown as Topology;
+        const have = new Set(WORLD.features.map((f) => f.properties.name));
+        const features = (feature(fine, fine.objects.countries as never) as unknown as { features: { properties: { name: string } }[] }).features;
+        setIsles(
+          features.flatMap((f) => {
+            if (have.has(f.properties.name) || f.properties.name === "Antarctica") return [];
+            const d = PATH(f as never);
+            if (!d) return [];
+            const c = countryForFeature(f.properties.name);
+            return [{ name: c?.name ?? f.properties.name, code: c?.code ?? null, d, b: PATH.bounds(f as never), a: anchorOf(PATH, f as never), area: PATH.area(f as never) }];
+          }),
+        );
+      })
+      // Without them the map still draws every country the coarse world holds.
+      .catch(() => {});
+    return () => {
+      off = true;
+    };
+  }, []);
+  /** Every country drawn: the coarse world's, and the small ones from the finer tracing. */
+  const shapes = useMemo(() => [...SHAPES, ...isles], [isles]);
+  const shapeOf = (code: string | null) => (code ? shapes.find((s) => s.code === code) : undefined);
   /* The divisions of the country picked - its states, provinces, regions - as the World Maps page's files draw them; the one pressed, and the one pointed at. */
   const [regions, setRegions] = useState<{ code: string; list: { name: string; d: string; geo: Geo; a?: ReturnType<typeof anchorOf> }[] } | null>(null);
   const [region, setRegion] = useState<string | null>(null);
@@ -709,7 +739,7 @@ export default function WorldviewMap() {
   /** A county pressed: the Census Bureau's record of it in the United States; elsewhere what its boundaries' publisher records. */
   const pressCounty = (c: County) => {
     setRegion(null);
-    const country = SHAPES.find((s) => s.code === picked)?.name ?? picked;
+    const country = shapeOf(picked)?.name ?? picked;
     if (picked === "US") {
       import("../data/usCounties").then((m) => {
         const r = m.US_COUNTIES.find((x) => x[0] === c.id);
@@ -912,7 +942,7 @@ export default function WorldviewMap() {
   /** Picks a country, and glides to it. */
   const pick = (code: string) => {
     setPicked(code);
-    const s = SHAPES.find((x) => x.code === code);
+    const s = shapeOf(code);
     if (!s) return;
     const [[x0, y0], [x1, y1]] = s.b;
     const k = Math.min(MAX_K, 0.8 * Math.min(W / Math.max(1, x1 - x0), H / Math.max(1, y1 - y0)));
@@ -939,7 +969,7 @@ export default function WorldviewMap() {
       setFound(p);
     };
     if (a.kind === "country") {
-      const s = SHAPES.find((x) => x.code === a.cc);
+      const s = shapeOf(a.cc);
       if (!s?.a) return false;
       setToFind(null);
       setPicked(a.cc);
@@ -950,7 +980,7 @@ export default function WorldviewMap() {
     }
     if (a.kind === "state" || a.kind === "division") {
       const cc = a.kind === "state" ? "US" : a.cc;
-      const s = SHAPES.find((x) => x.code === cc);
+      const s = shapeOf(cc);
       if (!s?.a) return false;
       setPicked(cc);
       // Drawn first to its point where its record gives one, else to its country, until its country's divisions are in to draw it to its own outline.
@@ -1018,7 +1048,7 @@ export default function WorldviewMap() {
                 }}
                 onMouseEnter={() => setHoverPin(`${r[5]}: ${r[4].toLocaleString("en")} killed`)}
                 // Described in the card by the pointer, as asked: its deaths, its kind of violence, its sides.
-                onMouseMove={(e) => conflictData.data && card.current?.show(e, { name: r[5], kicker: `${CONFLICT_KINDS[r[2]]} · ${SHAPES.find((s) => s.code === r[11])?.name ?? r[11]}`, zone: { kind: "country", cc: r[11] }, figures: conflictPinRows(conflictData.data, r) }, PROJECTION)}
+                onMouseMove={(e) => conflictData.data && card.current?.show(e, { name: r[5], kicker: `${CONFLICT_KINDS[r[2]]} · ${shapeOf(r[11])?.name ?? r[11]}`, zone: { kind: "country", cc: r[11] }, figures: conflictPinRows(conflictData.data, r) }, PROJECTION)}
                 onMouseLeave={() => {
                   setHoverPin(null);
                   card.current?.hide();
@@ -1097,8 +1127,8 @@ export default function WorldviewMap() {
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [toFind, picked, regions, counties, countiesShown]);
-  const shown = hover ? SHAPES.find((s) => s.code === hover) : null;
-  const pickedName = SHAPES.find((s) => s.code === picked)?.name ?? picked;
+  const shown = hover ? shapeOf(hover) : null;
+  const pickedName = shapeOf(picked)?.name ?? picked;
   return (
     <>
     <CountryHoverCard ref={card} />
@@ -1181,7 +1211,7 @@ export default function WorldviewMap() {
           >
             <path strokeWidth={1 / view.k} d={SPHERE} fill={t.isLight ? "rgba(0,0,0,0.02)" : "rgba(255,255,255,0.015)"} stroke={t.gridLine} />
             <path d={GRID} fill="none" stroke={t.isLight ? "rgba(0,0,0,0.07)" : "rgba(255,255,255,0.07)"} strokeWidth={(0.6) / view.k} />
-            {SHAPES.map((s, i) => {
+            {shapes.map((s, i) => {
               const on = (hover !== null && hover === s.code) || s.code === picked;
               return (
                 <path
@@ -1196,7 +1226,8 @@ export default function WorldviewMap() {
                   fill={s.code ? inkOf(s.code) : t.isLight ? "#e5e7eb" : "#1a1a20"}
                   fillOpacity={s.code ? (on ? FILL_ON : FILL) : 1}
                   stroke={s.code ? inkOf(s.code) : t.isLight ? "#cbd5e1" : "#3a3a44"}
-                  strokeWidth={0.7 / view.k}
+                  // A country too small to see at this distance has a heavier edge, so that its islands' own shapes show; every other the usual.
+                  strokeWidth={(s.area * view.k * view.k < 6 ? 1.6 : 0.7) / view.k}
                   onMouseEnter={() => s.code && setHover(s.code)}
                   onMouseMove={(e) => s.code && !drag.current?.moved && card.current?.show(e, { name: s.name, zone: { kind: "country", cc: s.code }, ...(live.critical || live.conflicts || live.hazards ? { figures: layerRows(s.code) } : {}) }, PROJECTION)}
                   onMouseLeave={() => {
@@ -1209,7 +1240,7 @@ export default function WorldviewMap() {
             {/* The critical zones, as asked: each country named drawn in red over its own colour - the more of the four that name it, the more solid - and not pressed itself. */}
             {live.critical && critical && (
               <g pointerEvents="none" aria-hidden>
-                {SHAPES.map((s, i) => {
+                {shapes.map((s, i) => {
                   const rs = s.code ? critical.zones.get(s.code) : undefined;
                   if (!rs) return null;
                   const n = namedBy(rs);
@@ -1221,7 +1252,7 @@ export default function WorldviewMap() {
             {/* The borders inside each country, in its own colour and dimmer than its edge, kept inside the land as drawn here. */}
             <defs>
               <clipPath id="worldview-land">
-                {SHAPES.map((s, i) => (
+                {shapes.map((s, i) => (
                   <path key={i} d={s.d} />
                 ))}
               </clipPath>
@@ -1372,7 +1403,7 @@ export default function WorldviewMap() {
       </div>
       <div className="flex flex-wrap items-center gap-x-4 gap-y-2 px-4 py-3 border-t" style={{ borderColor: t.gridLine }}>
         <p className="text-[10px] font-sans flex-1 min-w-[12rem]" style={{ color: t.mutedText }}>
-          Every country in one colour, the one picked drawn more solid; press one for its own figures, beside the map and under it. The {DRAWN} countries the map draws; the smallest islands are too small to draw at this scale.
+          Every country in one colour, the one picked drawn more solid; press one for its own figures, beside the map and under it. The {new Set(shapes.flatMap((s) => (s.code ? [s.code] : []))).size} countries the map draws; the smallest, the island nations among them, from a finer tracing, each with a heavier edge so that it shows.
         </p>
         <SourceLink sources={[{ label: "Natural Earth, via world-atlas — country outlines (public domain)", url: "https://github.com/topojson/world-atlas" }, { label: "geoBoundaries (gbOpen, each country's under its publisher's open licence) and Natural Earth (public domain) — state, province, county and district borders", url: "https://www.geoboundaries.org/" }, { label: "GeoNames — cities of 100,000 or more (CC BY 4.0)", url: "https://www.geonames.org/" }]} />
       </div>
