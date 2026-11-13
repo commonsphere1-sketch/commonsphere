@@ -2222,22 +2222,8 @@ export function WorldMapsPage() {
     () =>
       worldDrawn.features.map((f) => {
         const [cx, cy] = worldPath.path.centroid(f as never);
-        /* How much of the map it covers, and where a dot for it goes when that is too little to see: on its largest piece
-           of land, so that an island chain split by the map's edge (Kiribati) is marked on an island, not in the sea. */
+        // How much of the map it covers: a country too small to see at the distance drawn is given a heavier edge.
         const area = worldPath.path.area(f as never);
-        const geom = (f as unknown as { geometry?: { type: string; coordinates: unknown[] } }).geometry;
-        let dot: [number, number] = [cx, cy];
-        if (geom?.type === "MultiPolygon") {
-          let most = -1;
-          for (const coordinates of geom.coordinates) {
-            const piece = { type: "Polygon", coordinates } as never;
-            const a = worldPath.path.area(piece);
-            if (a > most) {
-              most = a;
-              dot = worldPath.path.centroid(piece);
-            }
-          }
-        }
         return {
           name: f.properties.name,
           country: countryForFeature(f.properties.name),
@@ -2245,7 +2231,6 @@ export function WorldMapsPage() {
           cx,
           cy,
           area,
-          dot,
         };
       }),
     [worldDrawn, worldPath],
@@ -4629,7 +4614,7 @@ export function WorldMapsPage() {
               stroke={isLight ? "rgba(0,0,0,0.05)" : "rgba(255,255,255,0.05)"}
               strokeWidth={0.5 / worldZoom.zoom}
             />
-            {worldShapes.map(({ name, country, d, cx, cy, area, dot }, i) => {
+            {worldShapes.map(({ name, country, d, cx, cy, area }, i) => {
               const outside =
                 activeScope.belongs !== null &&
                 country !== null &&
@@ -4671,38 +4656,24 @@ export function WorldMapsPage() {
                   card.current?.hide();
                 },
               };
-              /* A country too small to see at this distance - an island nation in the Pacific or the Caribbean, as asked - is
-                 also marked by a dot on its largest island, in its own colour, pointed at and pressed as its outline is. It
-                 goes once the map is drawn close enough for the land itself to show. */
-              const tiny = Boolean(d) && area * worldZoom.zoom * worldZoom.zoom < 6 && Number.isFinite(dot[0]) && Number.isFinite(dot[1]);
+              /* A country too small to see at this distance - an island nation in the Pacific or the Caribbean - is drawn by its
+                 own outline as every other is, as asked, with an edge heavy enough to show its islands' shapes: no dot stands
+                 in for it. Its edge thins to every country's once the map is drawn close enough for the land itself to show. */
+              const tiny = Boolean(d) && area * worldZoom.zoom * worldZoom.zoom < 6;
               return (
-                <React.Fragment key={i}>
-                  <path
-                    d={d}
-                    // Translucent inside a bright edge of the same colour, and lit when it is pointed at, as the Dashboard's map is: the whole map in one style.
-                    fill={outside ? outOfScope : (ink ?? "url(#nodata-world)")}
-                    className={ink ? "[fill-opacity:var(--o)] hover:[fill-opacity:0.78] transition-[fill-opacity]" : undefined}
-                    stroke={outside ? stroke : (ink ?? UNSCORED)}
-                    strokeOpacity={ink || outside ? 1 : 0.5}
-                    strokeWidth={0.55 / worldZoom.zoom}
-                    strokeLinejoin="round"
-                    style={{ ["--o" as string]: solid !== null ? solid : 0.36, cursor: country && worldZoom.zoom === 1 ? "pointer" : undefined }}
-                    {...point}
-                  />
-                  {tiny && (
-                    <circle
-                      cx={dot[0]}
-                      cy={dot[1]}
-                      r={2.2 / worldZoom.zoom}
-                      fill={outside ? outOfScope : (ink ?? UNSCORED)}
-                      fillOpacity={ink ? Math.max(0.55, Number(solid ?? 0.55)) : 0.7}
-                      stroke={outside ? stroke : (ink ?? UNSCORED)}
-                      strokeWidth={0.6 / worldZoom.zoom}
-                      style={{ cursor: country ? "pointer" : undefined }}
-                      {...point}
-                    />
-                  )}
-                </React.Fragment>
+                <path
+                  key={i}
+                  d={d}
+                  // Translucent inside a bright edge of the same colour, and lit when it is pointed at, as the Dashboard's map is: the whole map in one style.
+                  fill={outside ? outOfScope : (ink ?? "url(#nodata-world)")}
+                  className={ink ? "[fill-opacity:var(--o)] hover:[fill-opacity:0.78] transition-[fill-opacity]" : undefined}
+                  stroke={outside ? stroke : (ink ?? UNSCORED)}
+                  strokeOpacity={ink || outside ? 1 : 0.5}
+                  strokeWidth={(tiny ? 1.6 : 0.55) / worldZoom.zoom}
+                  strokeLinejoin="round"
+                  style={{ ["--o" as string]: solid !== null ? solid : 0.36, cursor: country && worldZoom.zoom === 1 ? "pointer" : undefined }}
+                  {...point}
+                />
               );
             })}
             {/* First-order internal borders — states, provinces, regions — as one
