@@ -4,7 +4,9 @@
  * temperature - the mean, the mean of the days' highs and of their lows - and precipitation, every month since 1895, from
  * station records set on a 5 km grid and averaged over the place. NOAA publishes them by the month; the year's figure is
  * worked out here from the twelve: the temperatures' average, and the precipitation's sum - only for a year with all
- * twelve months. In NOAA's own units, degrees Fahrenheit and inches. County names are the Census Bureau's (2020 codes,
+ * twelve months. In NOAA's own units, degrees Fahrenheit and inches. Also its heating and cooling degree-days (summed
+ * likewise) and its Palmer Drought Severity Index (the year's average, and the months of moderate drought or worse, by
+ * NOAA's own category). County names are the Census Bureau's (2020 codes,
  * those nClimDiv uses).
  *
  * Writes the states into static/climate/history/US.json and each state's counties into more/US-<SS>.json
@@ -53,11 +55,18 @@ function monthly(text, codeLen) {
   }
   return out;
 }
-/** The year's figure from its twelve months: their average or sum, only where all twelve are given. */
+/**
+ * The year's figure from its twelve months, only where all twelve are given: their average, their sum, or - for the drought
+ * index - how many were of moderate drought or worse (-2.0 or lower, NOAA's own category).
+ */
 const yearly = (byYear, how) => {
   const out = {};
   for (const [y, ms] of Object.entries(byYear)) {
     if (ms.some((m) => m === null)) continue;
+    if (how === "drought") {
+      out[y] = ms.filter((m) => m <= -2).length;
+      continue;
+    }
     const sum = ms.reduce((a, m) => a + m, 0);
     out[y] = Math.round((how === "sum" ? sum : sum / 12) * 100) / 100;
   }
@@ -69,12 +78,20 @@ const DEFS = {
   tempMaxF: { label: "Mean daily high", unit: "degF", say: "the mean of the days' highest temperatures in the year, the average of NOAA's twelve monthly means (worked out here)" },
   tempMinF: { label: "Mean daily low", unit: "degF", say: "the mean of the days' lowest temperatures in the year, the average of NOAA's twelve monthly means (worked out here)" },
   precipIn: { label: "Precipitation", unit: "in", say: "rain and snow in the year, in inches of water: the sum of NOAA's twelve monthly totals (worked out here)" },
+  heatingDD: { label: "Heating degree-days", unit: "dd", say: "how far, and for how many days, the day's mean fell below 65 °F - the need for heating - summed over NOAA's twelve months (worked out here)" },
+  coolingDD: { label: "Cooling degree-days", unit: "dd", say: "how far, and for how many days, the day's mean rose above 65 °F - the need for cooling - summed over NOAA's twelve months (worked out here)" },
+  pdsi: { label: "Palmer Drought Severity Index", unit: "index", say: "NOAA's drought index, the average of its twelve months (worked out here): 0 normal; -2 moderate, -3 severe, -4 extreme drought; the same above 0 for wet spells" },
+  droughtMonths: { label: "Months in drought", unit: "months", say: "months of the year with a Palmer index of -2.0 or lower - moderate drought or worse, NOAA's category - counted here" },
 };
 const ELEMENTS = [
   ["tempF", "tmpc", "mean"],
   ["tempMaxF", "tmax", "mean"],
   ["tempMinF", "tmin", "mean"],
   ["precipIn", "pcpn", "sum"],
+  ["heatingDD", "hddc", "sum"],
+  ["coolingDD", "cddc", "sum"],
+  ["pdsi", "pdsi", "mean"],
+  ["droughtMonths", "pdsi", "drought"],
 ];
 
 (async () => {

@@ -40,13 +40,13 @@ const whole = (v: number) => v.toLocaleString("en-US");
 function said(v: number, unit: string) {
   const a = Math.abs(v);
   const n = a >= 100 ? Math.round(v).toLocaleString("en-US") : a >= 10 ? v.toFixed(1) : v.toFixed(2);
-  const UNIT: Record<string, string> = { per100k: " per 100,000", degC: " °C", degF: " °F", mm: " mm", in: " in", mt: " million t", t: " t", days: " days" };
+  const UNIT: Record<string, string> = { per100k: " per 100,000", degC: " °C", degF: " °F", mm: " mm", in: " in", mt: " million t", t: " t", days: " days", dd: " degree-days", months: " months" };
   return unit === "count" ? Math.round(v).toLocaleString("en-US") : `${n}${UNIT[unit] ?? ""}`;
 }
 /** A scale's figure, short. */
 const tick = (v: number) => (Math.abs(v) >= 1000 ? `${Math.round(v / 100) / 10}k` : Math.abs(v) >= 10 ? `${Math.round(v)}` : `${Math.round(v * 10) / 10}`);
 /** The unit in a heading. */
-const UNIT_SAID: Record<string, string> = { per100k: "per 100,000 people", degC: "°C", degF: "°F", mm: "mm", in: "inches", mt: "million tonnes", t: "tonnes", index: "index", count: "number", days: "days a year" };
+const UNIT_SAID: Record<string, string> = { per100k: "per 100,000 people", degC: "°C", degF: "°F", mm: "mm", in: "inches", mt: "million tonnes", t: "tonnes", index: "index", count: "number", days: "days a year", dd: "degree-days, °F", months: "months a year" };
 const isTemperature = (unit: string) => unit === "degC" || unit === "degF";
 
 const at = (s: Series, y: number) => (y >= (s[0] as number) ? (s[1 + y - (s[0] as number)] ?? null) : null);
@@ -357,7 +357,7 @@ function HistoryCard({ t, accent, group, place, file, above }: { t: Tokens; acce
   const many = data.length > 40;
   const fromZero = !isTemperature(unit);
   const axis = { tick: { fontSize: 9, fill: t.mutedText, fontFamily: "monospace" }, axisLine: false, tickLine: false };
-  const yAxis = <YAxis {...axis} tickFormatter={tick} domain={fromZero ? [0, "auto"] : [(m: number) => Math.floor(m - 0.5), (m: number) => Math.ceil(m + 0.5)]} width={44} />;
+  const yAxis = <YAxis {...axis} tickFormatter={tick} domain={fromZero ? [(m: number) => Math.min(0, Math.floor(m)), "auto"] : [(m: number) => Math.floor(m - 0.5), (m: number) => Math.ceil(m + 0.5)]} width={44} />;
   const tip = (extra?: (year: number) => [string, string, string][]) => (
     <Tooltip
       cursor={{ stroke: t.mutedText, strokeOpacity: 0.4, fill: t.mutedText, fillOpacity: 0.08 }}
@@ -568,7 +568,8 @@ function RankCard({ t, accent, k, places, file, shown, whole: total }: { t: Toke
   const rows = list.map(({ p, y, v }) => ({
     key: p.id,
     label: p.id === shown.id ? `${p.name} ◂` : p.name,
-    value: v,
+    // A figure that runs below nought (a drought index) is ranked by its figures alone: a bar from nought would hide it.
+    value: list.some((x) => x.v < 0) ? undefined : v,
     text: said(v, d.unit),
     sub: String(y),
     color: p.id === shown.id ? accent : `${accent}88`,

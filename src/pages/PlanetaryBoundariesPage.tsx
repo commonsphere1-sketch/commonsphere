@@ -547,12 +547,15 @@ export function PlanetaryBoundariesPage() {
             { title: "Precipitation", sub: "Rain and snow in the year", lines: [["precip", "#06b6d4"], ["precipIn", "#06b6d4"]], kind: "bars" },
             { title: "Wettest Day", sub: "The year's most rain in one day, averaged over the place", lines: [["wettestDay", "#06b6d4"]], kind: "bars" },
             { title: "Heavy Rain and Dry Spells", sub: "Days in the year, averaged over the place", lines: [["heavyRainDays", "#06b6d4"], ["drySpell", "#d97706"]] },
-            { title: "Records", sub: "Each figure's highest and lowest year", lines: [["temp", ""], ["tempF", ""], ["tempMax", ""], ["tempMaxF", ""], ["tempMin", ""], ["tempMinF", ""], ["hottestDay", ""], ["coldestNight", ""], ["hotDays", ""], ["frostDays", ""], ["precip", ""], ["precipIn", ""], ["wettestDay", ""], ["drySpell", ""], ["co2", ""]], kind: "records" },
+            { title: "Heating and Cooling Degree-Days", sub: "NOAA's degree-days in the year, °F below or above 65 °F", lines: [["heatingDD", "#3b82f6"], ["coolingDD", "#ef4444"]] },
+            { title: "Drought", sub: "NOAA's Palmer Drought Severity Index, the year's average · -4 extreme, +4 extreme wet", lines: [["pdsi", "#d97706"]], kind: "bars" },
+            { title: "Months in Drought", sub: "Months of moderate drought or worse in the year", lines: [["droughtMonths", "#b45309"]], kind: "bars" },
+            { title: "Records", sub: "Each figure's highest and lowest year", lines: [["temp", ""], ["tempF", ""], ["tempMax", ""], ["tempMaxF", ""], ["tempMin", ""], ["tempMinF", ""], ["hottestDay", ""], ["coldestNight", ""], ["hotDays", ""], ["frostDays", ""], ["precip", ""], ["precipIn", ""], ["wettestDay", ""], ["drySpell", ""], ["heatingDD", ""], ["coolingDD", ""], ["pdsi", ""], ["droughtMonths", ""], ["co2", ""]], kind: "records" },
             { title: "Carbon Dioxide Emitted", sub: "Fossil fuels and industry", lines: [["co2", "#a855f7"]], kind: "area" },
             { title: "Carbon Dioxide per Person", sub: "Fossil fuels and industry", lines: [["co2PerHead", "#ec4899"]] },
           ]}
           tiles={["temp", "tempF", "hottestDay", "hotDays", "precip", "precipIn", "co2", "co2PerHead"]}
-          compare={["tempF", "precipIn"]}
+          compare={["tempF", "precipIn", "pdsi", "coolingDD"]}
           chooserLabel="Choose a country to see its climate history"
           empty="No climate history is held for {country}."
           notes={
@@ -565,7 +568,9 @@ export function PlanetaryBoundariesPage() {
               place's own extreme, averaged over the country, not the single highest reading anywhere in it. Records are each series' highest and lowest year, worked out
               here. The United States' states and counties are NOAA's own record, nClimDiv, each month since 1895 from its weather stations set on a
               5 km grid, in degrees Fahrenheit and inches; the year's figure is worked out here from its twelve months, only for a year with all twelve. A year a source does not
-              give is a gap in its line.
+              give is a gap in its line. For the states and counties, NOAA's heating and cooling degree-days (how far, and on how many days, the
+              day's mean fell below or rose above 65 °F, summed over the year) and its Palmer Drought Severity Index (the year's average of its months, and how many months
+              were of moderate drought or worse by NOAA's own scale) are worked out here from its monthly figures in the same way.
             </p>
           }
         />
