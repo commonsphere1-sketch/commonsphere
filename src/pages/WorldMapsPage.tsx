@@ -87,6 +87,10 @@ import { CITY_FIGURES, CITY_FIGURES_SOURCE } from "../data/cityFigures";
 import { cityYear } from "../lib/cityFigures";
 import { COUNTRY_CLIMATE, type ClimateZone } from "../data/climateZones";
 import { ADMIN2_UNTILED } from "../data/admin2Untiled";
+import { COUNTRY_SLUMS, COUNTRY_SLUMS_SOURCE } from "../data/countrySlums";
+import { loadAdmin1, outlinesOf } from "../lib/outlines";
+import { DIVISION_POVERTY_SOURCE } from "../lib/divisionPoverty";
+import type { Subnation } from "../data/subnations";
 
 /**
  * Equal Earth world map and a US state map, both shaded from the site's own
@@ -1729,6 +1733,9 @@ export function WorldMapsPage() {
   const [countryMetric, setCountryMetric] = useState("hdi");
   /* The Governance layer, as asked: pressed, the world map draws each country in its regime type (V-Dem's Regimes of the World). */
   const [governance, setGovernance] = useState(false);
+  /* The poorest areas and the slums, as asked: each a wash over the world map while its chip is pressed. */
+  const [poorest, setPoorest] = useState(false);
+  const [slums, setSlums] = useState(false);
   /* The figure the map of the United States is drawn by, as asked: none, and it is drawn by living conditions. */
   const [usMeasure, setUsMeasure] = useState<UsMeasureId | null>(null);
   /* The conflicts and the disasters going on, as asked: each pinned on the world map while its chip is pressed. */
@@ -1898,6 +1905,9 @@ export function WorldMapsPage() {
   };
   /* The place picked out: an orange none of the layers uses, dark enough to read as the chip's text on the light card. */
   const markInk = isLight ? "#c2410c" : "#ff922b";
+  /* The poorest areas' wash, a deep red; the slums' hatching, a brown - apart from the place picked out and from each other. */
+  const povertyInk = isLight ? "#9f1239" : "#fb7185";
+  const slumInk = isLight ? "#78350f" : "#fcd34d";
   /* The Conflicts layer's four kinds, and the Disasters layer's three alert levels, drawn hollow so the two never read as one. */
   const conflictInk = conflictInks(isLight);
   const alertInk = alertInks(isLight);
@@ -2432,6 +2442,101 @@ export function WorldMapsPage() {
     return [...byBand.entries()]
       .sort((a, b) => a[0] - b[0])
       .map(([band, ds]) => ({ band, d: ds.join(""), opacity: POLLUTION_OPACITY[band] }));
+  }, [worldShapes]);
+
+  /* ── The poorest areas: the share of people living on under $3.00 a day (2021 PPP), the World Bank's international
+     poverty line. A region is shaded by its own share where the World Bank publishes one for it (its Subnational Poverty
+     and Inequality Database - the 766 regions the division windows hold, matched to their outlines as those windows match
+     them); a country none of whose regions has one, by its national share (Poverty and Inequality Platform). Fetched when
+     the chip is first pressed. ── */
+  const [poorData, setPoorData] = useState<{
+    regions: { d: string; v: number }[];
+    covered: Set<string>;
+    national: Record<string, { y: number; v: number } | undefined>;
+    nationalSource: { label: string; url: string };
+  } | null>(null);
+  const [poorLoading, setPoorLoading] = useState(false);
+  /* Asked for once: the answer is kept for the page's life, whether or not the chip is still pressed when it comes. */
+  const poorAsked = useRef(false);
+  useEffect(() => {
+    if (!poorest || poorAsked.current) return;
+    poorAsked.current = true;
+    setPoorLoading(true);
+    (async () => {
+      const [file, subs, people] = await Promise.all([
+        fetch("/poverty/divisions.json")
+          .then((r) => (r.ok ? (r.json() as Promise<{ divisions: Record<string, { p300?: number }> }>) : null))
+          .catch(() => null),
+        import("../data/subnations"),
+        import("../data/countryPeople"),
+      ]);
+      const held = file?.divisions ?? {};
+      const byId = new Map<string, Subnation>(subs.SUBNATIONS.map((s) => [s.id, s]));
+      const byCc = new Map<string, Subnation[]>();
+      for (const s of subs.SUBNATIONS) byCc.set(s.cc, [...(byCc.get(s.cc) ?? []), s]);
+      const ccs = [...new Set(Object.keys(held).flatMap((id) => (byId.get(id) ? [byId.get(id)!.cc] : [])))];
+      const regions: { d: string; v: number }[] = [];
+      const covered = new Set<string>();
+      await Promise.all(
+        ccs.map(async (cc) => {
+          const drawn = await loadAdmin1(cc);
+          if (!drawn) return;
+          const peers = byCc.get(cc) ?? [];
+          for (const s of peers) {
+            const v = held[s.id]?.p300;
+            if (v == null) continue;
+            for (const f of outlinesOf(drawn, cc, s, peers)) {
+              const d = worldPath.path(f as never);
+              if (d) {
+                regions.push({ d, v });
+                covered.add(cc);
+              }
+            }
+          }
+        }),
+      );
+      const national: Record<string, { y: number; v: number } | undefined> = {};
+      for (const [cc, p] of Object.entries(people.COUNTRY_PEOPLE)) national[cc] = p.poor;
+      setPoorData({ regions, covered, national, nationalSource: people.COUNTRY_PEOPLE_SOURCES.poverty });
+      setPoorLoading(false);
+    })().catch(() => {
+      // It may be asked for again on the next press.
+      poorAsked.current = false;
+      setPoorLoading(false);
+    });
+  }, [poorest, worldPath]);
+  /** The steps the shares are shaded in: under 5% left clear, then 5-15, 15-30, 30-50 and 50% or more. */
+  const POVERTY_STEPS = [5, 15, 30, 50];
+  const POVERTY_OPACITY = [0, 0.2, 0.34, 0.5, 0.68];
+  const stepOf = (v: number, steps: number[]) => steps.filter((s) => v >= s).length;
+  const povertyBands = useMemo(() => {
+    if (!poorData) return [];
+    const byBand = new Map<number, string[]>();
+    const add = (band: number, d: string) => band > 0 && byBand.set(band, [...(byBand.get(band) ?? []), d]);
+    for (const r of poorData.regions) add(stepOf(r.v, POVERTY_STEPS), r.d);
+    for (const { country, d } of worldShapes) {
+      if (!country || !d || poorData.covered.has(country.code)) continue;
+      const p = poorData.national[country.code];
+      if (p) add(stepOf(p.v, POVERTY_STEPS), d);
+    }
+    return [...byBand.entries()].sort((a, b) => a[0] - b[0]).map(([band, ds]) => ({ band, d: ds.join(""), opacity: POVERTY_OPACITY[band] }));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [poorData, worldShapes]);
+  /* ── The slums: the share of each country's city dwellers living in one, as UN-Habitat counts them (SDG 11.1.1), by
+     country - hatched, so that it reads apart from the poorest areas' wash where both are on. No body publishes the
+     outlines of the slums themselves on open terms, so none is drawn. ── */
+  const SLUM_STEPS = [10, 25, 50, 75];
+  const SLUM_OPACITY = [0, 0.4, 0.6, 0.8, 1];
+  const slumBands = useMemo(() => {
+    const byBand = new Map<number, string[]>();
+    for (const { country, d } of worldShapes) {
+      const s = country ? COUNTRY_SLUMS[country.code] : undefined;
+      if (!s || !d) continue;
+      const band = stepOf(s[1], SLUM_STEPS);
+      if (band > 0) byBand.set(band, [...(byBand.get(band) ?? []), d]);
+    }
+    return [...byBand.entries()].sort((a, b) => a[0] - b[0]).map(([band, ds]) => ({ band, d: ds.join(""), opacity: SLUM_OPACITY[band] }));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [worldShapes]);
 
   /* One merged path per climate zone, the same way pollutionBands merges by
@@ -4095,6 +4200,29 @@ export function WorldMapsPage() {
           >
             Governance
           </button>
+          {/* The poorest areas and the slums, as asked: each a wash over the map while pressed, in its own colour. */}
+          {(
+            [
+              [poorest, setPoorest, "Poorest areas", povertyInk, poorLoading, "Shade where people live on under $3.00 a day: each region by its own share where the World Bank measures it, each other country by its national share"],
+              [slums, setSlums, "Slums", slumInk, false, "Hatch each country by the share of its city dwellers living in slums, as UN-Habitat counts them"],
+            ] as const
+          ).map(([on, set, label, ink, loading, title]) => (
+            <button
+              key={label}
+              type="button"
+              onClick={() => set((v: boolean) => !v)}
+              aria-pressed={on}
+              className={`px-3 py-1 rounded-full text-[11px] font-medium font-sans border transition-colors cursor-pointer shrink-0 inline-flex items-center gap-1.5 ${
+                on ? "border-transparent" : "bg-transparent border-border text-muted-foreground hover:text-foreground hover:bg-muted/60"
+              }`}
+              style={on ? { background: `${ink}26`, borderColor: `${ink}66`, color: ink } : undefined}
+              title={title}
+            >
+              <span aria-hidden className="shrink-0 w-2 h-2 rounded-full" style={{ background: on ? ink : "currentColor", opacity: on ? 1 : 0.45 }} />
+              {label}
+              {loading && <span className="font-mono opacity-70">…</span>}
+            </button>
+          ))}
           {/* The conflicts and the disasters going on, as asked: each pinned on the map while its chip is pressed, in the layers' own chip. */}
           {(
             [
@@ -4358,6 +4486,10 @@ export function WorldMapsPage() {
           >
             <defs>
               <NoDataHatch id="nodata-world" base={noData} line={noDataHatch} zoom={worldZoom.zoom} />
+              {/* The slums' hatching: lines across the country, the same spacing on the screen at any zoom. */}
+              <pattern id="slum-hatch" patternUnits="userSpaceOnUse" width={4 / worldZoom.zoom} height={4 / worldZoom.zoom} patternTransform="rotate(-45)">
+                <line x1={0} y1={0} x2={0} y2={4 / worldZoom.zoom} stroke={slumInk} strokeWidth={1.6 / worldZoom.zoom} />
+              </pattern>
             </defs>
             {/* Graticule first, so borders sit above it. */}
             <path
@@ -4517,6 +4649,10 @@ export function WorldMapsPage() {
                   pointerEvents="none"
                 />
               ))}
+            {/* The poorest areas, as asked: a wash, deeper the larger the share living under $3.00 a day - regions where the World Bank measures them, countries elsewhere. */}
+            {poorest && povertyBands.map((b) => <path key={`poor-${b.band}`} d={b.d} fill={povertyInk} fillOpacity={b.opacity} pointerEvents="none" />)}
+            {/* The slums, as asked: hatched, denser in tone the larger the share of city dwellers living in one. */}
+            {slums && slumBands.map((b) => <path key={`slum-${b.band}`} d={b.d} fill="url(#slum-hatch)" fillOpacity={b.opacity} pointerEvents="none" />)}
             {worldLayers.infrastructure && infraPaths && (
               /* Roads solid and railways dashed, so the two line networks stay
                  apart without reference to colour. Drawn first of the overlays,
@@ -4692,6 +4828,47 @@ export function WorldMapsPage() {
                 assessments; a country V-Dem does not cover is hatched. Point at a country for its type.
               </p>
               <SourceLink sources={REGIME_SOURCE} className="mt-1.5" />
+            </>
+          )}
+          {/* What the poorest areas' wash and the slums' hatching are, with their steps and sources. */}
+          {poorest && (
+            <>
+              <p className="text-[10px] font-sans text-muted-foreground leading-snug mt-3">
+                <span aria-hidden className="inline-block w-2 h-2 rounded-sm mr-1.5 align-middle" style={{ background: povertyInk }} />
+                <span className="font-medium text-foreground">Poorest areas</span> - the share of people living on under $3.00 a day (2021 prices, adjusted for what money buys
+                in each country), the World Bank's international poverty line. Where the World Bank measures a country's regions from a household survey, each region is
+                shaded by its own share, and a region it has no figure for is left clear; every other country is shaded by its national share. Each figure is of its own
+                survey year, so the map mixes years. The steps:{" "}
+                {POVERTY_STEPS.map((s, i) => (
+                  <span key={s} className="whitespace-nowrap">
+                    {i > 0 && ", "}
+                    <span aria-hidden className="inline-block w-2.5 h-2.5 rounded-sm mx-1 align-middle" style={{ background: povertyInk, opacity: POVERTY_OPACITY[i + 1] }} />
+                    {i < POVERTY_STEPS.length - 1 ? `${s}-${POVERTY_STEPS[i + 1]}%` : `${s}% or more`}
+                  </span>
+                ))}
+                ; under 5% is left clear.{poorData ? ` ${poorData.covered.size} countries are shaded by their regions.` : ""}
+              </p>
+              <SourceLink sources={[DIVISION_POVERTY_SOURCE, ...(poorData ? [poorData.nationalSource] : [])]} className="mt-1.5" />
+            </>
+          )}
+          {slums && (
+            <>
+              <p className="text-[10px] font-sans text-muted-foreground leading-snug mt-3">
+                <span aria-hidden className="inline-block w-2 h-2 rounded-sm mr-1.5 align-middle" style={{ background: slumInk }} />
+                <span className="font-medium text-foreground">Slums</span> - the share of each country's city dwellers living in a slum household, as UN-Habitat counts one:
+                lacking one or more of improved water, improved sanitation, enough living space, durable housing and secure tenure. It is one figure a country, not a map
+                of where its slums are - no body publishes their outlines on open terms. A country with no figure, most high-income ones among them, is left clear. The
+                steps:{" "}
+                {SLUM_STEPS.map((s, i) => (
+                  <span key={s} className="whitespace-nowrap">
+                    {i > 0 && ", "}
+                    <span aria-hidden className="inline-block w-2.5 h-2.5 rounded-sm mx-1 align-middle" style={{ background: slumInk, opacity: SLUM_OPACITY[i + 1] }} />
+                    {i < SLUM_STEPS.length - 1 ? `${s}-${SLUM_STEPS[i + 1]}%` : `${s}% or more`}
+                  </span>
+                ))}
+                ; under 10% is left clear. The latest year held is {Math.max(...Object.values(COUNTRY_SLUMS).map((x) => x[0]))} for most.
+              </p>
+              <SourceLink sources={COUNTRY_SLUMS_SOURCE} className="mt-1.5" />
             </>
           )}
           {!governance && activeCountry.id === "living" && (

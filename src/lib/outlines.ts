@@ -100,6 +100,8 @@ const admin1 = (cc: string) => {
     );
   return ADMIN1.get(cc)!;
 };
+/** A country's first-order divisions' outlines, fetched once and shared with useAdmin1: for a map that needs several countries' at once. */
+export const loadAdmin1 = admin1;
 
 /** A country's first-order divisions, each named in `properties.n`: undefined while they are fetched, null where none are drawn. */
 export function useAdmin1(cc: string | null): Outline[] | null | undefined {
