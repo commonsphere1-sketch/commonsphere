@@ -92,6 +92,7 @@ import { DIVISION_DETAILS_SOURCES, useDivisionDetails, type DivisionDetails, typ
 import { DIVISION_POVERTY_SOURCE, EU_FLAG, EU_POVERTY_SOURCES, useDivisionEuPoverty, useDivisionPoverty, type DivisionPoverty, type EuFigure, type EuPoverty } from "../lib/divisionPoverty";
 import { useCountyBea, type BeaFile } from "../lib/countyBea";
 import { STATE_SCHOOLS, STATE_SCHOOLS_SOURCES } from "../data/stateSchools";
+import { useMedicare, type MedicareFile, type MedicareRow } from "../lib/medicare";
 import { regionalSaid, regionalValue, useRegionalFigures, type RegionalFigure } from "../lib/regionalFigures";
 import { liveRecord, type LiveRecord } from "../lib/liveRecord";
 import { framed, outlineParts, outlinesOf, placesWithin, useAdmin1, useCountyOutline } from "../lib/outlines";
@@ -485,7 +486,7 @@ const money = (m: Money) => `${m[1] >= 1e12 ? `${(m[1] / 1e12).toFixed(2)} trill
 /** A field that is there only where something is held for it: what more a division's record gives is not the same from one division to the next. */
 const held = (label: string, value: string | undefined | null | false, sub?: string): Field[] => (value ? [{ label, value, sub }] : []);
 
-function partsOf(s: Subnation, d?: DivisionDetails, pov?: DivisionPoverty, eu?: EuPoverty, regional?: RegionalFigure[]): { parts: Part[]; sources: Source[] } {
+function partsOf(s: Subnation, d?: DivisionDetails, pov?: DivisionPoverty, eu?: EuPoverty, regional?: RegionalFigure[], med?: MedicareFile | null): { parts: Part[]; sources: Source[] } {
   const c = COUNTRY.get(s.cc);
   const country = c?.name ?? s.cc;
   const state = STATE_BY_CODE.get(s.code ?? "");
@@ -513,6 +514,10 @@ function partsOf(s: Subnation, d?: DivisionDetails, pov?: DivisionPoverty, eu?: 
   if (m) [STATE_SOURCES.population, STATE_SOURCES.acs, STATE_SOURCES.bea, STATE_SOURCES.bls, STATE_SOURCES.fec, STATE_SOURCES.congress].forEach(cite);
   /* A US state's public schools, where NCES's tables give them. */
   const pub = m ? STATE_SCHOOLS[s.name] : undefined;
+  /* A US state's Medicare enrollment, CMS's for the latest month. */
+  const stateAbbr = m ? (s.code ?? "").replace(/^US-/, "") : "";
+  const medRows = m ? medicareFields(med?.states[stateAbbr], med, null, null) : [];
+  if (medRows.length && med) cite(med.source);
   if (pub) Object.values(STATE_SCHOOLS_SOURCES).forEach((x) => cite(x));
   else if (ci) cite({ label: COUNTRY_INDICATORS_SOURCE.label, url: COUNTRY_INDICATORS_SOURCE.url });
   if (head) cite(REPRESENTATIVES_SOURCES.wikidata), cite(REPRESENTATIVES_SOURCES.wikipedia);
@@ -807,6 +812,7 @@ function partsOf(s: Subnation, d?: DivisionDetails, pov?: DivisionPoverty, eu?: 
             { label: "Inequality", value: null },
             { label: "Poverty: below the poverty line", value: poor != null ? `${poor}%` : null, sub: `of people · ${m.poverty.y}` },
             { label: "Development: homes lived in by their owner", value: `${m.housing.homeOwnershipPct}%`, sub: `of occupied homes · ${m.housing.y}` },
+            ...medRows,
           ]
         : [
             ...held("Education: adults who can read · its own", d?.literacy && `${d.literacy[1]}%`, d?.literacy && own(d.literacy[0])),
@@ -921,7 +927,9 @@ function SubnationWindow({ s, onBack, onClose, onCounties }: { s: Subnation; /**
   const eu = useDivisionEuPoverty()?.[s.id];
   /* Its own figures from the OECD's and national offices' regional statistics. */
   const regional = useRegionalFigures()?.[s.id];
-  const { parts, sources } = useMemo(() => partsOf(s, details, pov, eu, regional), [s, details, pov, eu, regional]);
+  /* A US state's Medicare enrollment. */
+  const medicare = useMedicare();
+  const { parts, sources } = useMemo(() => partsOf(s, details, pov, eu, regional, medicare), [s, details, pov, eu, regional, medicare]);
 
   /* Its outline, among the ones the site's maps draw for its country, and the places GeoNames lists in it: the map at the head of its window. */
   const drawn = useAdmin1(s.cc);
@@ -1049,7 +1057,7 @@ function SubnationWindow({ s, onBack, onClose, onCounties }: { s: Subnation; /**
  * state's and the nation's beside it. Only what is held for the county is shown; the growth of its real GDP is worked out
  * here from BEA's two years.
  */
-function countyMoneyParts(county: UsCounty, stateName: string, bea: BeaFile | null | undefined, econ: typeof import("../data/usCountyEcon") | null): Part[] {
+function countyMoneyParts(county: UsCounty, stateName: string, bea: BeaFile | null | undefined, econ: typeof import("../data/usCountyEcon") | null, med?: MedicareFile | null): Part[] {
   const fips = county[0];
   const a = bea?.areas[fips];
   const st = bea?.areas[`${fips.slice(0, 2)}000`];
@@ -1125,7 +1133,36 @@ function countyMoneyParts(county: UsCounty, stateName: string, bea: BeaFile | nu
       ],
     });
   }
+  // Who is on Medicare there, as asked: the Centers for Medicare & Medicaid Services' count for the latest month, in the part on its society.
+  const medFields = medicareFields(med?.counties[fips], med, med?.states[county[2]] ?? null, stateName);
+  if (medFields.length) {
+    const society = parts.find((p) => p.title === "Society");
+    if (society) {
+      society.fields.push(...medFields);
+      society.note = "Its own figures, from the Census Bureau, the USDA and the Centers for Medicare & Medicaid Services, each with its year or month.";
+    } else parts.push({ title: "Society", note: "Its own figures, from the Centers for Medicare & Medicaid Services.", fields: medFields });
+  }
   return parts;
+}
+
+/**
+ * A county's or state's Medicare rows: everyone enrolled, the share of them in Medicare Advantage or another plan (worked
+ * out here from CMS's two counts of the same month), and those also on Medicaid - with its state's and the nation's
+ * beside the first where they are given.
+ */
+function medicareFields(row: MedicareRow | undefined, med: MedicareFile | null | undefined, parent: MedicareRow | null, parentName: string | null): Field[] {
+  if (!row || !med) return [];
+  const [total, , advantage, dual] = row;
+  const beside = [parent?.[0] != null && parentName ? `${parentName} ${whole(parent[0])}` : null, med.nation[0] != null ? `the United States ${whole(med.nation[0])}` : null].filter(Boolean).join(" · ");
+  return [
+    ...held("Health: people on Medicare", total != null && whole(total), `${med.month} · Centers for Medicare & Medicaid Services${beside ? ` · ${beside}` : ""}`),
+    ...held(
+      "Health: of them, in Medicare Advantage",
+      total != null && total > 0 && advantage != null && `${((100 * advantage) / total).toFixed(1)}%`,
+      advantage != null ? `${whole(advantage)} people, in Medicare Advantage or another plan rather than Original Medicare · ${med.month} · the share worked out here` : undefined,
+    ),
+    ...held("Health: on Medicare and Medicaid both", dual != null && whole(dual), `"dual eligible" · ${med.month}`),
+  ];
 }
 
 function CountyWindow({ county, data, onBack, onClose }: { county: UsCounty; data: CountyData; /** Back to the list of its state's counties. */ onBack: () => void; onClose: () => void }) {
@@ -1152,6 +1189,8 @@ function CountyWindow({ county, data, onBack, onClose }: { county: UsCounty; dat
   const stateRecord = useMemo(() => SUBNATIONS.find((s) => s.code === `US-${abbr}`), [abbr]);
   /* Its income and output - the Bureau of Economic Analysis's - and how its people work and live - the USDA Economic Research Service's county data sets - each fetched when the window opens, with its state's and the nation's. */
   const bea = useCountyBea(fips.slice(0, 2));
+  /* Who is on Medicare there: CMS's count for the latest month. */
+  const medicare = useMedicare();
   const [econ, setEcon] = useState<typeof import("../data/usCountyEcon") | null>(null);
   useEffect(() => {
     let off = false;
@@ -1262,7 +1301,7 @@ function CountyWindow({ county, data, onBack, onClose }: { county: UsCounty; dat
       ],
     },
     analysed,
-    ...countyMoneyParts(county, state?.name ?? abbr, bea, econ),
+    ...countyMoneyParts(county, state?.name ?? abbr, bea, econ, medicare),
     {
       title: "Government · Political data",
       note: `The site holds neither for a county. ${state?.name ?? "The state"}'s are in its own window.`,
@@ -1374,6 +1413,7 @@ function CountyWindow({ county, data, onBack, onClose }: { county: UsCounty; dat
           // Its income, output, work and schooling, where held for it.
           ...(bea?.areas[fips] ? [bea.sources.income, bea.sources.gdp] : []),
           ...(econ?.COUNTY_ECON_ROWS[fips] ? [econ.COUNTY_ECON_SOURCES.unemployment, econ.COUNTY_ECON_SOURCES.poverty, econ.COUNTY_ECON_SOURCES.education, econ.COUNTY_ECON_SOURCES.rucc] : []),
+          ...(medicare?.counties[fips] ? [medicare.source] : []),
           { label: "US Census Bureau — cartographic boundary files, via us-atlas", url: "https://www.census.gov/geographies/mapping-files/time-series/geo/cartographic-boundary.html" },
           { label: PLACES_SOURCE.geonames.label, url: PLACES_SOURCE.geonames.url },
         ]}
