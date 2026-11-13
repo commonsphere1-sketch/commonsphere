@@ -115,12 +115,6 @@ const SRC_OECD = [
   { label: "OECD.Stat", url: "https://stats.oecd.org/" },
   { label: "IMF Data", url: "https://www.imf.org/en/Data" },
 ];
-const SRC_WTO = [
-  {
-    label: "WTO Statistics",
-    url: "https://www.wto.org/english/res_e/statis_e/statis_e.htm",
-  },
-];
 const SRC_MARITIME = [
   {
     label: "UNCTAD Maritime Transport",
@@ -2610,7 +2604,6 @@ export function EconomiesPage() {
               sources={[{ label: CRITICAL_MINERALS_SOURCE.label, url: CRITICAL_MINERALS_SOURCE.url }]}
               className="mt-2"
             />
-                        <SourceLink sources={SRC_WTO} className="mt-2" />
           </div>
         )}
 
