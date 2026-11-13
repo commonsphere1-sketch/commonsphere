@@ -29,7 +29,7 @@ type HistoryFile = { cc: string; of?: string; defs: Record<string, Def>; sources
 /** How a kind of figure is drawn. */
 export type HistoryKind = "lines" | "area" | "bars" | "band" | "stripes" | "thenNow" | "records" | "stack";
 /** One of the page's kinds of figure: a card, its title, the line over its title, the figures drawn in it with their colours, and how. */
-export type HistoryGroup = { title: string; sub: string; lines: [key: string, colour: string][]; kind?: HistoryKind };
+export type HistoryGroup = { title: string; sub: string; lines: [key: string, colour: string][]; kind?: HistoryKind; /** The section it is read under: Temperature, Rain and drought... */ section?: string };
 
 const NAME = new Map(countriesData.map((c) => [c.code, c.name]));
 const PLURAL: Record<string, string> = { country: "Country", state: "States", province: "Provinces", territory: "Territories", region: "Regions", jurisdiction: "Jurisdictions", county: "Counties", municipality: "Municipalities", city: "Cities" };
@@ -275,27 +275,29 @@ export function PlaceHistory({
         )}
       </div>
 
-      {/* The years in colour first, then the records, each across the whole width, as asked: above every other figure. */}
-      {shown &&
-        shownFile &&
-        cards
-          .filter((g) => g.kind === "stripes" || g.kind === "records")
-          .sort((a, b) => (a.kind === "stripes" ? -1 : 0) - (b.kind === "stripes" ? -1 : 0))
-          .map((g) => <HistoryCard key={`${shown.id}-${g.title}`} t={t} accent={accent} group={g} place={shown} file={shownFile} above={above} />)}
-
+      {/* The figures in their sections, as asked for a clearer history: a bar that keeps the place in view and leads to each
+          section; the years in colour and the records first, across the whole width; then each section under its heading, its
+          sources' notes said once at its foot; the place's parts ranked; and its disasters. */}
       {shown && shownFile && cards.length > 0 && (
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-          {cards
-            .filter((g) => g.kind !== "stripes" && g.kind !== "records")
-            .map((g) => (
-              <HistoryCard key={`${shown.id}-${g.title}`} t={t} accent={accent} group={g} place={shown} file={shownFile} above={above} />
-            ))}
-          {amongFile &&
-            ranks.map((k) => (
-              <RankCard key={`rank-${k}`} t={t} accent={accent} k={k} places={among} file={amongFile} shown={shown} whole={shown.kind === "country" || !part ? shown : above} />
-            ))}
-          {events && <EventsCard key={`events-${country.code}`} t={t} accent={accent} topic={topic} cc={country.code} country={country.name} />}
-        </div>
+        <HistorySections
+          t={t}
+          accent={accent}
+          placeName={part && place ? `${part.name}, ${place.name}` : shown.kind !== "country" ? `${shown.name}, ${country.name}` : country.name}
+          cards={cards}
+          card={(g, quiet) => <HistoryCard key={`${shown.id}-${g.title}`} t={t} accent={accent} group={g} place={shown} file={shownFile} above={above} quiet={quiet} />}
+          notesOf={(g) =>
+            [...new Set(g.lines.map(([k]) => shown.from[k]))].flatMap((src) => {
+              const so = shownFile.sources[src];
+              return so?.note ? [[so.label, so.note] as [string, string]] : [];
+            })
+          }
+          ranked={
+            amongFile && ranks.length
+              ? ranks.map((k) => <RankCard key={`rank-${k}`} t={t} accent={accent} k={k} places={among} file={amongFile} shown={shown} whole={shown.kind === "country" || !part ? shown : above} />)
+              : []
+          }
+          events={events ? <EventsCard key={`events-${country.code}`} t={t} accent={accent} topic={topic} cc={country.code} country={country.name} /> : null}
+        />
       )}
 
       <div className="text-[10px] font-sans leading-snug space-y-1 px-1" style={{ color: t.mutedText }}>
@@ -362,7 +364,7 @@ function Frosted({ title, rows }: { title: string; rows: [string, string, string
 }
 
 /** One kind of figure for the place, in the chart that suits it. */
-function HistoryCard({ t, accent, group, place, file, above }: { t: Tokens; accent: string; group: HistoryGroup; place: Place; file: HistoryFile; above?: Place }) {
+function HistoryCard({ t, accent, group, place, file, above, quiet = false }: { t: Tokens; accent: string; group: HistoryGroup; place: Place; file: HistoryFile; above?: Place; /** Its sources' notes said once for its section, not on the card. */ quiet?: boolean }) {
   const keys = group.lines.map(([k]) => k);
   const colourOf = Object.fromEntries(group.lines);
   const unit = file.defs[keys[0]].unit;
@@ -396,7 +398,7 @@ function HistoryCard({ t, accent, group, place, file, above }: { t: Tokens; acce
   const csv = { name: `${place.name} - ${group.title}`, header: ["year", ...keys.map((k) => `${label(k)} (${UNIT_SAID[file.defs[k].unit] ?? file.defs[k].unit})`)], rows: [...data].reverse().map((r) => [r.year, ...keys.map((k) => r[k])]) };
   const notes = sources.map((s) => s.note).filter(Boolean).join(" ");
   const years = lo === hi ? String(lo) : `${lo}–${hi}`;
-  const common = { t, accent, title: group.title, sub: group.sub, years, sources, csv, notes };
+  const common = { t, accent, title: group.title, sub: group.sub, years, sources, csv, notes: quiet ? undefined : notes };
 
   // The place it is part of, drawn behind where the same source gives the same figure.
   const k0 = keys[0];
@@ -866,5 +868,79 @@ export function PlaceStripes({ where }: { where?: { cc: string; country: string;
       lo={lo}
       hi={hi}
     />
+  );
+}
+
+/** A heading's anchor on the page. */
+const slug = (s: string) => `history-${s.toLowerCase().replace(/[^a-z0-9]+/g, "-")}`;
+
+/**
+ * The history's figures in their sections, as asked: a bar across the top that stays in view as the page scrolls - the
+ * place being read, and a press to each section - then the years in colour and the records, then each section in turn
+ * under its heading with its sources' notes once at its foot, the place's parts ranked, and its disasters.
+ */
+function HistorySections({ t, accent, placeName, cards, card, notesOf, ranked, events }: { t: Tokens; accent: string; placeName: string; cards: HistoryGroup[]; card: (g: HistoryGroup, quiet: boolean) => ReactNode; notesOf: (g: HistoryGroup) => [string, string][]; ranked: ReactNode[]; events: ReactNode | null }) {
+  const top = cards.filter((g) => g.kind === "stripes" || g.kind === "records").sort((a, b) => (a.kind === "stripes" ? -1 : 0) - (b.kind === "stripes" ? -1 : 0));
+  const rest = cards.filter((g) => g.kind !== "stripes" && g.kind !== "records");
+  const order: string[] = [];
+  for (const g of rest) if (!order.includes(g.section ?? "Figures")) order.push(g.section ?? "Figures");
+  if (events && !order.includes("Disasters")) order.push("Disasters");
+  const sections = [...(top.some((g) => g.kind === "records") ? ["Records"] : []), ...order, ...(ranked.length ? ["Compared with its parts"] : [])];
+  const go = (name: string) => document.getElementById(slug(name))?.scrollIntoView({ behavior: "smooth", block: "start" });
+  const heading = (name: string) => (
+    <div id={slug(name)} className="flex items-center gap-3 scroll-mt-32 pt-2">
+      <span className="text-[11px] font-mono uppercase tracking-widest" style={{ color: t.isLight ? accent : `${accent}cc` }}>
+        {name}
+      </span>
+      <div className="flex-1 h-px" style={{ background: t.gridLine }} />
+    </div>
+  );
+  return (
+    <>
+      {/* The place being read, kept in view, and the way to each section. */}
+      <nav aria-label="The history's sections" className="sticky top-16 z-20 modal-glass border rounded-2xl px-3 py-2 flex items-center gap-2 overflow-x-auto">
+        <span className="text-[12px] font-semibold font-sans text-foreground shrink-0 pr-1">{placeName}</span>
+        <span className="w-px h-4 bg-border shrink-0" aria-hidden />
+        {sections.map((n) => (
+          <button key={n} type="button" onClick={() => go(n)} className="px-2.5 py-0.5 rounded-full text-[10px] font-sans border border-border text-muted-foreground hover:text-foreground hover:bg-muted/60 transition-colors cursor-pointer shrink-0 whitespace-nowrap">
+            {n}
+          </button>
+        ))}
+      </nav>
+      {top.map((g) => (
+        <div key={g.title} id={g.kind === "records" ? slug("Records") : undefined} className="scroll-mt-32">
+          {card(g, false)}
+        </div>
+      ))}
+      {order.map((name) => {
+        const inIt = rest.filter((g) => (g.section ?? "Figures") === name);
+        const notes = new Map<string, string>();
+        for (const g of inIt) for (const [label, note] of notesOf(g)) notes.set(label, note);
+        return (
+          <section key={name} aria-label={name} className="flex flex-col gap-4">
+            {heading(name)}
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+              {inIt.map((g) => card(g, true))}
+              {name === "Disasters" && events}
+            </div>
+            {notes.size > 0 && (
+              <div className="text-[10px] font-sans leading-snug space-y-0.5 px-1" style={{ color: t.mutedText }}>
+                {[...notes].map(([label, note]) => (
+                  <p key={label}>
+                    <span className="font-semibold">{label}.</span> {note}
+                  </p>
+                ))}
+              </div>
+            )}
+          </section>
+        );
+      })}
+      {ranked.length > 0 && (
+        <section aria-label="Compared with its parts" className="flex flex-col gap-4">
+          {heading("Compared with its parts")}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">{ranked}</div>
+        </section>
+      )}
+    </>
   );
 }
