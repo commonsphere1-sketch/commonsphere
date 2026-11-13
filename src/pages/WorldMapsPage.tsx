@@ -4462,14 +4462,6 @@ export function WorldMapsPage() {
 
           {layerToggles(worldLayers, setWorldLayers)}
 
-          <ZoomControls
-            zoom={worldZoom.zoom}
-            onZoom={worldZoom.zoomTo}
-            onReset={worldZoom.reset}
-            label="world map"
-          >
-            {" "}· scroll, pinch or +/- to zoom, drag or arrows to pan
-          </ZoomControls>
           <div className="relative">
           {/* The picked-out place's card, pinned: it opens when a place is chosen and stays until closed. On a very
               wide screen it lies over the map's south-eastern Pacific, where there is least under it; on any other it
@@ -4510,6 +4502,15 @@ export function WorldMapsPage() {
               </div>
             </div>
           )}
+          {/* The zoom buttons, over the map's own top corner: under the picked-out card where it stands above the map, so the two never meet, as asked. */}
+          <ZoomControls
+            zoom={worldZoom.zoom}
+            onZoom={worldZoom.zoomTo}
+            onReset={worldZoom.reset}
+            label="world map"
+          >
+            {" "}· scroll, pinch or +/- to zoom, drag or arrows to pan
+          </ZoomControls>
 
           <svg
             viewBox={worldZoom.viewBox}
