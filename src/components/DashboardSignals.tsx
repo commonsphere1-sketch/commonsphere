@@ -38,7 +38,6 @@ import { Card, Go, Head, Kicker } from "./DashboardCitiesSectors";
 import { SLIM_TRACK, slimFill } from "./SlimBars";
 import { useTokens, type Tokens } from "./DataExplorer";
 import { SourceLink } from "./SourceLink";
-import { BoundariesAbout, BoundariesWheel } from "./PlanetaryBoundariesWheel";
 
 type Source = { label: string; url: string };
 const GREEN = "#10b981";
@@ -198,11 +197,8 @@ export function PlanetNow() {
   const color = "#10b981";
   const sources = [...new Map(CLIMATE_INDICATORS.map((c) => [publisher(c.source), { label: publisher(c.source), url: c.url }])).values()];
   return (
-    // One card, as asked: the readings and the planetary boundaries wheel moved here from the Climate page, side by side.
-    <Card t={t} className="lg:col-span-2">
+    <Card t={t}>
       <Head t={t} icon={<Leaf size={16} weight="fill" />} label="Climate" badge={`${TRANSGRESSED} of ${BOUNDARIES.length} crossed`} color={color} cta="Climate" to="/dashboard/planetary-boundaries" />
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-      <div className="min-w-0">
       <Kicker t={t}>The latest reading of each · and the same period ten years before</Kicker>
       <ul className="flex flex-col">
         {CLIMATE_INDICATORS.map((c, i) => {
@@ -239,15 +235,9 @@ export function PlanetNow() {
           );
         })}
       </ul>
-      </div>
-      <div className="min-w-0 text-foreground">
-        <Kicker t={t}>The nine planetary boundaries · {PHC_2026.title}</Kicker>
-        <BoundariesWheel />
-      </div>
-      </div>
 
       <div className="flex-1 mt-3 pt-3" style={{ borderTop: `1px solid ${t.gridLine}` }}>
-        <Kicker t={t}>Each boundary's verdict, in the report's words</Kicker>
+        <Kicker t={t}>The nine planetary boundaries · {PHC_2026.title}</Kicker>
         {/* As many columns as the card has room for: the card's width, not the window's, decides. */}
         <ul className="grid grid-cols-[repeat(auto-fit,minmax(min(11rem,100%),1fr))] gap-x-6 gap-y-1.5
 ">
@@ -271,9 +261,6 @@ export function PlanetNow() {
             </span>
           ))}
         </p>
-      </div>
-      <div className="mt-3 pt-3" style={{ borderTop: `1px solid ${t.gridLine}` }}>
-        <BoundariesAbout />
       </div>
       <div className="mt-2">
         <Go color={color} onClick={() => navigate("/dashboard/planetary-boundaries")}>
