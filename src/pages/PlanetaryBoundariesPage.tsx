@@ -1,6 +1,6 @@
 import { SourceLink } from "../components/SourceLink";
 import { SiteMark } from "../components/SiteMark";
-import React, { useState } from "react";
+import { useState } from "react";
 import { useTheme } from "../contexts/ThemeContext";
 import { HeadlinesBanner, SUBJECT } from "../components/HeadlinesBanner";
 import { CLIMATE_INDICATORS } from "../data/climateIndicators";
@@ -19,17 +19,7 @@ import { EndangeredSpeciesList, NewSpeciesList, type SpeciesWhere } from "../com
 import { PlaceHistory } from "../components/PlaceHistory";
 import ClimateWatch from "../components/ClimateWatch";
 import EarthStatus from "../components/EarthStatus";
-import {
-  Leaf,
-  Info,
-  Drop,
-  Wind,
-  Atom,
-  Fish,
-  Tree,
-  CloudSlash,
-  Flask,
-} from "@phosphor-icons/react";
+import { Leaf, Info } from "@phosphor-icons/react";
 
 /* ─── Zones, as the Planetary Health Check names them ───────────────────── */
 const ZONE: Record<Zone, { label: string; color: string }> = {
@@ -37,37 +27,6 @@ const ZONE: Record<Zone, { label: string; color: string }> = {
   increasing: { label: "Zone of increasing risk", color: "#f59e0b" },
   high: { label: "High-risk zone", color: "#ef4444" },
 };
-
-const ICON: Record<string, React.ReactNode> = {
-  climate: <CloudSlash size={16} weight="fill" />,
-  novel_entities: <Flask size={16} weight="fill" />,
-  ozone: <Atom size={16} weight="fill" />,
-  aerosol: <Wind size={16} weight="fill" />,
-  ocean: <Drop size={16} weight="fill" />,
-  biogeochemical: <Leaf size={16} weight="fill" />,
-  freshwater: <Drop size={16} weight="fill" />,
-  land: <Tree size={16} weight="fill" />,
-  biosphere: <Fish size={16} weight="fill" />,
-};
-
-/** "426 ppm", "64% of potential", "0.07". */
-const withUnit = (n: string, unit: string) => (!unit ? n : unit.startsWith("%") ? `${n}${unit}` : `${n} ${unit}`);
-
-/** Decimal places the report writes a unit's figures to: "+1.0 W/m²", "0.10", "2.50 Ω". */
-const DECIMALS: Record<string, number> = { "W/m²": 1, "": 2, "Ω": 2 };
-
-/** Shows a boundary or high-risk figure the way the report writes it; `unit` overrides the variable's own. */
-const fmt = (n: number, v: ControlVariable, unit = v.unit) =>
-  withUnit(
-    `${v.unit === "W/m²" && n > 0 ? "+" : ""}${n.toLocaleString("en-US", {
-      minimumFractionDigits: DECIMALS[v.unit] ?? 0,
-      maximumFractionDigits: 2,
-    })}`,
-    unit,
-  );
-
-/** In the narrow list, "% of ice-free land" is just "%". */
-const shortUnit = (unit: string) => (unit.startsWith("%") ? "%" : unit);
 
 /**
  * The global control variable furthest past its boundary: the one a wedge
@@ -215,180 +174,6 @@ function PlanetaryBoundariesRadialChart({
   );
 }
 
-/* ─── Detail panel ──────────────────────────────────────────────────────── */
-function BoundaryDetailPanel({
-  boundary,
-  isLight,
-  headText,
-  mutedText,
-  gridLine,
-}: {
-  boundary: PlanetaryBoundary;
-  isLight: boolean;
-  headText: string;
-  mutedText: string;
-  gridLine: string;
-}) {
-  const z = ZONE[boundary.zone];
-  const body = isLight ? "#475569" : "#94a3b8";
-  const label = "text-[9px] font-mono uppercase tracking-widest mb-2";
-  return (
-    <div className="animate-fade-in">
-      <div className="flex items-start gap-4 pb-4 mb-4 border-b" style={{ borderColor: gridLine }}>
-        <div className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0" style={{ background: z.color + "18", color: z.color }}>
-          {ICON[boundary.id]}
-        </div>
-        <div className="flex-1 min-w-0">
-          <h3 className="text-sm font-bold font-sans leading-snug" style={{ color: headText }}>
-            {boundary.name}
-          </h3>
-          <span className="inline-flex items-center gap-1 mt-1 text-[9px] font-mono px-2 py-0.5 rounded-full" style={{ background: z.color + "10", color: z.color }}>
-            <span className="w-1.5 h-1.5 rounded-full inline-block" style={{ background: z.color }} />
-            {z.label} · {boundary.verdict}
-          </span>
-          <p className="mt-2 text-[11px] font-sans leading-relaxed" style={{ color: body }}>
-            {boundary.summary}
-          </p>
-        </div>
-      </div>
-
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
-        <div>
-          <p className={label} style={{ color: mutedText }}>
-            Control variables
-          </p>
-          <div className="flex flex-col gap-2">
-            {boundary.variables.map((v) => (
-              <div
-                key={v.name}
-                className="rounded-lg px-3 py-2.5"
-                style={{ background: isLight ? "rgba(0,0,0,0.025)" : "rgba(255,255,255,0.04)", border: `1px solid ${gridLine}` }}
-              >
-                <p className="text-[10px] font-sans font-semibold leading-snug" style={{ color: headText }}>
-                  {v.name}
-                  {v.regional && (
-                    <span className="ml-1.5 text-[8px] font-mono uppercase tracking-wider" style={{ color: mutedText }}>
-                      regional
-                    </span>
-                  )}
-                </p>
-                <div className="grid grid-cols-3 gap-2 mt-1.5">
-                  {[
-                    { k: "Now", v: withUnit(v.current, v.value === null ? "" : v.unit), c: ZONE[v.zone].color },
-                    { k: "Boundary", v: fmt(v.boundary, v), c: "#22c55e" },
-                    {
-                      k: v.highRiskProvisional ? "High risk (provisional)" : "High risk",
-                      v: v.highRisk === null ? "Not defined" : fmt(v.highRisk, v),
-                      c: v.highRisk === null ? mutedText : "#ef4444",
-                    },
-                  ].map((cell) => (
-                    <div key={cell.k} className="min-w-0">
-                      <p className="text-[8px] font-mono leading-tight" style={{ color: mutedText }}>
-                        {cell.k}
-                      </p>
-                      <p className="text-[12px] font-bold font-mono leading-snug break-words" style={{ color: cell.c }}>
-                        {cell.v}
-                      </p>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-
-        <div>
-          <p className={label} style={{ color: mutedText }}>
-            What drives it
-          </p>
-          <ul className="flex flex-col gap-2">
-            {boundary.drivers.map((d) => (
-              <li key={d} className="flex gap-2.5">
-                <span className="w-1 rounded-full shrink-0 mt-1" style={{ background: z.color, minHeight: 14 }} />
-                <span className="text-[11px] font-sans leading-relaxed" style={{ color: body }}>
-                  {d}
-                </span>
-              </li>
-            ))}
-          </ul>
-        </div>
-      </div>
-
-      <div className="mt-5">
-        <p className={label} style={{ color: mutedText }}>
-          What it is doing
-        </p>
-        <ul className="flex flex-col gap-2">
-          {boundary.impacts.map((d) => (
-            <li key={d} className="flex gap-2.5">
-              <span className="w-1 rounded-full shrink-0 mt-1" style={{ background: z.color, minHeight: 14 }} />
-              <span className="text-[11px] font-sans leading-relaxed" style={{ color: body }}>
-                {d}
-              </span>
-            </li>
-          ))}
-        </ul>
-      </div>
-
-      <div className="mt-4 pt-3 border-t" style={{ borderColor: gridLine }}>
-        <SourceLink className="!mt-0" sources={{ label: `${PHC_2026.title}, summary p. ${boundary.page} (${PHC_2026.publisher})`, url: PHC_2026.summaryUrl }} />
-      </div>
-    </div>
-  );
-}
-
-/* ─── Summary card ──────────────────────────────────────────────────────── */
-function BoundarySummaryCard({
-  boundary,
-  selected,
-  onSelect,
-  headText,
-  mutedText,
-  gridLine,
-}: {
-  boundary: PlanetaryBoundary;
-  selected: boolean;
-  onSelect: () => void;
-  headText: string;
-  mutedText: string;
-  gridLine: string;
-}) {
-  const z = ZONE[boundary.zone];
-  const h = headline(boundary);
-  return (
-    <button
-      onClick={onSelect}
-      aria-pressed={selected}
-      className="flex items-center gap-3 py-2.5 px-3 rounded-xl text-left w-full transition-all hover:opacity-90"
-      style={{
-        background: selected ? z.color + "12" : "transparent",
-        border: `1px solid ${selected ? z.color + "35" : gridLine}`,
-        outline: "none",
-      }}
-    >
-      <div className="w-7 h-7 rounded-lg flex items-center justify-center shrink-0" style={{ background: z.color + "18", color: z.color }}>
-        {ICON[boundary.id]}
-      </div>
-      <div className="flex-1 min-w-0">
-        <p className="text-[11px] font-semibold font-sans truncate" style={{ color: headText }}>
-          {boundary.shortName}
-        </p>
-        <p className="text-[9px] font-mono" style={{ color: z.color }}>
-          {z.label}
-        </p>
-      </div>
-      <div className="shrink-0 text-right max-w-[45%]">
-        <p className="text-[10px] font-mono font-bold truncate" style={{ color: z.color }}>
-          {h.value === null ? "Not quantified" : withUnit(h.current, shortUnit(h.unit))}
-        </p>
-        <p className="text-[8px] font-mono truncate" style={{ color: mutedText }}>
-          boundary {fmt(h.boundary, h, shortUnit(h.unit))}
-        </p>
-      </div>
-    </button>
-  );
-}
-
 /* ─── Figure card ───────────────────────────────────────────────────────── */
 function FigureCardView({
   card,
@@ -502,7 +287,6 @@ export function PlanetaryBoundariesPage() {
   const headText = isLight ? "#0f172a" : "#f1f0ff";
   const gridLine = isLight ? "rgba(0,0,0,0.06)" : "rgba(255,255,255,0.12)";
 
-  const selected = BOUNDARIES.find((b) => b.id === selectedId) ?? BOUNDARIES[0];
   const co2 = CLIMATE_INDICATORS.find((i) => i.id === "co2-global");
   const byId = (id: string) => BOUNDARIES.find((b) => b.id === id);
   const extinction = byId("biosphere")?.variables[0];
@@ -650,43 +434,8 @@ export function PlanetaryBoundariesPage() {
             countries disasters struck, erosion, and each country's projected warming - each card its sources' own. ── */}
         <ClimateWatch />
 
-        {/* ── MAIN CONTENT GRID ─────────────────────────────────────────── */}
-        {/* The nine boundaries and the one being read, side by side, so the
-            choice stays in view next to what it opened. */}
-        <div id="boundaries" className="bg-card border border-border rounded-2xl p-4 mb-6 scroll-mt-24">
-          {/* Splits at md, not lg: the app's own chrome eats ~230px of the
-              window, so a 1024px breakpoint never fired on a laptop. */}
-          <div className="grid grid-cols-1 md:grid-cols-12 gap-4">
-            <div className="md:col-span-5 lg:col-span-4 md:border-r md:border-border md:pr-4">
-              <p className="text-[10px] font-mono uppercase tracking-widest mb-2 text-muted-foreground">
-                All Nine Boundaries
-              </p>
-              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-1 gap-2">
-                {BOUNDARIES.map((b) => (
-                  <BoundarySummaryCard
-                    key={b.id}
-                    boundary={b}
-                    selected={selectedId === b.id}
-                    onSelect={() => setSelectedId(b.id)}
-                    headText={headText}
-                    mutedText={mutedText}
-                    gridLine={gridLine}
-                  />
-                ))}
-              </div>
-            </div>
-
-            <div className="md:col-span-7 lg:col-span-8 min-w-0">
-              <BoundaryDetailPanel
-                boundary={selected}
-                isLight={isLight}
-                headText={headText}
-                mutedText={mutedText}
-                gridLine={gridLine}
-              />
-            </div>
-          </div>
-        </div>
+        {/* The list of the nine boundaries and the panel of the one chosen stood here; they were taken off, as asked. The wheel
+            below still draws all nine. */}
 
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 mb-6">
           {/* The wheel */}
