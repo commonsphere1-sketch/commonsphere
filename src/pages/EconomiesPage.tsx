@@ -2623,7 +2623,8 @@ export function EconomiesPage() {
               {pageItems.map((economy) => (
                 <div
                   key={economy.id}
-                  className="flex gap-3 items-stretch min-w-0 overflow-hidden"
+                  // Not clipped: the card grows a little and glows when pointed at, and its edges must show.
+                  className="flex gap-3 items-stretch min-w-0"
                 >
                   {/* ── Main card ── */}
                   <article

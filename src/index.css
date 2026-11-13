@@ -1591,6 +1591,25 @@ html.light .modal-tile:has(> .card-flag) .text-foreground,
 html.light .modal-tile:has(> div > .card-flag) .text-foreground {
   color: #0b0906;
 }
+/* And its coloured writing - a figure's blue, a rise's green, a fall's red - in deeper inks of the same colours over a flag
+   card in the light theme, as asked, so that it reads over any flag; its see-through chips and small figure tiles are given
+   a white ground, so their writing does not sit on the flag. Chips with their own colour (a rating, a status) keep it. */
+html.light .modal-tile:has(> .card-flag) .text-secondary,
+html.light .modal-tile:has(> div > .card-flag) .text-secondary {
+  color: color-mix(in srgb, var(--color-secondary) 62%, black);
+}
+html.light .modal-tile:has(> .card-flag) .text-success,
+html.light .modal-tile:has(> div > .card-flag) .text-success {
+  color: color-mix(in srgb, var(--color-success) 62%, black);
+}
+html.light .modal-tile:has(> .card-flag) .text-destructive,
+html.light .modal-tile:has(> div > .card-flag) .text-destructive {
+  color: color-mix(in srgb, hsl(0, 70%, 50%) 72%, black);
+}
+html.light .modal-tile:has(> .card-flag) :is(span.rounded-full.border:not([class*="bg-"]), .bg-secondary\/10, .rounded-md.border),
+html.light .modal-tile:has(> div > .card-flag) :is(span.rounded-full.border:not([class*="bg-"]), .bg-secondary\/10, .rounded-md.border) {
+  background-color: rgba(255, 255, 255, 0.86);
+}
 
 /* A row of tiles that leaves no gap: each tile grows to fill its line, so a
    line of one or two is as wide as a line of four and no cell stands empty
