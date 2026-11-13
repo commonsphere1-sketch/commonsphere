@@ -30,7 +30,6 @@ import {
   Newspaper,
   Lightning,
   ArrowSquareOut,
-  Leaf,
   GlobeStand,
   ArrowsLeftRight,
   ArrowsIn,
@@ -83,25 +82,14 @@ const analysisNav = [
     icon: ArrowsLeftRight,
     end: false,
   },
-  // What is changing, field by field: the week's headlines, and the projections and trends behind them. It was "Trends".
-  {
-    to: "/dashboard/planetary-boundaries",
-    label: "Climate",
-    icon: Leaf,
-    end: false,
-  },
-  {
-    to: "/dashboard/crime",
-    label: "Crime",
-    icon: ShieldCheck,
-    end: false,
-  },
+  // Climate and Crime stood here; they were taken off the menu, as asked, and News and My Notes put in their place. The two
+  // pages are kept and still open from the links to them.
+  { to: "/dashboard/news", label: "News", icon: Newspaper, end: false },
+  { to: "/dashboard/notes", label: "My Notes", icon: NotePencil, end: false },
   { to: "/dashboard/maps", label: "World Maps", icon: GlobeHemisphereWest, end: false },
 ];
 
 const bottomNav = [
-  { to: "/dashboard/news", label: "News", icon: Newspaper, end: false },
-  { to: "/dashboard/notes", label: "My Notes", icon: NotePencil, end: false },
   { to: "/dashboard/settings", label: "Settings", icon: GearSix, end: false },
   { to: "/dashboard/membership", label: "Membership", icon: Crown, end: false },
   { to: "/dashboard/legal", label: "Terms & Policies", icon: Scroll, end: false },
