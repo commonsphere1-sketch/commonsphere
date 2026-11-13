@@ -30,6 +30,7 @@ import { CommodityMovers } from "../components/CommodityMovers";
 import { GlobalAnalytics } from "../components/DashboardGlobal";
 import { SectorOutlook } from "../components/DashboardCitiesSectors";
 import { CountryLeaders, PlanetNow, WorldLiving } from "../components/DashboardSignals";
+import { WorldCompass } from "../components/WorldCompass";
 
 /** Energy to 2050, the panel kept of the Trends & Projections desk, with the projections it draws on: loaded after the page. */
 const EnergyOutlook = lazy(() => import("../components/EnergyOutlook"));
@@ -2574,6 +2575,8 @@ export function DashboardPage() {
           <CountryLeaders />
           <PlanetNow />
           <WorldLiving />
+          {/* The political compass, as asked: every country in its latest year, the same compass Polls & Elections draws for one. */}
+          <WorldCompass />
         </div>
 
 
