@@ -18,6 +18,10 @@ import { REGIME_TYPES } from "../data/regimes";
 import { COUNTRY_POLITICS, COUNTRY_POLITICS_SOURCE } from "../data/countryPolitics";
 import { LIVING_DARK, LIVING_LIGHT } from "../lib/livingScore";
 import { useTheme } from "../contexts/ThemeContext";
+import { downloadCsv, type CsvCell } from "../lib/csv";
+import { lockScroll } from "../lib/scrollLock";
+import { WindowTitle } from "../components/WindowTitle";
+import { ArrowsIn, ArrowsOut, X } from "@phosphor-icons/react";
 
 /** A party's result: its share of the vote, its seats, and its place from left (0) to right (10) on ParlGov's scale. */
 type Party = [name: string, vote: number | null, seats: number | null, leftRight?: number | null];
@@ -259,6 +263,281 @@ export default function ElectionsPage() {
   );
 }
 
+type Tip = { x: number; y: number; title: string; lines: string[] };
+/**
+ * The card by the pointer, for the timeline and the compass alike: frosted, as asked, so that it reads over what is under it
+ * in a light page and a dark one; kept inside its box (`room`, the box's width).
+ */
+function TipCard({ tip, room }: { tip: Tip; room: number }) {
+  return (
+    <div
+      className="absolute z-10 pointer-events-none rounded-lg border border-border bg-background/70 backdrop-blur-md backdrop-saturate-150 shadow-lg px-2.5 py-2 max-w-[18rem]"
+      style={{ left: Math.max(0, Math.min(tip.x + 14, room - 290)), top: tip.y + 14 }}
+    >
+      <p className="text-[11px] font-semibold font-sans text-foreground leading-snug">{tip.title}</p>
+      {tip.lines.map((l, i) => (
+        <p key={i} className="text-[10px] font-sans text-muted-foreground leading-snug mt-0.5">
+          {l}
+        </p>
+      ))}
+    </div>
+  );
+}
+
+/**
+ * The governments' leaning, one way for the timeline and the compass alike: ParlGov's place for the prime minister's party,
+ * left (0) to right (10), where ParlGov holds the country; elsewhere the political alignment Wikidata records for each head
+ * of government's party at the start of the term - or, where no head of government's is recorded, each head of state's.
+ */
+function leaningsOf(data: History) {
+  const leaders = data.leaders ?? [];
+  const pgLean = data.cabinets.filter((c) => typeof c.pmLeftRight === "number");
+  const leanRole: Leader["role"] = leaders.some((l) => l.role === "government" && alignAt(l.align) !== null) ? "government" : "state";
+  const wdLean = pgLean.length ? [] : leaders.filter((l) => l.role === leanRole && alignAt(l.align) !== null);
+  return { pgLean, wdLean, leanRole };
+}
+
+/* ── The political compass, as asked ──────────────────────────────────────────
+   Where the country stands in each year of the period chosen on the timeline: across, its government's leaning, left to
+   right; up and down, how free its people are - V-Dem's civil liberties index - authoritarian at the top, libertarian at the
+   foot. Two records set side by side, each with its source: not The Political Compass's own test, which scores a person's
+   answers and not a government. A year without both is not drawn. */
+type CompassPoint = { y: number; across: number; down: number; who: string; lean: string; source: string; civ: number };
+function compassPoints(data: History, from: number, to: number): CompassPoint[] {
+  const { pgLean, wdLean } = leaningsOf(data);
+  const out: CompassPoint[] = [];
+  for (let y = from; y <= to; y++) {
+    const civ = indexAt(data.indices?.civ, y);
+    if (civ == null) continue;
+    // Who governed at the middle of the year.
+    const mid = `${y}-07-01`;
+    // Libertarian (the freest) at the foot, authoritarian at the top: down is 1 at the foot.
+    const down = 2 * civ - 1;
+    if (pgLean.length) {
+      const c = [...pgLean].reverse().find((x) => x.start <= mid);
+      if (c) out.push({ y, across: (2 * c.pmLeftRight!) / 10 - 1, down, who: `${c.name} cabinet`, lean: `${c.pmParty}: ${c.pmLeftRight} on ParlGov's scale, left (0) to right (10)`, source: "ParlGov", civ });
+    } else {
+      const l = wdLean.find((x) => x.from <= mid && (x.to ? x.to >= mid : Boolean(x.now)));
+      const step = alignAt(l?.align);
+      if (l && step !== null) out.push({ y, across: (2 * step) / (ALIGN.length - 1) - 1, down, who: l.name, lean: `${l.party}: ${l.align}`, source: "Wikidata", civ });
+    }
+  }
+  return out;
+}
+
+/** The compass drawn: its four quarters, its path through the years, each year's place. Pointed at, a year's card - where `onPoint` is given. */
+function CompassPlot({ points, label, onPoint, onLeave }: { points: CompassPoint[]; label: string; onPoint?: (e: React.MouseEvent, p: CompassPoint) => void; onLeave?: () => void }) {
+  const S = 300; // its side
+  const M = 26; // the margin its words stand in
+  const px = (v: number) => M + ((v + 1) / 2) * (S - 2 * M);
+  const last = points[points.length - 1];
+  const q = (S - 2 * M) / 2;
+  return (
+    <svg viewBox={`0 0 ${S} ${S}`} className="w-full h-auto" role="img" aria-label={label}>
+      {/* The four quarters, faintly in the compass's own colours: authoritarian left and right above, libertarian left and right below. */}
+      <rect x={M} y={M} width={q} height={q} fill="#ef4444" fillOpacity={0.1} />
+      <rect x={S / 2} y={M} width={q} height={q} fill="#3b82f6" fillOpacity={0.1} />
+      <rect x={M} y={S / 2} width={q} height={q} fill="#22c55e" fillOpacity={0.1} />
+      <rect x={S / 2} y={S / 2} width={q} height={q} fill="#a855f7" fillOpacity={0.1} />
+      <rect x={M} y={M} width={S - 2 * M} height={S - 2 * M} fill="none" stroke="currentColor" strokeOpacity={0.25} />
+      <line x1={S / 2} y1={M} x2={S / 2} y2={S - M} stroke="currentColor" strokeOpacity={0.35} />
+      <line x1={M} y1={S / 2} x2={S - M} y2={S / 2} stroke="currentColor" strokeOpacity={0.35} />
+      <text x={S / 2} y={M - 9} textAnchor="middle" fontSize={9} fill="currentColor" opacity={0.75}>
+        Authoritarian
+      </text>
+      <text x={S / 2} y={S - M + 16} textAnchor="middle" fontSize={9} fill="currentColor" opacity={0.75}>
+        Libertarian
+      </text>
+      <text x={M - 12} y={S / 2} textAnchor="middle" fontSize={9} fill="currentColor" opacity={0.75} transform={`rotate(-90 ${M - 12} ${S / 2})`}>
+        Left
+      </text>
+      <text x={S - M + 12} y={S / 2} textAnchor="middle" fontSize={9} fill="currentColor" opacity={0.75} transform={`rotate(90 ${S - M + 12} ${S / 2})`}>
+        Right
+      </text>
+      {/* Its path through the years chosen, and each year's place; the last the solid one. */}
+      {points.length > 1 && <polyline points={points.map((p) => `${px(p.across)},${px(p.down)}`).join(" ")} fill="none" stroke="currentColor" strokeOpacity={0.3} strokeWidth={1} strokeLinejoin="round" />}
+      {points.map((p) => (
+        <circle
+          key={p.y}
+          cx={px(p.across)}
+          cy={px(p.down)}
+          r={p === last ? 5.5 : 3}
+          fill={p === last ? "currentColor" : "#f59e0b"}
+          fillOpacity={p === last ? 1 : 0.75}
+          stroke={p === last ? "#f59e0b" : "none"}
+          strokeWidth={2}
+          className={onPoint ? "cursor-pointer" : undefined}
+          onMouseMove={onPoint ? (e) => onPoint(e, p) : undefined}
+          onMouseLeave={onLeave}
+        />
+      ))}
+      {last && (
+        <text x={px(last.across) > S - 70 ? px(last.across) - 8 : px(last.across) + 8} y={px(last.down) - 8} fontSize={9} fontWeight={700} fill="currentColor" textAnchor={px(last.across) > S - 70 ? "end" : "start"}>
+          {last.y}
+        </text>
+      )}
+    </svg>
+  );
+}
+
+/** Where the country stood in the last year drawn, in words. */
+const standing = (p: CompassPoint) =>
+  `${p.across < -0.15 ? "left of centre" : p.across > 0.15 ? "right of centre" : "near the centre"}, ${p.civ >= 0.66 ? "toward the libertarian end" : p.civ <= 0.33 ? "toward the authoritarian end" : "between the two ends"}`;
+
+/**
+ * The political compass, as asked: a card under the timeline - the compass small, and where the country stood in the last
+ * year drawn - that opens a window of its own, in the site's style, with the compass drawn large, each year's place in a
+ * table, and what it is made of. It follows what the page shows: the country chosen, and the period chosen on the timeline.
+ */
+function Compass({ data, from, to, country }: { data: History; from: number; to: number; country: string }) {
+  const points = useMemo(() => compassPoints(data, from, to), [data, from, to]);
+  const [open, setOpen] = useState(false);
+  const last = points[points.length - 1];
+  const label = `${country} on the political compass, ${from} to ${to}`;
+  return (
+    <>
+      <button
+        type="button"
+        onClick={() => setOpen(true)}
+        disabled={!points.length}
+        className="modal-tile rounded-xl px-4 py-3 mb-4 w-full text-left flex items-center gap-4 cursor-pointer disabled:cursor-default transition-colors hover:border-foreground/30"
+        aria-label={points.length ? `Open ${label}` : `${country} on the political compass: not held for these years`}
+      >
+        <span className="w-24 shrink-0 text-foreground">{points.length ? <CompassPlot points={points} label={label} /> : null}</span>
+        <span className="min-w-0 flex-1">
+          <span className="block text-[10px] font-mono uppercase tracking-widest text-muted-foreground">
+            The political compass · {from} to {to}
+          </span>
+          {last ? (
+            <>
+              <span className="block text-[13px] font-semibold font-sans text-foreground mt-1">
+                In {last.y}, {country} stood {standing(last)}
+              </span>
+              <span className="block text-[11px] font-sans text-muted-foreground mt-0.5">
+                Its government's leaning across ({last.source}), its civil liberties up and down (V-Dem) · {points.length} {points.length === 1 ? "year" : "years"} drawn · open for each year and
+                what it is made of
+              </span>
+            </>
+          ) : (
+            <span className="block text-[11px] font-sans text-muted-foreground mt-1">
+              Not held for {country} in these years: a place on the compass needs both a government's leaning and V-Dem's civil liberties for the same year.
+            </span>
+          )}
+        </span>
+      </button>
+      {open && points.length > 0 && <CompassWindow points={points} data={data} from={from} to={to} country={country} label={label} onClose={() => setOpen(false)} />}
+    </>
+  );
+}
+
+/** The compass's window: the site's window, as every place's and figure's is - its title bar, expanded or not, and closed by Escape or a press beside it. */
+function CompassWindow({ points, data, from, to, country, label, onClose }: { points: CompassPoint[]; data: History; from: number; to: number; country: string; label: string; onClose: () => void }) {
+  const [expanded, setExpanded] = useState(false);
+  const [tip, setTip] = useState<Tip | null>(null);
+  const box = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => e.key === "Escape" && onClose();
+    document.addEventListener("keydown", onKey);
+    const unlock = lockScroll();
+    return () => {
+      document.removeEventListener("keydown", onKey);
+      unlock();
+    };
+  }, [onClose]);
+  const last = points[points.length - 1];
+  const sources = [...new Set(points.map((p) => p.source))];
+  const show = (e: React.MouseEvent, p: CompassPoint) => {
+    const r = box.current?.getBoundingClientRect();
+    if (r) setTip({ x: e.clientX - r.left, y: e.clientY - r.top, title: `${country}, ${p.y}`, lines: [`Governing: ${p.who}`, `Leaning: ${p.lean} (${p.source})`, `Civil liberties: ${p.civ.toFixed(3)} (V-Dem, 0 to 1)`] });
+  };
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6 bg-black/60 backdrop-blur-sm animate-fade-in" onClick={(e) => e.target === e.currentTarget && onClose()} role="dialog" aria-modal="true" aria-label={label}>
+      <div className={`relative z-10 rounded-2xl w-full shadow-2xl animate-fade-in modal-glass border overflow-y-auto transition-all duration-300 ${expanded ? "max-w-full max-h-full m-0" : "max-w-4xl max-h-[90vh]"}`}>
+        <div className="p-6">
+          <WindowTitle title={`${country} · the political compass`} note={`${from} to ${to}`}>
+            <button
+              type="button"
+              onClick={() => setExpanded((v) => !v)}
+              className="p-2 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted/60 transition-colors cursor-pointer"
+              aria-label={expanded ? "Collapse the window" : "Expand the window to the whole screen"}
+              title={expanded ? "Collapse" : "Expand to the whole screen"}
+            >
+              {expanded ? <ArrowsIn size={18} /> : <ArrowsOut size={18} />}
+            </button>
+            <button type="button" onClick={onClose} className="p-2 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted/60 transition-colors cursor-pointer" aria-label="Close">
+              <X size={18} />
+            </button>
+          </WindowTitle>
+          <div className="grid grid-cols-1 md:grid-cols-[minmax(0,22rem)_1fr] gap-6 mt-4 items-start">
+            <div ref={box} className="relative text-foreground">
+              <CompassPlot points={points} label={label} onPoint={show} onLeave={() => setTip(null)} />
+              {tip && <TipCard tip={tip} room={box.current?.clientWidth ?? 300} />}
+            </div>
+            <div className="min-w-0 space-y-3">
+              <p className="text-[13px] font-sans text-foreground leading-snug">
+                In {last.y}, {country} stood {standing(last)}: its government {last.who} - {last.lean} - and civil liberties of {last.civ.toFixed(3)}.
+              </p>
+              {/* Each year's place, the latest first. */}
+              <div className="max-h-64 overflow-y-auto rounded-lg border border-border/60">
+                <table className="w-full text-[11px] font-sans">
+                  <thead className="sticky top-0 bg-background/90 backdrop-blur-sm">
+                    <tr className="text-left text-[9px] font-mono uppercase tracking-wider text-muted-foreground">
+                      <th className="px-2 py-1.5 font-normal">Year</th>
+                      <th className="px-2 py-1.5 font-normal">Governing</th>
+                      <th className="px-2 py-1.5 font-normal">Leaning</th>
+                      <th className="px-2 py-1.5 font-normal text-right">Civil liberties</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {[...points].reverse().map((p) => (
+                      <tr key={p.y} className="border-t border-border/40">
+                        <td className="px-2 py-1 font-mono">{p.y}</td>
+                        <td className="px-2 py-1 text-foreground">{p.who}</td>
+                        <td className="px-2 py-1 text-muted-foreground">{p.lean}</td>
+                        <td className="px-2 py-1 font-mono text-right">{p.civ.toFixed(3)}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+              <p className="text-[11px] font-sans text-muted-foreground leading-snug">
+                Across, the government's leaning:{" "}
+                {sources.includes("ParlGov")
+                  ? "ParlGov's place for the prime minister's party, left (0) to right (10), from experts' surveys"
+                  : "the political alignment Wikidata records for the head of government's party, its seven steps from far-left to far-right set evenly across"}
+                . Up and down, how free its people are: V-Dem's civil liberties index, 0 to 1, the most free at the foot. Each dot is a year of the period chosen on the timeline, the
+                government the one in office at its middle; a year without both - a party given more than one alignment, a year V-Dem has not scored - is not drawn. The two are set
+                side by side, not combined into one measure: this is not The Political Compass's own test, which places a person by their answers.
+              </p>
+              <div className="flex flex-wrap items-center gap-2">
+                <button
+                  type="button"
+                  onClick={() =>
+                    downloadCsv(`${data.cc}-political-compass-${from}-${to}.csv`, ["year", "governing", "leaning", "leaning source", "left (-1) to right (1)", "civil liberties (V-Dem, 0 to 1)"], points.map((p) => [p.y, p.who, p.lean, p.source, p.across.toFixed(3), p.civ]))
+                  }
+                  className="px-2.5 py-0.5 rounded-full text-[10px] font-sans border border-border text-muted-foreground hover:text-foreground cursor-pointer"
+                  title="Each year's place on the compass, with what it is made of, as a spreadsheet"
+                >
+                  Download CSV
+                </button>
+                <SourceLink
+                  sources={[
+                    ...(sources.includes("ParlGov") ? [ELECTION_HISTORY_SOURCES.parlgov] : []),
+                    ...(sources.includes("Wikidata") ? [ELECTION_HISTORY_SOURCES.wikidata] : []),
+                    ELECTION_HISTORY_SOURCES.vdemIndices,
+                  ]}
+                />
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+type Row = { key: string; label: string; source: string; height: number; draw: (top: number) => ReactNode };
+
 /**
  * The timeline, made for research, as asked: each row named in a column of its own with its source, the years in a grid
  * under all of them, a period to look at, the details of anything pointed at in a card, and the whole of it to download.
@@ -270,9 +549,6 @@ export default function ElectionsPage() {
  *                   their own; a term whose end the records do not agree on is a mark at its start
  *   Governments     ParlGov's cabinets, where it holds the country
  */
-type Tip = { x: number; y: number; title: string; lines: string[] };
-type Row = { key: string; label: string; source: string; height: number; draw: (top: number) => ReactNode };
-
 function Timeline({ data, today, regimeInk, turning, country }: { data: History; today: string; regimeInk: (r: number) => string; turning: Turning[]; country: string }) {
   const year = +today.slice(0, 4);
   const leaders = data.leaders ?? [];
@@ -347,10 +623,7 @@ function Timeline({ data, today, regimeInk, turning, country }: { data: History;
     { key: "conclave", label: "Papal conclaves", kinds: ["Conclave"] },
   ].filter((r) => data.elections.some((e) => r.kinds.includes(e.kind)));
 
-  /* The governments' leaning: ParlGov's prime minister's party where it holds the country, else each head of government's - or, where none, head of state's - party's alignment, as Wikidata records it. */
-  const pgLean = data.cabinets.filter((c) => typeof c.pmLeftRight === "number");
-  const leanRole = leaders.some((l) => l.role === "government" && alignAt(l.align) !== null) ? "government" : "state";
-  const wdLean = pgLean.length ? [] : leaders.filter((l) => l.role === leanRole && alignAt(l.align) !== null);
+  const { pgLean, wdLean, leanRole } = leaningsOf(data);
   const freedoms = FREEDOMS.filter((fr) => data.indices?.[fr.key]);
   /* The year under the pointer, from where it is across the timeline. */
   const yearAtPointer = (e: React.MouseEvent) => {
@@ -595,8 +868,7 @@ function Timeline({ data, today, regimeInk, turning, country }: { data: History;
 
   /* The whole of it, for a reader's own work: one row a thing, with its source and its link. */
   const download = () => {
-    const q = (v: string | number | undefined) => `"${String(v ?? "").replace(/"/g, '""')}"`;
-    const out: (string | number | undefined)[][] = [["type", "start", "end", "name", "detail", "source", "link"]];
+    const out: CsvCell[][] = [];
     for (const [a, b, type] of data.regimes) out.push(["regime", a, b, REGIME_TYPES[type].name, REGIME_TYPES[type].said, "V-Dem, Regimes of the World (via Our World in Data)", "https://ourworldindata.org/grapher/political-regime"]);
     for (const tp of turning) out.push(["turning point", tp.when ?? tp.y, "", tp.title, `${tp.kind}${tp.abroad ? ", taken part in abroad" : ""}`, tp.sources.map((s) => s[0]).join("; "), tp.sources[0]?.[1]]);
     for (const e of data.elections)
@@ -616,16 +888,12 @@ function Timeline({ data, today, regimeInk, turning, country }: { data: History;
       if (!s) continue;
       for (let i = 1; i < s.length; i++) if (s[i] !== null) out.push([`${fr.name.toLowerCase()} index`, (s[0] as number) + i - 1, "", fr.name, String(s[i]), "V-Dem, via Our World in Data", "https://ourworldindata.org/grapher/human-rights-index-vdem"]);
     }
-    const csv = out.map((r) => r.map(q).join(",")).join("\r\n");
-    const url = URL.createObjectURL(new Blob([`﻿${csv}`], { type: "text/csv;charset=utf-8" }));
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = `${data.cc}-political-history-${today}.csv`;
-    a.click();
-    URL.revokeObjectURL(url);
+    // Through the site's one CSV writer, as every chart's is.
+    downloadCsv(`${data.cc}-political-history-${today}.csv`, ["type", "start", "end", "name", "detail", "source", "link"], out);
   };
 
   return (
+    <>
     <section className="modal-tile rounded-xl px-4 py-3 mb-4">
       <div className="flex flex-wrap items-center gap-2 mb-2">
         <p className="text-[10px] font-mono uppercase tracking-widest text-muted-foreground flex-1 min-w-[12rem]">
@@ -685,16 +953,7 @@ function Timeline({ data, today, regimeInk, turning, country }: { data: History;
             today
           </text>
         </svg>
-        {tip && (
-          <div className="absolute z-10 pointer-events-none rounded-lg border border-border bg-card shadow-lg px-2.5 py-2 max-w-[18rem]" style={{ left: Math.min(tip.x + 14, (box.current?.clientWidth ?? 600) - 290), top: tip.y + 14 }}>
-            <p className="text-[11px] font-semibold font-sans text-foreground leading-snug">{tip.title}</p>
-            {tip.lines.map((l, i) => (
-              <p key={i} className="text-[10px] font-sans text-muted-foreground leading-snug mt-0.5">
-                {l}
-              </p>
-            ))}
-          </div>
-        )}
+        {tip && <TipCard tip={tip} room={box.current?.clientWidth ?? 600} />}
       </div>
       {/* The key, and how to cite it. */}
       <div className="flex flex-wrap items-center gap-x-4 gap-y-1 mt-2">
@@ -723,6 +982,9 @@ function Timeline({ data, today, regimeInk, turning, country }: { data: History;
         names.
       </p>
     </section>
+    {/* The political compass, as asked: where the country stood in each year of the period chosen above. */}
+    <Compass data={data} from={y0} to={Math.min(year, y1)} country={country} />
+    </>
   );
 }
 
