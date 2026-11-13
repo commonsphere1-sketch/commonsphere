@@ -9,9 +9,11 @@
  *
  * Each idea's description and works to read are the site's own record of political ideas (politicalTheories.ts: the
  * opening of its Wikipedia article, with the Encyclopaedia Britannica's, the Stanford Encyclopedia's or the Internet
- * Encyclopedia of Philosophy's entry), by its name there; libertarianism, which that record does not hold, is given here
- * the same way.
+ * Encyclopedia of Philosophy's entry), by its name there; ideas that record does not hold - centrism among them - are
+ * given the same way by build-compass-ideas.cjs (compassMoreIdeas.ts).
  */
+import { COMPASS_MORE_IDEAS } from "./compassMoreIdeas";
+
 export type CompassIdea = {
   /** Its name in the site's record of political ideas. */
   name: string;
@@ -115,22 +117,45 @@ export const COMPASS_IDEAS: CompassIdea[] = [
   { name: "Libertarianism", x: 0.75, y: 0.68 },
   { name: "Individualism", x: 0.52, y: 0.76 },
   { name: "Voluntaryism", x: 0.88, y: 0.9 },
+  // From build-compass-ideas.cjs (compassMoreIdeas.ts): ideas the site's record does not hold.
+  { name: "Centrism", x: 0, y: 0 },
+  { name: "Keynesian economics", x: -0.1, y: 0 },
+  { name: "Capitalism", x: 0.6, y: 0 },
+  { name: "Laissez-faire", x: 0.95, y: 0 },
+  { name: "Autocracy", x: 0, y: -0.52 },
+  { name: "Stalinism", x: -0.72, y: -0.94 },
+  { name: "Marxism–Leninism", x: -0.7, y: -0.82 },
+  { name: "Ba'athism", x: -0.28, y: -0.66 },
+  { name: "State socialism", x: -0.72, y: -0.12 },
+  { name: "Distributism", x: -0.05, y: -0.3 },
+  { name: "Absolute monarchy", x: 0.42, y: -0.94 },
+  { name: "Plutocracy", x: 0.75, y: -0.55 },
+  { name: "Social conservatism", x: 0.38, y: -0.24 },
+  { name: "National conservatism", x: 0.62, y: -0.08 },
+  { name: "Fiscal conservatism", x: 0.7, y: 0.04 },
+  { name: "Liberal conservatism", x: 0.48, y: 0.06 },
+  { name: "Ordoliberalism", x: 0.42, y: 0.18 },
+  { name: "Georgism", x: 0.3, y: 0.45 },
+  { name: "Objectivism", x: 0.9, y: 0.62 },
+  { name: "Agorism", x: 0.95, y: 0.75 },
+  { name: "Right-libertarianism", x: 0.82, y: 0.8 },
+  { name: "Minarchism", x: 0.62, y: 0.86 },
+  { name: "Anarcho-capitalism", x: 0.95, y: 0.97 },
+  { name: "Market socialism", x: -0.45, y: 0.12 },
+  { name: "Green politics", x: -0.42, y: 0.42 },
+  { name: "Eco-socialism", x: -0.78, y: 0.5 },
+  { name: "Left communism", x: -0.95, y: 0.4 },
+  { name: "Council communism", x: -0.92, y: 0.6 },
+  { name: "Libertarian socialism", x: -0.55, y: 0.72 },
+  { name: "Left-libertarianism", x: -0.3, y: 0.88 },
+  { name: "Anarcho-syndicalism", x: -0.78, y: 0.96 },
 ];
 
 /** Its name as the compass shows it: the record's name without the words that tell it from others of that name. */
 export const shownName = (name: string) => name.replace(/ \([^)]*\)$/, "");
 
-/** Ideas the site's record of political ideas does not hold, given the same way: the opening of the Wikipedia article, and works to read. */
-export const MORE_IDEAS: { name: string; said: string; sources: { label: string; url: string }[] }[] = [
-  {
-    name: "Libertarianism",
-    said: "Libertarianism is a political philosophy that holds liberty and personal sovereignty as primary values. Many libertarians believe that the concept of freedom is in accord with the non-aggression principle, according to which each individual has the right to live as they choose, as long as they do not violate the rights of others by initiating force or fraud against them.",
-    sources: [
-      { label: "Stanford Encyclopedia of Philosophy", url: "https://plato.stanford.edu/entries/libertarianism/" },
-      { label: "Wikipedia — Libertarianism", url: "https://en.wikipedia.org/wiki/Libertarianism" },
-    ],
-  },
-];
+/** Ideas the site's record of political ideas does not hold, given the same way (build-compass-ideas.cjs). */
+export const MORE_IDEAS = COMPASS_MORE_IDEAS;
 
 /** The two-axis model itself, to read. */
 export const COMPASS_MODEL_SOURCES = [

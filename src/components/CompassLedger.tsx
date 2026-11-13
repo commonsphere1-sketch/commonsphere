@@ -17,7 +17,7 @@ import { COMPASS_IDEAS, COMPASS_MODEL_SOURCES, MORE_IDEAS, shownName, type Compa
 import { useTokens, type Tokens } from "../lib/cardTokens";
 import { lockScroll } from "../lib/scrollLock";
 
-type Described = { said: string; sources: { label: string; url: string }[] };
+type Described = { said: string; sources: { label: string; url: string }[]; noEncyclopedia?: true };
 const civOf = (i: CompassIdea) => (i.y + 1) / 2;
 const quarterOf = (i: CompassIdea) => QUARTERS.find((Q) => inQuarter(i.x, civOf(i), Q));
 const AXES: [string, string][] = [
@@ -139,7 +139,8 @@ function CompassWindow({ onClose }: { onClose: () => void }) {
           </WindowTitle>
 
           {/* The grid, and beside it what is pointed at. */}
-          <div className="grid grid-cols-1 md:grid-cols-[minmax(0,28rem)_1fr] gap-6 mt-4 items-start">
+          {/* The panel stands level with the middle of the grid, as asked. */}
+          <div className="grid grid-cols-1 md:grid-cols-[minmax(0,28rem)_1fr] gap-6 mt-4 items-center">
             <div ref={box} className="relative text-foreground">
               <CompassPlot dots={dotsOf(t, lit)} label={label} grid={10} cornerNames={false} onDot={onDot} onQuarter={onQuarter} onLeave={() => setTip(null)} />
               {tip && <TipCard tip={tip} room={box.current?.clientWidth ?? 300} />}
@@ -163,6 +164,7 @@ function CompassWindow({ onClose }: { onClose: () => void }) {
                           </a>
                         </span>
                       ))}
+                      {d.noEncyclopedia && " · no entry in the Encyclopaedia Britannica or an encyclopedia of philosophy is recorded for it, so its Wikidata record is given beside its article"}
                     </p>
                   )}
                   <p className="text-[10px] font-sans leading-snug mt-2 text-muted-foreground">{quarter ? quarter.means : MIDDLE}</p>
