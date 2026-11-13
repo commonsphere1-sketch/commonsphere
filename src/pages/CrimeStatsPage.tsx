@@ -5,7 +5,6 @@ import { useTheme } from "../contexts/ThemeContext";
 import { SourceLink } from "../components/SourceLink";
 import SlimBars, { gradId } from "../components/SlimBars";
 import { HeadlinesBanner } from "../components/HeadlinesBanner";
-import { PlaceHistory } from "../components/PlaceHistory";
 
 import { RecordedCrime } from "../components/RecordedCrime";
 import { JusticeSection } from "../components/JusticeSection";
@@ -704,37 +703,8 @@ export function CrimeStatsPage() {
           )}
         />
 
-        {/* ── CRIME HISTORY, PLACE BY PLACE, as asked: each country's, and its divisions' where they are published ── */}
-        <PlaceHistory
-          topic="crime"
-          title="Crime history, place by place"
-          accent="#ef4444"
-          groups={[
-            { title: "Murder & Homicide", sub: "Victims per 100,000 people", lines: [["homicide", "#ef4444"]], kind: "area" },
-            { title: "Violent Crime", sub: "Recorded by the police, per 100,000 people", lines: [["robbery", "#ef4444"], ["assault", "#f59e0b"], ["kidnapping", "#6366f1"], ["sexualViolence", "#a855f7"], ["rape", "#ec4899"]] },
-            { title: "Property Crime", sub: "Recorded by the police, per 100,000 people", lines: [["theft", "#f59e0b"], ["burglary", "#ef4444"], ["vehicleTheft", "#6366f1"], ["fraud", "#a855f7"]], kind: "thenNow" },
-            { title: "Cybercrime", sub: "Recorded by the police, per 100,000 people", lines: [["computerAccess", "#6366f1"]], kind: "bars" },
-            { title: "Crime Severity", sub: "Statistics Canada's index · Canada in 2006 = 100", lines: [["csi", "#ef4444"], ["violentCsi", "#f59e0b"], ["nonViolentCsi", "#6366f1"]] },
-            { title: "Corruption & Organised Crime", sub: "Recorded by the police, per 100,000 people", lines: [["corruption", "#ef4444"], ["bribery", "#f59e0b"], ["moneyLaundering", "#6366f1"], ["migrantSmuggling", "#a855f7"]], kind: "thenNow" },
-          ]}
-          tiles={["homicide", "csi", "robbery", "assault", "burglary", "theft"]}
-          compare={["homicide", "csi"]}
-          chooserLabel="Choose a country to see its crime history"
-          empty="No crime history is held for {country}: it has reported no year to UNODC."
-          className=""
-          notes={
-            <p>
-              A country's crime is as its own police and health records give it to UNODC, the United Nations Office on Drugs and Crime: victims of intentional homicide,
-              and the offences its police recorded, each per 100,000 people, for each year from 2003 it reported. What counts as each offence, and how much of it is
-              reported to the police, differ from country to country and change over time: a line's rise or fall can be a change in recording as well as in crime. A
-              year not reported is a gap in its line. The United Kingdom reports its three jurisdictions apart, and Iraq its Kurdistan Region apart from the rest. A country's states,
-              provinces and regions are the OECD's regional homicide rates, from each country's own statistics as the OECD gathers them, for the 46 countries its regional
-              database holds, each year from 1995 it gives. Canada, its provinces and territories and its 42 metropolitan areas have
-              Statistics Canada's crime severity index besides, each year since 1998: police-reported crime weighted by each offence's seriousness. Drug
-              offences are not held place by place: UNODC's files of offences recorded do not give them.
-            </p>
-          }
-        />
+        {/* The crime history, place by place (PlaceHistory), stood here; it was taken off this page, as asked. Its data and
+            builds (static/crime/history, build-crime-history*.cjs) are kept. */}
 
         {/* The explorer of revolutions, protests, boycotts and internal conflicts (UnrestExplorer) stood here; it was taken off
             as asked - only the Dashboard keeps its explorer. */}
