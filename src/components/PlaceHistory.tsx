@@ -1,18 +1,22 @@
 /**
  * A place's history, year by year, as asked for the Climate and Crime pages: one country at a time, chosen by name as on
  * Polls & Elections, and within it each of its divisions the records hold - its states, provinces or regions, and within
- * those their counties and cities. Drawn as the pages' own charts are, as asked: a card for each of the page's kinds of
- * figure (`groups`), its lines over the years for the place chosen, its legend, its sources and a CSV.
+ * those their counties and cities. Drawn with the site's own range of charts, as the Worldview page and the Countries
+ * windows are (as asked): figure tiles of the latest year against ten years before; for each of the page's kinds of
+ * figure (`groups`) the chart that suits it - an area, lines, bars by the year, a band from the days' lows to their
+ * highs, a strip of the years in colour, or slim bars of the latest year against ten years before; and the place's own
+ * parts ranked. Each card has its legend, its sources and a CSV.
  *
  * Reads static/<topic>/history/ (written by place-history-lib.cjs and the builds that use it): each country's file, and a
  * division's own parts from more/<id>.json when it is chosen. Every figure is the source's own; a year a source does not
- * give is a gap in its line.
+ * give is a gap in its line. The changes in the tiles are the two figures set side by side, not worked into a rate.
  */
-import { type ReactNode, useEffect, useMemo, useState } from "react";
-import { CartesianGrid, Line, LineChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
+import { type ReactNode, useEffect, useMemo, useRef, useState } from "react";
+import { Area, AreaChart, Bar, BarChart, CartesianGrid, ComposedChart, Line, LineChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
 import { CountryFind } from "./OccurrencePanel";
 import { SourceLink } from "./SourceLink";
-import { CsvButton } from "./ModalCharts";
+import { CsvButton, FigureTile, MeasureBars } from "./ModalCharts";
+import { type Tip, TipCard } from "./TipCard";
 import { countriesData } from "../data/countriesData";
 import { useTokens, type Tokens } from "../lib/cardTokens";
 
@@ -22,8 +26,10 @@ type Source = { label: string; url: string; note?: string };
 type Series = (number | null)[];
 type Place = { id: string; name: string; kind: string; parent?: string; series: Record<string, Series>; from: Record<string, string> };
 type HistoryFile = { cc: string; of?: string; defs: Record<string, Def>; sources: Record<string, Source>; places: Place[]; more?: Record<string, number> };
-/** One of the page's kinds of figure: a card, its title, the line over its title, and the figures drawn in it with their colours. */
-export type HistoryGroup = { title: string; sub: string; lines: [key: string, colour: string][] };
+/** How a kind of figure is drawn. */
+export type HistoryKind = "lines" | "area" | "bars" | "band" | "stripes" | "thenNow";
+/** One of the page's kinds of figure: a card, its title, the line over its title, the figures drawn in it with their colours, and how. */
+export type HistoryGroup = { title: string; sub: string; lines: [key: string, colour: string][]; kind?: HistoryKind };
 
 const NAME = new Map(countriesData.map((c) => [c.code, c.name]));
 const PLURAL: Record<string, string> = { country: "Country", state: "States", province: "Provinces", territory: "Territories", region: "Regions", jurisdiction: "Jurisdictions", county: "Counties", municipality: "Municipalities", city: "Cities" };
@@ -41,15 +47,47 @@ function said(v: number, unit: string) {
 const tick = (v: number) => (Math.abs(v) >= 1000 ? `${Math.round(v / 100) / 10}k` : Math.abs(v) >= 10 ? `${Math.round(v)}` : `${Math.round(v * 10) / 10}`);
 /** The unit in a heading. */
 const UNIT_SAID: Record<string, string> = { per100k: "per 100,000 people", degC: "°C", degF: "°F", mm: "mm", in: "inches", mt: "million tonnes", t: "tonnes", index: "index", count: "number" };
+const isTemperature = (unit: string) => unit === "degC" || unit === "degF";
 
 const at = (s: Series, y: number) => (y >= (s[0] as number) ? (s[1 + y - (s[0] as number)] ?? null) : null);
 const lastYear = (s: Series) => (s[0] as number) + s.length - 2;
+/** A series' latest year with a figure, and the figure. */
+function latest(s: Series): [number, number] | null {
+  for (let y = lastYear(s); y >= (s[0] as number); y--) {
+    const v = at(s, y);
+    if (v != null) return [y, v];
+  }
+  return null;
+}
+/** Its figure ten years before its latest - or the nearest year after that it gives, or its first. */
+function before(s: Series): [number, number] | null {
+  const l = latest(s);
+  if (!l) return null;
+  for (let y = Math.max(s[0] as number, l[0] - 10); y < l[0]; y++) {
+    const v = at(s, y);
+    if (v != null) return [y, v];
+  }
+  return null;
+}
+/** The years the keys span, each a row: {year, key: value}. */
+function rowsOf(place: Place, keys: string[]) {
+  let lo = Infinity, hi = -Infinity;
+  for (const k of keys) {
+    lo = Math.min(lo, place.series[k][0] as number);
+    hi = Math.max(hi, lastYear(place.series[k]));
+  }
+  const data: Record<string, number | null>[] = [];
+  for (let y = lo; y <= hi; y++) data.push({ year: y, ...Object.fromEntries(keys.map((k) => [k, at(place.series[k], y)])) });
+  return { data, lo, hi };
+}
 
 export function PlaceHistory({
   topic,
   title,
   accent,
   groups,
+  tiles = [],
+  compare = [],
   chooserLabel,
   notes,
   empty,
@@ -60,6 +98,10 @@ export function PlaceHistory({
   /** The page's own colour, for the lines over the cards' titles. */
   accent: string;
   groups: HistoryGroup[];
+  /** The figures for the tiles at the head, in order: the first four the place has are shown. */
+  tiles?: string[];
+  /** The figures to rank the place's parts by, where three or more of them have it. */
+  compare?: string[];
   chooserLabel: string;
   notes: ReactNode;
   /** Said where a country has no history held ("{country}" is its name). */
@@ -121,6 +163,8 @@ export function PlaceHistory({
   const part = parts?.places.find((p) => p.id === partId);
   const shown = part ?? place;
   const shownFile = part ? parts! : file;
+  // The place it is part of: a county's state, a state's country.
+  const above = part ? place : shown?.parent ? file?.places.find((q) => q.id === shown.parent) : undefined;
   const kinds = useMemo(() => {
     const g = new Map<string, Place[]>();
     for (const p of file?.places ?? []) g.set(p.kind, [...(g.get(p.kind) ?? []), p]);
@@ -128,6 +172,11 @@ export function PlaceHistory({
   }, [file]);
   const idx = index[country.code];
   const cards = shown && shownFile ? groups.map((g) => ({ ...g, lines: g.lines.filter(([k]) => shown.series[k] && shownFile.defs[k]) })).filter((g) => g.lines.length) : [];
+  // The parts ranked: a country's divisions, a division's counties or cities, a county among its state's.
+  const among = !shown || !file ? [] : shown.kind === "country" ? file.places.filter((p) => p.kind !== "country") : (parts?.places ?? []);
+  const amongFile = shown && shown.kind !== "country" && parts ? parts : file;
+  const ranks = amongFile ? compare.filter((k) => amongFile.defs[k] && among.filter((p) => p.series[k]).length >= 3) : [];
+  const tileKeys = shown && shownFile ? tiles.filter((k) => shown.series[k] && shownFile.defs[k] && latest(shown.series[k])).slice(0, 4) : [];
   const card = { background: t.cardBg, border: t.cardBorder, boxShadow: t.cardShadow };
   const selectClass = "rounded-lg border border-border bg-background/60 px-2 py-1.5 text-[12px] font-sans text-foreground cursor-pointer min-w-0 max-w-full sm:max-w-[18rem]";
 
@@ -193,13 +242,36 @@ export function PlaceHistory({
             {empty.replace("{country}", country.name)}
           </p>
         )}
+        {/* The latest year of its main figures, each against ten years before and, for a part, the place it is part of. */}
+        {shown && shownFile && tileKeys.length > 0 && (
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 mt-4">
+            {tileKeys.map((k) => {
+              const d = shownFile.defs[k];
+              const [y, v] = latest(shown.series[k])!;
+              const b = before(shown.series[k]);
+              const up = above && above.series[k] && above.from[k] === shown.from[k] ? at(above.series[k], y) : null;
+              return (
+                <FigureTile
+                  key={k}
+                  label={d.label}
+                  value={said(v, d.unit)}
+                  sub={[String(y), b ? `${said(b[1], d.unit)} in ${b[0]}` : null, up != null && above ? `${above.name} ${said(up, d.unit)}` : null].filter(Boolean).join(" · ")}
+                />
+              );
+            })}
+          </div>
+        )}
       </div>
 
       {shown && shownFile && cards.length > 0 && (
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
           {cards.map((g) => (
-            <HistoryCard key={`${shown.id}-${g.title}`} t={t} accent={accent} group={g} place={shown} file={shownFile} />
+            <HistoryCard key={`${shown.id}-${g.title}`} t={t} accent={accent} group={g} place={shown} file={shownFile} above={above} />
           ))}
+          {amongFile &&
+            ranks.map((k) => (
+              <RankCard key={`rank-${k}`} t={t} accent={accent} k={k} places={among} file={amongFile} shown={shown} whole={shown.kind === "country" || !part ? shown : above} />
+            ))}
         </div>
       )}
 
@@ -210,74 +282,200 @@ export function PlaceHistory({
   );
 }
 
-/** One kind of figure for the place, drawn as the page's line charts are: lines, a dashed grid, a legend, its sources, a CSV. */
-function HistoryCard({ t, accent, group, place, file }: { t: Tokens; accent: string; group: HistoryGroup; place: Place; file: HistoryFile }) {
-  const keys = group.lines.map(([k]) => k);
-  const unit = file.defs[keys[0]].unit;
-  let lo = Infinity, hi = -Infinity;
-  for (const k of keys) {
-    lo = Math.min(lo, place.series[k][0] as number);
-    hi = Math.max(hi, lastYear(place.series[k]));
-  }
-  const data: Record<string, number | null>[] = [];
-  for (let y = lo; y <= hi; y++) data.push({ year: y, ...Object.fromEntries(keys.map((k) => [k, at(place.series[k], y)])) });
-  const many = data.length > 40;
-  // Amounts from nought; temperatures from near their own lowest (nought on a temperature scale is no amount).
-  const fromZero = unit !== "degC" && unit !== "degF";
-  const sources = [...new Set(keys.map((k) => place.from[k]))].map((s) => file.sources[s]).filter(Boolean);
-  const label = (k: string) => file.defs[k].label;
+/** A card as the pages' chart cards are: the line over its title, its title and years, the chart, a legend, sources, a CSV. */
+function ChartCard({ t, accent, title, sub, years, legend, sources, csv, notes, children }: { t: Tokens; accent: string; title: string; sub: string; years: string; legend?: [string, string, string?][]; sources: Source[]; csv: { name: string; header: string[]; rows: (string | number | null)[][] }; notes?: string; children: ReactNode }) {
   return (
     <div className="rounded-2xl p-5 min-w-0" style={{ background: t.cardBg, border: t.cardBorder, boxShadow: t.cardShadow }}>
       <div className="mb-4">
         <p className="text-[10px] font-mono uppercase tracking-widest mb-1" style={{ color: t.isLight ? accent : `${accent}bb` }}>
-          {group.sub}
+          {sub}
         </p>
         <h3 className="text-base font-bold font-sans flex items-center gap-2" style={{ color: t.headText }}>
-          {group.title}
+          {title}
           <span className="text-[9px] font-mono px-2 py-0.5 rounded-full" style={{ background: `${accent}26`, color: accent }}>
-            {lo === hi ? lo : `${lo}–${hi}`}
+            {years}
           </span>
         </h3>
       </div>
-      <ResponsiveContainer width="100%" height={260}>
+      {children}
+      {legend && legend.length > 0 && (
+        <div className="flex items-center flex-wrap gap-x-4 gap-y-1 mt-2 justify-center">
+          {legend.map(([name, colour, dash]) => (
+            <div key={name} className="flex items-center gap-1">
+              <div className="w-3 h-0.5 rounded-full" style={{ background: dash ? undefined : colour, borderTop: dash ? `1.5px dashed ${colour}` : undefined }} />
+              <span className="text-[10px] font-mono" style={{ color: t.mutedText }}>
+                {name}
+              </span>
+            </div>
+          ))}
+        </div>
+      )}
+      <div className="flex items-center justify-between gap-2 mt-3">
+        <SourceLink sources={sources.map((s) => ({ label: s.label, url: s.url }))} />
+        <CsvButton name={csv.name} header={csv.header} rows={csv.rows} />
+      </div>
+      {notes && (
+        <p className="text-[10px] font-sans leading-snug mt-2" style={{ color: t.mutedText }}>
+          {notes}
+        </p>
+      )}
+    </div>
+  );
+}
+
+/** The frosted card by the pointer, for the charts' own tooltips. */
+function Frosted({ title, rows }: { title: string; rows: [string, string, string][] }) {
+  return (
+    <div className="rounded-lg border border-border bg-background/70 backdrop-blur-md backdrop-saturate-150 shadow-lg px-2.5 py-2 max-w-[18rem]">
+      <p className="text-[11px] font-semibold font-sans text-foreground leading-snug">{title}</p>
+      {rows.map(([name, colour, text]) => (
+        <p key={name} className="text-[10px] font-mono leading-snug mt-0.5 flex items-center gap-1.5 text-muted-foreground">
+          <span className="inline-block w-2.5 h-0.5 rounded-full shrink-0" style={{ background: colour }} />
+          {name}: {text}
+        </p>
+      ))}
+    </div>
+  );
+}
+
+/** One kind of figure for the place, in the chart that suits it. */
+function HistoryCard({ t, accent, group, place, file, above }: { t: Tokens; accent: string; group: HistoryGroup; place: Place; file: HistoryFile; above?: Place }) {
+  const keys = group.lines.map(([k]) => k);
+  const colourOf = Object.fromEntries(group.lines);
+  const unit = file.defs[keys[0]].unit;
+  const { data, lo, hi } = rowsOf(place, keys);
+  const sources = [...new Set(keys.map((k) => place.from[k]))].map((s) => file.sources[s]).filter(Boolean);
+  const label = (k: string) => file.defs[k].label;
+  const kind = group.kind ?? "lines";
+  const many = data.length > 40;
+  const fromZero = !isTemperature(unit);
+  const axis = { tick: { fontSize: 9, fill: t.mutedText, fontFamily: "monospace" }, axisLine: false, tickLine: false };
+  const yAxis = <YAxis {...axis} tickFormatter={tick} domain={fromZero ? [0, "auto"] : [(m: number) => Math.floor(m - 0.5), (m: number) => Math.ceil(m + 0.5)]} width={44} />;
+  const tip = (extra?: (year: number) => [string, string, string][]) => (
+    <Tooltip
+      cursor={{ stroke: t.mutedText, strokeOpacity: 0.4, fill: t.mutedText, fillOpacity: 0.08 }}
+      content={({ active, label: y }) =>
+        active && y != null ? (
+          <Frosted
+            title={`${place.name}, ${y}`}
+            rows={[
+              ...group.lines.map(([k, c]) => {
+                const v = at(place.series[k], Number(y));
+                return [label(k), c, v == null ? "not held" : said(v, file.defs[k].unit)] as [string, string, string];
+              }),
+              ...(extra ? extra(Number(y)) : []),
+            ]}
+          />
+        ) : null
+      }
+    />
+  );
+  const csv = { name: `${place.name} - ${group.title}`, header: ["year", ...keys.map((k) => `${label(k)} (${UNIT_SAID[file.defs[k].unit] ?? file.defs[k].unit})`)], rows: [...data].reverse().map((r) => [r.year, ...keys.map((k) => r[k])]) };
+  const notes = sources.map((s) => s.note).filter(Boolean).join(" ");
+  const years = lo === hi ? String(lo) : `${lo}–${hi}`;
+  const common = { t, accent, title: group.title, sub: group.sub, years, sources, csv, notes };
+
+  // The place it is part of, drawn behind where the same source gives the same figure.
+  const k0 = keys[0];
+  const behind = above && above.series[k0] && above.from[k0] === place.from[k0] ? above : undefined;
+
+  if (kind === "area") {
+    const rows = data.map((r) => ({ ...r, above: behind ? at(behind.series[k0], r.year as number) : null }));
+    const c = colourOf[k0];
+    return (
+      <ChartCard {...common} legend={[[label(k0), c], ...(behind ? ([[`${behind.name}, for comparison`, t.mutedText, "dash"]] as [string, string, string][]) : [])]}>
+        <ResponsiveContainer width="100%" height={240}>
+          <AreaChart data={rows} margin={{ top: 4, right: 6, left: -10, bottom: 0 }}>
+            <defs>
+              <linearGradient id={`fill-${k0}`} x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0%" stopColor={c} stopOpacity={0.35} />
+                <stop offset="100%" stopColor={c} stopOpacity={0.02} />
+              </linearGradient>
+            </defs>
+            <CartesianGrid stroke={t.gridLine} strokeDasharray="3 3" />
+            <XAxis dataKey="year" {...axis} minTickGap={18} />
+            {yAxis}
+            {tip((y) => (behind ? [[behind.name, t.mutedText, ((v) => (v == null ? "not held" : said(v, unit)))(at(behind.series[k0], y))]] : []))}
+            {behind && <Line type="monotone" dataKey="above" stroke={t.mutedText} strokeDasharray="4 3" strokeWidth={1.4} dot={false} connectNulls={false} isAnimationActive={false} />}
+            <Area type="monotone" dataKey={k0} stroke={c} strokeWidth={2} fill={`url(#fill-${k0})`} connectNulls={false} isAnimationActive={false} dot={many ? false : { r: 2.2, fill: c, strokeWidth: 0 }} />
+          </AreaChart>
+        </ResponsiveContainer>
+      </ChartCard>
+    );
+  }
+
+  if (kind === "bars") {
+    return (
+      <ChartCard {...common} legend={group.lines.length > 1 ? group.lines.map(([k, c]) => [label(k), c] as [string, string]) : undefined}>
+        <ResponsiveContainer width="100%" height={240}>
+          <BarChart data={data} margin={{ top: 4, right: 6, left: -10, bottom: 0 }}>
+            <CartesianGrid stroke={t.gridLine} strokeDasharray="3 3" vertical={false} />
+            <XAxis dataKey="year" {...axis} minTickGap={18} />
+            {yAxis}
+            {tip()}
+            {group.lines.map(([k, c]) => (
+              <Bar key={k} dataKey={k} fill={c} fillOpacity={0.85} radius={[2, 2, 0, 0]} isAnimationActive={false} />
+            ))}
+          </BarChart>
+        </ResponsiveContainer>
+      </ChartCard>
+    );
+  }
+
+  if (kind === "band" && keys.length >= 3) {
+    // The days' highs and lows as a band, the year's mean as a line through it.
+    const [hiK, meanK, loK] = keys;
+    const rows = data.map((r) => ({ ...r, band: r[hiK] != null && r[loK] != null ? [r[loK], r[hiK]] : null }));
+    return (
+      <ChartCard {...common} legend={[[`${label(loK)} to ${label(hiK).toLowerCase()}`, colourOf[hiK]], [label(meanK), colourOf[meanK]]]}>
+        <ResponsiveContainer width="100%" height={240}>
+          <ComposedChart data={rows} margin={{ top: 4, right: 6, left: -10, bottom: 0 }}>
+            <CartesianGrid stroke={t.gridLine} strokeDasharray="3 3" />
+            <XAxis dataKey="year" {...axis} minTickGap={18} />
+            {yAxis}
+            {tip()}
+            <Area type="monotone" dataKey="band" stroke="none" fill={colourOf[hiK]} fillOpacity={0.18} connectNulls={false} isAnimationActive={false} />
+            <Line type="monotone" dataKey={hiK} stroke={colourOf[hiK]} strokeOpacity={0.55} strokeWidth={1} dot={false} connectNulls={false} isAnimationActive={false} />
+            <Line type="monotone" dataKey={loK} stroke={colourOf[loK]} strokeOpacity={0.55} strokeWidth={1} dot={false} connectNulls={false} isAnimationActive={false} />
+            <Line type="monotone" dataKey={meanK} stroke={colourOf[meanK]} strokeWidth={2} dot={false} connectNulls={false} isAnimationActive={false} />
+          </ComposedChart>
+        </ResponsiveContainer>
+      </ChartCard>
+    );
+  }
+
+  if (kind === "stripes") return <StripesCard common={common} place={place} k={k0} def={file.defs[k0]} lo={lo} hi={hi} />;
+
+  if (kind === "thenNow") {
+    // Each figure's latest year, its bar, and a tick where it stood ten years before.
+    const rows = keys.flatMap((k) => {
+      const l = latest(place.series[k]);
+      if (!l) return [];
+      const b = before(place.series[k]);
+      return [{ key: k, label: label(k), value: l[1], text: said(l[1], file.defs[k].unit), sub: String(l[0]), color: colourOf[k], world: b ? { value: b[1], text: `${said(b[1], file.defs[k].unit)} in ${b[0]}` } : null }];
+    });
+    return (
+      <ChartCard {...common} sub={`${group.sub} · the latest year, the tick ten years before`}>
+        <MeasureBars rows={rows} label={`${place.name} - ${group.title}`} refName="then" csv={false} />
+      </ChartCard>
+    );
+  }
+
+  // Lines: several figures over the years.
+  return (
+    <ChartCard {...common} legend={group.lines.map(([k, c], i) => [label(k), c, i === 3 ? "dash" : undefined] as [string, string, string?])}>
+      <ResponsiveContainer width="100%" height={240}>
         <LineChart data={data} margin={{ top: 4, right: 6, left: -10, bottom: 0 }}>
           <CartesianGrid stroke={t.gridLine} strokeDasharray="3 3" />
-          <XAxis dataKey="year" tick={{ fontSize: 9, fill: t.mutedText, fontFamily: "monospace" }} axisLine={false} tickLine={false} minTickGap={18} />
-          <YAxis
-            tick={{ fontSize: 9, fill: t.mutedText, fontFamily: "monospace" }}
-            axisLine={false}
-            tickLine={false}
-            tickFormatter={tick}
-            domain={fromZero ? [0, "auto"] : [(m: number) => Math.floor(m - 0.5), (m: number) => Math.ceil(m + 0.5)]}
-            width={44}
-          />
-          <Tooltip
-            cursor={{ stroke: t.mutedText, strokeOpacity: 0.4 }}
-            content={({ active, payload, label: year }) =>
-              active && payload?.length ? (
-                <div className="rounded-lg border border-border bg-background/70 backdrop-blur-md backdrop-saturate-150 shadow-lg px-2.5 py-2 max-w-[18rem]">
-                  <p className="text-[11px] font-semibold font-sans text-foreground leading-snug">
-                    {place.name}, {year}
-                  </p>
-                  {group.lines.map(([k, colour]) => {
-                    const v = payload.find((p) => p.dataKey === k)?.value as number | null | undefined;
-                    return (
-                      <p key={k} className="text-[10px] font-mono leading-snug mt-0.5 flex items-center gap-1.5 text-muted-foreground">
-                        <span className="inline-block w-2.5 h-0.5 rounded-full shrink-0" style={{ background: colour }} />
-                        {label(k)}: {v == null ? "not held" : said(v, file.defs[k].unit)}
-                      </p>
-                    );
-                  })}
-                </div>
-              ) : null
-            }
-          />
-          {group.lines.map(([k, colour], i) => (
+          <XAxis dataKey="year" {...axis} minTickGap={18} />
+          {yAxis}
+          {tip()}
+          {group.lines.map(([k, c], i) => (
             <Line
               key={k}
               type="monotone"
               dataKey={k}
-              stroke={colour}
+              stroke={c}
               strokeWidth={2}
               strokeDasharray={i === 3 ? "5 2" : undefined}
               connectNulls={false}
@@ -285,35 +483,104 @@ function HistoryCard({ t, accent, group, place, file }: { t: Tokens; accent: str
               // A dot for each year where the years are few; where they are many, only for a year standing alone between gaps.
               dot={(p: { cx?: number; cy?: number; index?: number; value?: number | null }) => {
                 const lone = p.index !== undefined && (data[p.index - 1]?.[k] ?? null) == null && (data[p.index + 1]?.[k] ?? null) == null;
-                return p.value != null && p.cx != null && p.cy != null && (!many || lone) ? <circle key={`${k}-${p.index}`} cx={p.cx} cy={p.cy} r={2.5} fill={colour} /> : <g key={`${k}-${p.index}`} />;
+                return p.value != null && p.cx != null && p.cy != null && (!many || lone) ? <circle key={`${k}-${p.index}`} cx={p.cx} cy={p.cy} r={2.5} fill={c} /> : <g key={`${k}-${p.index}`} />;
               }}
               activeDot={{ r: 4 }}
             />
           ))}
         </LineChart>
       </ResponsiveContainer>
-      <div className="flex items-center flex-wrap gap-x-4 gap-y-1 mt-2 justify-center">
-        {group.lines.map(([k, colour]) => (
-          <div key={k} className="flex items-center gap-1" title={file.defs[k].say}>
-            <div className="w-3 h-0.5 rounded-full" style={{ background: colour }} />
-            <span className="text-[10px] font-mono" style={{ color: t.mutedText }}>
-              {label(k)}
-            </span>
-          </div>
-        ))}
+    </ChartCard>
+  );
+}
+
+/** Each year as a stripe, from the place's coolest year in its record (blue) to its warmest (red): the shape of its record at a glance. */
+function StripesCard({ common, place, k, def, lo, hi }: { common: Omit<Parameters<typeof ChartCard>[0], "children">; place: Place; k: string; def: Def; lo: number; hi: number }) {
+  const box = useRef<HTMLDivElement>(null);
+  const [tipAt, setTipAt] = useState<Tip | null>(null);
+  const s = place.series[k];
+  const vals = s.slice(1).filter((v): v is number => v != null);
+  const min = Math.min(...vals), max = Math.max(...vals);
+  const n = hi - lo + 1;
+  const colour = (v: number) => {
+    const f = max === min ? 0.5 : (v - min) / (max - min);
+    // Blue through a pale middle to red.
+    const mix = (a: number[], b: number[], u: number) => a.map((x, i) => Math.round(x + (b[i] - x) * u));
+    const [r, g, b] = f < 0.5 ? mix([29, 78, 216], [226, 232, 240], f * 2) : mix([226, 232, 240], [220, 38, 38], (f - 0.5) * 2);
+    return `rgb(${r},${g},${b})`;
+  };
+  return (
+    <ChartCard {...common} sub={`${common.sub} · its coolest year blue, its warmest red`}>
+      <div
+        ref={box}
+        className="relative"
+        onMouseMove={(e) => {
+          const r = box.current!.getBoundingClientRect();
+          const y = lo + Math.min(n - 1, Math.max(0, Math.floor(((e.clientX - r.left) / r.width) * n)));
+          const v = at(s, y);
+          setTipAt({ x: e.clientX - r.left, y: e.clientY - r.top, title: `${place.name}, ${y}`, lines: [`${def.label}: ${v == null ? "not held" : said(v, def.unit)}`] });
+        }}
+        onMouseLeave={() => setTipAt(null)}
+      >
+        <svg viewBox={`0 0 ${n} 40`} preserveAspectRatio="none" className="w-full h-40 block rounded-lg" role="img" aria-label={`${def.label}, ${place.name}, each year from ${lo} to ${hi} in colour`}>
+          {Array.from({ length: n }, (_, i) => {
+            const v = at(s, lo + i);
+            return v == null ? null : <rect key={i} x={i} y={0} width={1.02} height={40} fill={colour(v)} />;
+          })}
+        </svg>
+        <div className="flex justify-between text-[9px] font-mono mt-1" style={{ color: common.t.mutedText }}>
+          <span>{lo}</span>
+          <span>
+            {said(min, def.unit)} to {said(max, def.unit)}
+          </span>
+          <span>{hi}</span>
+        </div>
+        {tipAt && <TipCard tip={tipAt} room={box.current?.clientWidth ?? 300} />}
       </div>
-      <p className="text-[10px] font-sans mt-2 text-center" style={{ color: t.mutedText }}>
-        {UNIT_SAID[unit] ?? unit}
-      </p>
-      <div className="flex items-center justify-between gap-2 mt-3">
-        <SourceLink sources={sources.map((s) => ({ label: s.label, url: s.url }))} />
-        <CsvButton name={`${place.name} - ${group.title}`} header={["year", ...keys.map((k) => `${label(k)} (${UNIT_SAID[file.defs[k].unit] ?? file.defs[k].unit})`)]} rows={[...data].reverse().map((r) => [r.year, ...keys.map((k) => r[k])])} />
+    </ChartCard>
+  );
+}
+
+/** The place's parts ranked by one figure, each in its latest year; the place being read marked, and the whole's figure ticked where the same source gives it. */
+function RankCard({ t, accent, k, places, file, shown, whole: total }: { t: Tokens; accent: string; k: string; places: Place[]; file: HistoryFile; shown: Place; whole?: Place }) {
+  const d = file.defs[k];
+  // One source's figures only, so that the bars are alike: the source most of the parts have.
+  const counts = new Map<string, number>();
+  for (const p of places) if (p.series[k]) counts.set(p.from[k], (counts.get(p.from[k]) ?? 0) + 1);
+  const src = [...counts.entries()].sort((a, b) => b[1] - a[1])[0]?.[0];
+  const list = places
+    .filter((p) => p.series[k] && p.from[k] === src)
+    .flatMap((p) => {
+      const l = latest(p.series[k]);
+      return l ? [{ p, y: l[0], v: l[1] }] : [];
+    })
+    .sort((a, b) => b.v - a.v);
+  const ref = total && total.series[k] && total.from[k] === src ? latest(total.series[k]) : null;
+  const rows = list.map(({ p, y, v }) => ({
+    key: p.id,
+    label: p.id === shown.id ? `${p.name} ◂` : p.name,
+    value: v,
+    text: said(v, d.unit),
+    sub: String(y),
+    color: p.id === shown.id ? accent : `${accent}88`,
+    world: ref ? { value: ref[1], text: said(ref[1], d.unit) } : null,
+  }));
+  const years = list.length ? `${Math.min(...list.map((x) => x.y))}${Math.min(...list.map((x) => x.y)) === Math.max(...list.map((x) => x.y)) ? "" : `–${Math.max(...list.map((x) => x.y))}`}` : "";
+  const kindWord = (PLURAL[list[0]?.p.kind ?? "region"] ?? "Parts").toLowerCase();
+  return (
+    <ChartCard
+      t={t}
+      accent={accent}
+      title={`${d.label}, its ${kindWord} ranked`}
+      sub={`${UNIT_SAID[d.unit] ?? d.unit} · each in its latest year`}
+      years={years}
+      sources={src ? [file.sources[src]].filter(Boolean) : []}
+      csv={{ name: `${d.label} - ${kindWord} ranked`, header: ["place", "year", `${d.label} (${UNIT_SAID[d.unit] ?? d.unit})`], rows: list.map(({ p, y, v }) => [p.name, y, v]) }}
+      notes={ref && total ? `The tick on each bar is ${total.name}'s own figure, ${said(ref[1], d.unit)} in ${ref[0]}.` : undefined}
+    >
+      <div className="max-h-80 overflow-y-auto pr-1">
+        <MeasureBars rows={rows} max={Math.max(...list.map((x) => x.v), ref?.[1] ?? 0)} label={`${d.label}, ranked`} refName={total?.name ?? ""} csv={false} />
       </div>
-      {sources.some((s) => s.note) && (
-        <p className="text-[10px] font-sans leading-snug mt-2" style={{ color: t.mutedText }}>
-          {sources.map((s) => s.note).filter(Boolean).join(" ")}
-        </p>
-      )}
-    </div>
+    </ChartCard>
   );
 }

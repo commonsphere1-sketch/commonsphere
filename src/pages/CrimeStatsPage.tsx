@@ -710,13 +710,15 @@ export function CrimeStatsPage() {
           title="Crime history, place by place"
           accent="#ef4444"
           groups={[
-            { title: "Murder & Homicide", sub: "Victims per 100,000 people", lines: [["homicide", "#ef4444"]] },
+            { title: "Murder & Homicide", sub: "Victims per 100,000 people", lines: [["homicide", "#ef4444"]], kind: "area" },
             { title: "Violent Crime", sub: "Recorded by the police, per 100,000 people", lines: [["robbery", "#ef4444"], ["assault", "#f59e0b"], ["kidnapping", "#6366f1"], ["sexualViolence", "#a855f7"], ["rape", "#ec4899"]] },
-            { title: "Property Crime", sub: "Recorded by the police, per 100,000 people", lines: [["theft", "#f59e0b"], ["burglary", "#ef4444"], ["vehicleTheft", "#6366f1"], ["fraud", "#a855f7"]] },
-            { title: "Cybercrime", sub: "Recorded by the police, per 100,000 people", lines: [["computerAccess", "#6366f1"]] },
+            { title: "Property Crime", sub: "Recorded by the police, per 100,000 people", lines: [["theft", "#f59e0b"], ["burglary", "#ef4444"], ["vehicleTheft", "#6366f1"], ["fraud", "#a855f7"]], kind: "thenNow" },
+            { title: "Cybercrime", sub: "Recorded by the police, per 100,000 people", lines: [["computerAccess", "#6366f1"]], kind: "bars" },
             { title: "Crime Severity", sub: "Statistics Canada's index · Canada in 2006 = 100", lines: [["csi", "#ef4444"], ["violentCsi", "#f59e0b"], ["nonViolentCsi", "#6366f1"]] },
-            { title: "Corruption & Organised Crime", sub: "Recorded by the police, per 100,000 people", lines: [["corruption", "#ef4444"], ["bribery", "#f59e0b"], ["moneyLaundering", "#6366f1"], ["migrantSmuggling", "#a855f7"]] },
+            { title: "Corruption & Organised Crime", sub: "Recorded by the police, per 100,000 people", lines: [["corruption", "#ef4444"], ["bribery", "#f59e0b"], ["moneyLaundering", "#6366f1"], ["migrantSmuggling", "#a855f7"]], kind: "thenNow" },
           ]}
+          tiles={["homicide", "csi", "robbery", "assault", "burglary", "theft"]}
+          compare={["homicide", "csi"]}
           chooserLabel="Choose a country to see its crime history"
           empty="No crime history is held for {country}: it has reported no year to UNODC."
           className=""
