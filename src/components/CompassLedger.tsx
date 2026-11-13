@@ -59,7 +59,7 @@ export function CompassLedger() {
         onClick={() => setOpen(true)}
         // No frame, as asked: the bar sits on the page, and lights when pointed at.
         // A light grey when pointed at in the light theme, a faint white in the dark one, as asked.
-        className="rounded-2xl p-5 w-full text-left flex items-center gap-5 cursor-pointer transition-colors hover:bg-black/[0.04] dark:hover:bg-white/[0.06]"
+        className="rounded-2xl p-5 w-full text-left flex items-center gap-5 cursor-pointer transition-colors hover:bg-black/[0.02] dark:hover:bg-white/[0.04]"
         aria-label="Open the political compass: every idea on its grid, and what each part means"
       >
         <span className="w-28 shrink-0 text-foreground">
