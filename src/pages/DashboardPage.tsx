@@ -1070,7 +1070,7 @@ function CompareCountriesTool({
       {/* Header */}
       <div
         className="flex items-center justify-between px-5 py-3.5"
-        style={{ borderBottom: `1px solid ${gridLine}` }}
+        // One container, as asked: no line under the header, and the table below without a frame of its own.
       >
         <div className="flex items-center gap-2.5">
           <div
@@ -1294,8 +1294,7 @@ function CompareCountriesTool({
 
             {selectedCountries.length > 0 && (
               <div
-                className="rounded-xl overflow-hidden"
-                style={{ border: `1px solid ${gridLine}` }}
+                className="overflow-hidden"
               >
                 <div
                   className="grid"
