@@ -27,7 +27,7 @@ type Series = (number | null)[];
 type Place = { id: string; name: string; kind: string; parent?: string; series: Record<string, Series>; from: Record<string, string> };
 type HistoryFile = { cc: string; of?: string; defs: Record<string, Def>; sources: Record<string, Source>; places: Place[]; more?: Record<string, number> };
 /** How a kind of figure is drawn. */
-export type HistoryKind = "lines" | "area" | "bars" | "band" | "stripes" | "thenNow";
+export type HistoryKind = "lines" | "area" | "bars" | "band" | "stripes" | "thenNow" | "records";
 /** One of the page's kinds of figure: a card, its title, the line over its title, the figures drawn in it with their colours, and how. */
 export type HistoryGroup = { title: string; sub: string; lines: [key: string, colour: string][]; kind?: HistoryKind };
 
@@ -40,13 +40,13 @@ const whole = (v: number) => v.toLocaleString("en-US");
 function said(v: number, unit: string) {
   const a = Math.abs(v);
   const n = a >= 100 ? Math.round(v).toLocaleString("en-US") : a >= 10 ? v.toFixed(1) : v.toFixed(2);
-  const UNIT: Record<string, string> = { per100k: " per 100,000", degC: " °C", degF: " °F", mm: " mm", in: " in", mt: " million t", t: " t" };
+  const UNIT: Record<string, string> = { per100k: " per 100,000", degC: " °C", degF: " °F", mm: " mm", in: " in", mt: " million t", t: " t", days: " days" };
   return unit === "count" ? Math.round(v).toLocaleString("en-US") : `${n}${UNIT[unit] ?? ""}`;
 }
 /** A scale's figure, short. */
 const tick = (v: number) => (Math.abs(v) >= 1000 ? `${Math.round(v / 100) / 10}k` : Math.abs(v) >= 10 ? `${Math.round(v)}` : `${Math.round(v * 10) / 10}`);
 /** The unit in a heading. */
-const UNIT_SAID: Record<string, string> = { per100k: "per 100,000 people", degC: "°C", degF: "°F", mm: "mm", in: "inches", mt: "million tonnes", t: "tonnes", index: "index", count: "number" };
+const UNIT_SAID: Record<string, string> = { per100k: "per 100,000 people", degC: "°C", degF: "°F", mm: "mm", in: "inches", mt: "million tonnes", t: "tonnes", index: "index", count: "number", days: "days a year" };
 const isTemperature = (unit: string) => unit === "degC" || unit === "degF";
 
 const at = (s: Series, y: number) => (y >= (s[0] as number) ? (s[1 + y - (s[0] as number)] ?? null) : null);
@@ -453,6 +453,8 @@ function HistoryCard({ t, accent, group, place, file, above }: { t: Tokens; acce
 
   if (kind === "stripes") return <StripesCard common={common} place={place} k={k0} def={file.defs[k0]} lo={lo} hi={hi} />;
 
+  if (kind === "records") return <RecordsCard common={common} place={place} file={file} keys={keys} />;
+
   if (kind === "thenNow") {
     // Each figure's latest year, its bar, and a tick where it stood ten years before.
     const rows = keys.flatMap((k) => {
@@ -587,6 +589,69 @@ function RankCard({ t, accent, k, places, file, shown, whole: total }: { t: Toke
     >
       <div className="max-h-80 overflow-y-auto pr-1">
         <MeasureBars rows={rows} max={Math.max(...list.map((x) => x.v), ref?.[1] ?? 0)} label={`${d.label}, ranked`} refName={total?.name ?? ""} csv={false} />
+      </div>
+    </ChartCard>
+  );
+}
+
+/**
+ * The place's records, as asked: for each figure, its highest and its lowest year in the record - worked out here from the
+ * source's own series, the year said with each - as rows, the way the site's figure rows are.
+ */
+function RecordsCard({ common, place, file, keys }: { common: Omit<Parameters<typeof ChartCard>[0], "children">; place: Place; file: HistoryFile; keys: string[] }) {
+  const rows = keys.flatMap((k) => {
+    const s = place.series[k];
+    let hi: [number, number] | null = null;
+    let lo: [number, number] | null = null;
+    for (let y = s[0] as number; y <= lastYear(s); y++) {
+      const v = at(s, y);
+      if (v == null) continue;
+      if (!hi || v > hi[1]) hi = [y, v];
+      if (!lo || v < lo[1]) lo = [y, v];
+    }
+    return hi && lo ? [{ k, def: file.defs[k], hi, lo, span: `${s[0]}–${lastYear(s)}` }] : [];
+  });
+  const t = common.t;
+  return (
+    <ChartCard
+      {...common}
+      sub={`${common.sub} · worked out here from each series`}
+      csv={{ name: `${place.name} - records`, header: ["figure", "unit", "highest", "in", "lowest", "in", "years read"], rows: rows.map((r) => [r.def.label, UNIT_SAID[r.def.unit] ?? r.def.unit, r.hi[1], r.hi[0], r.lo[1], r.lo[0], r.span]) }}
+    >
+      <div className="flex flex-col">
+        <div className="grid grid-cols-[minmax(0,1fr)_auto_auto] gap-x-4 pb-1.5 text-[9px] font-mono uppercase tracking-wider" style={{ color: t.mutedText, borderBottom: `1px solid ${t.gridLine}` }}>
+          <span>Figure</span>
+          <span className="text-right">Highest</span>
+          <span className="text-right">Lowest</span>
+        </div>
+        {rows.map((r) => (
+          <div key={r.k} className="grid grid-cols-[minmax(0,1fr)_auto_auto] gap-x-4 py-1.5 items-baseline" style={{ borderBottom: `1px solid ${t.gridLine}` }} title={r.def.say}>
+            <span className="min-w-0">
+              <span className="block text-[11px] font-sans truncate" style={{ color: t.headText }}>
+                {r.def.label}
+              </span>
+              <span className="block text-[9px] font-mono" style={{ color: t.mutedText }}>
+                {r.span}
+              </span>
+            </span>
+            <span className="text-right">
+              <span className="block text-[11px] font-mono font-bold" style={{ color: "#ef4444" }}>
+                {said(r.hi[1], r.def.unit)}
+              </span>
+              <span className="block text-[9px] font-mono" style={{ color: t.mutedText }}>
+                {r.hi[0]}
+              </span>
+            </span>
+            <span className="text-right">
+              <span className="block text-[11px] font-mono font-bold" style={{ color: "#3b82f6" }}>
+                {said(r.lo[1], r.def.unit)}
+              </span>
+              <span className="block text-[9px] font-mono" style={{ color: t.mutedText }}>
+                {r.lo[0]}
+              </span>
+            </span>
+          </div>
+        ))}
       </div>
     </ChartCard>
   );

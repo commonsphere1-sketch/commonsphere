@@ -4,7 +4,9 @@
  * its mean daily highs and lows, and the precipitation of the year - as the World Bank's Climate Change Knowledge Portal
  * gives them from CRU TS 4.09 (the Climatic Research Unit's gridded record of weather stations, averaged over the
  * country); and each year's emissions of carbon dioxide from fossil fuels and industry, the country's total and per
- * person, from the Global Carbon Budget as Our World in Data publishes it. Nothing is worked out here.
+ * person, from the Global Carbon Budget as Our World in Data publishes it; and, since 1950, the year's extremes from ERA5 as the
+ * portal gives them - the hottest day and coldest night, days above 35 °C, nights above 20 °C, frost days, the wettest day,
+ * days of heavy rain and the longest dry spell - each place's own, averaged over the country. Nothing is worked out here.
  *
  * Writes the country into static/climate/history/<CC>.json (place-history-lib.cjs); the divisions' builds add theirs.
  *
@@ -61,7 +63,28 @@ const DEFS = {
   precip: { label: "Precipitation", unit: "mm", say: "rain and snow in the year, in millimetres of water" },
   co2: { label: "CO₂ emitted", unit: "mt", say: "carbon dioxide emitted from fossil fuels and industry in the year, in millions of tonnes" },
   co2PerHead: { label: "CO₂ per person", unit: "t", say: "carbon dioxide emitted from fossil fuels and industry in the year, in tonnes per person" },
+  // The year's extremes, from ERA5: each place's own figure for the year, averaged over the country.
+  hottestDay: { label: "Hottest day", unit: "degC", say: "the year's highest daily temperature at each place, averaged over the country" },
+  coldestNight: { label: "Coldest night", unit: "degC", say: "the year's lowest daily temperature at each place, averaged over the country" },
+  hotDays: { label: "Days above 35 °C", unit: "days", say: "days in the year whose high passed 35 °C, at each place, averaged over the country" },
+  tropicalNights: { label: "Nights above 20 °C", unit: "days", say: "nights in the year whose low stayed above 20 °C, at each place, averaged over the country" },
+  frostDays: { label: "Frost days", unit: "days", say: "days in the year whose low fell below 0 °C, at each place, averaged over the country" },
+  wettestDay: { label: "Wettest day", unit: "mm", say: "the year's most rain in one day at each place, averaged over the country" },
+  heavyRainDays: { label: "Days of 20 mm or more", unit: "days", say: "days in the year with 20 mm of rain or more, at each place, averaged over the country" },
+  drySpell: { label: "Longest dry spell", unit: "days", say: "the year's longest run of days with under 1 mm of rain, at each place, averaged over the country" },
 };
+// ERA5's index codes on the portal, for each.
+const ERA5 = [
+  ["hottestDay", "txx"],
+  ["coldestNight", "tnn"],
+  ["hotDays", "hd35"],
+  ["tropicalNights", "tr"],
+  ["frostDays", "fd"],
+  ["wettestDay", "rx1day"],
+  ["heavyRainDays", "r20mm"],
+  ["drySpell", "cdd"],
+];
+const ERA5_SERIES = (v) => `era5-x0.25_timeseries_${v}_timeseries_annual_1950-2024_mean_historical_era5_x0.25_mean`;
 
 (async () => {
   const wb = JSON.parse(await fetchTo("https://api.worldbank.org/v2/country?format=json&per_page=400", path.join(CACHE, "wb-countries.json")));
@@ -74,6 +97,13 @@ const DEFS = {
   for (const [key, v] of [["temp", "tas"], ["tempMax", "tasmax"], ["tempMin", "tasmin"], ["precip", "pr"]]) {
     const j = JSON.parse(await fetchTo(`${CCKP}/${CRU(v)}/all_countries?_format=json`, path.join(CACHE, `cru-${v}.json`)));
     cru[key] = j.data;
+  }
+
+  // The year's extremes from ERA5, each index for every country.
+  const era5 = {};
+  for (const [key, v] of ERA5) {
+    const j = JSON.parse(await fetchTo(`${CCKP}/${ERA5_SERIES(v)}/all_countries?_format=json`, path.join(CACHE, `era5-${v}.json`)));
+    era5[key] = j.data;
   }
 
   // The Global Carbon Budget's national emissions, as Our World in Data publishes them.
@@ -105,6 +135,12 @@ const DEFS = {
     url: "https://github.com/owid/co2-data",
     note: "Emissions from burning fossil fuels and from industry (cement); not from land use. Where the emissions are produced, not where the goods are used.",
   };
+  const era5Source = {
+    label: "World Bank - Climate Change Knowledge Portal (ERA5 extremes)",
+    url: "https://climateknowledgeportal.worldbank.org/",
+    note: "ERA5, the Copernicus Climate Change Service's reanalysis of the world's weather since 1950, a quarter of a degree square: each place's own extreme for the year - its hottest day, its frost days - averaged over the country by the World Bank. Not the single hottest reading anywhere in it.",
+  };
+  const fromEra5 = {};
   const fromCru = {};
   const fromGcb = {};
   for (const c of siteCountries(CACHE)) {
@@ -118,16 +154,25 @@ const DEFS = {
       if (s) a[key] = s;
     }
     if (Object.keys(a).length) fromCru[c.code] = { id: c.code, name: c.name, kind: "country", series: a };
+    const e = {};
+    for (const [key] of ERA5) {
+      const d = era5[key][i];
+      if (!d) continue;
+      const s = seriesOf(Object.fromEntries(Object.entries(d).map(([k, v]) => [+k.slice(0, 4), v])));
+      if (s) e[key] = s;
+    }
+    if (Object.keys(e).length) fromEra5[c.code] = { id: c.code, name: c.name, kind: "country", series: e };
     const g = owid[i];
     if (g) {
       const b = { co2: seriesOf(g.co2), co2PerHead: seriesOf(g.co2PerHead) };
       if (b.co2 || b.co2PerHead) fromGcb[c.code] = { id: c.code, name: c.name, kind: "country", series: b };
     }
   }
-  const ccs = new Set([...Object.keys(fromCru), ...Object.keys(fromGcb)]);
+  const ccs = new Set([...Object.keys(fromCru), ...Object.keys(fromGcb), ...Object.keys(fromEra5)]);
   for (const cc of ccs) {
     const defs = DEFS;
     if (fromCru[cc]) mergeCountry("climate", cc, { source: cruSource, sourceId: "cru", defs, places: [fromCru[cc]] });
+    if (fromEra5[cc]) mergeCountry("climate", cc, { source: era5Source, sourceId: "era5", defs, places: [fromEra5[cc]] });
     if (fromGcb[cc]) mergeCountry("climate", cc, { source: gcbSource, sourceId: "gcb", defs, places: [fromGcb[cc]] });
   }
 

@@ -542,11 +542,16 @@ export function PlanetaryBoundariesPage() {
           groups={[
             { title: "Temperature", sub: "Means of the year", lines: [["tempMax", "#ef4444"], ["temp", "#f59e0b"], ["tempMin", "#3b82f6"], ["tempMaxF", "#ef4444"], ["tempF", "#f59e0b"], ["tempMinF", "#3b82f6"]], kind: "band" },
             { title: "Each Year in Colour", sub: "The year's mean temperature", lines: [["temp", "#f59e0b"], ["tempF", "#f59e0b"]], kind: "stripes" },
+            { title: "Heat and Cold Extremes", sub: "The year's hottest day and coldest night, averaged over the place", lines: [["hottestDay", "#ef4444"], ["coldestNight", "#3b82f6"]] },
+            { title: "Hot Days, Warm Nights and Frost", sub: "Days in the year, averaged over the place", lines: [["hotDays", "#ef4444"], ["tropicalNights", "#f59e0b"], ["frostDays", "#3b82f6"]] },
             { title: "Precipitation", sub: "Rain and snow in the year", lines: [["precip", "#06b6d4"], ["precipIn", "#06b6d4"]], kind: "bars" },
+            { title: "Wettest Day", sub: "The year's most rain in one day, averaged over the place", lines: [["wettestDay", "#06b6d4"]], kind: "bars" },
+            { title: "Heavy Rain and Dry Spells", sub: "Days in the year, averaged over the place", lines: [["heavyRainDays", "#06b6d4"], ["drySpell", "#d97706"]] },
+            { title: "Records", sub: "Each figure's highest and lowest year", lines: [["temp", ""], ["tempF", ""], ["tempMax", ""], ["tempMaxF", ""], ["tempMin", ""], ["tempMinF", ""], ["hottestDay", ""], ["coldestNight", ""], ["hotDays", ""], ["frostDays", ""], ["precip", ""], ["precipIn", ""], ["wettestDay", ""], ["drySpell", ""], ["co2", ""]], kind: "records" },
             { title: "Carbon Dioxide Emitted", sub: "Fossil fuels and industry", lines: [["co2", "#a855f7"]], kind: "area" },
             { title: "Carbon Dioxide per Person", sub: "Fossil fuels and industry", lines: [["co2PerHead", "#ec4899"]] },
           ]}
-          tiles={["temp", "tempF", "precip", "precipIn", "co2", "co2PerHead"]}
+          tiles={["temp", "tempF", "hottestDay", "hotDays", "precip", "precipIn", "co2", "co2PerHead"]}
           compare={["tempF", "precipIn"]}
           chooserLabel="Choose a country to see its climate history"
           empty="No climate history is held for {country}."
@@ -555,7 +560,10 @@ export function PlanetaryBoundariesPage() {
               A country's climate is the Climatic Research Unit's record of the world's weather stations (CRU TS 4.09), set on a grid and averaged over the country by the
               World Bank's Climate Change Knowledge Portal, each year since 1901: its mean temperature, the means of its days' highs and lows, and the rain and snow of
               the year. Its emissions of carbon dioxide are the Global Carbon Budget's, from fossil fuels and industry, as Our World in Data publishes them - not from
-              land use, and where they are produced, not where the goods are used. The United States' states and counties are NOAA's own record, nClimDiv, each month since 1895 from its weather stations set on a
+              land use, and where they are produced, not where the goods are used. Its extremes since 1950 - the year's hottest day and coldest night, its hot days,
+              warm nights and frost days, its wettest day, heavy rain and longest dry spell - are from ERA5, the Copernicus reanalysis, as the same portal gives them: each
+              place's own extreme, averaged over the country, not the single highest reading anywhere in it. Records are each series' highest and lowest year, worked out
+              here. The United States' states and counties are NOAA's own record, nClimDiv, each month since 1895 from its weather stations set on a
               5 km grid, in degrees Fahrenheit and inches; the year's figure is worked out here from its twelve months, only for a year with all twelve. A year a source does not
               give is a gap in its line.
             </p>
