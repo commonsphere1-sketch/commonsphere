@@ -1135,14 +1135,16 @@ function EventRow({ e, today, regimeInk }: { e: Event; today: string; regimeInk:
         <span>
           <span className="text-muted-foreground">{tp.kind}{tp.abroad ? ", taken part in" : ""}: </span>
           {tp.sources[0] ? (
-            <a href={tp.sources[0][1]} target="_blank" rel="noopener noreferrer" className="font-semibold hover:underline">
+            // Its record, and every source it is from, said when it is pointed at.
+            <a href={tp.sources[0][1]} target="_blank" rel="noopener noreferrer" className="font-semibold hover:underline" title={`From ${tp.sources.map((s) => s[0]).join(", ")}`}>
               {tp.title}
             </a>
           ) : (
             <b>{tp.title}</b>
           )}
           {tp.when && tp.when !== String(tp.y) ? <span className="text-muted-foreground"> · {tp.when}</span> : null}
-          {tp.sources.length ? <span className="text-muted-foreground"> · {tp.sources.map((s) => s[0]).join(", ")}</span> : null}
+          {/* What it was, in a line, as asked: its record's own short description (Wikidata), in place of the names of its sources. */}
+          {tp.desc ? <span className="text-muted-foreground"> - {tp.desc.charAt(0).toUpperCase() + tp.desc.slice(1)}</span> : null}
         </span>
       </p>
     );
