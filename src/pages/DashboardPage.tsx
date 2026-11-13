@@ -2485,6 +2485,10 @@ export function DashboardPage() {
           <PlaceAtlas />
         </Suspense>
 
+        {/* The political compass, as asked: the legend of its grid - what each part means and the ideas it is read by; above the
+            Compare section, as asked. */}
+        <CompassLedger />
+
         {/* ── PINNED / MY DASHBOARD ─────────────────────────────────────── */}
         <PinnedSection
           isLight={isLight}
@@ -2576,8 +2580,6 @@ export function DashboardPage() {
           <CountryLeaders />
           <PlanetNow />
           <WorldLiving />
-          {/* The political compass, as asked: the legend of its grid - what each part means and the ideas it is read by. */}
-          <CompassLedger />
           {/* The planetary boundaries wheel and the note on the framework, moved here from the Climate page, as asked. */}
           <PlanetaryBoundariesCard />
         </div>
