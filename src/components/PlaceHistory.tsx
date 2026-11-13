@@ -141,7 +141,7 @@ export function PlaceHistory({
         <div className="flex flex-wrap items-center gap-x-4 gap-y-2">
           <CountryFind onPick={setCountry} label={chooserLabel} />
           <h2 className="text-base font-bold font-sans" style={{ color: t.headText }}>
-            {shown && shown.kind !== "country" ? `${shown.name}, ${country.name}` : country.name}
+            {part && place ? `${part.name}, ${place.name}` : shown && shown.kind !== "country" ? `${shown.name}, ${country.name}` : country.name}
             {shown && shown.kind !== "country" && <span className="font-normal text-[12px]" style={{ color: t.mutedText }}> · {SINGULAR[shown.kind] ?? shown.kind}</span>}
           </h2>
           {idx && (
