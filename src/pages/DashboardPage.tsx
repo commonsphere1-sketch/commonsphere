@@ -31,7 +31,6 @@ import { GlobalAnalytics } from "../components/DashboardGlobal";
 import { SectorOutlook } from "../components/DashboardCitiesSectors";
 import { CountryLeaders, PlanetNow, WorldLiving } from "../components/DashboardSignals";
 import { CompassLedger } from "../components/CompassLedger";
-import { PlanetaryBoundariesCard } from "../components/PlanetaryBoundariesWheel";
 
 /** Energy to 2050, the panel kept of the Trends & Projections desk, with the projections it draws on: loaded after the page. */
 const EnergyOutlook = lazy(() => import("../components/EnergyOutlook"));
@@ -2580,8 +2579,6 @@ export function DashboardPage() {
           <CountryLeaders />
           <PlanetNow />
           <WorldLiving />
-          {/* The planetary boundaries wheel and the note on the framework, moved here from the Climate page, as asked. */}
-          <PlanetaryBoundariesCard />
         </div>
 
 

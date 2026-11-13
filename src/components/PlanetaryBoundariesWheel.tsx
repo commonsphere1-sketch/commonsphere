@@ -1,10 +1,9 @@
 /**
- * The planetary boundaries wheel, as asked moved from the Climate page to the Dashboard: the Planetary Health Check 2026's
+ * The planetary boundaries wheel, as asked moved from the Climate page to the Dashboard and merged there into its Climate card: the Planetary Health Check 2026's
  * nine boundaries, each wedge reaching as far as its most transgressed measure, with what the framework is and how the
  * wheel is drawn; a wedge pressed is read under the wheel - its verdict and measures in the report's own words.
  */
 import { useState } from "react";
-import { Info } from "@phosphor-icons/react";
 import { useTheme } from "../contexts/ThemeContext";
 import { BOUNDARIES, PHC_2026, TRANSGRESSED, position, type ControlVariable, type PlanetaryBoundary, type Zone } from "../data/planetaryBoundaries";
 
@@ -161,108 +160,87 @@ function PlanetaryBoundariesRadialChart({
   );
 }
 
-export function PlanetaryBoundariesCard() {
+/** The wheel, its zones and the boundary pressed on it - for a card to hold (the Dashboard's Climate card). */
+export function BoundariesWheel() {
   const { theme } = useTheme();
   const isLight = theme === "light";
   const [selectedId, setSelectedId] = useState<string>("climate");
   const chosen = BOUNDARIES.find((b) => b.id === selectedId) ?? BOUNDARIES[0];
   return (
-    <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 lg:col-span-2">
-      {/* The wheel */}
-      <div className="lg:col-span-7 flex flex-col gap-4">
-        <div className="bg-card border border-border rounded-2xl p-4">
-          <div className="flex items-center justify-between mb-3">
-            <div>
-              <p className="text-[10px] font-mono uppercase tracking-widest text-green-500">
-                Earth System Status
-              </p>
-              <h2 className="text-sm font-bold font-sans text-foreground">
-                Planetary Boundaries Dashboard
-              </h2>
-            </div>
-            <span className="text-[9px] font-mono px-2 py-1 rounded-full bg-red-500/10 text-red-500">
-              {TRANSGRESSED} of 9 transgressed
-            </span>
-          </div>
-          <div className="flex flex-wrap items-center gap-x-4 gap-y-1.5 mb-3 pb-3 border-b border-border">
-            {Object.values(ZONE).map((cfg) => (
-              <div key={cfg.label} className="flex items-center gap-1.5">
-                <div className="w-2.5 h-2.5 rounded-full shrink-0" style={{ background: cfg.color }} />
-                <span className="text-[10px] font-sans text-muted-foreground">{cfg.label}</span>
-              </div>
-            ))}
-          </div>
-          <p className="text-[10px] font-sans text-muted-foreground mb-2">
-            Each wedge reaches as far as its most transgressed measure: the
-            green ring is the boundary, the red ring the high-risk line.
-            Press one to read it below.
-          </p>
-          <PlanetaryBoundariesRadialChart selected={selectedId} onSelect={setSelectedId} isLight={isLight} />
-          {/* The boundary chosen on the wheel: its verdict and its measures, in the report's words. */}
-          <div className="mt-3 pt-3 border-t border-border">
-            <p className="text-[12px] font-semibold font-sans text-foreground flex items-center gap-2">
-              <span className="w-2 h-2 rounded-full shrink-0" style={{ background: ZONE[chosen.zone].color }} aria-hidden />
-              {chosen.name}
-              <span className="text-[10px] font-mono font-normal" style={{ color: ZONE[chosen.zone].color }}>
-                {ZONE[chosen.zone].label}
-              </span>
-            </p>
-            <p className="text-[11px] font-sans text-muted-foreground leading-snug mt-1">{chosen.verdict}</p>
-            <ul className="mt-1.5 space-y-0.5">
-              {chosen.variables.map((v) => (
-                <li key={v.name} className="text-[10px] font-mono text-muted-foreground">
-                  {v.name}: <span className="text-foreground font-semibold">{v.current}{v.unit && !v.unit.startsWith("%") ? " " : ""}{v.unit}</span> · boundary {v.boundary}
-                  {v.highRisk != null ? ` · high risk ${v.highRisk}` : ""}
-                  {v.regional ? " · regional" : ""}
-                </li>
-              ))}
-            </ul>
-          </div>
+    <div className="flex flex-col">
+    <div className="flex flex-wrap items-center gap-x-4 gap-y-1.5 mb-3 pb-3 border-b border-border">
+      {Object.values(ZONE).map((cfg) => (
+        <div key={cfg.label} className="flex items-center gap-1.5">
+          <div className="w-2.5 h-2.5 rounded-full shrink-0" style={{ background: cfg.color }} />
+          <span className="text-[10px] font-sans text-muted-foreground">{cfg.label}</span>
         </div>
-      </div>
-
-      {/* About the framework and the wheel */}
-      <div className="lg:col-span-5 flex flex-col gap-4">
-        <div className="bg-green-500/5 border border-green-500/20 rounded-2xl p-5 flex-1">
-          <div className="flex items-start gap-2.5">
-            <Info size={14} weight="fill" className="text-green-500 shrink-0 mt-0.5" />
-            <div className="flex flex-col gap-3 text-[11px] font-sans leading-relaxed text-muted-foreground">
-              <p className="text-[11px] font-bold text-green-600 dark:text-green-400">About the planetary boundaries</p>
-              <p>
-                The framework was introduced by Johan Rockström and colleagues in{" "}
-                <a href="https://doi.org/10.1038/461472a" target="_blank" rel="noopener noreferrer" className="underline decoration-dotted hover:text-foreground">
-                  2009
-                </a>{" "}
-                and updated in{" "}
-                <a href="https://doi.org/10.1126/science.1259855" target="_blank" rel="noopener noreferrer" className="underline decoration-dotted hover:text-foreground">
-                  2015
-                </a>{" "}
-                and{" "}
-                <a href="https://doi.org/10.1126/sciadv.adh2458" target="_blank" rel="noopener noreferrer" className="underline decoration-dotted hover:text-foreground">
-                  2023
-                </a>
-                . Each boundary is a level of a control variable - carbon dioxide, forest cover, nitrogen use - beyond which the risk of
-                destabilising the Earth system rises. Past it lies a zone of increasing risk, then a high-risk zone.
-              </p>
-              <p>
-                The{" "}
-                <a href={PHC_2026.summaryUrl} target="_blank" rel="noopener noreferrer" className="underline decoration-dotted hover:text-foreground">
-                  Planetary Health Check 2026
-                </a>
-                , the third annual assessment from the Potsdam Institute for Climate Impact Research, finds seven of the nine
-                transgressed. Only stratospheric ozone and, taken globally, aerosol loading are within their boundaries, and aerosols are
-                past a proposed regional boundary over South Asia.
-              </p>
-              <p>
-                How the wheel is drawn: a wedge starts at the pre-human baseline (the edge of the core) and runs to its measure's value,
-                reaching the green ring at the boundary and the red ring at the high-risk line. Nitrogen, phosphorus and radiative
-                forcing lie beyond the chart's edge. Novel entities has no single measure; it is drawn to the high-risk line, where the
-                report places it, with a dashed edge.
-              </p>
-            </div>
-          </div>
-        </div>
-      </div>
+      ))}
     </div>
+    <p className="text-[10px] font-sans text-muted-foreground mb-2">
+      Each wedge reaches as far as its most transgressed measure: the
+      green ring is the boundary, the red ring the high-risk line.
+      Press one to read it below.
+    </p>
+    <PlanetaryBoundariesRadialChart selected={selectedId} onSelect={setSelectedId} isLight={isLight} />
+    {/* The boundary chosen on the wheel: its verdict and its measures, in the report's words. */}
+    <div className="mt-3 pt-3 border-t border-border">
+      <p className="text-[12px] font-semibold font-sans text-foreground flex items-center gap-2">
+        <span className="w-2 h-2 rounded-full shrink-0" style={{ background: ZONE[chosen.zone].color }} aria-hidden />
+        {chosen.name}
+        <span className="text-[10px] font-mono font-normal" style={{ color: ZONE[chosen.zone].color }}>
+          {ZONE[chosen.zone].label}
+        </span>
+      </p>
+      <p className="text-[11px] font-sans text-muted-foreground leading-snug mt-1">{chosen.verdict}</p>
+      <ul className="mt-1.5 space-y-0.5">
+        {chosen.variables.map((v) => (
+          <li key={v.name} className="text-[10px] font-mono text-muted-foreground">
+            {v.name}: <span className="text-foreground font-semibold">{v.current}{v.unit && !v.unit.startsWith("%") ? " " : ""}{v.unit}</span> · boundary {v.boundary}
+            {v.highRisk != null ? ` · high risk ${v.highRisk}` : ""}
+            {v.regional ? " · regional" : ""}
+          </li>
+        ))}
+      </ul>
+    </div>
+    </div>
+  );
+}
+
+/** What the framework is, and how the wheel is drawn. */
+export function BoundariesAbout() {
+  return (
+  <div className="flex flex-col gap-3 text-[11px] font-sans leading-relaxed text-muted-foreground">
+      <p>
+      The framework was introduced by Johan Rockström and colleagues in{" "}
+      <a href="https://doi.org/10.1038/461472a" target="_blank" rel="noopener noreferrer" className="underline decoration-dotted hover:text-foreground">
+        2009
+      </a>{" "}
+      and updated in{" "}
+      <a href="https://doi.org/10.1126/science.1259855" target="_blank" rel="noopener noreferrer" className="underline decoration-dotted hover:text-foreground">
+        2015
+      </a>{" "}
+      and{" "}
+      <a href="https://doi.org/10.1126/sciadv.adh2458" target="_blank" rel="noopener noreferrer" className="underline decoration-dotted hover:text-foreground">
+        2023
+      </a>
+      . Each boundary is a level of a control variable - carbon dioxide, forest cover, nitrogen use - beyond which the risk of
+      destabilising the Earth system rises. Past it lies a zone of increasing risk, then a high-risk zone.
+    </p>
+    <p>
+      The{" "}
+      <a href={PHC_2026.summaryUrl} target="_blank" rel="noopener noreferrer" className="underline decoration-dotted hover:text-foreground">
+        Planetary Health Check 2026
+      </a>
+      , the third annual assessment from the Potsdam Institute for Climate Impact Research, finds seven of the nine
+      transgressed. Only stratospheric ozone and, taken globally, aerosol loading are within their boundaries, and aerosols are
+      past a proposed regional boundary over South Asia.
+    </p>
+    <p>
+      How the wheel is drawn: a wedge starts at the pre-human baseline (the edge of the core) and runs to its measure's value,
+      reaching the green ring at the boundary and the red ring at the high-risk line. Nitrogen, phosphorus and radiative
+      forcing lie beyond the chart's edge. Novel entities has no single measure; it is drawn to the high-risk line, where the
+      report places it, with a dashed edge.
+    </p>
+  </div>
   );
 }
