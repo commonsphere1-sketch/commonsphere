@@ -87,7 +87,7 @@ import { CITY_FIGURES, CITY_FIGURES_SOURCE } from "../data/cityFigures";
 import { cityYear } from "../lib/cityFigures";
 import { COUNTRY_CLIMATE, type ClimateZone } from "../data/climateZones";
 import { ADMIN2_UNTILED } from "../data/admin2Untiled";
-import { COUNTRY_SLUMS, COUNTRY_SLUMS_SOURCE } from "../data/countrySlums";
+import { COUNTRY_MEAN_INCOME, COUNTRY_MEAN_INCOME_SOURCE } from "../data/countryMeanIncome";
 import { loadAdmin1, outlinesOf } from "../lib/outlines";
 import { DIVISION_POVERTY_SOURCE } from "../lib/divisionPoverty";
 import type { Subnation } from "../data/subnations";
@@ -610,6 +610,18 @@ const AIRPORT_DETAIL_ABOVE = 2;
    rest climb far enough apart to be told apart at a glance, and stop well short
    of hiding the grey underneath. */
 const POLLUTION_OPACITY = [0, 0.18, 0.3, 0.44, 0.6];
+
+/* The poorest and the richest areas, each in four fixed steps, the deepest the last; below the first, a place is left
+   clear. Countries and regions by the World Bank's household surveys: the share of people living on under $3.00 a day,
+   and the mean income or consumption per person a day (2021 PPP). The United States' counties, once the map is close
+   enough for them, by the Census Bureau's own: the share below the US poverty line - far higher than $3.00 a day - and
+   median household income. The county steps start near the poorest and the richest tenth of counties. */
+const POOR_STEPS = [5, 15, 30, 50];
+const RICH_STEPS = [30, 50, 70, 90];
+const COUNTY_POOR_STEPS = [20, 25, 30, 40];
+const COUNTY_RICH_STEPS = [85_000, 100_000, 115_000, 130_000];
+const AREA_OPACITY = [0, 0.2, 0.34, 0.5, 0.68];
+const stepOf = (v: number, steps: number[]) => steps.filter((s) => v >= s).length;
 
 /* Mineral sites are the one layer dense enough to bury the map underneath it:
    9,639 dots at full size turn Europe, China, Australia and the eastern United
@@ -1733,9 +1745,9 @@ export function WorldMapsPage() {
   const [countryMetric, setCountryMetric] = useState("hdi");
   /* The Governance layer, as asked: pressed, the world map draws each country in its regime type (V-Dem's Regimes of the World). */
   const [governance, setGovernance] = useState(false);
-  /* The poorest areas and the slums, as asked: each a wash over the world map while its chip is pressed. */
+  /* The poorest areas and the richest, as asked: each a wash over the world map while its chip is pressed - by country, and by county once the map is close enough. */
   const [poorest, setPoorest] = useState(false);
-  const [slums, setSlums] = useState(false);
+  const [richest, setRichest] = useState(false);
   /* The figure the map of the United States is drawn by, as asked: none, and it is drawn by living conditions. */
   const [usMeasure, setUsMeasure] = useState<UsMeasureId | null>(null);
   /* The conflicts and the disasters going on, as asked: each pinned on the world map while its chip is pressed. */
@@ -1905,9 +1917,9 @@ export function WorldMapsPage() {
   };
   /* The place picked out: an orange none of the layers uses, dark enough to read as the chip's text on the light card. */
   const markInk = isLight ? "#c2410c" : "#ff922b";
-  /* The poorest areas' wash, a deep red; the slums' hatching, a brown - apart from the place picked out and from each other. */
+  /* The poorest areas' wash, a deep red; the richest areas', a gold - apart from the place picked out and from each other. */
   const povertyInk = isLight ? "#9f1239" : "#fb7185";
-  const slumInk = isLight ? "#78350f" : "#fcd34d";
+  const richInk = isLight ? "#a16207" : "#facc15";
   /* The Conflicts layer's four kinds, and the Disasters layer's three alert levels, drawn hollow so the two never read as one. */
   const conflictInk = conflictInks(isLight);
   const alertInk = alertInks(isLight);
@@ -2444,28 +2456,28 @@ export function WorldMapsPage() {
       .map(([band, ds]) => ({ band, d: ds.join(""), opacity: POLLUTION_OPACITY[band] }));
   }, [worldShapes]);
 
-  /* ── The poorest areas: the share of people living on under $3.00 a day (2021 PPP), the World Bank's international
-     poverty line. A region is shaded by its own share where the World Bank publishes one for it (its Subnational Poverty
-     and Inequality Database - the 766 regions the division windows hold, matched to their outlines as those windows match
-     them); a country none of whose regions has one, by its national share (Poverty and Inequality Platform). Fetched when
-     the chip is first pressed. ── */
-  const [poorData, setPoorData] = useState<{
-    regions: { d: string; v: number }[];
+  /* ── The poorest and the richest areas, as asked. A region is shaded by its own figures where the World Bank publishes
+     them for it (its Subnational Poverty and Inequality Database - the 766 regions the division windows hold, matched to
+     their outlines as those windows match them): the share living on under $3.00 a day, and the mean income or
+     consumption per person a day. A country none of whose regions has them, by its national figures (Poverty and
+     Inequality Platform). Fetched when either chip is first pressed; the counties come in further down, with the zoom. ── */
+  const [areaData, setAreaData] = useState<{
+    regions: { d: string; poor?: number; mean?: number }[];
     covered: Set<string>;
     national: Record<string, { y: number; v: number } | undefined>;
     nationalSource: { label: string; url: string };
   } | null>(null);
-  const [poorLoading, setPoorLoading] = useState(false);
-  /* Asked for once: the answer is kept for the page's life, whether or not the chip is still pressed when it comes. */
-  const poorAsked = useRef(false);
+  const [areaLoading, setAreaLoading] = useState(false);
+  /* Asked for once: the answer is kept for the page's life, whether or not a chip is still pressed when it comes. */
+  const areaAsked = useRef(false);
   useEffect(() => {
-    if (!poorest || poorAsked.current) return;
-    poorAsked.current = true;
-    setPoorLoading(true);
+    if (!(poorest || richest) || areaAsked.current) return;
+    areaAsked.current = true;
+    setAreaLoading(true);
     (async () => {
       const [file, subs, people] = await Promise.all([
         fetch("/poverty/divisions.json")
-          .then((r) => (r.ok ? (r.json() as Promise<{ divisions: Record<string, { p300?: number }> }>) : null))
+          .then((r) => (r.ok ? (r.json() as Promise<{ divisions: Record<string, { p300?: number; mean?: number }> }>) : null))
           .catch(() => null),
         import("../data/subnations"),
         import("../data/countryPeople"),
@@ -2475,7 +2487,7 @@ export function WorldMapsPage() {
       const byCc = new Map<string, Subnation[]>();
       for (const s of subs.SUBNATIONS) byCc.set(s.cc, [...(byCc.get(s.cc) ?? []), s]);
       const ccs = [...new Set(Object.keys(held).flatMap((id) => (byId.get(id) ? [byId.get(id)!.cc] : [])))];
-      const regions: { d: string; v: number }[] = [];
+      const regions: { d: string; poor?: number; mean?: number }[] = [];
       const covered = new Set<string>();
       await Promise.all(
         ccs.map(async (cc) => {
@@ -2483,12 +2495,12 @@ export function WorldMapsPage() {
           if (!drawn) return;
           const peers = byCc.get(cc) ?? [];
           for (const s of peers) {
-            const v = held[s.id]?.p300;
-            if (v == null) continue;
+            const h = held[s.id];
+            if (!h) continue;
             for (const f of outlinesOf(drawn, cc, s, peers)) {
               const d = worldPath.path(f as never);
               if (d) {
-                regions.push({ d, v });
+                regions.push({ d, poor: h.p300, mean: h.mean });
                 covered.add(cc);
               }
             }
@@ -2497,47 +2509,14 @@ export function WorldMapsPage() {
       );
       const national: Record<string, { y: number; v: number } | undefined> = {};
       for (const [cc, p] of Object.entries(people.COUNTRY_PEOPLE)) national[cc] = p.poor;
-      setPoorData({ regions, covered, national, nationalSource: people.COUNTRY_PEOPLE_SOURCES.poverty });
-      setPoorLoading(false);
+      setAreaData({ regions, covered, national, nationalSource: people.COUNTRY_PEOPLE_SOURCES.poverty });
+      setAreaLoading(false);
     })().catch(() => {
       // It may be asked for again on the next press.
-      poorAsked.current = false;
-      setPoorLoading(false);
+      areaAsked.current = false;
+      setAreaLoading(false);
     });
-  }, [poorest, worldPath]);
-  /** The steps the shares are shaded in: under 5% left clear, then 5-15, 15-30, 30-50 and 50% or more. */
-  const POVERTY_STEPS = [5, 15, 30, 50];
-  const POVERTY_OPACITY = [0, 0.2, 0.34, 0.5, 0.68];
-  const stepOf = (v: number, steps: number[]) => steps.filter((s) => v >= s).length;
-  const povertyBands = useMemo(() => {
-    if (!poorData) return [];
-    const byBand = new Map<number, string[]>();
-    const add = (band: number, d: string) => band > 0 && byBand.set(band, [...(byBand.get(band) ?? []), d]);
-    for (const r of poorData.regions) add(stepOf(r.v, POVERTY_STEPS), r.d);
-    for (const { country, d } of worldShapes) {
-      if (!country || !d || poorData.covered.has(country.code)) continue;
-      const p = poorData.national[country.code];
-      if (p) add(stepOf(p.v, POVERTY_STEPS), d);
-    }
-    return [...byBand.entries()].sort((a, b) => a[0] - b[0]).map(([band, ds]) => ({ band, d: ds.join(""), opacity: POVERTY_OPACITY[band] }));
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [poorData, worldShapes]);
-  /* ── The slums: the share of each country's city dwellers living in one, as UN-Habitat counts them (SDG 11.1.1), by
-     country - hatched, so that it reads apart from the poorest areas' wash where both are on. No body publishes the
-     outlines of the slums themselves on open terms, so none is drawn. ── */
-  const SLUM_STEPS = [10, 25, 50, 75];
-  const SLUM_OPACITY = [0, 0.4, 0.6, 0.8, 1];
-  const slumBands = useMemo(() => {
-    const byBand = new Map<number, string[]>();
-    for (const { country, d } of worldShapes) {
-      const s = country ? COUNTRY_SLUMS[country.code] : undefined;
-      if (!s || !d) continue;
-      const band = stepOf(s[1], SLUM_STEPS);
-      if (band > 0) byBand.set(band, [...(byBand.get(band) ?? []), d]);
-    }
-    return [...byBand.entries()].sort((a, b) => a[0] - b[0]).map(([band, ds]) => ({ band, d: ds.join(""), opacity: SLUM_OPACITY[band] }));
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [worldShapes]);
+  }, [poorest, richest, worldPath]);
 
   /* One merged path per climate zone, the same way pollutionBands merges by
      band - a whole-country highlight like the scope chips (G20, BRICS, ...)
@@ -2657,6 +2636,64 @@ export function WorldMapsPage() {
      canvas, so they share a viewport, and it resets whenever the country
      changes. `zoom` is that shared level, which the label pass depends on. */
   const worldZoom = useMapZoom(WORLD_W, WORLD_H);
+  /* ── The poorest and richest areas by county, as asked: once the world is drawn close enough for its counties' borders,
+     the United States - the one country whose every county the site holds these for - is drawn by its counties, the
+     Census Bureau's figures (Small Area Income and Poverty Estimates, through the USDA), in place of its national one. ── */
+  const areaByCounty = (poorest || richest) && worldZoom.zoom >= COUNTIES_FROM;
+  const [countyEcon, setCountyEcon] = useState<typeof import("../data/usCountyEcon") | null>(null);
+  useEffect(() => {
+    if (!areaByCounty || countyEcon) return;
+    let off = false;
+    import("../data/usCountyEcon").then((m) => !off && setCountyEcon(m));
+    return () => {
+      off = true;
+    };
+  }, [areaByCounty, countyEcon]);
+  useEffect(() => {
+    if (!areaByCounty || usCounties) return;
+    let off = false;
+    import("us-atlas/counties-10m.json").then((m) => !off && setUsCounties((m.default ?? m) as unknown as Topology));
+    return () => {
+      off = true;
+    };
+  }, [areaByCounty, usCounties]);
+  /* The counties drawn on the world map: each projected once, when first wanted. */
+  const worldCounties = useMemo(() => {
+    if (!areaByCounty || !usCounties) return [];
+    return (feature(usCounties, usCounties.objects.counties as never) as unknown as { features: { id?: string | number }[] }).features.flatMap((f) => {
+      const d = worldPath.path(f as never);
+      return d ? [{ fips: String(f.id ?? "").padStart(5, "0"), d }] : [];
+    });
+  }, [areaByCounty, usCounties, worldPath]);
+  /** One layer's shading, merged into a path a step: regions and countries by the World Bank's figures, and the United States' counties by the Census Bureau's when drawn by county. */
+  const areaBands = (which: "poor" | "rich") => {
+    if (!areaData) return [];
+    const byBand = new Map<number, string[]>();
+    const add = (v: number | null | undefined, steps: number[], d: string) => {
+      if (v == null) return;
+      const band = stepOf(v, steps);
+      if (band > 0) byBand.set(band, [...(byBand.get(band) ?? []), d]);
+    };
+    const steps = which === "poor" ? POOR_STEPS : RICH_STEPS;
+    for (const r of areaData.regions) add(which === "poor" ? r.poor : r.mean, steps, r.d);
+    const byCounty = worldCounties.length > 0 && countyEcon !== null;
+    for (const { country, d } of worldShapes) {
+      if (!country || !d || areaData.covered.has(country.code) || (byCounty && country.code === "US")) continue;
+      add(which === "poor" ? areaData.national[country.code]?.v : COUNTRY_MEAN_INCOME[country.code]?.[1], steps, d);
+    }
+    if (byCounty)
+      for (const c of worldCounties) {
+        const ec = countyEcon!.COUNTY_ECON_ROWS[c.fips];
+        add(which === "poor" ? ec?.[3] : ec?.[2], which === "poor" ? COUNTY_POOR_STEPS : COUNTY_RICH_STEPS, c.d);
+      }
+    return [...byBand.entries()].sort((a, b) => a[0] - b[0]).map(([band, ds]) => ({ band, d: ds.join(""), opacity: AREA_OPACITY[band] }));
+  };
+  const poorBands = useMemo(() => (poorest ? areaBands("poor") : []),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [poorest, areaData, worldShapes, worldCounties, countyEcon]);
+  const richBands = useMemo(() => (richest ? areaBands("rich") : []),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [richest, areaData, worldShapes, worldCounties, countyEcon]);
   /* Which of the focused country's parts that lie apart is shown: 0 its main part. A new country starts on its main part. */
   const [focusPart, setFocusPart] = useState(0);
   useEffect(() => setFocusPart(0), [focusCode]);
@@ -4200,11 +4237,11 @@ export function WorldMapsPage() {
           >
             Governance
           </button>
-          {/* The poorest areas and the slums, as asked: each a wash over the map while pressed, in its own colour. */}
+          {/* The poorest areas and the richest, as asked: each a wash over the map while pressed, in its own colour - by country and region, and by county drawn closer. */}
           {(
             [
-              [poorest, setPoorest, "Poorest areas", povertyInk, poorLoading, "Shade where people live on under $3.00 a day: each region by its own share where the World Bank measures it, each other country by its national share"],
-              [slums, setSlums, "Slums", slumInk, false, "Hatch each country by the share of its city dwellers living in slums, as UN-Habitat counts them"],
+              [poorest, setPoorest, "Poorest areas", povertyInk, areaLoading && poorest, "Shade where people live on under $3.00 a day: each region by its own share where the World Bank measures it, each other country by its national share - and, drawn closer, each US county by its share below the US poverty line"],
+              [richest, setRichest, "Richest areas", richInk, areaLoading && richest, "Shade where people are best off: each region and country by its mean income or spending per person a day (World Bank) - and, drawn closer, each US county by its median household income"],
             ] as const
           ).map(([on, set, label, ink, loading, title]) => (
             <button
@@ -4486,10 +4523,6 @@ export function WorldMapsPage() {
           >
             <defs>
               <NoDataHatch id="nodata-world" base={noData} line={noDataHatch} zoom={worldZoom.zoom} />
-              {/* The slums' hatching: lines across the country, the same spacing on the screen at any zoom. */}
-              <pattern id="slum-hatch" patternUnits="userSpaceOnUse" width={4 / worldZoom.zoom} height={4 / worldZoom.zoom} patternTransform="rotate(-45)">
-                <line x1={0} y1={0} x2={0} y2={4 / worldZoom.zoom} stroke={slumInk} strokeWidth={1.6 / worldZoom.zoom} />
-              </pattern>
             </defs>
             {/* Graticule first, so borders sit above it. */}
             <path
@@ -4650,9 +4683,9 @@ export function WorldMapsPage() {
                 />
               ))}
             {/* The poorest areas, as asked: a wash, deeper the larger the share living under $3.00 a day - regions where the World Bank measures them, countries elsewhere. */}
-            {poorest && povertyBands.map((b) => <path key={`poor-${b.band}`} d={b.d} fill={povertyInk} fillOpacity={b.opacity} pointerEvents="none" />)}
-            {/* The slums, as asked: hatched, denser in tone the larger the share of city dwellers living in one. */}
-            {slums && slumBands.map((b) => <path key={`slum-${b.band}`} d={b.d} fill="url(#slum-hatch)" fillOpacity={b.opacity} pointerEvents="none" />)}
+            {poorBands.map((b) => <path key={`poor-${b.band}`} d={b.d} fill={povertyInk} fillOpacity={b.opacity} pointerEvents="none" />)}
+            {/* The richest areas, as asked: a gold wash, deeper the better off. */}
+            {richBands.map((b) => <path key={`rich-${b.band}`} d={b.d} fill={richInk} fillOpacity={b.opacity} pointerEvents="none" />)}
             {worldLayers.infrastructure && infraPaths && (
               /* Roads solid and railways dashed, so the two line networks stay
                  apart without reference to colour. Drawn first of the overlays,
@@ -4830,47 +4863,54 @@ export function WorldMapsPage() {
               <SourceLink sources={REGIME_SOURCE} className="mt-1.5" />
             </>
           )}
-          {/* What the poorest areas' wash and the slums' hatching are, with their steps and sources. */}
-          {poorest && (
-            <>
-              <p className="text-[10px] font-sans text-muted-foreground leading-snug mt-3">
-                <span aria-hidden className="inline-block w-2 h-2 rounded-sm mr-1.5 align-middle" style={{ background: povertyInk }} />
-                <span className="font-medium text-foreground">Poorest areas</span> - the share of people living on under $3.00 a day (2021 prices, adjusted for what money buys
-                in each country), the World Bank's international poverty line. Where the World Bank measures a country's regions from a household survey, each region is
-                shaded by its own share, and a region it has no figure for is left clear; every other country is shaded by its national share. Each figure is of its own
-                survey year, so the map mixes years. The steps:{" "}
-                {POVERTY_STEPS.map((s, i) => (
-                  <span key={s} className="whitespace-nowrap">
-                    {i > 0 && ", "}
-                    <span aria-hidden className="inline-block w-2.5 h-2.5 rounded-sm mx-1 align-middle" style={{ background: povertyInk, opacity: POVERTY_OPACITY[i + 1] }} />
-                    {i < POVERTY_STEPS.length - 1 ? `${s}-${POVERTY_STEPS[i + 1]}%` : `${s}% or more`}
-                  </span>
-                ))}
-                ; under 5% is left clear.{poorData ? ` ${poorData.covered.size} countries are shaded by their regions.` : ""}
-              </p>
-              <SourceLink sources={[DIVISION_POVERTY_SOURCE, ...(poorData ? [poorData.nationalSource] : [])]} className="mt-1.5" />
-            </>
-          )}
-          {slums && (
-            <>
-              <p className="text-[10px] font-sans text-muted-foreground leading-snug mt-3">
-                <span aria-hidden className="inline-block w-2 h-2 rounded-sm mr-1.5 align-middle" style={{ background: slumInk }} />
-                <span className="font-medium text-foreground">Slums</span> - the share of each country's city dwellers living in a slum household, as UN-Habitat counts one:
-                lacking one or more of improved water, improved sanitation, enough living space, durable housing and secure tenure. It is one figure a country, not a map
-                of where its slums are - no body publishes their outlines on open terms. A country with no figure, most high-income ones among them, is left clear. The
-                steps:{" "}
-                {SLUM_STEPS.map((s, i) => (
-                  <span key={s} className="whitespace-nowrap">
-                    {i > 0 && ", "}
-                    <span aria-hidden className="inline-block w-2.5 h-2.5 rounded-sm mx-1 align-middle" style={{ background: slumInk, opacity: SLUM_OPACITY[i + 1] }} />
-                    {i < SLUM_STEPS.length - 1 ? `${s}-${SLUM_STEPS[i + 1]}%` : `${s}% or more`}
-                  </span>
-                ))}
-                ; under 10% is left clear. The latest year held is {Math.max(...Object.values(COUNTRY_SLUMS).map((x) => x[0]))} for most.
-              </p>
-              <SourceLink sources={COUNTRY_SLUMS_SOURCE} className="mt-1.5" />
-            </>
-          )}
+          {/* What the poorest and richest areas' washes are, at each level, with their steps and sources. */}
+          {(poorest || richest) && (() => {
+            const steps = (list: number[], ink: string, say: (v: number) => string, last: string) =>
+              list.map((s, i) => (
+                <span key={s} className="whitespace-nowrap">
+                  {i > 0 && ", "}
+                  <span aria-hidden className="inline-block w-2.5 h-2.5 rounded-sm mx-1 align-middle" style={{ background: ink, opacity: AREA_OPACITY[i + 1] }} />
+                  {i < list.length - 1 ? `${say(s)}-${say(list[i + 1])}` : `${say(s)} ${last}`}
+                </span>
+              ));
+            const dollars = (v: number) => `$${v >= 1000 ? `${v / 1000}k` : v}`;
+            return (
+              <>
+                {poorest && (
+                  <p className="text-[10px] font-sans text-muted-foreground leading-snug mt-3">
+                    <span aria-hidden className="inline-block w-2 h-2 rounded-sm mr-1.5 align-middle" style={{ background: povertyInk }} />
+                    <span className="font-medium text-foreground">Poorest areas</span> - by country and region, the share of people living on under $3.00 a day (2021 prices,
+                    adjusted for what money buys in each country), the World Bank's international poverty line: each region by its own share where the World Bank measures a
+                    country's regions from a household survey ({areaData ? `${areaData.covered.size} countries` : "52 countries"}; a region without a figure is left clear), every
+                    other country by its national share. The steps: {steps(POOR_STEPS, povertyInk, (v) => `${v}%`, "or more")}; under 5% is left clear. By county, once the map is
+                    drawn close enough for the counties' borders: each US county by the share of its people below the US poverty line (Census Bureau,{" "}
+                    {countyEcon?.COUNTY_ECON.povertyYear ?? 2023}) - a line far above $3.00 a day, so the two are not one scale: {steps(COUNTY_POOR_STEPS, povertyInk, (v) => `${v}%`, "or more")}
+                    ; under 20%, about nine counties in ten, is left clear. Each figure is of its own survey year.
+                  </p>
+                )}
+                {richest && (
+                  <p className="text-[10px] font-sans text-muted-foreground leading-snug mt-3">
+                    <span aria-hidden className="inline-block w-2 h-2 rounded-sm mr-1.5 align-middle" style={{ background: richInk }} />
+                    <span className="font-medium text-foreground">Richest areas</span> - by country and region, the mean income or consumption per person a day in 2021 prices
+                    adjusted for what money buys in each country, from the same World Bank household surveys: each region by its own where the World Bank measures it, every
+                    other country by its national mean. Some surveys measure income and some spending, and spending runs lower, so a country counted by spending can look
+                    poorer than one counted by income. The steps: {steps(RICH_STEPS, richInk, (v) => `$${v}`, "or more a day")}; under $30 a day is left clear. By county, drawn
+                    closer: each US county by its median household income (Census Bureau, {countyEcon?.COUNTY_ECON.povertyYear ?? 2023}) - a household's a year, not a person's a
+                    day, so again not one scale: {steps(COUNTY_RICH_STEPS, richInk, dollars, "or more")}; under $85k, about nine counties in ten, is left clear.
+                  </p>
+                )}
+                <SourceLink
+                  sources={[
+                    DIVISION_POVERTY_SOURCE,
+                    ...(poorest && areaData ? [areaData.nationalSource] : []),
+                    ...(richest ? [COUNTRY_MEAN_INCOME_SOURCE] : []),
+                    { label: "US Census Bureau — Small Area Income and Poverty Estimates, through the USDA Economic Research Service's county-level data sets", url: "https://www.ers.usda.gov/data-products/county-level-data-sets/county-level-data-sets-download-data" },
+                  ]}
+                  className="mt-1.5"
+                />
+              </>
+            );
+          })()}
           {!governance && activeCountry.id === "living" && (
             <p className="text-[10px] font-sans text-muted-foreground leading-snug mt-3">
               Living conditions is worked out here from the figures the site holds; no body publishes it, and it is not an index of anyone's. Each country is stood

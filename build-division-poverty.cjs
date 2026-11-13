@@ -100,7 +100,7 @@ const yearOf = (b) => parseInt(String(b.value).replace(/^\+/, "").slice(0, 5), 1
     rows.push(cells);
   }
   const get = (r, name) => r[header[name]];
-  for (const need of ["code", "year", "survname", "data", "data_group", "byvar", "sample", "survey_coverage", "welfaretype", "poor300", "poor420", "poor830", "gini"]) if (!header[need]) throw new Error(`SPID: no column ${need}`);
+  for (const need of ["code", "year", "survname", "data", "data_group", "byvar", "sample", "survey_coverage", "welfaretype", "poor300", "poor420", "poor830", "gini", "mean2021"]) if (!header[need]) throw new Error(`SPID: no column ${need}`);
 
   /* The site's countries' codes, and its divisions with every name each answers to. */
   const wb = JSON.parse(execFileSync("curl", ["-s", "-L", "--max-time", "120", "-A", UA, "https://api.worldbank.org/v2/country?format=json&per_page=400"]).toString())[1];
@@ -301,6 +301,8 @@ const yearOf = (b) => parseInt(String(b.value).replace(/^\+/, "").slice(0, 5), 1
       matched++;
       years[g.y] = (years[g.y] ?? 0) + 1;
       const gini = get(r, "gini");
+      // The survey's mean income or consumption per person a day (2021 PPP): how well off the region is, as the same survey measures it.
+      const mean = get(r, "mean2021");
       out[div.id] = {
         y: g.y,
         s: g.s,
@@ -310,6 +312,7 @@ const yearOf = (b) => parseInt(String(b.value).replace(/^\+/, "").slice(0, 5), 1
         p420: pct(get(r, "poor420")),
         p830: pct(get(r, "poor830")),
         ...(gini !== undefined && gini !== "" ? { gini: Math.round(Number(gini) * 1000) / 10 } : {}),
+        ...(mean !== undefined && mean !== "" && Number.isFinite(Number(mean)) ? { mean: Math.round(Number(mean) * 100) / 100 } : {}),
       };
     }
   }
