@@ -314,8 +314,8 @@ function leanSpans(data: History, today: string): LeanSpan[] {
    Where the country stands in each year of the period chosen on the timeline: across, its government's leaning, left to
    right; up and down, how free its people are - V-Dem's civil liberties index - authoritarian at the top, libertarian at the
    foot. Two records set side by side, each with its source: not The Political Compass's own test, which scores a person's
-   answers and not a government. A year without both is not drawn. build-compass-world.cjs places every country by these
-   same rules for the Dashboard. */
+   answers and not a government. A year without both is not drawn. The Dashboard's compass is the grid's legend: what each
+   part means and the ideas it is read by (CompassLedger). */
 type CompassPoint = { y: number; across: number; who: string; lean: string; source: string; civ: number };
 function compassPoints(data: History, from: number, to: number, today: string): CompassPoint[] {
   const spans = leanSpans(data, today);
