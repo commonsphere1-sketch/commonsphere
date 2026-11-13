@@ -52,21 +52,23 @@ export function ChipRow({
         })`
       : undefined;
   const step = (dir: 1 | -1) => ref.current?.scrollBy({ left: dir * ref.current.clientWidth * 0.7, behavior: "smooth" });
-  const arrow = "absolute top-1/2 -translate-y-1/2 w-6 h-6 rounded-full border border-border bg-background/85 text-muted-foreground hover:text-foreground flex items-center justify-center cursor-pointer";
+  /* The arrows stand beside the row, each in a place of its own, and never over a chip, as asked. Once the row runs out of
+     room both places are kept, the one with nothing beyond it left empty, so the row does not change width as it moves. */
+  const overflows = more.left || more.right;
+  const arrow = "shrink-0 w-6 h-6 rounded-full border border-border bg-background/85 text-muted-foreground hover:text-foreground flex items-center justify-center cursor-pointer";
 
   return (
-    <div className={`relative min-w-0 ${className}`} role={label ? "group" : undefined} aria-label={label}>
-
-      <div ref={ref} className="cs-chip-row flex items-center gap-1.5 overflow-x-auto" style={{ maskImage: mask, WebkitMaskImage: mask }}>
-        {children}
-      </div>
-      {more.left && (
-        <button type="button" tabIndex={-1} onClick={() => step(-1)} aria-label="Show the chips to the left" className={`${arrow} left-0`}>
+    <div className={`relative min-w-0 flex items-center gap-1 ${className}`} role={label ? "group" : undefined} aria-label={label}>
+      {overflows && (
+        <button type="button" tabIndex={-1} onClick={() => step(-1)} aria-label="Show the chips to the left" aria-hidden={!more.left} className={`${arrow} ${more.left ? "" : "invisible"}`}>
           <CaretLeft size={11} weight="bold" />
         </button>
       )}
-      {more.right && (
-        <button type="button" tabIndex={-1} onClick={() => step(1)} aria-label="Show the chips to the right" className={`${arrow} right-0`}>
+      <div ref={ref} className="cs-chip-row flex items-center gap-1.5 overflow-x-auto min-w-0 flex-1" style={{ maskImage: mask, WebkitMaskImage: mask }}>
+        {children}
+      </div>
+      {overflows && (
+        <button type="button" tabIndex={-1} onClick={() => step(1)} aria-label="Show the chips to the right" aria-hidden={!more.right} className={`${arrow} ${more.right ? "" : "invisible"}`}>
           <CaretRight size={11} weight="bold" />
         </button>
       )}
