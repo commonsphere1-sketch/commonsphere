@@ -1018,7 +1018,8 @@ html:is(.dark, .light) .modal-tile.cursor-pointer:not(.cs-plain-card):hover {
 }
 
 /* ── Plain cards: no bezel, no halo ──────────────────────
-   A card marked .cs-plain-card - the World Leaders page's leaders, as asked -
+   A card marked .cs-plain-card - the World Leaders page's leaders, the
+   Economies page's resources and the two political compass bars, as asked -
    has neither the inset sheen along its top nor the light-up above: flat at
    rest, and pointed at, only its own hover (its utilities' shadow, tinted edge
    and lift), as it was before the light-up. Of the card rules' weight and
@@ -1026,7 +1027,7 @@ html:is(.dark, .light) .modal-tile.cursor-pointer:not(.cs-plain-card):hover {
 html:is(.dark, .light) button.cs-plain-card:is(.rounded-xl, .rounded-2xl) {
   box-shadow: none !important;
 }
-html:is(.dark, .light) button.cs-plain-card:is(.rounded-xl, .rounded-2xl):hover {
+html:is(.dark, .light) button.cs-plain-card:is(.rounded-xl, .rounded-2xl):hover:not(:disabled) {
   box-shadow:
     0 10px 15px -3px rgb(0 0 0 / 0.1),
     0 4px 6px -4px rgb(0 0 0 / 0.1) !important;
