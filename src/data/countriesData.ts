@@ -549,7 +549,7 @@ export const countriesData: Country[] = [
     gdpGrowth: 3.9,
     currency: "HNL",
     governmentType: "Presidential Republic",
-    headOfState: "Xiomara Castro (President, since Jan 2022)",
+    headOfState: "Nasry Asfura (President, since Jan 2026)",
     officialLanguages: ["Spanish"],
     keyIndustries: [
       { name: "Agriculture", gdpShare: 22, color: "hsl(90,60%,40%)" },
@@ -665,7 +665,7 @@ export const countriesData: Country[] = [
     gdpGrowth: 4.0,
     currency: "CRC",
     governmentType: "Presidential Republic",
-    headOfState: "Rodrigo Chaves Robles (President, since May 2022)",
+    headOfState: "Laura Fernández (President, since May 2026)",
     officialLanguages: ["Spanish"],
     keyIndustries: [
       { name: "Medical Devices", gdpShare: 20, color: "hsl(200,85%,55%)" },
@@ -774,7 +774,7 @@ export const countriesData: Country[] = [
     gdpGrowth: 2.8,
     currency: "TTD",
     governmentType: "Parliamentary Republic",
-    headOfState: "Stuart Young (PM, since Mar 2025)",
+    headOfState: "Kamla Persad-Bissessar (PM, since May 2025)",
     officialLanguages: ["English"],
     keyIndustries: [
       { name: "Oil & Gas", gdpShare: 38, color: "hsl(45,90%,55%)" },
@@ -960,7 +960,7 @@ export const countriesData: Country[] = [
     gdpGrowth: 2.6,
     currency: "CLP",
     governmentType: "Presidential Republic",
-    headOfState: "Gabriel Boric (President, since Mar 2022)",
+    headOfState: "José Antonio Kast (President, since Mar 2026)",
     officialLanguages: ["Spanish"],
     spokenLanguages: ["Spanish", "Mapudungun", "Aymara", "English"],
     landmarks: [
@@ -1018,7 +1018,7 @@ export const countriesData: Country[] = [
     gdpGrowth: 1.7,
     currency: "COP",
     governmentType: "Presidential Republic",
-    headOfState: "Gustavo Petro (President, since Aug 2022)",
+    headOfState: "Abelardo de la Espriella (President, since Aug 2026)",
     officialLanguages: ["Spanish"],
     keyIndustries: [
       { name: "Oil & Gas", gdpShare: 20, color: "hsl(45,90%,55%)" },
@@ -1059,7 +1059,7 @@ export const countriesData: Country[] = [
     gdpGrowth: 3.0,
     currency: "PEN",
     governmentType: "Presidential Republic",
-    headOfState: "Dina Boluarte (President, since Dec 2022)",
+    headOfState: "Keiko Fujimori (President, since Jul 2026)",
     officialLanguages: ["Spanish", "Quechua", "Aymara"],
     keyIndustries: [
       {
@@ -1175,7 +1175,7 @@ export const countriesData: Country[] = [
     gdpGrowth: 1.9,
     currency: "BOB",
     governmentType: "Presidential Republic",
-    headOfState: "Luis Arce (President, since Nov 2020)",
+    headOfState: "Rodrigo Paz (President, since Nov 2025)",
     officialLanguages: ["Spanish", "Quechua", "Aymara"],
     keyIndustries: [
       {
@@ -1214,7 +1214,7 @@ export const countriesData: Country[] = [
     gdpGrowth: 3.9,
     currency: "PYG",
     governmentType: "Presidential Republic",
-    headOfState: "Santiago Peña (President, since Aug 2023)",
+    headOfState: "Pedro Alliana (President, since Nov 2026)",
     officialLanguages: ["Spanish", "Guaraní"],
     keyIndustries: [
       {
@@ -1343,7 +1343,7 @@ export const countriesData: Country[] = [
     gdpGrowth: 2.8,
     currency: "SRD",
     governmentType: "Presidential Republic",
-    headOfState: "Chan Santokhi (President, since Jul 2020)",
+    headOfState: "Jennifer Geerlings-Simons (President, since Jul 2025)",
     officialLanguages: ["Dutch"],
     keyIndustries: [
       {
@@ -1480,7 +1480,7 @@ export const countriesData: Country[] = [
     gdpGrowth: 1.0,
     currency: "GBP",
     governmentType: "Constitutional Monarchy",
-    headOfState: "Keir Starmer (PM, since Jul 2024)",
+    headOfState: "Andy Burnham (PM, since Jul 2026)",
     officialLanguages: ["English"],
     spokenLanguages: [
       "English",
@@ -1666,7 +1666,7 @@ export const countriesData: Country[] = [
     gdpGrowth: 0.9,
     currency: "EUR",
     governmentType: "Constitutional Monarchy",
-    headOfState: "Dick Schoof (PM, since Jul 2024)",
+    headOfState: "Rob Jetten (PM, since Feb 2026)",
     officialLanguages: ["Dutch"],
     keyIndustries: [
       { name: "Trade & Logistics", gdpShare: 22, color: "hsl(200,85%,55%)" },
@@ -2005,7 +2005,7 @@ export const countriesData: Country[] = [
     gdpGrowth: 1.1,
     currency: "EUR",
     governmentType: "Federal Parliamentary Republic",
-    headOfState: "Herbert Kickl (Chancellor, since Jan 2025)",
+    headOfState: "Christian Stocker (Chancellor, since Mar 2025)",
     officialLanguages: ["German"],
     keyIndustries: [
       { name: "Tourism", gdpShare: 18, color: "hsl(150,60%,45%)" },
@@ -2226,7 +2226,7 @@ export const countriesData: Country[] = [
     gdpGrowth: 2.1,
     currency: "HUF",
     governmentType: "Parliamentary Republic",
-    headOfState: "Viktor Orbán (PM, since 2010, re-elected 2022)",
+    headOfState: "Péter Magyar (PM, since May 2026)",
     officialLanguages: ["Hungarian"],
     keyIndustries: [
       {
@@ -2446,7 +2446,7 @@ export const countriesData: Country[] = [
     gdpGrowth: 1.8,
     currency: "EUR",
     governmentType: "Parliamentary Republic",
-    headOfState: "Rossen Jeliazkov (PM, since Jun 2024)",
+    headOfState: "Rumen Radev (PM, since May 2026)",
     officialLanguages: ["Bulgarian"],
     keyIndustries: [
       {
@@ -2545,7 +2545,7 @@ export const countriesData: Country[] = [
     gdpGrowth: -0.3,
     currency: "EUR",
     governmentType: "Parliamentary Republic",
-    headOfState: "Evika Siliņa (PM, since Sep 2023)",
+    headOfState: "Andris Kulbergs (PM, since May 2026)",
     officialLanguages: ["Latvian"],
     keyIndustries: [
       {
@@ -2632,7 +2632,7 @@ export const countriesData: Country[] = [
     gdpGrowth: 1.6,
     currency: "EUR",
     governmentType: "Parliamentary Republic",
-    headOfState: "Robert Golob (PM, since Jun 2022)",
+    headOfState: "Janez Janša (PM, since Jun 2026)",
     officialLanguages: ["Slovenian"],
     keyIndustries: [
       {
@@ -2994,7 +2994,7 @@ export const countriesData: Country[] = [
     gdpGrowth: 3.3,
     currency: "EUR",
     governmentType: "Parliamentary Republic",
-    headOfState: "Vjosa Osmani (President, since Apr 2021)",
+    headOfState: "Justina Shiroka Pula (President, since Oct 2026)",
     officialLanguages: ["Albanian", "Serbian"],
     keyIndustries: [
       { name: "Remittances", gdpShare: 24, color: "hsl(45,90%,55%)" },
@@ -3866,7 +3866,7 @@ export const countriesData: Country[] = [
     gdpGrowth: 4.1,
     currency: "BDT",
     governmentType: "Parliamentary Republic",
-    headOfState: "Muhammad Yunus (Chief Adviser, Interim since Aug 2024)",
+    headOfState: "Tarique Rahman (PM, since Feb 2026)",
     officialLanguages: ["Bengali"],
     keyIndustries: [
       { name: "Ready-Made Garments", gdpShare: 32, color: "hsl(330,65%,55%)" },
@@ -4035,7 +4035,7 @@ export const countriesData: Country[] = [
     gdpGrowth: 3.7,
     currency: "IQD",
     governmentType: "Federal Parliamentary Republic",
-    headOfState: "Mohammed Shia Al-Sudani (PM, since Oct 2022)",
+    headOfState: "Ali al-Zaidi (PM, since May 2026)",
     officialLanguages: ["Arabic", "Kurdish"],
     keyIndustries: [
       { name: "Oil & Gas", gdpShare: 52, color: "hsl(45,90%,55%)" },
@@ -4312,7 +4312,7 @@ export const countriesData: Country[] = [
     gdpGrowth: 3.9,
     currency: "NPR",
     governmentType: "Federal Parliamentary Republic",
-    headOfState: "KP Sharma Oli (PM, 4th term since Jul 2024)",
+    headOfState: "Balen Shah (PM, since Mar 2026)",
     officialLanguages: ["Nepali"],
     keyIndustries: [
       { name: "Remittances", gdpShare: 26, color: "hsl(45,90%,55%)" },
@@ -5030,7 +5030,7 @@ export const countriesData: Country[] = [
     gdpGrowth: 7.0,
     currency: "MNT",
     governmentType: "Parliamentary Republic",
-    headOfState: "Luvsannamsrain Oyun-Erdene (PM, since Jan 2021)",
+    headOfState: "Nyam-Osoryn Uchral (PM, since Mar 2026)",
     officialLanguages: ["Mongolian"],
     keyIndustries: [
       {
@@ -5118,7 +5118,7 @@ export const countriesData: Country[] = [
     gdpGrowth: 4.0,
     currency: "LAK",
     governmentType: "One-Party Republic",
-    headOfState: "Sonexay Siphandon (PM, since Dec 2021)",
+    headOfState: "Saleumxay Kommasith (PM, since Oct 2026)",
     officialLanguages: ["Lao"],
     keyIndustries: [
       {
@@ -5890,7 +5890,7 @@ export const countriesData: Country[] = [
     currency: "MGA",
     governmentType: "Presidential Republic",
     headOfState:
-      "Andry Rajoelina (President, since 2019, disputed re-election 2023)",
+      "Michael Randrianirina (President, since Oct 2025)",
     officialLanguages: ["Malagasy", "French"],
     keyIndustries: [
       {
@@ -6254,7 +6254,7 @@ export const countriesData: Country[] = [
     gdpGrowth: 6.6,
     currency: "XOF",
     governmentType: "Presidential Republic",
-    headOfState: "Patrice Talon (President, since 2016, re-elected 2021)",
+    headOfState: "Romuald Wadagni (President, since May 2026)",
     officialLanguages: ["French"],
     keyIndustries: [
       {
@@ -6526,7 +6526,7 @@ export const countriesData: Country[] = [
     gdpGrowth: 2.0,
     currency: "MWK",
     governmentType: "Presidential Republic",
-    headOfState: "Lazarus Chakwera (President, since Jun 2020)",
+    headOfState: "Peter Mutharika (President, since Oct 2025)",
     officialLanguages: ["English", "Chichewa"],
     keyIndustries: [
       {
@@ -6905,7 +6905,7 @@ export const countriesData: Country[] = [
     currency: "XOF",
     governmentType: "Semi-Presidential Republic",
     headOfState:
-      "Umaro Sissoco Embaló (President, since Feb 2020, re-elected 2024)",
+      "Horta Inta-A Na Man (Transitional President, since Nov 2025)",
     officialLanguages: ["Portuguese"],
     keyIndustries: [
       {
@@ -7290,7 +7290,7 @@ export const countriesData: Country[] = [
     gdpGrowth: 5.3,
     currency: "SCR",
     governmentType: "Presidential Republic",
-    headOfState: "Wavel Ramkalawan (President, since Oct 2020)",
+    headOfState: "Patrick Herminie (President, since Oct 2025)",
     officialLanguages: ["Seychellois Creole", "English", "French"],
     keyIndustries: [
       {
@@ -7720,7 +7720,7 @@ export const countriesData: Country[] = [
     gdpGrowth: 2.8,
     currency: "SBD",
     governmentType: "Parliamentary Democracy",
-    headOfState: "Jeremiah Manele (PM, since May 2024)",
+    headOfState: "Matthew Wale (PM, since May 2026)",
     officialLanguages: ["English"],
     keyIndustries: [
       { name: "Forestry & Timber", gdpShare: 36, color: "hsl(150,60%,45%)" },
@@ -7800,7 +7800,7 @@ export const countriesData: Country[] = [
     gdpGrowth: 7.9,
     currency: "WST",
     governmentType: "Parliamentary Republic",
-    headOfState: "Fiamē Naomi Mataʻafa (PM, since Jul 2021)",
+    headOfState: "Laʻauli Leuatea Schmidt (PM, since Sep 2025)",
     officialLanguages: ["Samoan", "English"],
     keyIndustries: [
       { name: "Remittances", gdpShare: 34, color: "hsl(45,90%,55%)" },
@@ -8700,7 +8700,7 @@ export const countriesData: Country[] = [
     gdpGrowth: 5.9,
     currency: "XCD",
     governmentType: "Constitutional Monarchy",
-    headOfState: "Ralph Gonsalves (PM, since Mar 2001)",
+    headOfState: "Godwin Friday (PM, since Nov 2025)",
     officialLanguages: ["English"],
     keyIndustries: [
       { name: "Tourism", gdpShare: 38, color: "hsl(150,60%,45%)" },
@@ -8914,7 +8914,7 @@ export const countriesData: Country[] = [
     gdpGrowth: 2.7,
     currency: "THB",
     governmentType: "Constitutional Monarchy",
-    headOfState: "Paetongtarn Shinawatra (PM, since Aug 2024)",
+    headOfState: "Anutin Charnvirakul (PM, since Sep 2025)",
     officialLanguages: ["Thai"],
     spokenLanguages: [
       "Thai",
@@ -9115,7 +9115,7 @@ export const countriesData: Country[] = [
     gdpGrowth: 2.0,
     currency: "CHF",
     governmentType: "Constitutional Monarchy",
-    headOfState: "Daniel Risch (PM, since Mar 2021)",
+    headOfState: "Brigitte Haas (PM, since Apr 2025)",
     officialLanguages: ["German"],
     keyIndustries: [
       { name: "Finance & Banking", gdpShare: 32, color: "hsl(200,85%,55%)" },

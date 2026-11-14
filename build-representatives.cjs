@@ -178,7 +178,8 @@ async function nationalHeads(countries) {
   };
   const plainCell = (s) =>
     unwrap(s)
-      .replace(/\{\{(?:success|operational)\|(?:align=left\|)?/g, "")
+      // The list writes these with spaces round their bars too ("{{success |align=left |"), since October 2026.
+      .replace(/\{\{\s*(?:success|operational)\s*\|\s*(?:align\s*=\s*left\s*\|\s*)?/g, "")
       .replace(/\}\}/g, "")
       .replace(/\[\[(?:[^\]|]*\|)?([^\]]*)\]\]/g, "$1")
       .replace(/&nbsp;/g, " ")
@@ -217,13 +218,14 @@ async function nationalHeads(countries) {
     const free = [0, 1].filter((k) => spanLeft[k] === 0);
     spanLeft = spanLeft.map((n) => Math.max(0, n - 1));
     cells.forEach((cell, i) => {
-      const attrs = /^((?:\s*(?:rowspan|colspan|align|style)="[^"]*")*)\s*\|?/.exec(cell);
-      const rowspan = +(/rowspan="(\d+)"/.exec(attrs[1]) || [0, 1])[1];
-      const both = /colspan="2"/.test(attrs[1]);
+      // A cell's attributes, quoted or not: the list writes "rowspan=2" and "colspan=2" bare too, since October 2026.
+      const attrs = /^((?:\s*(?:rowspan|colspan|align|style)\s*=\s*(?:"[^"]*"|[^\s|{"]+))*)\s*\|?/.exec(cell);
+      const rowspan = +(/rowspan\s*=\s*"?(\d+)/.exec(attrs[1]) || [0, 1])[1];
+      const both = /colspan\s*=\s*"?2\b/.test(attrs[1]);
       const col = both ? 0 : free[Math.min(i, free.length - 1)] ?? 0;
       if (rowspan > 1) for (const k of both ? [0, 1] : [col]) spanLeft[k] = rowspan - 1;
       const said = plainCell(cell.slice(attrs[0].length));
-      if (said) cur.lines.push([both ? "both" : col === 0 ? "state" : "government", said, /\{\{success\|/.test(cell) ? 1 : 0]);
+      if (said) cur.lines.push([both ? "both" : col === 0 ? "state" : "government", said, /\{\{\s*success\s*\|/.test(cell) ? 1 : 0]);
     });
   }
   const kept = states.filter((s) => !s.rival && !/^European Union$|Order of Malta/.test(s.name));
@@ -371,6 +373,25 @@ async function legislaturePresidents(countries, national) {
       .map((r) => [qid(r.country), { code: r.code, name: r.countryLabel }]),
   );
   if (countries.size < 200) throw new Error(`only ${countries.size} countries were read`);
+
+  // --national re-reads the countries' own heads alone - Wikipedia's list at its revision now - into the file as it stands,
+  // as asked when leaders changed office after the full run: NATIONAL_HEADS and the list's revision in the sources are
+  // rewritten, and nothing else (the regions' heads need the full run's three records, hours of reading).
+  if (process.argv.includes("--national")) {
+    const national = await nationalHeads(countries);
+    const q = (v) => JSON.stringify(v);
+    let file = fs.readFileSync(OUT, "utf8");
+    const rows = `export const NATIONAL_HEADS: NationalRow[] = [\n${national.states.map((s) => `  ${q([s.code, s.shown, s.lat, s.lon, s.lines])},`).join("\n")}\n];`;
+    const block = /export const NATIONAL_HEADS: NationalRow\[\] = \[\n[\s\S]*?\n\];/;
+    const label = /  list: \{ label: "Wikipedia — List of current heads of state and government \(revision \d+, [\d-]+\)", url: "[^"]+" \},/;
+    if (!block.test(file) || !label.test(file)) throw new Error("the file's national heads or their source were not found: run the full build");
+    file = file
+      .replace(block, () => rows)
+      .replace(label, () => `  list: { label: "Wikipedia — List of current heads of state and government (revision ${national.revid}, ${national.timestamp.slice(0, 10)})", url: "https://en.wikipedia.org/w/index.php?title=${LIST.replace(/ /g, "_")}&oldid=${national.revid}" },`);
+    fs.writeFileSync(OUT, file);
+    console.log(`${national.states.length} states and their heads, from Wikipedia's list at revision ${national.revid} (${national.timestamp}): NATIONAL_HEADS rewritten`);
+    return;
+  }
 
   // ── 1. Every place whose record names an office and a head with no end date ──
   const rows = await cached("global.json", () =>

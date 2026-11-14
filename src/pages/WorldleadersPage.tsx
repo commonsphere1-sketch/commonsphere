@@ -6603,7 +6603,7 @@ const LEADERS: Leader[] = [
     country: "Estonia",
     countryCode: "EE",
     flag: "🇪🇪",
-    title: "President",
+    title: "Former President",
     photo:
       "https://upload.wikimedia.org/wikipedia/commons/thumb/5/57/Alar_Karis_2021_official_portrait.jpg/440px-Alar_Karis_2021_official_portrait.jpg",
     age: 65,
@@ -6623,7 +6623,7 @@ const LEADERS: Leader[] = [
     ],
     party: "Independent (non-partisan)",
     ideology: "Conservative",
-    termsInOffice: [{ from: 2021, to: "present" }],
+    termsInOffice: [{ from: 2021, to: 2026 }],
     background:
       "Geneticist and former head of the National Audit Office who became Estonia's President in 2021. A constitutional figurehead, but Estonia's presidency carries significant moral authority on democracy and Russia policy. His childhood under Soviet occupation informs his hawkish positions on Russia.",
     significantEvents: [
@@ -6649,6 +6649,11 @@ const LEADERS: Leader[] = [
         event: "Championed full EU sanctions enforcement and Ukraine NATO path",
         impact: "positive",
       },
+      {
+        year: 2026,
+        event: "Left office on 12 October 2026; succeeded by Ülle Madise",
+        impact: "neutral",
+      },
     ],
     achievements: [
       "Estonia's highest per-capita military aid contribution to Ukraine",
@@ -6658,9 +6663,46 @@ const LEADERS: Leader[] = [
     ],
     politicalViews:
       "Conservative, non-partisan. Hawkish Russia policy — views appeasement as existential threat. Strong transatlantic alliance, pro-EU integration, digital governance pioneer. Personal Soviet experience shapes his worldview.",
-    status: "In Office",
+    status: "Former",
     impact:
       "Estonia under Karis has become the EU's most per-capita committed Ukraine supporter and the global showcase for what a digital-first governance model can achieve. His moral authority on Russian aggression shapes Baltic diplomatic discourse.",
+    region: "Europe",
+  },
+  {
+    id: "madise",
+    name: "Ülle Madise",
+    country: "Estonia",
+    countryCode: "EE",
+    flag: "🇪🇪",
+    title: "President",
+    photo: "https://upload.wikimedia.org/wikipedia/commons/thumb/e/e8/Visit_of_%C3%9Clle_Madise_to_Latvia%2C_13_October_2026_-_03_%28cropped%29.jpg/500px-Visit_of_%C3%9Clle_Madise_to_Latvia%2C_13_October_2026_-_03_%28cropped%29.jpg",
+    age: 51,
+    birthYear: 1974,
+    birthPlace: "Tartu, Estonian SSR, Soviet Union",
+    education: [
+      { institution: "University of Tartu", degree: "LLB, LLM" },
+    ],
+    party: "Independent",
+    ideology: null,
+    termsInOffice: [{ from: 2026, to: "present" }],
+    background:
+      "Legal scholar who was Estonia's Chancellor of Justice from 31 March 2015, and left the post on becoming the country's seventh President on 12 October 2026, succeeding Alar Karis.",
+    significantEvents: [
+      {
+        year: 2015,
+        event: "Became Chancellor of Justice on 31 March",
+        impact: "neutral",
+      },
+      {
+        year: 2026,
+        event: "Took office as the seventh President of Estonia on 12 October",
+        impact: "neutral",
+      },
+    ],
+    achievements: [],
+    politicalViews: "",
+    status: "In Office",
+    impact: "",
     region: "Europe",
   },
   {
@@ -8619,7 +8661,7 @@ const LEADERS: Leader[] = [
     country: "Romania",
     countryCode: "RO",
     flag: "🇷🇴",
-    title: "Prime Minister",
+    title: "Former Prime Minister",
     photo: "https://upload.wikimedia.org/wikipedia/commons/thumb/c/cd/Ilie_Bolojan_%2816_April_2026%29_%28cropped%29.jpg/500px-Ilie_Bolojan_%2816_April_2026%29_%28cropped%29.jpg",
     age: 57,
     birthYear: 1969,
@@ -8630,9 +8672,9 @@ const LEADERS: Leader[] = [
     ],
     party: "National Liberal Party (PNL)",
     ideology: null,
-    termsInOffice: [{ from: 2025, to: "present" }],
+    termsInOffice: [{ from: 2025, to: 2026 }],
     background:
-      "Mayor of Oradea from 2008 to 2020 and president of Bihor County Council from 2020 to 2024. He became acting leader of the National Liberal Party and President of the Senate in late 2024, and was acting President of Romania from 12 February to 26 May 2025 after Klaus Iohannis resigned. Appointed Prime Minister by President Nicușor Dan, he was sworn in on 23 June 2025. His government lost a no-confidence vote on 5 May 2026 and he remains in office as caretaker.",
+      "Mayor of Oradea from 2008 to 2020 and president of Bihor County Council from 2020 to 2024. He became acting leader of the National Liberal Party and President of the Senate in late 2024, and was acting President of Romania from 12 February to 26 May 2025 after Klaus Iohannis resigned. Appointed Prime Minister by President Nicușor Dan, he was sworn in on 23 June 2025. His government lost a no-confidence vote on 5 May 2026, and he stayed on as caretaker until Luca Niculescu was sworn in on 20 October 2026.",
     significantEvents: [
       {
         year: 2008,
@@ -8646,7 +8688,55 @@ const LEADERS: Leader[] = [
       },
       {
         year: 2026,
-        event: "His government fell in a no-confidence vote on 5 May; he continues as caretaker",
+        event: "His government fell in a no-confidence vote on 5 May; he continued as caretaker",
+        impact: "neutral",
+      },
+      {
+        year: 2026,
+        event: "Left office on 20 October 2026; succeeded by Luca Niculescu",
+        impact: "neutral",
+      },
+    ],
+    achievements: [],
+    politicalViews: "",
+    status: "Former",
+    impact: "",
+    region: "Europe",
+  },
+  {
+    id: "niculescu",
+    name: "Luca Niculescu",
+    country: "Romania",
+    countryCode: "RO",
+    flag: "🇷🇴",
+    title: "Prime Minister",
+    photo: "https://upload.wikimedia.org/wikipedia/commons/thumb/e/e8/First_press_conference_of_PM_Luca_Niculescu_%28cropped%29.jpg/500px-First_press_conference_of_PM_Luca_Niculescu_%28cropped%29.jpg",
+    age: 55,
+    birthYear: 1971,
+    birthPlace: "Bucharest, Romania",
+    education: [
+      { institution: "University of Bucharest", degree: "" },
+      { institution: "University of Strasbourg", degree: "" },
+    ],
+    party: "",
+    ideology: null,
+    termsInOffice: [{ from: 2026, to: "present" }],
+    background:
+      "Journalist in Romanian and French media for several years, then Romania's ambassador to France, Andorra and Monaco from 2016 to 2022, and from 2022 to 2026 secretary of state in the Ministry of Foreign Affairs for Romania's accession to the OECD. Designated Prime Minister by President Nicușor Dan on 5 October 2026, he was sworn in on 20 October 2026, succeeding Ilie Bolojan.",
+    significantEvents: [
+      {
+        year: 2016,
+        event: "Became Romania's ambassador to France, Andorra and Monaco",
+        impact: "neutral",
+      },
+      {
+        year: 2022,
+        event: "Became secretary of state for Romania's accession to the OECD",
+        impact: "neutral",
+      },
+      {
+        year: 2026,
+        event: "Designated Prime Minister on 5 October; sworn in on 20 October",
         impact: "neutral",
       },
     ],

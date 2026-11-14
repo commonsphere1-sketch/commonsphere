@@ -55,7 +55,7 @@ export const LEADERS_BY_COUNTRY: Record<string, LeaderRef[]> = {
   DK: [{"id":"frederik","name":"King Frederik X","title":"King of Denmark"},{"id":"frederiksen","name":"Mette Frederiksen","title":"Prime Minister"}],
   DZ: [{"id":"tebboune","name":"Abdelmadjid Tebboune","title":"President"}],
   EC: [{"id":"noboa","name":"Daniel Noboa","title":"President"}],
-  EE: [{"id":"karis","name":"Alar Karis","title":"President"}],
+  EE: [{"id":"karis","name":"Alar Karis","title":"Former President"},{"id":"madise","name":"Ülle Madise","title":"President"}],
   EG: [{"id":"sisi","name":"Abdel Fattah el-Sisi","title":"President"}],
   ER: [{"id":"afwerki","name":"Isaias Afwerki","title":"President"}],
   ES: [{"id":"sanchez","name":"Pedro Sánchez","title":"Prime Minister"}],
@@ -131,7 +131,7 @@ export const LEADERS_BY_COUNTRY: Record<string, LeaderRef[]> = {
   PS: [{"id":"abbas","name":"Mahmoud Abbas","title":"President, Palestinian Authority"}],
   PT: [{"id":"montenegro-lu","name":"Luis Montenegro","title":"Prime Minister"}],
   QA: [{"id":"tamim","name":"Tamim bin Hamad Al Thani","title":"Emir"}],
-  RO: [{"id":"ciolacu","name":"Marcel Ciolacu","title":"Former Prime Minister"},{"id":"bolojan","name":"Ilie Bolojan","title":"Prime Minister"}],
+  RO: [{"id":"ciolacu","name":"Marcel Ciolacu","title":"Former Prime Minister"},{"id":"bolojan","name":"Ilie Bolojan","title":"Former Prime Minister"},{"id":"niculescu","name":"Luca Niculescu","title":"Prime Minister"}],
   RS: [{"id":"vucic","name":"Aleksandar Vučić","title":"Former President"},{"id":"brnabic","name":"Ana Brnabić","title":"Acting President"}],
   RU: [{"id":"putin","name":"Vladimir Putin","title":"President"}],
   RW: [{"id":"kagame","name":"Paul Kagame","title":"President"},{"id":"ngirente","name":"Édouard Ngirente","title":"Former Prime Minister"},{"id":"nsengiyumva","name":"Justin Nsengiyumva","title":"Prime Minister"}],
@@ -175,4 +175,4 @@ export const LEADERS_BY_COUNTRY: Record<string, LeaderRef[]> = {
   ZW: [{"id":"mnangagwa","name":"Emmerson Mnangagwa","title":"President"}],
 };
 
-export const LEADER_COUNT = 227;
+export const LEADER_COUNT = 229;
