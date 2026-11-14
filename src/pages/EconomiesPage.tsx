@@ -2115,7 +2115,8 @@ function ResourceCard({ resource, onOpen }: { resource: ResourceSummary; onOpen:
       type="button"
       onClick={onOpen}
       aria-label={`${resource.name} details`}
-      className="text-left w-full bg-card border border-border rounded-xl p-4 hover:border-secondary/40 transition-colors cursor-pointer flex flex-col"
+      // Plain, as asked: no bezel and no light-up (.cs-plain-card) - flat at rest, and pointed at, the regular drop shadow.
+      className="cs-plain-card text-left w-full bg-card border border-border rounded-xl p-4 hover:border-secondary/40 transition-all duration-200 cursor-pointer flex flex-col"
     >
       <div className="flex items-start justify-between gap-2 mb-2">
         <div className="min-w-0">
