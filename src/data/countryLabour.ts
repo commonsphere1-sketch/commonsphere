@@ -103,7 +103,7 @@ export const COUNTRY_LABOUR: Record<string, CountryLabour> = {
   HT: {"informal":[2012,91.6],"neet":[2012,21.1],"hours":[2012,41.9]},
   HU: {"informal":[2020,0.9],"neet":[2025,9.5],"hours":[2024,37.2],"union":[2019,8.7],"bargaining":[2019,17.8]},
   ID: {"informal":[2024,88.3],"neet":[2024,19.9],"hours":[2024,38.2],"union":[2019,13],"bargaining":[2008,10]},
-  IE: {"informal":[2025,3.4],"neet":[2025,6.4],"hours":[2024,34.2],"union":[2020,25.4],"bargaining":[2014,33.5]},
+  IE: {"informal":[2025,3.4],"neet":[2025,6.4],"hours":[2025,34.4],"union":[2020,25.4],"bargaining":[2014,33.5]},
   IL: {"neet":[2024,15.3],"hours":[2024,37.7],"union":[2017,25.1],"bargaining":[2016,28]},
   IN: {"informal":[2025,87.2],"neet":[2025,25.6],"hours":[2025,45.5],"union":[2017,19.8]},
   IQ: {"informal":[2021,67.6],"neet":[2021,36.9],"hours":[2021,31.7]},

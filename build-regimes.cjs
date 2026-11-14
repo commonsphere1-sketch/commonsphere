@@ -52,6 +52,7 @@ const cols = head.split(",");
 const at = (name) => cols.indexOf(name);
 const [iCode, iYear, iVal] = [at("code"), at("year"), at("regime_row_owid")];
 if (iCode < 0 || iYear < 0 || iVal < 0) throw new Error(`unexpected columns: ${head}`);
+const NAMES = ["Closed autocracy", "Electoral autocracy", "Electoral democracy", "Liberal democracy"];
 const latest = new Map(); // iso2 -> [regime, year]
 const skipped = new Set();
 for (const line of rows) {
@@ -66,7 +67,8 @@ for (const line of rows) {
     skipped.add(code);
     continue;
   }
-  const r = +v;
+  // Our World in Data gave the score (0-3) until late 2026, and now gives the type's name; either is read, by the order of REGIME_TYPES below.
+  const r = /^\d+$/.test(v) ? +v : NAMES.indexOf(v);
   if (![0, 1, 2, 3].includes(r)) throw new Error(`${code} ${year}: ${v}`);
   const prev = latest.get(cc);
   if (!prev || year > prev[1]) latest.set(cc, [r, year]);

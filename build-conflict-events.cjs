@@ -97,7 +97,7 @@ for (const need of ["type_of_violence", "conflict_new_id", "conflict_name", "sid
 /* ─── The Armed Conflict Dataset's type of each state-based conflict ─── */
 const acdZip = get("https://ucdp.uu.se/downloads/ucdpprio/ucdp-prio-acd-261-csv.zip", "acd-261.zip", 24 * 30);
 const acdDir = path.join(CACHE, "acd-261");
-if (!fs.existsSync(acdDir)) {
+if (!fs.existsSync(acdDir) || !fs.readdirSync(acdDir).some((f) => f.endsWith(".csv"))) {
   fs.mkdirSync(acdDir, { recursive: true });
   execFileSync("unzip", ["-o", "-q", acdZip, "-d", acdDir]);
 }

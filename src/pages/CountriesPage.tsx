@@ -11,7 +11,7 @@ import { LEADERS_BY_COUNTRY } from "../data/leaderIndex";
 import { SeeAlso } from "../components/SeeAlso";
 import { hdiTitle, hdiTone } from "../lib/hdiTier";
 import { flagColor } from "../lib/flagColor";
-import { BASES_ABROAD, BASES_HOSTED, MILITARY_BASES_SOURCE } from "../data/militaryBases";
+import { BASES_ABROAD, BASES_DISPUTED, BASES_HOSTED, BASES_IN_DISPUTED, MILITARY_BASES_SOURCE } from "../data/militaryBases";
 import { JUSTICE_OUTCOMES, JUSTICE_SOURCES, type OffenceKind } from "../data/justice";
 import { semanticColor } from "../lib/semanticColors";
 import { PlaceTopics } from "../components/PlaceTopics";
@@ -522,6 +522,8 @@ function MilitarySection({
   // The countries hosting its bases, and the countries with bases in it: Wikipedia's list (data/militaryBases).
   const abroad = BASES_ABROAD[code];
   const hosted = BASES_HOSTED[code] ?? [];
+  const disputedAbroad = BASES_DISPUTED[code] ?? [];
+  const inDisputed = BASES_IN_DISPUTED[code] ?? [];
   const countries = (k: number) => `${k} ${k === 1 ? "country" : "countries"}`;
   const figures = [
     m?.spendUSDm && { label: "Military spending", value: fmtMilUSD(m.spendUSDm.v), sub: milSub(m.spendUSDm, "current US$") },
@@ -567,8 +569,19 @@ function MilitarySection({
             sub="host countries, Wikipedia's list"
           />
           {abroad && abroad.length > 0 && <p className="text-[11px] font-sans text-muted-foreground leading-relaxed py-1.5 border-b border-border">{abroad.join(" · ")}</p>}
+          {/* Territory the list marks as disputed, headed by both flags: kept apart, and not counted as a host. */}
+          {disputedAbroad.length > 0 && (
+            <p className="text-[11px] font-sans text-muted-foreground leading-relaxed py-1.5 border-b border-border">
+              Also in territory the list marks as disputed: {disputedAbroad.join(" · ")}
+            </p>
+          )}
           <FigureRow label="Foreign bases on its soil" value={hosted.length ? `from ${countries(hosted.length)}` : "None listed"} sub="Wikipedia's list" />
           {hosted.length > 0 && <p className="text-[11px] font-sans text-muted-foreground leading-relaxed py-1.5 border-b border-border">{hosted.join(" · ")}</p>}
+          {inDisputed.length > 0 && (
+            <p className="text-[11px] font-sans text-muted-foreground leading-relaxed py-1.5 border-b border-border">
+              In territory the list marks as disputed with {name}: {inDisputed.join(" · ")}
+            </p>
+          )}
           <FigureRow label="Bases at home" value="Not published" sub="no body counts them for every country" />
         </div>
         <ChartNote className="mt-2">

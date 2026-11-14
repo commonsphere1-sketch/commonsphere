@@ -61,6 +61,8 @@ function loadCountries() {
   const abroad = {};
   const hosted = {};
   const unread = [];
+  const disputed = {}; // operator -> the disputed territories it is listed in, headed as the list heads them
+  const inDisputed = {}; // a country one side of such a dispute -> the operators listed there
   for (const part of text.split(/\n(?===[^=])/)) {
     const h = /^==\s*([^=]+?)\s*==/.exec(part);
     if (!h || NOT_SECTIONS.test(h[1])) continue;
@@ -73,6 +75,21 @@ function loadCountries() {
     for (const row of part.split(/\n\|-/).slice(1)) {
       const m = /\{\{\s*(?:flag|flagcountry|flagu)\s*\|\s*([^}|]+)/i.exec(row);
       if (!m) continue;
+      // A row the list heads with two flags and "(disputed)" - Russia's base at Sevastopol in Crimea (Ukraine / Russia), its
+      // forces on the southern Kuril Islands (Japan / Russia), in Abkhazia (Georgia / Abkhazia) - is territory in dispute, not
+      // a host that has let a foreign force in. It is kept apart, headed as the list heads it, and not counted as a host.
+      const head = (/^\s*!(.*)$/m.exec(row) || [])[1] ?? "";
+      const headFlags = [...head.matchAll(/\{\{\s*(?:flag|flagcountry|flagu)\s*\|\s*([^}|]+)/gi)].map((f) => f[1].trim());
+      if (/disputed/i.test(head) && headFlags.length > 1) {
+        const label = headFlags.join(" / ");
+        if (!(disputed[operator] ||= []).includes(label)) disputed[operator].push(label);
+        const opName = countries.find((c) => c.code === operator).name;
+        for (const f of headFlags) {
+          const fc = code(f);
+          if (fc && fc !== operator && !(inDisputed[fc] ||= []).includes(opName)) inDisputed[fc].push(opName);
+        }
+        continue;
+      }
       const host = m[1].trim();
       // An alliance or a territory that is not one of the site's places is named as the list names it.
       if (/^(NATO|EU|UN)$/i.test(host)) continue;
@@ -101,6 +118,9 @@ function loadCountries() {
  * It is a list of host countries, not a count of bases: a host may have one
  * facility or dozens. No body publishes a count of every country's bases at
  * home or a full register of those abroad, and the site does not make one.
+ *
+ * The rows the list marks as disputed territory, headed by two flags, are kept
+ * apart (BASES_DISPUTED, BASES_IN_DISPUTED) and not counted as hosts.
  */
 export const MILITARY_BASES_SOURCE = {
   label: "Wikipedia — List of countries with overseas military bases (CC BY-SA 4.0)",
@@ -119,8 +139,19 @@ ${Object.entries(abroad).map(([c, h]) => `  ${c}: ${q(h)},`).join("\n")}
 export const BASES_HOSTED: Record<string, string[]> = {
 ${Object.entries(hosted).map(([c, h]) => `  ${c}: ${q([...new Set(h)].sort())},`).join("\n")}
 };
+
+/** For a country with a section: the territories in dispute it is listed in, headed by both flags as the list heads them ("Japan / Russia"). Not hosts, and not counted as hosts. Keyed by ISO code. */
+export const BASES_DISPUTED: Record<string, string[]> = {
+${Object.entries(disputed).map(([c, d]) => `  ${c}: ${q(d)},`).join("\n")}
+};
+
+/** For a country one side of such a dispute: the countries whose forces the list places in the territory. Keyed by ISO code. */
+export const BASES_IN_DISPUTED: Record<string, string[]> = {
+${Object.entries(inDisputed).map(([c, d]) => `  ${c}: ${q(d)},`).join("\n")}
+};
 `,
   );
+  if (Object.keys(disputed).length) console.log(`  in disputed territory: ${Object.entries(disputed).map(([c, d]) => `${c}: ${d.join("; ")}`).join(" | ")}`);
   console.log(`wrote ${path.relative(__dirname, OUT)}: ${n} operating countries, ${Object.keys(hosted).length} hosts; revision ${parsed.revid}`);
   for (const [c, h] of Object.entries(abroad)) console.log(`  ${c}: ${h.length} - ${h.slice(0, 10).join(", ")}${h.length > 10 ? "…" : ""}`);
   if (unread.length) console.log(`  sections not matched to a country: ${unread.join(", ")}`);

@@ -104,16 +104,18 @@ if (lowest.length !== 10) throw new Error(`global findings: read ${lowest.length
 
 // ── The forms forced labour takes: the ILO's main figures ──
 const ilo = text(page(ILO, "ilo-forced-labour.html"));
-const [iloForcedLabour] = read("ILO figures", ilo, /([\d.]+) million people are in forced labour/, "the people in forced labour");
+// The ILO set these figures out as sentences until November 2026, and now as tiles ("27.6 million men, women and children are in
+// forced labour."); each pattern reads either wording.
+const [iloForcedLabour] = read("ILO figures", ilo, /([\d.]+) million (?:people|men, women and children) are in forced labour/, "the people in forced labour");
 const [privateEconomy, sexualExploitation, stateImposed] = read(
   "ILO figures",
   ilo,
   /Victims of forced labour include ([\d.]+) million exploited in the private sector; ([\d.]+) million in forced commercial sexual exploitation, and ([\d.]+) million in forced labour imposed by State/,
   "the forms of forced labour",
 );
-const [labourWomenPct, womenInSexual, womenInOther] = read("ILO figures", ilo, /([\d.]+)% of them are women and girls \(([\d.]+) million in forced commercial sexual exploitation, and ([\d.]+) million in other economic sectors\)/, "the women and girls in forced labour");
-const [labourChildrenPct, labourChildren] = read("ILO figures", ilo, /([\d.]+)% of them are children \(([\d.]+) million\)/, "the children in forced labour");
-const [profitsBn] = read("ILO figures", ilo, /US\$ ?([\d.]+) billion generated in illegal profits every year/, "the profits from forced labour");
+const [labourWomenPct, womenInSexual, womenInOther] = read("ILO figures", ilo, /([\d.]+)% of (?:them|people in forced labour) are women and girls \(([\d.]+) million in forced commercial sexual exploitation,? and ([\d.]+) million in other economic sectors\)/, "the women and girls in forced labour");
+const [labourChildrenPct, labourChildren] = read("ILO figures", ilo, /([\d.]+)% of (?:them|people in forced labour) are children \(([\d.]+) million\)/, "the children in forced labour");
+const [profitsBn] = read("ILO figures", ilo, /US\$ ?([\d.]+) billion (?:generated in illegal profits every year|in illegal profits is generated annually)/, "the profits from forced labour");
 const [profitsYear] = read("ILO figures", ilo, /Profits and Poverty: The Economics of Forced Labour \((\d{4})\)/, "the year of the profits report");
 // The ILO's figure and Walk Free's are the same estimate, and the three forms are its parts.
 if (iloForcedLabour !== forcedLabour) throw new Error(`the ILO gives ${iloForcedLabour} million in forced labour, Walk Free ${forcedLabour}`);
