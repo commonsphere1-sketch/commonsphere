@@ -166,7 +166,7 @@ const people = (v: number) => (v >= 1e9 ? `${(v / 1e9).toFixed(2)}bn` : v >= 1e6
 const countryFlag = (cc: string) => `https://flagcdn.com/w80/${cc.toLowerCase()}.png`;
 const COUNTRY_BY_CODE = new Map(countriesData.map((c) => [c.code, c]));
 /** A shape on the map: its name, its outline, and what a press on it does. */
-type Shape = { key: string; name: string; d: string; go: () => void; /** The colour it lights in when pointed at. */ hot: string; ref: Ref; /** Where its name is set. */ a?: Anchor };
+type Shape = { key: string; name: string; d: string; go: () => void; /** The colour it lights in when pointed at. */ hot: string; ref: Ref; /** Where its name is set. */ a?: Anchor; /** Its area on the map, unzoomed, in square units of the drawing. */ area?: number };
 /** The shades the places that share one flag are told apart by, in turn: the colour itself, lighter, darker, lighter still, darker still. */
 const STEPS = [0, 0.22, -0.18, 0.38, -0.32];
 const tint = (base: string, i: number) => shade(base, STEPS[i % STEPS.length]);
@@ -467,12 +467,12 @@ export default function PlaceAtlas() {
       off = true;
     };
   }, [showCities, cityData]);
-  /* The world's finer outlines are fetched a little before the map is close enough to draw them; its borders, with the map. Each is kept. */
+  /* The world's finer outlines and its borders are fetched with the map. Each is kept. */
   const [fineWorld, setFineWorld] = useState<Geo[] | null>(null);
   const [stateLines, setStateLines] = useState<unknown | null>(null);
   const [countyLines, setCountyLines] = useState<unknown | null>(null);
-  const near = (from: number) => onWorld && view.k >= from * 0.8;
-  const wantFiner = near(FINER_FROM) && !fineWorld;
+  // Fetched with the map, as asked: the small island countries the coarse world leaves out are drawn on it from the start.
+  const wantFiner = onWorld && !fineWorld;
   /* Every border inside the countries - states and provinces, counties and districts - fetched with the map and drawn ready, as
      the Worldview page's map has them, as asked: closing in shows the counties' lines at once, not after they are fetched. */
   const wantStates = onWorld && !stateLines;
@@ -527,7 +527,12 @@ export default function PlaceAtlas() {
   const countyInnerSets = useMemo(() => linesByCountry(countyLines, (f) => f.properties.o === 2), [countyLines, linesByCountry]);
   const countyFirstSets = useMemo(() => linesByCountry(countyLines, (f) => f.properties.o === 1), [countyLines, linesByCountry]);
   /** The world's countries as they are drawn: from the finer tracing once the map is close enough for the coarser to show its corners. */
-  const worldDrawn = onWorld && view.k >= FINER_FROM && fineWorld ? fineWorld : WORLD;
+  const isles = useMemo(() => {
+    if (!fineWorld) return [];
+    const have = new Set(WORLD.map((f) => f.properties.name));
+    return fineWorld.filter((f) => !have.has(f.properties.name) && f.properties.name !== "Antarctica");
+  }, [fineWorld]);
+  const worldDrawn = onWorld && fineWorld ? (view.k >= FINER_FROM ? fineWorld : [...WORLD, ...isles]) : WORLD;
 
   /* The world, drawn closer, is pressed by smaller places: the states and provinces of the countries in view, then their
      counties and districts. Which, is the order the map is close enough for and the press is on; the countries in view
@@ -688,7 +693,7 @@ export default function PlaceAtlas() {
       return {
         shapes: features.flatMap((f, i): Shape[] => {
           const d = path(f as never);
-          return d ? [{ key: `${f.id ?? ""}-${i}`, name: name(f), d, go: go(f, i), hot: hot(f, i), ref: ref(f), a: anchorOf(path, f) }] : [];
+          return d ? [{ key: `${f.id ?? ""}-${i}`, name: name(f), d, go: go(f, i), hot: hot(f, i), ref: ref(f), a: anchorOf(path, f), area: path.area(f as never) }] : [];
         }),
         project: (lon: number, lat: number) => projection([lon, lat]),
         lines: "",
@@ -1279,7 +1284,7 @@ export default function PlaceAtlas() {
                 fill={inkOf(s.ref)}
                 stroke={inkOf(s.ref)}
                 // Finer where the shapes are counties or districts: there are thousands of them.
-                strokeWidth={(onSecond ? 0.45 : 0.9) / view.k}
+                strokeWidth={(onSecond ? 0.45 : level.kind === "world" && (s.area ?? Infinity) * view.k * view.k < 12 ? 1.6 : 0.9) / view.k}
                 strokeOpacity={onSecond ? 0.75 : 1}
                 strokeLinejoin="round"
                 onClick={s.go}
