@@ -359,8 +359,9 @@ function Compass({ data, from, to, country, today }: { data: History; from: numb
         onClick={() => setOpen(true)}
         disabled={!points.length}
         // A light grey when pointed at in the light theme, a faint white in the dark one, as the Dashboard's compass bar, as asked;
-        // and the World Leaders cards' hover, as asked - no bezel and no light-up (.cs-plain-card), a slight lift and a drop shadow.
-        className="cs-plain-card modal-tile rounded-xl px-4 py-3 mb-4 w-full text-left flex items-center gap-4 cursor-pointer disabled:cursor-default transition-all duration-200 enabled:hover:bg-black/[0.02] dark:enabled:hover:bg-white/[0.04] enabled:hover:scale-[1.01] enabled:hover:shadow-lg"
+        // and the World Leaders cards' hover, as asked - no light-up (.cs-plain-card), a slight lift and a drop shadow - with the
+        // thin bezel every other container has, as asked: the sheen along its top (.cs-bezel) over the tile's fine edge.
+        className="cs-plain-card cs-bezel modal-tile rounded-xl px-4 py-3 mb-4 w-full text-left flex items-center gap-4 cursor-pointer disabled:cursor-default transition-all duration-200 enabled:hover:bg-black/[0.02] dark:enabled:hover:bg-white/[0.04] enabled:hover:scale-[1.01] enabled:hover:shadow-lg"
         aria-label={points.length ? `Open ${label}` : `${country} on the political compass: not held for these years`}
       >
         <span className="w-24 shrink-0 text-foreground">{points.length ? <CompassPlot dots={dotsOf(points)} label={label} path tag={{ key: last.y, text: String(last.y) }} /> : null}</span>

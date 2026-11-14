@@ -1032,6 +1032,19 @@ html:is(.dark, .light) button.cs-plain-card:is(.rounded-xl, .rounded-2xl):hover:
     0 10px 15px -3px rgb(0 0 0 / 0.1),
     0 4px 6px -4px rgb(0 0 0 / 0.1) !important;
 }
+/* A plain card with the thin bezel every other container has (.cs-bezel) - the
+   two political compass bars, as asked: the sheen along its top (--card-glow, as
+   the containers around it have) at rest, and kept under the drop shadow when
+   pointed at; still no light-up. */
+html:is(.dark, .light) button.cs-plain-card.cs-bezel:is(.rounded-xl, .rounded-2xl) {
+  box-shadow: var(--card-glow) !important;
+}
+html:is(.dark, .light) button.cs-plain-card.cs-bezel:is(.rounded-xl, .rounded-2xl):hover:not(:disabled) {
+  box-shadow:
+    var(--card-glow),
+    0 10px 15px -3px rgb(0 0 0 / 0.1),
+    0 4px 6px -4px rgb(0 0 0 / 0.1) !important;
+}
 
 /* ── Dropdown panels ──────────────────────────────────────
    The same transparent glass as the modals (.modal-glass), as asked: a

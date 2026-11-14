@@ -57,10 +57,12 @@ export function CompassLedger() {
       <button
         type="button"
         onClick={() => setOpen(true)}
-        // No frame, as asked: the bar sits on the page, and lights when pointed at.
-        // A light grey when pointed at in the light theme, a faint white in the dark one, as asked; and the World Leaders cards'
-        // hover, as asked - no bezel and no light-up (.cs-plain-card), a slight lift and a drop shadow.
-        className="cs-plain-card rounded-2xl p-5 w-full text-left flex items-center gap-5 cursor-pointer transition-all duration-200 hover:bg-black/[0.02] dark:hover:bg-white/[0.04] hover:scale-[1.01] hover:shadow-lg"
+        // Framed as the containers around it are, as asked (it had been frameless, as asked before).
+        // The thin bezel every other container has, as asked: the card's ground and fine edge (the cardTokens' cardBg and
+        // cardBorder) and the sheen along its top (.cs-bezel). A light grey when pointed at in the light theme, a faint white in
+        // the dark one, as asked; and the World Leaders cards' hover, as asked - no light-up (.cs-plain-card), a slight lift and
+        // a drop shadow.
+        className="cs-plain-card cs-bezel rounded-2xl p-5 w-full text-left flex items-center gap-5 cursor-pointer transition-all duration-200 border border-black/[0.09] dark:border-white/[0.14] bg-white dark:bg-white/[0.04] hover:bg-[#fafafa] dark:hover:bg-white/[0.08] hover:scale-[1.01] hover:shadow-lg"
         aria-label="Open the political compass: every idea on its grid, and what each part means"
       >
         <span className="w-28 shrink-0 text-foreground">
