@@ -93,7 +93,7 @@ export function SeriesRows({ rows }: { rows: CsvCell[][] }) {
   return null;
 }
 
-/** A panel: its heading in capitals, a line beside it, and what it holds - as tall as the others in its row - with the figures its charts draw downloadable from its heading. */
+/** A panel: its heading in capitals, a line beside it, and what it holds - as tall as the others in its row - with the figures its charts draw downloadable from its heading. Three to a row from a tablet's width up, as the modal face cards are, as asked; two on a small screen, one on a phone. */
 export function Panel({ t, title, meta, children, className = "" }: { t: Tokens; title: string; meta?: string; children: ReactNode; className?: string }) {
   const [held, setHeld] = useState<Record<string, CsvCell[][]>>({});
   const set = useCallback((key: string, rows: CsvCell[][] | null) => setHeld((h) => {
@@ -109,9 +109,10 @@ export function Panel({ t, title, meta, children, className = "" }: { t: Tokens;
   if (empty(children)) return null;
   const rows = Object.values(held).flat();
   return (
-    <section className={`rounded-xl flex flex-col min-w-0 grow basis-full md:basis-[calc(50%-0.375rem)] xl:basis-[calc(33.333%-0.5rem)] ${className}`} style={{ background: t.cardBg, border: t.cardBorder }}>
-      <div className="flex items-baseline gap-2 px-3.5 pt-3 pb-2 border-b" style={{ borderColor: t.gridLine }}>
-        <h3 className="text-[10px] font-mono uppercase tracking-widest flex-1 min-w-0 truncate" style={{ color: t.headText }}>
+    <section className={`rounded-xl flex flex-col min-w-0 grow basis-full sm:basis-[calc(50%-0.375rem)] md:basis-[calc(33.333%-0.5rem)] ${className}`} style={{ background: t.cardBg, border: t.cardBorder }}>
+      {/* Where the heading and what is beside it do not fit on one line - three to a row - the line beside it drops under the heading, which is not cut short. */}
+      <div className="flex flex-wrap items-baseline gap-x-2 gap-y-0.5 px-3.5 pt-3 pb-2 border-b" style={{ borderColor: t.gridLine }}>
+        <h3 className="text-[10px] font-mono uppercase tracking-widest grow min-w-0 truncate" style={{ color: t.headText }}>
           {title}
         </h3>
         {meta && (
@@ -926,7 +927,7 @@ export default function CountryFigures({ code, name }: { code: string; name: str
 
       {/* ── Security, crime and justice ── */}
       <Section t={t} id="place-security" title="Security, crime and justice" kicker="how safe, how lawful, who is held">
-        <Panel t={t} title="Crime by type" meta="recorded by the police, per 100,000 people" className="md:!basis-full xl:!basis-full">
+        <Panel t={t} title="Crime by type" meta="recorded by the police, per 100,000 people" className="sm:!basis-full md:!basis-full xl:!basis-full">
           {crimeGroups.length ? (
             <>
               <div className="grid grid-cols-1 md:grid-flow-col md:auto-cols-fr gap-x-6 gap-y-4">
@@ -958,7 +959,7 @@ export default function CountryFigures({ code, name }: { code: string; name: str
           )}
         </Panel>
         {/* The width of its row and first in the section, above crime by type, as asked: its figures side by side. */}
-        <Panel t={t} title="Stability and the rule of law" meta={security?.ruleOfLaw ? `World Bank · ${security.ruleOfLaw.y}` : undefined} className="md:!basis-full xl:!basis-full order-first">
+        <Panel t={t} title="Stability and the rule of law" meta={security?.ruleOfLaw ? `World Bank · ${security.ruleOfLaw.y}` : undefined} className="sm:!basis-full md:!basis-full xl:!basis-full order-first">
           {security?.stability || security?.ruleOfLaw ? (
             <>
               <div className="grid grid-cols-1 md:grid-cols-[minmax(0,1fr)_minmax(0,1fr)_auto] gap-x-8 gap-y-3 items-center">
@@ -979,7 +980,7 @@ export default function CountryFigures({ code, name }: { code: string; name: str
             <None t={t}>No governance scores are held for {name}.</None>
           )}
         </Panel>
-        <Panel t={t} title="Through the courts" meta={justice ? `UNODC · ${justice.y}` : undefined} className="md:!basis-full xl:!basis-full">
+        <Panel t={t} title="Through the courts" meta={justice ? `UNODC · ${justice.y}` : undefined} className="sm:!basis-full md:!basis-full xl:!basis-full">
           {justice ? (
             <>
               <Bars
@@ -1024,7 +1025,7 @@ export default function CountryFigures({ code, name }: { code: string; name: str
             <None t={t}>No figures of conflict or refuge are held for {name}.</None>
           )}
         </Panel>
-        <Panel t={t} title="Its law" meta="legal system, and what is illegal, restricted and legal" className="md:!basis-full xl:!basis-full">
+        <Panel t={t} title="Its law" meta="legal system, and what is illegal, restricted and legal" className="sm:!basis-full md:!basis-full xl:!basis-full">
           {/* The UK Foreign Office's "What's legal" list stood here under the longer one; it was taken off, as asked (AdviceLists, in LawAdvice). */}
           {legal ? (
             <>
@@ -1054,7 +1055,7 @@ export default function CountryFigures({ code, name }: { code: string; name: str
             </>
           )}
         </Panel>
-        <Panel t={t} title="Surveillance of the public" meta={watch ? `V-Dem · ${watch.y}` : undefined} className="md:!basis-full xl:!basis-full">
+        <Panel t={t} title="Surveillance of the public" meta={watch ? `V-Dem · ${watch.y}` : undefined} className="sm:!basis-full md:!basis-full xl:!basis-full">
           {watch ? (
             <>
               <Bars
@@ -1079,7 +1080,7 @@ export default function CountryFigures({ code, name }: { code: string; name: str
             <None t={t}>V-Dem gives no estimate of surveillance for {name}.</None>
           )}
         </Panel>
-        <Panel t={t} title="Freedom and rights" meta={fr ? `Freedom House · ${fr[0]}` : rights ? "V-Dem" : undefined} className="md:!basis-full xl:!basis-full">
+        <Panel t={t} title="Freedom and rights" meta={fr ? `Freedom House · ${fr[0]}` : rights ? "V-Dem" : undefined} className="sm:!basis-full md:!basis-full xl:!basis-full">
           {fr || rights ? (
             <>
               {fr && (
@@ -1205,7 +1206,7 @@ export default function CountryFigures({ code, name }: { code: string; name: str
 
       {/* ── Standing and the world ── */}
       <Section t={t} id="place-standing" title="Standing, relations and the world" kicker="how it is ranked, and whom it is allied with">
-        <Panel t={t} title="Official indexes" meta={`${indexRows.length} held`} className="md:!basis-full xl:!basis-full">
+        <Panel t={t} title="Official indexes" meta={`${indexRows.length} held`} className="sm:!basis-full md:!basis-full xl:!basis-full">
           {indexRows.length ? (
             <>
               <Bars
@@ -1225,7 +1226,7 @@ export default function CountryFigures({ code, name }: { code: string; name: str
             <None t={t}>No published index scores are held for {name}.</None>
           )}
         </Panel>
-        <Panel t={t} title="Alliances and blocs" meta={`${blocs.length} the site holds`} className="md:!basis-full xl:!basis-full order-last">
+        <Panel t={t} title="Alliances and blocs" meta={`${blocs.length} the site holds`} className="sm:!basis-full md:!basis-full xl:!basis-full order-last">
           {blocs.length ? (
             <>
               {/* Each grouping by its kind, and each body described: what it is, its founding, seat and members, and - on a press - what it is working on and what it has done. */}

@@ -79,7 +79,7 @@ function Space({ t }: { t: Tokens }) {
     <section id="space-race" className="scroll-mt-36 flex flex-col gap-3">
       <Head t={t} title="The space race" kicker="who is launching, how often, and what they put up" />
       <Row>
-        <Panel t={t} title="Orbital launches a year" meta={`GCAT · ${recent[0][0]}–${LAUNCHES_PARTIAL_YEAR}`} className="md:!basis-full xl:!basis-[calc(66.666%-0.25rem)]">
+        <Panel t={t} title="Orbital launches a year" meta={`GCAT · ${recent[0][0]}–${LAUNCHES_PARTIAL_YEAR}`} className="sm:!basis-full md:!basis-full xl:!basis-[calc(66.666%-0.25rem)]">
           <ResponsiveContainer width="100%" height={200}>
             <BarChart data={recent.map(([y, total, , spacex]) => ({ y: String(y), spacex, others: total - spacex }))} margin={{ top: 6, right: 6, left: 0, bottom: 0 }} barCategoryGap="28%">
               <defs>
@@ -228,7 +228,7 @@ function NamedList({ t, title, meta, groups, note, sources, filter }: { t: Token
   const shown = needle ? list.filter((r) => `${r.name} ${r.sub ?? ""} ${r.line}`.toLowerCase().includes(needle)) : list;
   const thisYear = new Date().getFullYear();
   return (
-    <Panel t={t} title={title} meta={`${meta} · ${year}${year === thisYear ? " so far" : ""}`} className="md:!basis-full xl:!basis-full">
+    <Panel t={t} title={title} meta={`${meta} · ${year}${year === thisYear ? " so far" : ""}`} className="sm:!basis-full md:!basis-full xl:!basis-full">
       <div className="flex flex-wrap items-center gap-1.5">
         {groups.map((g) => (
           <button key={g.year} type="button" onClick={() => setYear(g.year)} aria-pressed={year === g.year} className={`px-3 py-1 rounded-full text-[11px] font-medium font-sans border transition-colors cursor-pointer ${year === g.year ? "chip-selected" : "bg-transparent border-border text-muted-foreground hover:text-foreground hover:bg-muted/60"}`}>
@@ -481,7 +481,7 @@ function AI({ t }: { t: Tokens }) {
     <section id="ai-frontier" className="scroll-mt-36 flex flex-col gap-3">
       <Head t={t} title="Artificial intelligence" kicker="how much computing the largest systems are trained with, and who builds them" />
       <Row>
-        <Panel t={t} title="The largest training run each year" meta={`petaFLOP · ${first[0]}–${last[0]}`} className="md:!basis-full xl:!basis-[calc(66.666%-0.25rem)]">
+        <Panel t={t} title="The largest training run each year" meta={`petaFLOP · ${first[0]}–${last[0]}`} className="sm:!basis-full md:!basis-full xl:!basis-[calc(66.666%-0.25rem)]">
           <LogSeries t={t} id="fr-ai" rows={full.map(([y, , v]) => [y, v])} fmt={sci} color={INK[3]} />
           <Note t={t}>
             The most computation used to train any notable AI system in each year, on a scale of powers of ten: {first[1]} in {first[0]}, {sci(first[2])} petaFLOP; {last[1]} in {last[0]}, {sci(last[2])} - about {sci(last[2] / first[2])} times as
@@ -624,7 +624,7 @@ function Military({ t }: { t: Tokens }) {
     <section id="military-tech" className="scroll-mt-36 flex flex-col gap-3">
       <Head t={t} title="Military technology" kicker="the most powerful weapons states hold, as the open record counts them" />
       <Row>
-        <Panel t={t} title="Nuclear warheads" meta={`stockpiles · ${NUCLEAR_WARHEADS.year}`} className="md:!basis-full xl:!basis-[calc(66.666%-0.25rem)]">
+        <Panel t={t} title="Nuclear warheads" meta={`stockpiles · ${NUCLEAR_WARHEADS.year}`} className="sm:!basis-full md:!basis-full xl:!basis-[calc(66.666%-0.25rem)]">
           <SlimBars labelWidth="7rem" rows={NUCLEAR_WARHEADS.rows.map(([n, a, b, c], i) => ({ key: n, label: n, v: a + b + c, color: INK[(i + 4) % INK.length], tip: `${n}: ${whole(a)} deployed strategic, ${whole(b)} deployed non-strategic, ${whole(c)} in reserve` }))} fmt={whole} />
           <Note t={t}>
             Each state's stockpile - deployed and in reserve, not those retired and awaiting dismantlement - as the Federation of American Scientists estimates it: {whole(total)} in all, added here. The exact numbers are secret; these are its
@@ -702,7 +702,7 @@ function ObjectivePanel({ t, k, title, color, n = 8, wide = false }: { t: Tokens
   const list = objective(k).slice(0, n);
   if (!list.length) return null;
   return (
-    <Panel t={t} title={title} meta="government R&D budgets · US$ at PPP" className={wide ? "md:!basis-full xl:!basis-[calc(66.666%-0.25rem)]" : undefined}>
+    <Panel t={t} title={title} meta="government R&D budgets · US$ at PPP" className={wide ? "sm:!basis-full md:!basis-full xl:!basis-[calc(66.666%-0.25rem)]" : undefined}>
       <SlimBars labelWidth="6.5rem" rows={list.map((r, i) => ({ key: r.name, label: r.name, v: r.v, color: INK[(i + color) % INK.length], tip: `${r.name}: ${usdM(r.v)} in ${r.year}, ${r.share.toFixed(1)}% of its research budget (worked out here)` }))} fmt={usdM} />
       <Note t={t}>
         What each government set aside for research and development with this aim, as it reports it to the OECD, in its latest year ({[...new Set(list.map((r) => r.year))].sort().join(", ")}). Dollars at purchasing power parity,
@@ -722,7 +722,7 @@ function Satellites({ t }: { t: Tokens }) {
       <Head t={t} title="Satellites" kicker="how many are launched each year and by whom, what is working in space, whose it is, and what it does" />
       {/* The satellites launched, as asked: each year, whose they were and what for - above what the working ones do. */}
       <Row>
-        <Panel t={t} title="Satellites launched each year" meta={`payloads · GCAT · ${L.series[0][0]}–${L.lastFull}`} className="md:!basis-full xl:!basis-[calc(66.666%-0.25rem)]">
+        <Panel t={t} title="Satellites launched each year" meta={`payloads · GCAT · ${L.series[0][0]}–${L.lastFull}`} className="sm:!basis-full md:!basis-full xl:!basis-[calc(66.666%-0.25rem)]">
           <Tiles
             t={t}
             items={[
@@ -753,7 +753,7 @@ function Satellites({ t }: { t: Tokens }) {
         </Panel>
       </Row>
       <Row>
-        <Panel t={t} title="Satellites and probes working" meta={`GCAT · ${w[0][0]}–${s.updated.slice(0, 4)}`} className="md:!basis-full xl:!basis-[calc(66.666%-0.25rem)]">
+        <Panel t={t} title="Satellites and probes working" meta={`GCAT · ${w[0][0]}–${s.updated.slice(0, 4)}`} className="sm:!basis-full md:!basis-full xl:!basis-[calc(66.666%-0.25rem)]">
           <Tiles
             t={t}
             items={[
@@ -864,7 +864,7 @@ function Budgets({ t }: { t: Tokens }) {
           </Note>
           <Foot sources={[FRONTIER2_SOURCES.gbard]} />
         </Panel>
-        <Panel t={t} title={`What ${b.name}'s is for`} meta={`by objective · ${b.year}`} className="md:!basis-full xl:!basis-[calc(66.666%-0.25rem)]">
+        <Panel t={t} title={`What ${b.name}'s is for`} meta={`by objective · ${b.year}`} className="sm:!basis-full md:!basis-full xl:!basis-[calc(66.666%-0.25rem)]">
           <div className="flex flex-wrap gap-1.5">
             {RD_BUDGETS.slice(0, 10).map((r) => (
               <button
@@ -906,7 +906,7 @@ function Materials({ t }: { t: Tokens }) {
     <section id="materials" className="scroll-mt-36 flex flex-col gap-3">
       <Head t={t} title="Materials science" kicker="the new materials the Nobel committees named, and what one of them now costs" />
       <Row>
-        <Panel t={t} title="Materials that won a Nobel Prize" meta="chemistry and physics" className="md:!basis-full xl:!basis-[calc(66.666%-0.25rem)]">
+        <Panel t={t} title="Materials that won a Nobel Prize" meta="chemistry and physics" className="sm:!basis-full md:!basis-full xl:!basis-[calc(66.666%-0.25rem)]">
           <ul className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-2.5">
             {MATERIAL_PRIZES.map(([y, f, who, why]) => (
               <li key={`${y}-${f}`} className="flex flex-col gap-0.5 pl-2 border-l-2" style={{ borderColor: f === "Physics" ? INK[0] : INK[1] }}>
@@ -965,7 +965,7 @@ function Physics({ t }: { t: Tokens }) {
     <section id="physics" className="scroll-mt-36 flex flex-col gap-3">
       <Head t={t} title="Physics" kicker="the discoveries the Nobel committee named, and the experiments at the edge" />
       <Row>
-        <Panel t={t} title="The Nobel Prize in Physics" meta={`${prizes[prizes.length - 1]?.[0]}–${prizes[0]?.[0]}`} className="md:!basis-full xl:!basis-[calc(66.666%-0.25rem)]">
+        <Panel t={t} title="The Nobel Prize in Physics" meta={`${prizes[prizes.length - 1]?.[0]}–${prizes[0]?.[0]}`} className="sm:!basis-full md:!basis-full xl:!basis-[calc(66.666%-0.25rem)]">
           <ul className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-2.5">
             {prizes.map(([y, , who, why]) => (
               <li key={y} className="flex flex-col gap-0.5 pl-2 border-l-2" style={{ borderColor: INK[0] }}>
@@ -1110,7 +1110,7 @@ function EngineeredLife({ t }: { t: Tokens }) {
           <ProjectCard key={p.name} t={t} p={p} color={INK[(i + 2) % INK.length]} />
         ))}
         {prizes.length > 0 && (
-          <Panel t={t} title="The tools, and their Nobel Prizes" meta="chemistry" className="md:!basis-full xl:!basis-full">
+          <Panel t={t} title="The tools, and their Nobel Prizes" meta="chemistry" className="sm:!basis-full md:!basis-full xl:!basis-full">
             <ul className="grid grid-cols-1 md:grid-cols-3 gap-x-6 gap-y-2.5">
               {prizes.map(([y, , who, why]) => (
                 <li key={y} className="flex flex-col gap-0.5 pl-2 border-l-2" style={{ borderColor: INK[1] }}>

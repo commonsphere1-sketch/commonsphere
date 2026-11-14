@@ -101,7 +101,7 @@ export default function CountryDashboard({ code, name }: { code: string; name: s
       </div>
 
 
-      {/* Three across on a wide screen, two on a middling one; a panel with nothing held is left out, and a row with fewer widens them to fill it. */}
+      {/* Three across from a tablet's width up, as asked, two on a small screen; a panel with nothing held is left out, and a row with fewer widens them to fill it. */}
       <div className="flex flex-wrap gap-3 items-stretch">
         <Panel t={t} title="GDP, year by year" meta={gdp.length ? `current US$ · ${gdp[0].year}–${gdp[gdp.length - 1].year}` : undefined}>
           {gdp.length > 1 ? (
