@@ -110,6 +110,12 @@ async function qlever(name, query) {
   }
   return JSON.parse(fs.readFileSync(file, "utf8")).results.bindings;
 }
+/** A query over a long list of Wikidata items, asked in batches - QLever's server refuses one that names thousands at once (HTTP 500) - each batch kept by itself. */
+async function qleverEach(name, ids, query, size = 400) {
+  const rows = [];
+  for (let i = 0; i < ids.length; i += size) rows.push(...(await qlever(`${name}-${i / size}.json`, query(ids.slice(i, i + size).map((q) => `wd:${q}`).join(" ")))));
+  return rows;
+}
 
 (async () => {
   await syncClock();
@@ -242,10 +248,11 @@ async function qlever(name, query) {
     if (b.party) orgs.add(b.party.value.split("/").pop());
     if (!b.human) orgs.add(b.w.value.split("/").pop());
   }
-  const orgRows = await qlever(
-    "winner-orgs.json",
-    `SELECT ?o ?ideo ?align WHERE {
-  VALUES ?o { ${[...orgs].map((q) => `wd:${q}`).join(" ")} }
+  const orgRows = await qleverEach(
+    "winner-orgs",
+    [...orgs].sort(),
+    (values) => `SELECT ?o ?ideo ?align WHERE {
+  VALUES ?o { ${values} }
   OPTIONAL { ?o wdt:P1142 ?i . ?i rdfs:label ?ideo . FILTER(LANG(?ideo) = "en") }
   OPTIONAL { ?o wdt:P1387 ?a . ?a rdfs:label ?align . FILTER(LANG(?align) = "en") }
 }`,
@@ -267,7 +274,13 @@ async function qlever(name, query) {
       const w = b.w.value.split("/").pop();
       const key = `${e}|${w}`;
       const x = by.get(key) ?? { e, w, name: b.wName.value, human: Boolean(b.human), parties: new Map() };
-      if (b.party) x.parties.set(b.party.value.split("/").pop(), { name: b.partyName.value, from: b.pStart?.value?.slice(0, 10), to: b.pEnd?.value?.slice(0, 10) });
+      // Every spell of a party's membership is kept, as for the leaders below: only one was, so a winner who had left a party and come back could be given none.
+      if (b.party) {
+        const pid = b.party.value.split("/").pop();
+        const p = x.parties.get(pid) ?? { name: b.partyName.value, spells: [] };
+        p.spells.push({ from: b.pStart?.value?.slice(0, 10), to: b.pEnd?.value?.slice(0, 10) });
+        x.parties.set(pid, p);
+      }
       by.set(key, x);
     }
     for (const x of by.values()) {
@@ -276,7 +289,7 @@ async function qlever(name, query) {
       let partyId = null;
       if (x.human) {
         const all = [...x.parties.entries()];
-        const dated = all.filter(([, p]) => (!p.from || p.from <= date) && (!p.to || p.to >= date) && (p.from || p.to));
+        const dated = all.filter(([, p]) => p.spells.some((s) => (!s.from || s.from <= date) && (!s.to || s.to >= date) && (s.from || s.to)));
         partyId = dated.length === 1 ? dated[0][0] : all.length === 1 ? all[0][0] : null;
       }
       const org = x.human ? partyId : x.w;
@@ -325,29 +338,36 @@ async function qlever(name, query) {
     return (nowHeads.get(cc) ?? []).some((h) => h.length > 1 && (h.every((w) => words.includes(w)) || words.every((w) => h.includes(w))));
   };
   const leaderIds = [...new Set(leaderRows.map((b) => b.person.value.split("/").pop()))];
-  const partyRows = await qlever(
-    "leader-parties.json",
-    `SELECT ?person ?party ?partyName ?pStart ?pEnd ?align WHERE {
-  VALUES ?person { ${leaderIds.map((q) => `wd:${q}`).join(" ")} }
+  const partyRows = await qleverEach(
+    "leader-parties",
+    [...leaderIds].sort(),
+    (values) => `SELECT ?person ?party ?partyName ?pStart ?pEnd ?align WHERE {
+  VALUES ?person { ${values} }
   ?person p:P102 ?ps . ?ps ps:P102 ?party . ?party rdfs:label ?partyName . FILTER(LANG(?partyName) = "en")
   OPTIONAL { ?ps pq:P580 ?pStart } OPTIONAL { ?ps pq:P582 ?pEnd }
   OPTIONAL { ?party wdt:P1387 ?a . ?a rdfs:label ?align . FILTER(LANG(?align) = "en") }
 }`,
   );
+  /* Each party a person belonged to, with every spell of membership Wikidata records - a person who left a party and came
+     back has two statements of it (Donald Trump's Republican Party: 1987 to 1999, 2009 to 2011, and since 2012), and each
+     spell is kept: only the first was, and a term in the later ones found no party. */
   const partiesOf = new Map();
   for (const b of partyRows) {
     const id = b.person.value.split("/").pop();
     const pid = b.party.value.split("/").pop();
     const m = partiesOf.get(id) ?? new Map();
-    const p = m.get(pid) ?? { name: b.partyName.value, from: b.pStart?.value?.slice(0, 10), to: b.pEnd?.value?.slice(0, 10), align: new Set() };
+    const p = m.get(pid) ?? { name: b.partyName.value, spells: new Map(), align: new Set() };
+    const from = b.pStart?.value?.slice(0, 10);
+    const to = b.pEnd?.value?.slice(0, 10);
+    p.spells.set(`${from ?? ""}|${to ?? ""}`, { from, to });
     if (b.align) p.align.add(b.align.value);
     m.set(pid, p);
     partiesOf.set(id, m);
   }
-  /** A leader's party at a day: the one whose dates take it in, or the person's one party. */
+  /** A leader's party at a day: the one with a dated spell of membership that takes it in, or the person's one party. */
   const partyAt = (id, day) => {
     const all = [...(partiesOf.get(id)?.values() ?? [])];
-    const dated = all.filter((p) => (p.from || p.to) && (!p.from || p.from <= day) && (!p.to || p.to >= day));
+    const dated = all.filter((p) => [...p.spells.values()].some((s) => (s.from || s.to) && (!s.from || s.from <= day) && (!s.to || s.to >= day)));
     const p = dated.length === 1 ? dated[0] : all.length === 1 ? all[0] : null;
     return p ? { party: p.name, ...(p.align.size ? { align: [...p.align].sort().join(", ") } : {}) } : null;
   };
