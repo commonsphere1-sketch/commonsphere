@@ -1187,14 +1187,14 @@ export default function CountryFigures({ code, name }: { code: string; name: str
         <Panel t={t} title="How its land is used" meta={land ? `% of land · ${land.y}` : undefined}>
           {land ? (
             <>
-              <Stack
+              <Ring
                 t={t}
-                parts={[
+                slices={[
                   { name: "Forest", v: land.forest, color: INK[1] },
                   { name: "Cropland", v: land.cropland, color: INK[2] },
                   { name: "Pasture", v: land.pasture, color: INK[7] },
                   { name: "Other", v: land.other, color: INK[9] },
-                ]}
+                ].filter((s) => s.v > 0)}
               />
               <Foot sources={[LAND_USE_SOURCE]} />
             </>
