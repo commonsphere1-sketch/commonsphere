@@ -27,6 +27,7 @@ import {
   ChartDonut,
 } from "@phosphor-icons/react";
 import { FilterBar } from "../components/FilterBar";
+import { useTokens } from "../lib/cardTokens";
 import { STATE_ENERGY } from "../data/stateEnergy";
 import { HeadlinesBanner, ALL_TOPICS, namesPlace, pickWhere } from "../components/HeadlinesBanner";
 
@@ -1510,6 +1511,8 @@ function ComparePicker({
   selectedIds: string[];
   onAdd: (id: string) => void;
 }) {
+  /** The Dashboard Compare card's accent, which this panel is drawn to resemble: powder blue, or blue in the light theme. */
+  const COMPARE_ACCENT = useTokens().powder;
   const [q, setQ] = useState("");
   const [open, setOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
@@ -1584,8 +1587,6 @@ function ComparePicker({
   );
 }
 
-/** The Dashboard compare card's accent, which this panel is drawn to resemble. */
-const COMPARE_ACCENT = "#6366f1";
 /** The dot beside each indicator, and the colour its best figure takes, in the order the rows run - as the Dashboard's card colours its metrics. */
 const COMPARE_COLORS = ["#6366f1", "#8b5cf6", "#10b981", "#3b82f6", "#f59e0b", "#ef4444", "#06b6d4", "#a855f7", "#84cc16", "#ec4899", "#14b8a6", "#f97316"];
 
@@ -1614,6 +1615,8 @@ function ComparisonPanel({
   onRemove: (id: string) => void;
   onClear: () => void;
 }) {
+  /** The Dashboard Compare card's accent, which this panel is drawn to resemble: powder blue, or blue in the light theme. */
+  const COMPARE_ACCENT = useTokens().powder;
   /* A measure nobody in the pool publishes — homelessness, since HUD's counts
      could not be fetched and there is no comparable international series —
      would only ever be a row of N/A, so it is not drawn. Nor is one that none
@@ -1754,7 +1757,7 @@ function ComparisonPanel({
                 // measure, so its size is the pool.
                 const poolSize = ranks?.size ?? 0;
                 return (
-                  <div key={m.id} className={`grid ${ri % 2 === 1 ? "bg-muted/20" : ""} ${ri < rows.length - 1 ? "border-b border-border" : ""}`} style={{ gridTemplateColumns: cols }}>
+                  <div key={m.id} className={`grid ${ri < rows.length - 1 ? "border-b border-border" : ""}`} style={{ gridTemplateColumns: cols }}>
                     <div className="px-3 py-2.5 flex items-start gap-2 border-r border-border min-w-0">
                       <div className="w-1.5 h-1.5 rounded-full shrink-0 mt-1" style={{ background: color }} />
                       <div className="min-w-0">

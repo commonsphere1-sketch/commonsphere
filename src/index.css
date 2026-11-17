@@ -1506,10 +1506,14 @@ html.light .modal-tabs.modal-tabs.modal-tabs.modal-tabs {
 
 /* The comparison table's row of flags and names (Rankings) stays at the head
    of the table's own frame as its metrics are scrolled. It needs a ground
-   that hides what passes under it: the page's, with the faint tint a table
-   head has. */
+   that hides what passes under it: the card's own, made solid - no grey band,
+   as asked, as the Dashboard's Compare table has none. In the dark theme the
+   card is the page with 3.2% white over it (--color-card); in the light, white. */
 .compare-head {
-  background: color-mix(in srgb, var(--color-foreground) 7%, var(--color-background));
+  background: color-mix(in srgb, #ffffff 3.2%, var(--color-background));
+}
+html.light .compare-head {
+  background: var(--color-card);
 }
 
 /* ── A window's title bar ─────────────────────────────────
