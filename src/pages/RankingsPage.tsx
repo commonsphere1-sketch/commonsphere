@@ -27,7 +27,6 @@ import {
   ChartDonut,
 } from "@phosphor-icons/react";
 import { FilterBar } from "../components/FilterBar";
-import { useTokens } from "../lib/cardTokens";
 import { STATE_ENERGY } from "../data/stateEnergy";
 import { HeadlinesBanner, ALL_TOPICS, namesPlace, pickWhere } from "../components/HeadlinesBanner";
 
@@ -1511,8 +1510,6 @@ function ComparePicker({
   selectedIds: string[];
   onAdd: (id: string) => void;
 }) {
-  /** The Dashboard Compare card's accent, which this panel is drawn to resemble: powder blue, or blue in the light theme. */
-  const COMPARE_ACCENT = useTokens().powder;
   const [q, setQ] = useState("");
   const [open, setOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
@@ -1541,7 +1538,7 @@ function ComparePicker({
   return (
     <div className="relative" ref={ref}>
       {/* The dashed "add" pill of the Dashboard's compare card, with the search in it. */}
-      <div className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl" style={{ background: COMPARE_ACCENT + "12", border: `1px dashed ${COMPARE_ACCENT}55`, color: COMPARE_ACCENT }}>
+      <div className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl border border-dashed border-border text-muted-foreground">
         <MagnifyingGlass size={11} weight="bold" className="shrink-0" />
         <input
           value={q}
@@ -1615,8 +1612,6 @@ function ComparisonPanel({
   onRemove: (id: string) => void;
   onClear: () => void;
 }) {
-  /** The Dashboard Compare card's accent, which this panel is drawn to resemble: powder blue, or blue in the light theme. */
-  const COMPARE_ACCENT = useTokens().powder;
   /* A measure nobody in the pool publishes — homelessness, since HUD's counts
      could not be fetched and there is no comparable international series —
      would only ever be a row of N/A, so it is not drawn. Nor is one that none
@@ -1639,14 +1634,14 @@ function ComparisonPanel({
       {/* Head: the icon, the name and what it holds, as on the Dashboard's card. */}
       <div className="px-5 py-3.5 border-b border-border">
         <div className="flex items-center gap-2.5 flex-wrap">
-          <div className="w-7 h-7 rounded-lg flex items-center justify-center shrink-0" style={{ background: COMPARE_ACCENT + "12", border: `1px solid ${COMPARE_ACCENT}22` }}>
-            <ChartDonut size={13} weight="fill" style={{ color: COMPARE_ACCENT }} />
+          <div className="w-7 h-7 rounded-lg flex items-center justify-center shrink-0 bg-muted/60 text-foreground">
+            <ChartDonut size={13} weight="fill" />
           </div>
           <span className="text-sm font-bold font-sans text-foreground">Compare</span>
-          <span className="text-[10px] font-bold font-mono px-2.5 py-1 rounded-lg" style={{ background: COMPARE_ACCENT + "18", color: COMPARE_ACCENT }}>
+          <span className="text-[10px] font-bold font-mono px-2.5 py-1 rounded-full border border-border text-foreground">
             Countries &amp; US States
           </span>
-          <span className="text-[10px] font-mono px-2 py-0.5 rounded-full tabular-nums" style={{ background: COMPARE_ACCENT + "14", color: COMPARE_ACCENT }}>
+          <span className="text-[10px] font-mono px-2 py-0.5 rounded-full tabular-nums border border-border text-muted-foreground">
             up to {COMPARE_MAX}
           </span>
           {/* The toggle between the card's two views: the same pinned places, on their figures or on how they are governed. */}
@@ -1682,8 +1677,7 @@ function ComparisonPanel({
           {selected.map((r) => (
             <div
               key={r.id}
-              className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl text-[11px] font-semibold font-sans text-foreground"
-              style={{ background: COMPARE_ACCENT + "12", border: `1px solid ${COMPARE_ACCENT}30` }}
+              className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl text-[11px] font-semibold font-sans text-foreground border border-border"
             >
               <EntityFlag row={r} imgClassName="w-4 h-3 rounded-[2px] object-cover border border-border shrink-0" iconSize={8} />
               <span className="truncate max-w-[9rem]">{r.name}</span>

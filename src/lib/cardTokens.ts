@@ -1,9 +1,9 @@
 import { useTheme } from "../contexts/ThemeContext";
 
-/** The accent of a card's furniture - its icon tile, count pill, tabs, chips and "All … →" link - where it was purple: CSS
- *  powderblue in the dark theme, and in the light the blue of the headlines' wash (Tailwind blue-600, lib/blueHue), as
- *  asked, which reads on white (5.2:1). */
-export const powderBlue = (isLight: boolean) => (isLight ? "#2563eb" : "#b0e0e6");
+/** The accent of a card's furniture - its icon tile, count pill, tabs, chips and "All … →" link: black and white, as asked,
+ *  as on the other pages - the ink of the cards' headings (headText below), black in the light theme and white in the dark.
+ *  It was purple, then powder blue and the headlines' blue. */
+export const cardAccent = (isLight: boolean) => (isLight ? "#0f172a" : "#f1f0ff");
 
 /** The site's card colours, light and dark: the cards, their text, their grid lines and tooltips - one set for every chart card. */
 export function useTokens() {
@@ -20,8 +20,8 @@ export function useTokens() {
     gridLine: isLight ? "rgba(0,0,0,0.06)" : "rgba(255,255,255,0.12)",
     tile: isLight ? "rgba(0,0,0,0.03)" : "rgba(255,255,255,0.04)",
     tooltipBg: isLight ? "#ffffff" : "#1a1730",
-    /** A card's accent: its icon, badge and links. */
-    powder: powderBlue(isLight),
+    /** A card's accent: its icon, badge and links - the headings' ink. */
+    accent: cardAccent(isLight),
   };
 }
 export type Tokens = ReturnType<typeof useTokens>;

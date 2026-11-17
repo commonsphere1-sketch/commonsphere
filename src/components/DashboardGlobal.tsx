@@ -45,7 +45,7 @@ import { SourceLink } from "./SourceLink";
 import { SLIM_TRACK, slimFill } from "./SlimBars";
 
 type Source = { label: string; url: string };
-// The card's accent - its icon, badge and link - is powder blue, as asked: t.powder (lib/cardTokens).
+// The card's accent - its icon, badge and link - is the headings' ink, black and white, as asked: t.accent (lib/cardTokens).
 const GREEN = "#10b981";
 const RED = "#ef4444";
 
@@ -363,17 +363,17 @@ export function GlobalAnalytics() {
     <div className="rounded-2xl p-5" style={{ background: t.cardBg, border: t.cardBorder, boxShadow: t.cardShadow }}>
       <div className="flex items-center justify-between mb-4">
         <div className="flex items-center gap-2 min-w-0">
-          <span style={{ color: t.powder }}>
+          <span style={{ color: t.accent }}>
             <GlobeHemisphereWest size={16} weight="fill" />
           </span>
           <h2 className="text-base font-bold font-sans" style={{ color: t.headText }}>
             Global &amp; Geopolitical Analytics
           </h2>
-          <span className="text-[10px] font-mono px-2 py-0.5 rounded-full" style={{ background: t.powder + "15", color: t.powder }}>
+          <span className="text-[10px] font-mono px-2 py-0.5 rounded-full border border-border text-muted-foreground">
             World
           </span>
         </div>
-        <button type="button" onClick={() => navigate("/dashboard/worldview")} className="flex items-center gap-1 text-[11px] font-semibold transition-opacity hover:opacity-70 cursor-pointer shrink-0" style={{ color: t.powder }}>
+        <button type="button" onClick={() => navigate("/dashboard/worldview")} className="flex items-center gap-1 text-[11px] font-semibold transition-opacity hover:opacity-70 cursor-pointer shrink-0" style={{ color: t.accent }}>
           Worldview <ArrowRight size={11} weight="bold" />
         </button>
       </div>

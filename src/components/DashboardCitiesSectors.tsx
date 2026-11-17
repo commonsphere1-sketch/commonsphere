@@ -63,21 +63,22 @@ export function Card({ t, children, className = "" }: { t: Tokens; children: Rea
   );
 }
 
-export function Head({ t, icon, label, badge, color, cta, to }: { t: Tokens; icon: ReactNode; label: string; badge: string; color: string; /** The link to the page with the rest, where there is one. */ cta?: string; to?: string }) {
+/** A Dashboard card's head: its icon, name, badge and link, in black and white as the other pages have them, as asked - the
+ *  icon and link in the headings' ink, the badge an outlined chip with muted writing (as the Economies page's currency
+ *  converter). `color` is the card's own, for its charts and rows; the head no longer takes it. */
+export function Head({ t, icon, label, badge, cta, to }: { t: Tokens; icon: ReactNode; label: string; badge: string; color: string; /** The link to the page with the rest, where there is one. */ cta?: string; to?: string }) {
   const navigate = useNavigate();
   return (
     <div className="flex items-center justify-between mb-4">
       <div className="flex items-center gap-2 min-w-0">
-        <span style={{ color }}>{icon}</span>
+        <span style={{ color: t.headText }}>{icon}</span>
         <h2 className="text-base font-bold font-sans" style={{ color: t.headText }}>
           {label}
         </h2>
-        <span className="text-[10px] font-mono px-2 py-0.5 rounded-full" style={{ background: color + "15", color }}>
-          {badge}
-        </span>
+        <span className="text-[10px] font-mono px-2 py-0.5 rounded-full border border-border text-muted-foreground">{badge}</span>
       </div>
       {cta && to && (
-        <button type="button" onClick={() => navigate(to)} className="flex items-center gap-1 text-[11px] font-semibold transition-opacity hover:opacity-70 cursor-pointer shrink-0" style={{ color }}>
+        <button type="button" onClick={() => navigate(to)} className="flex items-center gap-1 text-[11px] font-semibold transition-opacity hover:opacity-70 cursor-pointer shrink-0" style={{ color: t.headText }}>
           {cta} <ArrowRight size={11} weight="bold" />
         </button>
       )}

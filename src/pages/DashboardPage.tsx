@@ -38,10 +38,10 @@ const EnergyOutlook = lazy(() => import("../components/EnergyOutlook"));
 /** The map to any place - a country, its divisions, a US state's counties - with the boundary files it draws: loaded after the page. */
 const PlaceAtlas = lazy(() => import("../components/PlaceAtlas"));
 import { WORLD } from "../data/worldview";
-import { powderBlue } from "../lib/cardTokens";
+import { cardAccent } from "../lib/cardTokens";
 
-/** The accent of a card's furniture, powder blue where it was purple, as asked (lib/cardTokens). */
-const POWDER = powderBlue;
+/** The accent of a card's furniture: the headings' ink, black and white, as asked (lib/cardTokens). */
+const ACCENT = cardAccent;
 
 /**
  * Slides a doubled track leftwards for ever, wrapping at its halfway point.
@@ -205,10 +205,9 @@ function CountryCarousel({
       >
         <div className="flex items-center gap-2.5">
           <div
-            className="w-7 h-7 rounded-lg flex items-center justify-center shrink-0"
-            style={{ background: POWDER(isLight) + "12", border: `1px solid ${POWDER(isLight)}22` }}
+            className="w-7 h-7 rounded-lg flex items-center justify-center shrink-0 bg-muted/60 text-foreground"
           >
-            <Globe size={13} weight="fill" style={{ color: POWDER(isLight) }} />
+            <Globe size={13} weight="fill" />
           </div>
           <span
             className="text-sm font-bold font-sans"
@@ -217,8 +216,7 @@ function CountryCarousel({
             Countries
           </span>
           <span
-            className="text-[10px] font-mono px-2 py-0.5 rounded-full"
-            style={{ background: POWDER(isLight) + "14", color: POWDER(isLight) }}
+            className="text-[10px] font-mono px-2 py-0.5 rounded-full border border-border text-muted-foreground"
           >
             {sorted.length} tracked
           </span>
@@ -226,7 +224,7 @@ function CountryCarousel({
         <button
           onClick={() => onNav("/dashboard/countries")}
           className="flex items-center gap-1 text-[10px] font-semibold transition-opacity hover:opacity-70"
-          style={{ color: POWDER(isLight) }}
+          style={{ color: ACCENT(isLight) }}
         >
           All Countries <ArrowRight size={10} weight="bold" />
         </button>
@@ -524,10 +522,9 @@ function StatesCarousel({
       >
         <div className="flex items-center gap-2.5">
           <div
-            className="w-7 h-7 rounded-lg flex items-center justify-center shrink-0"
-            style={{ background: "#3b82f612", border: "1px solid #3b82f622" }}
+            className="w-7 h-7 rounded-lg flex items-center justify-center shrink-0 bg-muted/60 text-foreground"
           >
-            <MapTrifold size={13} weight="fill" style={{ color: "#3b82f6" }} />
+            <MapTrifold size={13} weight="fill" />
           </div>
           <span
             className="text-sm font-bold font-sans"
@@ -536,8 +533,7 @@ function StatesCarousel({
             US States
           </span>
           <span
-            className="text-[10px] font-mono px-2 py-0.5 rounded-full"
-            style={{ background: "#3b82f614", color: "#3b82f6" }}
+            className="text-[10px] font-mono px-2 py-0.5 rounded-full border border-border text-muted-foreground"
           >
             {sorted.length} tracked
           </span>
@@ -545,7 +541,7 @@ function StatesCarousel({
         <button
           onClick={() => onNav("/dashboard/states")}
           className="flex items-center gap-1 text-[10px] font-semibold transition-opacity hover:opacity-70"
-          style={{ color: "#3b82f6" }}
+          style={{ color: headText }}
         >
           All States <ArrowRight size={10} weight="bold" />
         </button>
@@ -949,8 +945,8 @@ function CompareCountriesTool({
   bodyText: string;
   onNav: (path: string) => void;
 }) {
-  // The card's furniture - tabs, chips, "Add", "Full explorer" - powder blue for both tabs, as asked; the metrics keep their own colours.
-  const accent = POWDER(isLight);
+  // The card's furniture - tabs, chips, "Add", "Full explorer" - in the headings' ink for both tabs, as asked; the metrics keep their own colours.
+  const accent = ACCENT(isLight);
   const stateAccent = accent;
 
   const [tab, setTab] = useState<"countries" | "states">("countries");
@@ -1050,22 +1046,6 @@ function CompareCountriesTool({
   };
 
   const curAccent = tab === "countries" ? accent : stateAccent;
-  const pillBg =
-    tab === "countries"
-      ? isLight
-        ? "rgba(99,102,241,0.07)"
-        : "rgba(99,102,241,0.12)"
-      : isLight
-        ? "rgba(59,130,246,0.07)"
-        : "rgba(59,130,246,0.12)";
-  const pillBorder =
-    tab === "countries"
-      ? isLight
-        ? "rgba(99,102,241,0.22)"
-        : "rgba(99,102,241,0.28)"
-      : isLight
-        ? "rgba(59,130,246,0.22)"
-        : "rgba(59,130,246,0.28)";
 
   return (
     <div
@@ -1079,13 +1059,9 @@ function CompareCountriesTool({
       >
         <div className="flex items-center gap-2.5">
           <div
-            className="w-7 h-7 rounded-lg flex items-center justify-center shrink-0"
-            style={{
-              background: curAccent + "12",
-              border: `1px solid ${curAccent}22`,
-            }}
+            className="w-7 h-7 rounded-lg flex items-center justify-center shrink-0 bg-muted/60 text-foreground"
           >
-            <ChartDonut size={13} weight="fill" style={{ color: curAccent }} />
+            <ChartDonut size={13} weight="fill" />
           </div>
           <span
             className="text-sm font-bold font-sans"
@@ -1104,16 +1080,9 @@ function CompareCountriesTool({
                 onClick={() => setTab(t)}
                 className="px-2.5 py-1 text-[10px] font-bold font-mono transition-all"
                 style={{
-                  background:
-                    tab === t
-                      ? (t === "countries" ? accent : stateAccent) + "18"
-                      : "transparent",
-                  color:
-                    tab === t
-                      ? t === "countries"
-                        ? accent
-                        : stateAccent
-                      : mutedText,
+                  // The tab chosen is solid ink, as a chosen chip is (chip-selected); the other is muted.
+                  background: tab === t ? "var(--color-foreground)" : "transparent",
+                  color: tab === t ? "var(--color-background)" : mutedText,
                   borderRight:
                     t === "countries" ? `1px solid ${gridLine}` : "none",
                 }}
@@ -1123,8 +1092,7 @@ function CompareCountriesTool({
             ))}
           </div>
           <span
-            className="text-[10px] font-mono px-2 py-0.5 rounded-full tabular-nums"
-            style={{ background: curAccent + "14", color: curAccent }}
+            className="text-[10px] font-mono px-2 py-0.5 rounded-full tabular-nums border border-border text-muted-foreground"
           >
             up to 4
           </span>
@@ -1158,11 +1126,7 @@ function CompareCountriesTool({
                 <div
                   key={c.id}
                   className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl text-[11px] font-semibold font-sans"
-                  style={{
-                    background: accent + "12",
-                    border: `1px solid ${accent}30`,
-                    color: headText,
-                  }}
+                  style={{ border: "1px solid var(--color-border)", color: headText }}
                 >
                   <span className="text-sm leading-none">
                     {(c as any).flag ?? c.code}
@@ -1184,11 +1148,7 @@ function CompareCountriesTool({
                   <button
                     onClick={() => setCountryDropOpen((v) => !v)}
                     className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl text-[11px] font-semibold transition-all hover:opacity-80"
-                    style={{
-                      background: pillBg,
-                      border: `1px dashed ${pillBorder}`,
-                      color: accent,
-                    }}
+                    style={{ border: "1px dashed var(--color-border)", color: mutedText }}
                   >
                     <MagnifyingGlass size={11} weight="bold" />
                     Add country
@@ -1506,18 +1466,11 @@ function CompareCountriesTool({
                 <div
                   key={s.id}
                   className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl text-[11px] font-semibold font-sans"
-                  style={{
-                    background: stateAccent + "12",
-                    border: `1px solid ${stateAccent}30`,
-                    color: headText,
-                  }}
+                  style={{ border: "1px solid var(--color-border)", color: headText }}
                 >
                   <span
                     className="text-[10px] font-mono font-bold px-1 rounded"
-                    style={{
-                      background: stateAccent + "20",
-                      color: stateAccent,
-                    }}
+                    style={{ color: mutedText }}
                   >
                     {s.abbreviation}
                   </span>
@@ -1538,11 +1491,7 @@ function CompareCountriesTool({
                   <button
                     onClick={() => setStateDropOpen((v) => !v)}
                     className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl text-[11px] font-semibold transition-all hover:opacity-80"
-                    style={{
-                      background: pillBg,
-                      border: `1px dashed ${pillBorder}`,
-                      color: stateAccent,
-                    }}
+                    style={{ border: "1px dashed var(--color-border)", color: mutedText }}
                   >
                     <MagnifyingGlass size={11} weight="bold" />
                     Add state

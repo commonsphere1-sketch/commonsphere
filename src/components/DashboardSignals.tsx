@@ -288,8 +288,8 @@ const SHOWN = 10;
 export function CountryLeaders() {
   const t = useTokens();
   const navigate = useNavigate();
-  // The card's accent - its icon, badge, bars and links - powder blue, as asked.
-  const color = t.powder;
+  // The card's accent - its icon, badge, bars and links - the headings' ink, black and white, as asked.
+  const color = t.accent;
   const [id, setId] = useState<MeasureId>("gdpPerCapita");
   // Which end of the order is shown. One list, so the card is the same height at any width.
   const [end, setEnd] = useState<"highest" | "lowest">("highest");
