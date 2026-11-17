@@ -135,7 +135,8 @@ function rowsOf(group, title, wikitext) {
       if (found.scientific >= 0 && found.left >= 0) at = { name: found.name >= 0 ? found.name : 0, scientific: found.scientific, left: found.left };
       continue;
     }
-    const status = (row.match(/\{\{\s*IUCN[ -]?(?:status\s*\|\s*)?(CR|EN)\b/i) || [])[1];
+    // The lists give the category as {{IUCN status|CR}}, {{IUCN-CR}} or, since late 2026, {{IUCN cell|CR}}.
+    const status = (row.match(/\{\{\s*IUCN[ -]?(?:(?:status|cell)\s*\|\s*)?(CR|EN)\b/i) || [])[1];
     if (!status) continue;
     const cells = row
       .replace(/^[\s|]+/, "")
@@ -200,7 +201,8 @@ async function categories(names) {
     else if (cats.size !== 1 || !cats.has(r.status)) dropped.differs++;
     else kept.push(r);
   }
-  if (kept.length < 100) throw new Error(`only ${kept.length} species agree: a list or the query has changed`);
+  if (kept.length < 100)
+    throw new Error(`only ${kept.length} species agree, of ${listed.length} the lists give (${dropped.none} with no category on Wikidata, ${dropped.differs} with another): a list or the query has changed - lists read: ${read.map((l) => `${l.title} ${l.rows}`).join(", ")}`);
   kept.sort((a, b) => a.low - b.low || a.name.localeCompare(b.name));
   const today = new Date().toISOString().slice(0, 10);
   const lists = read.filter((l) => l.revision !== null);
