@@ -1,5 +1,9 @@
 import { useTheme } from "../contexts/ThemeContext";
 
+/** The accent of a card's furniture - its icon tile, count pill, tabs, chips and "All … →" link - powder blue where it was
+ *  purple: CSS powderblue in the dark theme, and in the light a deeper powder blue that reads on white (4.8:1). */
+export const powderBlue = (isLight: boolean) => (isLight ? "#3f7a8a" : "#b0e0e6");
+
 /** The site's card colours, light and dark: the cards, their text, their grid lines and tooltips - one set for every chart card. */
 export function useTokens() {
   const { theme } = useTheme();
@@ -15,6 +19,8 @@ export function useTokens() {
     gridLine: isLight ? "rgba(0,0,0,0.06)" : "rgba(255,255,255,0.12)",
     tile: isLight ? "rgba(0,0,0,0.03)" : "rgba(255,255,255,0.04)",
     tooltipBg: isLight ? "#ffffff" : "#1a1730",
+    /** A card's accent: its icon, badge and links. */
+    powder: powderBlue(isLight),
   };
 }
 export type Tokens = ReturnType<typeof useTokens>;

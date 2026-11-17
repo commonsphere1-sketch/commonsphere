@@ -38,6 +38,10 @@ const EnergyOutlook = lazy(() => import("../components/EnergyOutlook"));
 /** The map to any place - a country, its divisions, a US state's counties - with the boundary files it draws: loaded after the page. */
 const PlaceAtlas = lazy(() => import("../components/PlaceAtlas"));
 import { WORLD } from "../data/worldview";
+import { powderBlue } from "../lib/cardTokens";
+
+/** The accent of a card's furniture, powder blue where it was purple, as asked (lib/cardTokens). */
+const POWDER = powderBlue;
 
 /**
  * Slides a doubled track leftwards for ever, wrapping at its halfway point.
@@ -202,9 +206,9 @@ function CountryCarousel({
         <div className="flex items-center gap-2.5">
           <div
             className="w-7 h-7 rounded-lg flex items-center justify-center shrink-0"
-            style={{ background: "#6366f112", border: "1px solid #6366f122" }}
+            style={{ background: POWDER(isLight) + "12", border: `1px solid ${POWDER(isLight)}22` }}
           >
-            <Globe size={13} weight="fill" style={{ color: "#6366f1" }} />
+            <Globe size={13} weight="fill" style={{ color: POWDER(isLight) }} />
           </div>
           <span
             className="text-sm font-bold font-sans"
@@ -214,7 +218,7 @@ function CountryCarousel({
           </span>
           <span
             className="text-[10px] font-mono px-2 py-0.5 rounded-full"
-            style={{ background: "#6366f114", color: "#6366f1" }}
+            style={{ background: POWDER(isLight) + "14", color: POWDER(isLight) }}
           >
             {sorted.length} tracked
           </span>
@@ -222,7 +226,7 @@ function CountryCarousel({
         <button
           onClick={() => onNav("/dashboard/countries")}
           className="flex items-center gap-1 text-[10px] font-semibold transition-opacity hover:opacity-70"
-          style={{ color: "#6366f1" }}
+          style={{ color: POWDER(isLight) }}
         >
           All Countries <ArrowRight size={10} weight="bold" />
         </button>
@@ -945,8 +949,9 @@ function CompareCountriesTool({
   bodyText: string;
   onNav: (path: string) => void;
 }) {
-  const accent = "#6366f1";
-  const stateAccent = "#3b82f6";
+  // The card's furniture - tabs, chips, "Add", "Full explorer" - powder blue for both tabs, as asked; the metrics keep their own colours.
+  const accent = POWDER(isLight);
+  const stateAccent = accent;
 
   const [tab, setTab] = useState<"countries" | "states">("countries");
 
