@@ -2469,7 +2469,10 @@ export function DashboardPage() {
         {/* The political compass, as asked: the legend of its grid - what each part means and the ideas it is read by. */}
         <CompassLedger />
 
-        {/* ── HEADLINE COUNTS: counted from the site's own data. They were typed in - "195 countries",
+        {/* ── INTERACTIVE DATA PANEL (standalone full-width) ─────────────── */}
+        <DataExplorer />
+
+        {/* ── HEADLINE COUNTS, below the Data Explorer as asked: counted from the site's own data. They were typed in - "195 countries",
             "42 active conflicts, 3 escalating", "1,200+ policies, +48 this month" - and matched nothing the site held. ── */}
         <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
           {[
@@ -2520,9 +2523,6 @@ export function DashboardPage() {
             </div>
           ))}
         </div>
-
-        {/* ── INTERACTIVE DATA PANEL (standalone full-width) ─────────────── */}
-        <DataExplorer />
 
         {/* The Trends & Projections desk stood here and was removed as asked; its energy panel is kept, lower on the
             page under the sectors and commodities. */}
