@@ -54,11 +54,15 @@ function curl(args, name) {
   if (fs.existsSync(file) && fs.statSync(file).size > 0 && Date.now() - fs.statSync(file).mtimeMs < 20 * 3600e3) return fs.readFileSync(file);
   for (let attempt = 1; ; attempt++) {
     try {
-      execFileSync("curl", ["-s", "-L", "--fail", "--max-time", "300", "-o", file, ...args], { stdio: "inherit" });
+      // Compressed: QLever's longest answers (5 MB) were cut short in transit; a tenth the size, they come whole.
+      execFileSync("curl", ["-s", "-L", "--fail", "--compressed", "--max-time", "300", "-o", file, ...args], { stdio: "inherit" });
       return fs.readFileSync(file);
     } catch (e) {
-      if (attempt >= 3) throw e;
+      // QLever now and then closes a long answer before its end (curl's 18, a partial transfer): asked again, a few
+      // seconds on, it comes whole.
+      if (attempt >= 6) throw e;
       console.log(`  retrying ${name}`);
+      execFileSync(process.execPath, ["-e", "setTimeout(() => {}, 5000)"]);
     }
   }
 }
@@ -279,10 +283,19 @@ async function main() {
   }
   console.log(`  ${items.size} items in all`);
   const M = `VALUES ?root { ${roots.map((r) => "wd:" + r).join(" ")} } ?i wdt:P31 ?cls . ?cls wdt:P279* ?root .`;
+  // Each question about the items is asked one root class at a time: QLever runs out of time asking it of all of them at
+  // once (November 2026). An item filed under two roots comes back twice; each row of an answer is taken once.
   const each = (label, q, fn) => {
-    for (const r of sparql(label, q)) {
-      const it = items.get(qid(r.i));
-      if (it) fn(it, r);
+    if (q.split(M).length !== 2) throw new Error(`${label}: the query does not name the items once`);
+    const seen = new Set();
+    for (const root of roots) {
+      for (const r of sparql(`${label}-${root}`, q.replace(M, `?i wdt:P31 ?cls . ?cls wdt:P279* wd:${root} .`))) {
+        const one = JSON.stringify(r);
+        if (seen.has(one)) continue;
+        seen.add(one);
+        const it = items.get(qid(r.i));
+        if (it) fn(it, r);
+      }
     }
   };
   // Class names, and the most particular class of each item (the one with fewest members).
@@ -429,7 +442,8 @@ async function main() {
     zip = curl(["https://ucdp.uu.se/downloads/ucdpprio/ucdp-prio-acd-251-csv.zip"], "acd-251.zip");
   }
   const dir = path.join(CACHE, `acd-${acdVersion}`);
-  if (!fs.existsSync(dir)) {
+  // Unzipped again where an earlier run left the folder without its table.
+  if (!fs.existsSync(dir) || !fs.readdirSync(dir).some((f) => f.endsWith(".csv"))) {
     fs.mkdirSync(dir, { recursive: true });
     execFileSync("unzip", ["-o", "-q", path.join(CACHE, `acd-${acdVersion.replace(".", "")}.zip`), "-d", dir]);
   }
