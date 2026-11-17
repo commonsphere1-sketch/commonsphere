@@ -77,7 +77,10 @@ async function getJson(url, accept = "application/json") {
   }
 }
 const WP = "https://en.wikipedia.org/w/api.php?format=json&formatversion=2";
-const sparql = (query) => getJson("https://query.wikidata.org/sparql?format=json&query=" + encodeURIComponent(query), "application/sparql-results+json");
+// Wikidata's own query service now times out on these (504, November 2026); QLever answers the same SPARQL over the same
+// data in seconds, given the prefixes the query service supplies of itself.
+const PREFIXES = "PREFIX wd: <http://www.wikidata.org/entity/>\nPREFIX wdt: <http://www.wikidata.org/prop/direct/>\n";
+const sparql = (query) => getJson("https://qlever.dev/api/wikidata?query=" + encodeURIComponent(PREFIXES + query), "application/sparql-results+json");
 const qidOf = (uri) => uri.split("/").pop();
 
 /** Each title's article and Wikidata item, following redirects; a title with no article, or a disambiguation page, has none. */
