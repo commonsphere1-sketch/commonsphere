@@ -124,6 +124,13 @@ function Atlas({ code: above, country: aboveName, division, color: aboveColor, c
     window.clearTimeout(countyTimer.current);
     countyTimer.current = window.setTimeout(() => setCounty(i), 350);
   };
+  /** A press on one on the map above picks it at once, as asked, and brings the county map into view if it is not. */
+  const countyCard = useRef<HTMLDivElement>(null);
+  const pickCounty = (i: number) => {
+    window.clearTimeout(countyTimer.current);
+    setCounty(i);
+    window.requestAnimationFrame(() => countyCard.current?.scrollIntoView({ block: "nearest", behavior: "smooth" }));
+  };
   const firstCounty = useMemo(() => {
     const top = within?.rows[0];
     const i = counties && top ? counties.findIndex((l) => placesWithin(l, [top]).length > 0) : -1;
@@ -206,6 +213,7 @@ function Atlas({ code: above, country: aboveName, division, color: aboveColor, c
           parts={second?.lines}
           onPart={second ? (i) => navigate(second.open(i)) : undefined}
           onPartPoint={counties ? pointCounty : undefined}
+          onPartPick={counties ? pickCounty : undefined}
           dots={dots}
           color={ink}
           label={`${s.name}, with ${second && second.lines.length > 1 ? `its ${second.lines.length} ${second.are} and ` : ""}${dots.length} of the places listed in it`}
@@ -217,7 +225,7 @@ function Atlas({ code: above, country: aboveName, division, color: aboveColor, c
       {shapes.length > 0 && (
         <p className="text-[10px] font-sans text-muted-foreground leading-snug mt-2">
           {s.name} as the site's maps draw it{bare !== null ? " - an outline the maps hold with no record of its own on the site, so it has no window; the places are those whose point falls inside it" : ""}
-          {second && second.lines.length > 1 ? `, with the borders of its ${second.lines.length} ${second.are}: draw the map closer to point at one, and press it to open its window` : ", with no finer borders held for it"}
+          {second && second.lines.length > 1 ? `, with the borders of its ${second.lines.length} ${second.are}: point at one, or press it, and it is drawn in the map below, where its own window opens` : ", with no finer borders held for it"}
           {dots.length ? `. The dots are ${within!.rows.length > dots.length ? `the ${dots.length} largest of the ${whole(within!.rows.length)}` : `the ${dots.length}`} places GeoNames lists in it: press one to open it` : ""}. Nothing is shaded
           by a figure - the colour is {own ? `${country}'s, from its flag` : `the one ${colorOf ? s.name : country} has on the map above`}. This map follows the ones above - point at a country, a state or a province there and it is drawn here - and its menus reach any country, any of its divisions, and every municipality of the one drawn.
         </p>
@@ -258,7 +266,7 @@ function Atlas({ code: above, country: aboveName, division, color: aboveColor, c
 
     {/* ── The fourth map: one county or district of the division above, with the places inside it ── */}
     {second && counties && countyLine && ci !== null && (
-      <div className="rounded-2xl p-4 mb-6" style={card}>
+      <div ref={countyCard} className="rounded-2xl p-4 mb-6 scroll-mt-24" style={card}>
         <div className="flex items-start justify-between gap-3 mb-3 flex-wrap">
           <div>
             <p className="text-[10px] font-mono uppercase tracking-widest text-secondary">
@@ -303,7 +311,7 @@ function Atlas({ code: above, country: aboveName, division, color: aboveColor, c
           {countyDots.length
             ? `. The dots are ${countyRows.length > countyDots.length ? `the ${countyDots.length} largest of the ${whole(countyRows.length)}` : `the ${countyDots.length}`} places GeoNames lists in ${s.name} whose point falls inside it: press one to open it`
             : `. None of the places GeoNames lists in ${s.name} has its point inside it`}
-          . Nothing is shaded by a figure - the colour is the one above. This map follows that one - draw it closer and point at a {one}, and it is drawn here - and its menus reach every {one} of {s.name} and every municipality of the one drawn.
+          . Nothing is shaded by a figure - the colour is the one above. This map follows that one - point at a {one} there, or press it, and it is drawn here - and its menus reach every {one} of {s.name} and every municipality of the one drawn.
         </p>
         <div className="mt-3 flex flex-wrap gap-1.5">
           {countyRows.length > 0 && (

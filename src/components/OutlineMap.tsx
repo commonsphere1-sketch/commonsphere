@@ -70,6 +70,7 @@ export function OutlineMap({
   parts,
   onPart,
   onPartPoint,
+  onPartPick,
   dots = [],
   mark,
   color,
@@ -104,6 +105,8 @@ export function OutlineMap({
   onPart?: (i: number) => void;
   /** Told which of them is pointed at, by its place in `parts`: the Maps page's county map draws the county pointed at on the state map. */
   onPartPoint?: (i: number) => void;
+  /** What a press on one of them does where it picks it rather than opening its window - the Maps page's county map draws the one picked. Given it, they can be pointed at and pressed at any distance, not only once the map is drawn closer. */
+  onPartPick?: (i: number) => void;
   dots?: MapDot[];
   /** The one place the window is about, where it is a point and not an outline. */
   mark?: MapDot;
@@ -218,7 +221,7 @@ export function OutlineMap({
     };
   }, [shapes, inner, dots, mark, slides, groups, onSlide]);
   /* The places inside, each with its outline, its middle and where it lies: worked out when the map is first drawn close enough for them. */
-  const wantParts = (view.k >= PARTS_FROM || Boolean(partFillOf)) && Boolean(parts?.length);
+  const wantParts = (view.k >= PARTS_FROM || Boolean(partFillOf) || Boolean(onPartPick)) && Boolean(parts?.length);
   const partPaths = useMemo(() => {
     if (!wantParts || !drawn || !parts) return [];
     return parts.flatMap((s, i) => {
@@ -277,7 +280,7 @@ export function OutlineMap({
   const tip =
     said ??
     (litPartPath && litPartPath.name && Number.isFinite(litPartPath.cx)
-      ? { x: litPartPath.cx, y: litPartPath.cy, name: litPartPath.name, figure: partFigureOf?.(litPartPath.part), sub: onPart ? "Press it to open its window" : undefined }
+      ? { x: litPartPath.cx, y: litPartPath.cy, name: litPartPath.name, figure: partFigureOf?.(litPartPath.part), sub: onPartPick ? "Press it to draw it below" : onPart ? "Press it to open its window" : undefined }
       : litPath && litPath.name && Number.isFinite(litPath.cx)
         ? { x: litPath.cx, y: litPath.cy, name: litPath.name, figure: figureOf?.(litPath.shape), sub: onShape ? "Press it to open its window" : undefined }
         : undefined);
@@ -413,13 +416,13 @@ export function OutlineMap({
                 d={p.d}
                 fill={fill ?? color}
                 fillOpacity={partFillOf ? (fill ? (litPart === p.i ? 1 : 0.88) : 0) : litPart === p.i ? 0.45 : 0}
-                className={onPart ? "cursor-pointer" : undefined}
+                className={onPart || onPartPick ? "cursor-pointer" : undefined}
                 onMouseEnter={() => {
                   setLitPart(p.i);
                   onPartPoint?.(p.i);
                 }}
                 onMouseLeave={() => setLitPart((x) => (x === p.i ? null : x))}
-                onClick={onPart ? () => onPart(p.i) : undefined}
+                onClick={onPartPick ? () => onPartPick(p.i) : onPart ? () => onPart(p.i) : undefined}
               />
             );
           })}
