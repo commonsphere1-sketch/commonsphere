@@ -2484,22 +2484,8 @@ export function DashboardPage() {
           <PlaceAtlas />
         </Suspense>
 
-        {/* The political compass, as asked: the legend of its grid - what each part means and the ideas it is read by; above the
-            Compare section, as asked. */}
+        {/* The political compass, as asked: the legend of its grid - what each part means and the ideas it is read by. */}
         <CompassLedger />
-
-        {/* ── PINNED / MY DASHBOARD ─────────────────────────────────────── */}
-        <PinnedSection
-          isLight={isLight}
-          cardBg={cardBg}
-          cardBorder={cardBorder}
-          cardShadow={cardShadow}
-          gridLine={gridLine}
-          headText={headText}
-          mutedText={mutedText}
-          bodyText={bodyText}
-          onNav={navigate}
-        />
 
         {/* ── HEADLINE COUNTS: counted from the site's own data. They were typed in - "195 countries",
             "42 active conflicts, 3 escalating", "1,200+ policies, +48 this month" - and matched nothing the site held. ── */}
@@ -2558,6 +2544,19 @@ export function DashboardPage() {
 
         {/* The Trends & Projections desk stood here and was removed as asked; its energy panel is kept, lower on the
             page under the sectors and commodities. */}
+
+        {/* ── COMPARE: the countries or states set side by side - directly above the sector outlook, as asked. ── */}
+        <PinnedSection
+          isLight={isLight}
+          cardBg={cardBg}
+          cardBorder={cardBorder}
+          cardShadow={cardShadow}
+          gridLine={gridLine}
+          headText={headText}
+          mutedText={mutedText}
+          bodyText={bodyText}
+          onNav={navigate}
+        />
 
         {/* ── MAIN GRID: the states, the world's conflicts, and the site's own data.
             Four cards stood in the first column that nothing published backs - "up-and-coming industries" with a
