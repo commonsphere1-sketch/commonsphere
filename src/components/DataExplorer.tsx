@@ -604,7 +604,7 @@ function CountryDetail({ t, c, all, onOpen }: { t: Tokens; c: Country; all: Coun
       </div>
 
       {/* Each figure with the year it is for. */}
-      <div className="grid grid-cols-3 gap-1.5">
+      <div className="grid grid-cols-3 gap-1.5 cs-figlines">
         <Kpi t={t} label="GDP" value={na(c.gdp, gdpShort)} sub={yr("gdp")} color="#6366f1" />
         <Kpi t={t} label="Real growth" value={na(c.gdpGrowth, (v) => `${signed(v)}%`)} sub={yr("gdpGrowth")} color={up ? GREEN : RED} />
         <Kpi t={t} label="GDP per person" value={na(c.gdpPerCapita, (v) => `$${Math.round(v).toLocaleString("en-US")}`)} sub={yr("gdpPerCapita")} color="#3b82f6" />
@@ -619,7 +619,7 @@ function CountryDetail({ t, c, all, onOpen }: { t: Tokens; c: Country; all: Coun
         />
       </div>
 
-      <div className="grid grid-cols-2 gap-1.5">
+      <div className="grid grid-cols-2 gap-1.5 cs-figlines">
         {[
           { label: "Population", value: na(c.population, pop), year: yr("population"), icon: <Users size={10} weight="fill" />, color: "#06b6d4" },
           { label: "Life expectancy", value: na(c.lifeExpectancy, (v) => `${v} yrs`), year: yr("lifeExpectancy"), icon: <Heart size={10} weight="fill" />, color: "#ec4899" },
@@ -758,7 +758,8 @@ function CountryDetail({ t, c, all, onOpen }: { t: Tokens; c: Country; all: Coun
       </Block>
 
       {score && (
-        <section className="rounded-xl px-3 py-3 min-w-0" style={{ background: t.tile, border: `1px solid ${t.gridLine}` }}>
+        // Parted from the figures above by a line, not set in a box, as asked.
+        <section className="pt-3 min-w-0" style={{ borderTop: `1px solid ${t.gridLine}` }}>
           <div className="flex items-center justify-between mb-1">
             <Label t={t}>Macro health score</Label>
             <span className="text-[13px] font-bold font-mono" style={{ color: scoreColor }}>
@@ -848,7 +849,7 @@ function EconomyList({ t, regions, selected, onPick }: { t: Tokens; regions: Reg
   ];
   return (
     <>
-      <div className="grid grid-cols-2 gap-2 p-4 pb-2">
+      <div className="grid grid-cols-2 gap-2 p-4 pb-2 cs-figlines">
         {tiles.map((m) => (
           <div key={m.label} className="rounded-xl px-3 py-2.5" style={{ background: t.tile, border: `1px solid ${t.gridLine}` }}>
             <p className="text-[9px] font-sans" style={{ color: t.mutedText }}>
@@ -977,7 +978,7 @@ function RegionDetail({ t, region: r, byGdp, onExplorer }: { t: Tokens; region: 
           {r.kind === "bloc" ? `Bloc · ${r.members.length} members` : `World Bank region · ${r.members.length} economies`}
         </p>
       </div>
-      <div className="grid grid-cols-2 gap-1.5">
+      <div className="grid grid-cols-2 gap-1.5 cs-figlines">
         <Kpi t={t} label="GDP" value={trillions(gdp)} sub={`${gy} · current US$`} color="#f59e0b" />
         <Kpi t={t} label="Real growth" value={`${signed(growth)}%`} sub={`${growthYear}`} color={growth >= 0 ? GREEN : RED} />
         <Kpi t={t} label="Share of world GDP" value={worldThen ? `${((100 * gdp) / worldThen).toFixed(1)}%` : "—"} sub={`${gy}`} color="#6366f1" />

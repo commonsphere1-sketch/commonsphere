@@ -320,7 +320,7 @@ export function GeopoliticsExplorer({
                       {m.unit}
                     </p>
                   </div>
-                  <div className="grid grid-cols-2 gap-2">
+                  <div className="grid grid-cols-2 gap-2 cs-figlines">
                     <Kpi t={t} label={String(year)} value={print(m, v)} color={t.headText} sub="the latest year" />
                     <Kpi
                       t={t}
@@ -455,7 +455,7 @@ export function GeopoliticsExplorer({
                       {p.parties && (
                         <>
                           <Label t={t}>Parties of it</Label>
-                          <div className="grid grid-cols-2 gap-2">
+                          <div className="grid grid-cols-2 gap-2 cs-figlines">
                             <Kpi t={t} label="Parties" value={p.parties.n.toLocaleString("en-US")} color={t.headText} sub="past and present" />
                             <Kpi t={t} label="Countries" value={p.parties.in.toLocaleString("en-US")} color={t.headText} sub="they are recorded in" />
                           </div>
@@ -500,7 +500,7 @@ export function GeopoliticsExplorer({
                       {[a.founded ? `Founded ${a.founded}` : "", a.headquarters].filter(Boolean).join(" · ")}
                     </p>
                   </div>
-                  <div className="grid grid-cols-2 gap-2">
+                  <div className="grid grid-cols-2 gap-2 cs-figlines">
                     <Kpi t={t} label="Members" value={String(a.memberCount)} color={t.headText} sub="by the body's own count" />
                     <Kpi t={t} label="Checked" value={a.kind === "Human rights body" ? HUMAN_RIGHTS_CHECKED : ALLIANCES_CHECKED} color={t.headText} sub="against its own page" />
                   </div>

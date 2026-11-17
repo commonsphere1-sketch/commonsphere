@@ -118,7 +118,7 @@ type Fig = { label: string; value: string; sub?: string };
 function Figs({ t, figs }: { t: Tokens; figs: Fig[] }) {
   if (!figs.length) return null;
   return (
-    <div className={`grid gap-1.5 ${figs.length === 3 ? "grid-cols-3" : figs.length === 1 ? "grid-cols-1" : "grid-cols-2"}`}>
+    <div className={`grid gap-1.5 cs-figlines ${figs.length === 3 ? "grid-cols-3" : figs.length === 1 ? "grid-cols-1" : "grid-cols-2"}`}>
       {figs.map((f) => (
         <Kpi key={f.label} t={t} label={f.label} value={f.value} sub={f.sub} color={t.headText} />
       ))}

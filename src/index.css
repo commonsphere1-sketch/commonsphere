@@ -115,6 +115,8 @@
   --card-glow:
     inset 0 1px 0 rgba(255, 255, 255, 0.45),
     inset 0 0 0 1px rgba(255, 255, 255, 0.035), 0 0 0 1px rgba(0, 0, 0, 0.4);
+  /* The line that parts figures set out in rows (.cs-figlines): the cards' grid line (lib/cardTokens gridLine). */
+  --figline: rgba(255, 255, 255, 0.12);
   /* Premium shadow */
   --premium-shadow: 0 4px 24px rgba(0, 0, 0, 0.5), 0 1px 4px rgba(0, 0, 0, 0.3);
 }
@@ -178,6 +180,7 @@ html.light {
   /* Dark mode lights the top edge; on a white card a white line is
      invisible, so light mode draws the same edge in ink instead. */
   --card-glow: inset 0 1px 0 rgba(15, 23, 42, 0.26);
+  --figline: rgba(0, 0, 0, 0.06);
 }
 
 html.light body {
@@ -1691,4 +1694,33 @@ html.light .modal-tile:has(> div > .card-flag) :is(span.rounded-full.border:not(
   margin-top: 0 !important;
   margin-bottom: 0 !important;
   min-width: 0;
+}
+
+/* Figures set out in rows parted by lines, not in boxes - the Data Explorer, as asked, as the Compare table is. On a grid of
+   figures (one, two or three across): the figures lose their ground, edge and corners, the grid its gaps, and a line runs
+   between the rows and between the columns - none around the outside. The first column sits flush with the text above it. */
+.cs-figlines {
+  gap: 0 !important;
+}
+.cs-figlines > * {
+  background: transparent !important;
+  border: 0 solid var(--figline) !important;
+  border-radius: 0 !important;
+  box-shadow: none !important;
+  padding-left: 0.75rem !important;
+  padding-right: 0.75rem !important;
+}
+.cs-figlines.grid-cols-1 > :nth-child(n + 2),
+.cs-figlines.grid-cols-2 > :nth-child(n + 3),
+.cs-figlines.grid-cols-3 > :nth-child(n + 4) {
+  border-top-width: 1px !important;
+}
+.cs-figlines.grid-cols-2 > :nth-child(2n),
+.cs-figlines.grid-cols-3 > :not(:nth-child(3n + 1)) {
+  border-left-width: 1px !important;
+}
+.cs-figlines.grid-cols-1 > *,
+.cs-figlines.grid-cols-2 > :nth-child(2n + 1),
+.cs-figlines.grid-cols-3 > :nth-child(3n + 1) {
+  padding-left: 0 !important;
 }

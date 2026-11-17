@@ -233,7 +233,7 @@ export default function ClimateNowExplorer({ embedded = false }: { /** Inside th
 
               {"e" in shown && (
                 <Block>
-                  <div className="grid grid-cols-2 gap-2">
+                  <div className="grid grid-cols-2 gap-2 cs-figlines">
                     <Kpi t={t} label="Alert" value={shown.e.alert} color={shown.e.alert === "Red" ? RED : ORANGE} sub={shown.e.alert === "Red" ? "international help likely to be needed" : "international help possibly needed"} />
                     <Kpi t={t} label={shown.e.current ? "Going on since" : "When"} value={shown.e.current ? day(shown.e.from) : span(shown.e)} color={t.headText} sub={shown.e.current ? `last report ${day(shown.e.to)}` : undefined} />
                   </div>
@@ -269,7 +269,7 @@ export default function ClimateNowExplorer({ embedded = false }: { /** Inside th
                       <>
                         {m.summary && body(m.summary)}
                         {facts.length > 0 && (
-                          <div className="grid grid-cols-2 gap-2">
+                          <div className="grid grid-cols-2 gap-2 cs-figlines">
                             {facts.map(([label, value, sub]) => (
                               <Kpi key={label} t={t} label={label} value={value} color={t.headText} sub={sub} />
                             ))}
@@ -297,7 +297,7 @@ export default function ClimateNowExplorer({ embedded = false }: { /** Inside th
                   const its = DISASTER_EVENTS.filter((e) => e.countries.includes(shown.code));
                   return (
                     <Block>
-                      <div className="grid grid-cols-2 gap-2">
+                      <div className="grid grid-cols-2 gap-2 cs-figlines">
                         <Kpi t={t} label="Alerts in twelve months" value={String(v.orange + v.red)} color={t.headText} sub={`${v.orange} orange · ${v.red} red · counted here`} />
                         <Kpi
                           t={t}
@@ -333,12 +333,12 @@ export default function ClimateNowExplorer({ embedded = false }: { /** Inside th
               {shown.kind === "season" && (
                 <Block>
                   {shown.episode ? (
-                    <div className="grid grid-cols-2 gap-2">
+                    <div className="grid grid-cols-2 gap-2 cs-figlines">
                       <Kpi t={t} label="Its peak" value={`${signed(shown.episode.peak)} °C`} color={shown.episode.kind === "El Niño" ? WARM : COLD} sub={shown.episode.peakAt} />
                       <Kpi t={t} label="How long it ran" value={`${shown.episode.seasons} seasons`} color={t.headText} sub={`${shown.episode.from} to ${shown.episode.to} · overlapping three-month seasons`} />
                     </div>
                   ) : (
-                    <div className="grid grid-cols-2 gap-2">
+                    <div className="grid grid-cols-2 gap-2 cs-figlines">
                       <Kpi t={t} label={ENSO.latest.season} value={`${signed(ENSO.latest.anom)} °C`} color={ENSO.latest.anom >= 0.5 ? WARM : ENSO.latest.anom <= -0.5 ? COLD : t.headText} sub="the index: sea-surface temperature against the season's average" />
                       <Kpi
                         t={t}
@@ -358,7 +358,9 @@ export default function ClimateNowExplorer({ embedded = false }: { /** Inside th
 
               {shown.kind === "record" && (
                 <Block>
-                  <Kpi t={t} label={shown.name} value={shown.r.value} color={t.headText} sub={shown.r.sub} />
+                  <div className="grid grid-cols-1 cs-figlines">
+                    <Kpi t={t} label={shown.name} value={shown.r.value} color={t.headText} sub={shown.r.sub} />
+                  </div>
                   {body("A record of the whole globe's measured series, ranked here from the agency's own figures.")}
                   <SourceLink sources={[{ label: `${shown.r.source.label} · read on ${CLIMATE_WATCH_RETRIEVED}`, url: shown.r.source.url }]} />
                 </Block>
@@ -366,7 +368,7 @@ export default function ClimateNowExplorer({ embedded = false }: { /** Inside th
 
               {shown.kind === "measured" && (
                 <Block>
-                  <div className="grid grid-cols-2 gap-2">
+                  <div className="grid grid-cols-2 gap-2 cs-figlines">
                     <Kpi t={t} label={shown.m.period} value={`${reading(shown.m.value)} ${shown.m.unit}`} color={t.headText} sub="the latest reading" />
                     <Kpi
                       t={t}

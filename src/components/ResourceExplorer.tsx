@@ -130,7 +130,7 @@ function ResourceList({ t, entries, list, selected, onPick }: { t: Tokens; entri
   ];
   return (
     <>
-      <div className="grid grid-cols-2 gap-2 p-4 pb-2">
+      <div className="grid grid-cols-2 gap-2 p-4 pb-2 cs-figlines">
         {tiles.map((m) => (
           <div key={m.label} className="rounded-xl px-3 py-2.5" style={{ background: t.tile, border: `1px solid ${t.gridLine}` }}>
             <p className="text-[9px] font-sans" style={{ color: t.mutedText }}>
@@ -239,7 +239,7 @@ function ResourceDetail({ t, entry: { r, price }, onOpen }: { t: Tokens; entry: 
           {detail.summary}
         </p>
       )}
-      <div className="grid grid-cols-2 gap-1.5">
+      <div className="grid grid-cols-2 gap-1.5 cs-figlines">
         {price && <Kpi t={t} label="Price" value={fmtPrice(price.value)} sub={price.price.unit} color={t.headText} />}
         {price?.onYear && <Kpi t={t} label="On a year before" value={signedPct(price.onYear.pct)} sub={`${fmtPrice(price.onYear.was)} in ${fmtMonth(price.onYear.from)}`} color={price.onYear.pct >= 0 ? GREEN : RED} />}
         {price?.onMonth && <Kpi t={t} label="On the month before" value={signedPct(price.onMonth.pct)} sub={`${fmtPrice(price.onMonth.was)} in ${fmtMonth(price.onMonth.from)}`} color={price.onMonth.pct >= 0 ? GREEN : RED} />}
