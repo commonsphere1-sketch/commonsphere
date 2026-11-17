@@ -1702,8 +1702,11 @@ html.light .modal-tile:has(> div > .card-flag) :is(span.rounded-full.border:not(
 .cs-figlines {
   gap: 0 !important;
 }
-.cs-figlines > * {
+/* A picker set out this way (a kind of event, of climate reading) keeps the tint of the one chosen. */
+.cs-figlines > :not([aria-pressed="true"]) {
   background: transparent !important;
+}
+.cs-figlines > * {
   border: 0 solid var(--figline) !important;
   border-radius: 0 !important;
   box-shadow: none !important;

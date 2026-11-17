@@ -101,7 +101,7 @@ export function UnrestExplorer({ embedded = false }: { /** Shown inside another 
       <div className="explorer-panes flex flex-col md:flex-row md:h-[560px]">
         <div className="explorer-list flex flex-col overflow-y-auto max-h-[340px] md:max-h-none md:h-full md:w-[44%] border-b md:border-b-0 md:border-r" style={{ borderColor: t.gridLine }}>
           {/* How many of each kind are held: pick one to see only those. */}
-          <div className="grid grid-cols-2 gap-2 px-4 pt-3">
+          <div className="grid grid-cols-2 gap-2 px-4 pt-3 cs-figlines">
             {UNREST_KINDS.map((k) => {
               const on = kind === k;
               return (
