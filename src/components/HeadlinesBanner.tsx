@@ -65,11 +65,11 @@ const STATE_NAME = new Map(usStatesData.map((s) => [`s:${s.id}`, s.name]));
 /** "c:JP" is Japan, "s:tx" is Texas. */
 export const placeName = (p: string): string | null => COUNTRY_NAME.get(p) ?? STATE_NAME.get(p) ?? null;
 
-/** A chip naming places: blue for one, violet for more than one (a story about their relations). */
+/** A chip naming places: blue for one, cyan for more than one (a story about their relations) - the two of the headlines' own wash. */
 export function namesTag(names: string[]): HeadlineTag | null {
   if (!names.length) return null;
   const text = names.length > 2 ? `${names.slice(0, 2).join(" · ")} +${names.length - 2}` : names.join(" · ");
-  return { text, tone: names.length > 1 ? TONE.violet : TONE.blue };
+  return { text, tone: names.length > 1 ? TONE.cyan : TONE.blue };
 }
 
 /** The places a headline names or its desk covers; no chip when it names none. */

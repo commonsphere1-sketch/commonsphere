@@ -698,7 +698,7 @@ export function CrimeStatsPage() {
             <>
               The last five days' crime and justice news - organised crime and corruption reporting worldwide, and US and UK
               crime desks - from {outlets} (five at most from each), refreshed every half hour. The tag is the place a story
-              is about, violet for more than one. Each links to the outlet.
+              is about, cyan for more than one. Each links to the outlet.
             </>
           )}
         />

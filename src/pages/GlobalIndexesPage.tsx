@@ -612,7 +612,7 @@ export function GlobalIndexesPage() {
           <>
             The last two days' politics, policy and humanitarian headlines - the news behind what these indexes measure -
             from {outlets} (five at most from each), refreshed every half hour. The tag is the place a story is about,
-            violet for more than one. Each links to the outlet.
+            cyan for more than one. Each links to the outlet.
           </>
         )}
       />

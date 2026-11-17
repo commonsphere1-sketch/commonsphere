@@ -331,7 +331,7 @@ export function UpcomingStates() {
         , read twice a day
         {lastChecked &&
           ` - last checked ${lastChecked.toLocaleString("en-GB", { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" })}`}
-        .{headlines.length > 0 && ` A headline's tag is the state or country it names, violet for more than one, or "National" for the country as a whole.`}{" "}
+        .{headlines.length > 0 && ` A headline's tag is the state or country it names, cyan for more than one, or "National" for the country as a whole.`}{" "}
         Each links to its source.
       </p>
     </Ticker>

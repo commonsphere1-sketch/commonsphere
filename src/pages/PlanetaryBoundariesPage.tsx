@@ -36,7 +36,7 @@ export function PlanetaryBoundariesPage() {
           note={(outlets) => (
             <>
               The last five days' climate headlines from {outlets} (five at most from each), refreshed every half hour. The tag is the
-              place a story is about, violet for more than one. Each links to the outlet.
+              place a story is about, cyan for more than one. Each links to the outlet.
             </>
           )}
         />

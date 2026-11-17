@@ -2227,7 +2227,7 @@ export function RankingsPage() {
         note={(outlets) => (
           <>
             The last two days' headlines naming a country or US state - the places ranked here - from {outlets} (five at
-            most from each), refreshed every half hour. The tag is the place, violet for more than one. Each links to the
+            most from each), refreshed every half hour. The tag is the place, cyan for more than one. Each links to the
             outlet.
           </>
         )}

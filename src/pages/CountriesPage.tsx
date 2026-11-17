@@ -9132,7 +9132,7 @@ export function CountriesPage() {
             <>
               The last two days' headlines naming a country, from {outlets} (five at most from each), refreshed every half
               hour; countries you follow come first, starred. US news that names no other country is on the States page. The
-              tag is the place a story is about, violet for more than one. Each links to the outlet.
+              tag is the place a story is about, cyan for more than one. Each links to the outlet.
             </>
           )}
         />

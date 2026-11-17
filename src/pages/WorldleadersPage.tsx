@@ -17739,7 +17739,7 @@ function leadersIn(title: string): Leader[] {
 /**
  * The newest headlines naming a profiled leader, at most three a leader so
  * the most-covered do not crowd out the rest. The chip is the leader's
- * country; violet when a story names leaders of more than one. Asked for
+ * country; cyan when a story names leaders of more than one. Asked for
  * all, every headline naming one.
  */
 export const pickLeaders = (rows: Headline[], all = false): Shown[] => {
@@ -17909,7 +17909,7 @@ export function WorldLeadersPage() {
           note={(outlets) => (
             <>
               The last two days' headlines naming a leader profiled here, from {outlets}, refreshed every half hour - three at most a
-              leader, so the most-covered do not crowd out the rest. The tag is the leader's country, violet when a story names leaders of
+              leader, so the most-covered do not crowd out the rest. The tag is the leader's country, cyan when a story names leaders of
               more than one. Each links to the outlet.
             </>
           )}

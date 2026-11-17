@@ -2453,7 +2453,7 @@ export function DashboardPage() {
             <>
               The last two days' headlines from every desk the site reads - world affairs, US news, the economy, policy,
               humanitarian crises, the climate, crime and justice - from {outlets} (five at most from each), refreshed every
-              half hour. The tag is the place a story is about, violet for more than one. Each links to the outlet.
+              half hour. The tag is the place a story is about, cyan for more than one. Each links to the outlet.
             </>
           )}
         />

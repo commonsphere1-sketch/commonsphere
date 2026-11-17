@@ -828,7 +828,7 @@ const citiesIn = nameMatcher(
 
 /**
  * The newest headlines naming a profiled city, at most three a city so the
- * most-covered do not crowd out the rest. The chip is the city; violet when
+ * most-covered do not crowd out the rest. The chip is the city; cyan when
  * a story names more than one. Asked for all, every headline naming one.
  */
 export const pickCities = (rows: Headline[], all = false): Shown[] => {
@@ -954,7 +954,7 @@ export function CitiesPage() {
           note={(outlets) => (
             <>
               The last two days' headlines naming a city profiled here, from {outlets}, refreshed every half hour - three at most a
-              city, so the most-covered do not crowd out the rest. The tag is the city, violet when a story names more than one. Each
+              city, so the most-covered do not crowd out the rest. The tag is the city, cyan when a story names more than one. Each
               links to the outlet.
             </>
           )}

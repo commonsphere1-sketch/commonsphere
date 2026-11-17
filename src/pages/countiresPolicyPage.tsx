@@ -11077,7 +11077,7 @@ export function PolicyPage() {
         note={(outlets) => (
           <>
             The last two days' politics and policy headlines from national politics desks and US statehouse coverage - {outlets}, five
-            at most from each - refreshed every half hour. The tag is the country or state a story is about, violet for more than one.
+            at most from each - refreshed every half hour. The tag is the country or state a story is about, cyan for more than one.
             Each links to the outlet.
           </>
         )}
