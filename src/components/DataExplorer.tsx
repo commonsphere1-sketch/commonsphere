@@ -230,13 +230,17 @@ export function DataExplorer({
                   setSearch("");
                   setTopic(null);
                 }}
-                className="flex items-center gap-1.5 px-4 py-3 text-[11px] font-bold font-sans transition-colors relative shrink-0 cursor-pointer"
-                style={{
-                  color: on ? x.color : t.mutedText,
-                  background: on ? t.tile : "transparent",
-                  borderBottom: `2px solid ${on ? x.color : "transparent"}`,
-                  marginBottom: -1,
-                }}
+                // Lit in its own colour when pointed at, as the rows below are, as asked (ROW_GLOW); the tab open keeps its ground.
+                className={`flex items-center gap-1.5 px-4 py-3 text-[11px] font-bold font-sans shrink-0 cursor-pointer ${ROW_GLOW}`}
+                style={
+                  {
+                    "--row": x.color,
+                    color: on ? x.color : t.mutedText,
+                    ...(on ? { background: t.tile } : {}),
+                    borderBottom: `2px solid ${on ? x.color : "transparent"}`,
+                    marginBottom: -1,
+                  } as React.CSSProperties
+                }
               >
                 {x.label}
                 {badge[x.id] && (
