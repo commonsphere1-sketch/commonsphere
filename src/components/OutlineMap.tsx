@@ -69,6 +69,7 @@ export function OutlineMap({
   inner,
   parts,
   onPart,
+  onPartPoint,
   dots = [],
   mark,
   color,
@@ -101,6 +102,8 @@ export function OutlineMap({
   parts?: Outline[];
   /** What a press on one of them does, by its place in `parts`: it opens that place's own window. Left out, one pointed at is only picked out and named. */
   onPart?: (i: number) => void;
+  /** Told which of them is pointed at, by its place in `parts`: the Maps page's county map draws the county pointed at on the state map. */
+  onPartPoint?: (i: number) => void;
   dots?: MapDot[];
   /** The one place the window is about, where it is a point and not an outline. */
   mark?: MapDot;
@@ -411,7 +414,10 @@ export function OutlineMap({
                 fill={fill ?? color}
                 fillOpacity={partFillOf ? (fill ? (litPart === p.i ? 1 : 0.88) : 0) : litPart === p.i ? 0.45 : 0}
                 className={onPart ? "cursor-pointer" : undefined}
-                onMouseEnter={() => setLitPart(p.i)}
+                onMouseEnter={() => {
+                  setLitPart(p.i);
+                  onPartPoint?.(p.i);
+                }}
                 onMouseLeave={() => setLitPart((x) => (x === p.i ? null : x))}
                 onClick={onPart ? () => onPart(p.i) : undefined}
               />

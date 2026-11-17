@@ -44,6 +44,7 @@ import { insideOf, usePlaces } from "./DivisionPlaces";
 import { OutlineMap, placeDots } from "./OutlineMap";
 import { SourceLink } from "./SourceLink";
 import { StyledSelect } from "./StyledSelect";
+import { useTokens } from "../lib/cardTokens";
 
 const whole = (v: number) => Math.round(v).toLocaleString("en-US");
 /** How many municipalities are named under the map. */
@@ -111,6 +112,35 @@ function Atlas({ code: above, country: aboveName, division, color: aboveColor, c
   const shapes = second?.outline ?? outline;
   const ink = (s && colorOf?.(s.name)) || color;
 
+  /* The fourth map, as asked: one county or district of the division drawn, with the places inside it. It draws the one
+     pointed at on the map above once that is drawn closer - taken once the pointer has rested a moment, as the maps above
+     do - or the one picked from its menu; at first, the one holding the division's largest place. */
+  const counties = second && second.lines.length > 1 ? second.lines : null;
+  const [county, setCounty] = useState<number | null>(null);
+  useEffect(() => setCounty(null), [code, s?.id]);
+  const countyTimer = useRef<number | undefined>(undefined);
+  useEffect(() => () => window.clearTimeout(countyTimer.current), []);
+  const pointCounty = (i: number) => {
+    window.clearTimeout(countyTimer.current);
+    countyTimer.current = window.setTimeout(() => setCounty(i), 350);
+  };
+  const firstCounty = useMemo(() => {
+    const top = within?.rows[0];
+    const i = counties && top ? counties.findIndex((l) => placesWithin(l, [top]).length > 0) : -1;
+    return i >= 0 ? i : 0;
+  }, [counties, within]);
+  const ci = counties ? (county !== null && county < counties.length ? county : firstCounty) : null;
+  const countyLine = counties && ci !== null ? counties[ci] : null;
+  const countyName = countyLine?.properties.n ?? "";
+  /** The places whose point falls inside it, largest first. */
+  const countyRows = useMemo(() => (countyLine && within ? [...placesWithin(countyLine, within.rows)].sort((a, b) => b[3] - a[3]) : []), [countyLine, within]);
+  const countyDots = useMemo(() => placeDots(countyRows, DOTS, listed), [countyRows, listed]);
+  const countyOptions = useMemo(() => (counties ? counties.map((l, i) => ({ value: String(i), label: l.properties.n ?? String(i + 1) })).sort((a, b) => a.label.localeCompare(b.label)) : []), [counties]);
+  /** "county" or "district": what one of them is called. */
+  const one = second ? second.are.replace(/ies$/, "y").replace(/s$/, "") : "";
+  const t = useTokens();
+  const card = { background: t.cardBg, border: t.cardBorder, boxShadow: t.cardShadow };
+
   const head = (
     <div className="flex items-start justify-between gap-3 mb-3 flex-wrap">
       <div>
@@ -157,15 +187,16 @@ function Atlas({ code: above, country: aboveName, division, color: aboveColor, c
 
   if (!s)
     return (
-      <>
+      <div className="rounded-2xl p-4 mb-6" style={card}>
         {head}
         <p className="text-xs font-sans text-muted-foreground">No divisions are held for {country}, so there is nothing to draw here. Pick another country from the menu, or on the map above.</p>
-      </>
+      </div>
     );
 
   const loading = drawn === undefined || second === undefined;
   return (
     <>
+    <div className="rounded-2xl p-4 mb-6" style={card}>
       {head}
       {shapes.length > 0 ? (
         <OutlineMap
@@ -174,6 +205,7 @@ function Atlas({ code: above, country: aboveName, division, color: aboveColor, c
           inner={second?.inner}
           parts={second?.lines}
           onPart={second ? (i) => navigate(second.open(i)) : undefined}
+          onPartPoint={counties ? pointCounty : undefined}
           dots={dots}
           color={ink}
           label={`${s.name}, with ${second && second.lines.length > 1 ? `its ${second.lines.length} ${second.are} and ` : ""}${dots.length} of the places listed in it`}
@@ -222,6 +254,83 @@ function Atlas({ code: above, country: aboveName, division, color: aboveColor, c
         sources={[...(second ? [second.source] : []), { label: "Natural Earth — first-order divisions, 1:10m", url: "https://www.naturalearthdata.com/downloads/10m-cultural-vectors/10m-admin-1-states-provinces/" }, { label: PLACES_SOURCE.geonames.label, url: PLACES_SOURCE.geonames.url }]}
         className="mt-3"
       />
+    </div>
+
+    {/* ── The fourth map: one county or district of the division above, with the places inside it ── */}
+    {second && counties && countyLine && ci !== null && (
+      <div className="rounded-2xl p-4 mb-6" style={card}>
+        <div className="flex items-start justify-between gap-3 mb-3 flex-wrap">
+          <div>
+            <p className="text-[10px] font-mono uppercase tracking-widest text-secondary">
+              A {one} and its municipalities · {s.name}
+            </p>
+            <h2 className="text-sm font-bold font-sans text-foreground">{countyName}</h2>
+          </div>
+          {/* Its menus: any county or district of the division above, and any municipality of the one drawn. */}
+          <div className="flex items-center gap-2 flex-wrap">
+            <div className="rounded-full border border-border px-3 py-1.5">
+              <StyledSelect
+                value={String(ci)}
+                onValueChange={(v) => setCounty(Number(v))}
+                options={countyOptions}
+                ariaLabel={`Which of the ${second.are} of ${s.name} the map draws`}
+                triggerClassName="!text-[12px] font-semibold !text-foreground"
+              />
+            </div>
+            {countyRows.length > 0 && (
+              <div className="rounded-full border border-border px-3 py-1.5">
+                <StyledSelect
+                  value="-"
+                  onValueChange={(id) => id !== "-" && navigate(`/dashboard/subnations?open=place:${code}:${id}`)}
+                  options={[{ value: "-", label: `Its ${whole(countyRows.length)} municipalities` }, ...countyRows.map((p) => ({ value: String(p[6]), label: p[0] })).sort((a, b) => a.label.localeCompare(b.label))]}
+                  ariaLabel={`Open a municipality of ${countyName}`}
+                  triggerClassName="!text-[12px] font-semibold !text-foreground"
+                />
+              </div>
+            )}
+          </div>
+        </div>
+        <OutlineMap
+          key={`${s.id}-${ci}`}
+          shapes={[countyLine]}
+          dots={countyDots}
+          color={ink}
+          label={`${countyName}, ${s.name}, with ${countyDots.length} of the places listed in it`}
+          onDot={(d) => navigate(`/dashboard/subnations?open=place:${code}:${d.id}`)}
+        />
+        <p className="text-[10px] font-sans text-muted-foreground leading-snug mt-2">
+          {countyName} as the site's maps draw it, one of the {whole(counties.length)} {second.are} of {s.name}
+          {countyDots.length
+            ? `. The dots are ${countyRows.length > countyDots.length ? `the ${countyDots.length} largest of the ${whole(countyRows.length)}` : `the ${countyDots.length}`} places GeoNames lists in ${s.name} whose point falls inside it: press one to open it`
+            : `. None of the places GeoNames lists in ${s.name} has its point inside it`}
+          . Nothing is shaded by a figure - the colour is the one above. This map follows that one - draw it closer and point at a {one}, and it is drawn here - and its menus reach every {one} of {s.name} and every municipality of the one drawn.
+        </p>
+        <div className="mt-3 flex flex-wrap gap-1.5">
+          {countyRows.length > 0 && (
+            <p className="w-full text-[10px] font-bold font-sans text-muted-foreground uppercase tracking-widest mb-0.5">Its largest municipalities · people as GeoNames has them</p>
+          )}
+          {countyRows.slice(0, NAMED).map((p) => (
+            <button
+              key={p[6]}
+              type="button"
+              onClick={() => navigate(`/dashboard/subnations?open=place:${code}:${p[6]}`)}
+              className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-sans border border-border text-foreground hover:border-secondary/60 transition-colors cursor-pointer"
+            >
+              {p[0]}
+              {p[3] > 0 && <span className="font-mono text-muted-foreground">{whole(p[3])}</span>}
+            </button>
+          ))}
+          <button
+            type="button"
+            onClick={() => navigate(second.open(ci))}
+            className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-medium font-sans border border-border text-foreground hover:border-secondary/60 transition-colors cursor-pointer"
+          >
+            All of {countyName} <ArrowRight size={11} weight="bold" aria-hidden />
+          </button>
+        </div>
+        <SourceLink sources={[second.source, { label: PLACES_SOURCE.geonames.label, url: PLACES_SOURCE.geonames.url }]} className="mt-3" />
+      </div>
+    )}
     </>
   );
 }
@@ -238,7 +347,19 @@ function DivisionAtlas(props: Props) {
     watch.observe(el);
     return () => watch.disconnect();
   }, [seen]);
-  return <div ref={box}>{seen ? <Atlas {...props} /> : <p className="text-xs font-sans text-muted-foreground">Counties and municipalities · {props.country}: the map is drawn when the page reaches it.</p>}</div>;
+  const t = useTokens();
+  // The map and the county map below it are cards of their own; until the page reaches them, one card says what is coming.
+  return (
+    <div ref={box}>
+      {seen ? (
+        <Atlas {...props} />
+      ) : (
+        <div className="rounded-2xl p-4 mb-6" style={{ background: t.cardBg, border: t.cardBorder, boxShadow: t.cardShadow }}>
+          <p className="text-xs font-sans text-muted-foreground">Counties and municipalities · {props.country}: the map is drawn when the page reaches it.</p>
+        </div>
+      )}
+    </div>
+  );
 }
 
 /* Redrawn only when what it is given changes: not at every step of a pan of the maps above it. */

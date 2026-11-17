@@ -6189,17 +6189,22 @@ export function WorldMapsPage() {
 
         {/* ── Counties and municipalities: one division of the country in focus above - or of the place last pointed at on
             either map - drawn close enough for what is inside it ── */}
-        <div className="rounded-2xl p-4" style={{ background: cardBg, border: cardBorder, boxShadow: cardShadow }}>
-          <Suspense fallback={<p className="text-xs font-sans text-muted-foreground">Loading the map of counties and municipalities…</p>}>
-            <DivisionAtlas
-              code={atlasCode}
-              country={atlasCode === "US" ? "United States" : (countryByCode.get(atlasCode)?.name ?? atlasCode)}
-              division={pointed?.division}
-              color={atlasCode === focusCode ? focusHue : worldInk(atlasCode)}
-              colorOf={atlasCode === "US" ? stateInk : undefined}
-            />
-          </Suspense>
-        </div>
+        {/* Two cards - the division, and below it one of its counties or districts (the fourth map, as asked) - drawn by DivisionAtlas. */}
+        <Suspense
+          fallback={
+            <div className="rounded-2xl p-4 mb-6" style={{ background: cardBg, border: cardBorder, boxShadow: cardShadow }}>
+              <p className="text-xs font-sans text-muted-foreground">Loading the map of counties and municipalities…</p>
+            </div>
+          }
+        >
+          <DivisionAtlas
+            code={atlasCode}
+            country={atlasCode === "US" ? "United States" : (countryByCode.get(atlasCode)?.name ?? atlasCode)}
+            division={pointed?.division}
+            color={atlasCode === focusCode ? focusHue : worldInk(atlasCode)}
+            colorOf={atlasCode === "US" ? stateInk : undefined}
+          />
+        </Suspense>
 
         {/* ── Sources ── */}
         <div
