@@ -147,8 +147,9 @@ export function EnergyOutlook({ action, id }: { /** A link at the head of the pa
     <section id={id} aria-labelledby="energy-outlook-title" className="rounded-2xl overflow-hidden scroll-mt-36" style={{ background: t.cardBg, border: t.cardBorder, boxShadow: t.cardShadow }}>
       <div className="flex flex-wrap items-start justify-between gap-3 px-5 py-4" style={{ borderBottom: `1px solid ${t.gridLine}` }}>
         <div className="flex items-start gap-3 min-w-0">
-          <div className="w-9 h-9 rounded-xl flex items-center justify-center shrink-0" style={{ background: RENEWABLE + "14", border: `1px solid ${RENEWABLE}2a` }}>
-            <Lightning size={16} weight="fill" style={{ color: RENEWABLE }} aria-hidden />
+          {/* The icon on the tile the Dashboard's other cards have, in black and white, as asked. */}
+          <div className="w-7 h-7 rounded-lg flex items-center justify-center shrink-0 bg-muted/60 text-foreground">
+            <Lightning size={13} weight="fill" aria-hidden />
           </div>
           <div className="min-w-0">
             <h2 id="energy-outlook-title" className="text-base font-bold font-sans leading-tight" style={{ color: t.headText }}>

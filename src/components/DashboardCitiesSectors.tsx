@@ -31,7 +31,7 @@
  * happened, not a forecast: the published projections are on the Trends
  * page.
  */
-import { useEffect, useMemo, useState, type ReactNode } from "react";
+import { cloneElement, isValidElement, useEffect, useMemo, useState, type ReactNode } from "react";
 import { useNavigate } from "react-router-dom";
 import { Area, AreaChart, ResponsiveContainer } from "recharts";
 import { ArrowRight, Buildings, CaretDown, ChartLineUp, TrendDown, TrendUp } from "@phosphor-icons/react";
@@ -71,7 +71,10 @@ export function Head({ t, icon, label, badge, cta, to }: { t: Tokens; icon: Reac
   return (
     <div className="flex items-center justify-between mb-4">
       <div className="flex items-center gap-2 min-w-0">
-        <span style={{ color: t.headText }}>{icon}</span>
+        {/* The icon on the tile the Countries and Compare cards have, as asked, at their size. */}
+        <span className="w-7 h-7 rounded-lg flex items-center justify-center shrink-0 bg-muted/60 text-foreground">
+          {isValidElement<{ size?: number }>(icon) ? cloneElement(icon, { size: 13 }) : icon}
+        </span>
         <h2 className="text-base font-bold font-sans" style={{ color: t.headText }}>
           {label}
         </h2>

@@ -363,8 +363,9 @@ export function GlobalAnalytics() {
     <div className="rounded-2xl p-5" style={{ background: t.cardBg, border: t.cardBorder, boxShadow: t.cardShadow }}>
       <div className="flex items-center justify-between mb-4">
         <div className="flex items-center gap-2 min-w-0">
-          <span style={{ color: t.accent }}>
-            <GlobeHemisphereWest size={16} weight="fill" />
+          {/* The icon on the tile the Countries and Compare cards have, as asked. */}
+          <span className="w-7 h-7 rounded-lg flex items-center justify-center shrink-0 bg-muted/60 text-foreground">
+            <GlobeHemisphereWest size={13} weight="fill" />
           </span>
           <h2 className="text-base font-bold font-sans" style={{ color: t.headText }}>
             Global &amp; Geopolitical Analytics
