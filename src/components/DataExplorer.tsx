@@ -34,7 +34,7 @@ import { lazy, Suspense, useEffect, useMemo, useRef, useState, type ReactNode } 
 import { useLocation, useNavigate } from "react-router-dom";
 import { Area, AreaChart, CartesianGrid, Line, LineChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
 import { SLIM_TRACK, SlimColumns, slimFill } from "./SlimBars";
-import { ArrowRight, ArrowSquareOut, ChartBar, Globe, GlobeHemisphereWest, Heart, Leaf, Lightbulb, MagnifyingGlass, MapPin, Megaphone, Scales, Tree, Users, X } from "@phosphor-icons/react";
+import { ArrowRight, ArrowSquareOut, Heart, MagnifyingGlass, MapPin, Scales, Users, X } from "@phosphor-icons/react";
 import { useTokens, type Tokens } from "../lib/cardTokens";
 import { useLiveCountries } from "../contexts/LiveDataContext";
 import type { Country, DataSource, ReferenceField } from "../data/countriesData";
@@ -66,22 +66,22 @@ const ClimateTab = lazy(() => import("./ClimateNowExplorer"));
 export type ExplorerTab = "countries" | "economies" | "policies";
 /** The Dashboard's tabs: countries and economies, and the explorers that come from other pages. */
 type Tab = ExplorerTab | "resources" | "geopolitics" | "ideologies" | "unrest" | "climate";
-type TabDef = { id: Tab; label: string; color: string; path: string; Icon: typeof Globe };
+type TabDef = { id: Tab; label: string; color: string; path: string };
 
 const TABS: TabDef[] = [
-  { id: "countries", label: "Countries", color: "#6366f1", path: "/dashboard/countries", Icon: Globe },
-  { id: "economies", label: "Economies", color: "#f59e0b", path: "/dashboard/economies", Icon: ChartBar },
-  { id: "resources", label: "Resources", color: "#059669", path: "/dashboard/economies?view=resources", Icon: Tree },
+  { id: "countries", label: "Countries", color: "#6366f1", path: "/dashboard/countries" },
+  { id: "economies", label: "Economies", color: "#f59e0b", path: "/dashboard/economies" },
+  { id: "resources", label: "Resources", color: "#059669", path: "/dashboard/economies?view=resources" },
   // The Developments tab stood here, the figures of a page that was taken off; it was taken off too, as asked.
   // The explorers added since: power; political theories and forms of governance; revolutions, protests and boycotts; the climate.
   // Geopolitics and the ideologies were one tab, and are two as asked: each is a half of the Worldview page's explorer.
-  { id: "geopolitics", label: "Geopolitics", color: "#6366f1", path: "/dashboard/worldview", Icon: GlobeHemisphereWest },
-  { id: "ideologies", label: "Ideologies", color: "#d946ef", path: "/dashboard/worldview", Icon: Lightbulb },
-  { id: "unrest", label: "Revolutions & protests", color: "#f97316", path: "", Icon: Megaphone },
-  { id: "climate", label: "Climate", color: "#10b981", path: "", Icon: Leaf },
+  { id: "geopolitics", label: "Geopolitics", color: "#6366f1", path: "/dashboard/worldview" },
+  { id: "ideologies", label: "Ideologies", color: "#d946ef", path: "/dashboard/worldview" },
+  { id: "unrest", label: "Revolutions & protests", color: "#f97316", path: "" },
+  { id: "climate", label: "Climate", color: "#10b981", path: "" },
 ];
 /** The policy explorer: the Policy page's alone (`only`). It was the Dashboard's third tab, where Industries stands now. */
-const POLICY_TAB: TabDef = { id: "policies", label: "Policies", color: "#a855f7", path: "/dashboard/policy", Icon: Scales };
+const POLICY_TAB: TabDef = { id: "policies", label: "Policies", color: "#a855f7", path: "/dashboard/policy" };
 
 /**
  * Policy topics, matched on a headline's own words. "Labour" is left out of
@@ -210,7 +210,6 @@ export function DataExplorer({
       {/* One category alone is headed by its name; all three are tabs. */}
       {only ? (
         <div className="flex items-center gap-1.5 px-4 py-3 border-b" style={{ borderColor: t.gridLine, color: cur.color }}>
-          <cur.Icon size={12} weight="fill" aria-hidden />
           <h2 className="text-[11px] font-bold font-sans">{cur.label}</h2>
           <span className="text-[9px] font-mono px-1.5 py-0.5 rounded-full" style={{ background: cur.color + "15" }}>
             {badge[cur.id]}
@@ -239,7 +238,6 @@ export function DataExplorer({
                   marginBottom: -1,
                 }}
               >
-                <x.Icon size={12} weight="fill" style={{ color: x.color }} aria-hidden />
                 {x.label}
                 {badge[x.id] && (
                   <span className="text-[9px] font-mono px-1.5 py-0.5 rounded-full" style={{ background: x.color + "15", color: x.color }}>
