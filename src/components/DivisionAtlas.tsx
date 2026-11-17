@@ -17,8 +17,9 @@
  * picked here stays until another is picked, or one is pointed at above.
  *
  * It is the map at the head of a division's own window, given room and
- * those menus. Drawn closer, a county or district is
- * pointed at and pressed to open its window; a dot opens the town's or
+ * those menus. A county or district, at any distance, is
+ * pointed at or pressed to draw it in the county map below it (whose
+ * "All of ..." opens its window); a dot opens the town's or
  * city's. Nothing is shaded by a figure: the site holds none county by
  * county outside the United States, and a colour would imply one. The whole
  * map is in the colour its division - or, outside the United States, its

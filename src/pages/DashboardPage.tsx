@@ -947,7 +947,6 @@ function CompareCountriesTool({
 }) {
   // The card's furniture - tabs, chips, "Add", "Full explorer" - in the headings' ink for both tabs, as asked; the metrics keep their own colours.
   const accent = ACCENT(isLight);
-  const stateAccent = accent;
 
   const [tab, setTab] = useState<"countries" | "states">("countries");
 
@@ -1045,7 +1044,6 @@ function CompareCountriesTool({
     );
   };
 
-  const curAccent = tab === "countries" ? accent : stateAccent;
 
   return (
     <div
@@ -1110,7 +1108,7 @@ function CompareCountriesTool({
             onNav(`/dashboard/rankings${ids ? `?compare=${ids}` : ""}`);
           }}
           className="flex items-center gap-1 text-[10px] font-semibold transition-opacity hover:opacity-70"
-          style={{ color: curAccent }}
+          style={{ color: accent }}
         >
           Full explorer <ArrowRight size={10} weight="bold" />
         </button>
@@ -1535,7 +1533,7 @@ function CompareCountriesTool({
                               className="w-full flex items-center gap-2.5 px-3 py-2 text-left hover:opacity-75 transition-opacity"
                               style={{
                                 background: isSel
-                                  ? stateAccent + "12"
+                                  ? accent + "12"
                                   : "transparent",
                                 borderBottom: `1px solid ${gridLine}`,
                               }}
@@ -1543,8 +1541,8 @@ function CompareCountriesTool({
                               <span
                                 className="text-[10px] font-mono font-bold w-7 shrink-0 text-center rounded"
                                 style={{
-                                  background: stateAccent + "15",
-                                  color: stateAccent,
+                                  background: accent + "15",
+                                  color: accent,
                                 }}
                               >
                                 {st.abbreviation}
@@ -1559,7 +1557,7 @@ function CompareCountriesTool({
                                 <CheckCircle
                                   size={12}
                                   weight="fill"
-                                  style={{ color: stateAccent }}
+                                  style={{ color: accent }}
                                 />
                               )}
                             </button>
@@ -1634,8 +1632,8 @@ function CompareCountriesTool({
                       <span
                         className="text-[11px] font-mono font-bold px-1.5 py-0.5 rounded"
                         style={{
-                          background: stateAccent + "18",
-                          color: stateAccent,
+                          background: accent + "18",
+                          color: accent,
                         }}
                       >
                         {s.abbreviation}

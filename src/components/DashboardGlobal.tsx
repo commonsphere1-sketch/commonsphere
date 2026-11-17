@@ -45,7 +45,7 @@ import { SourceLink } from "./SourceLink";
 import { SLIM_TRACK, slimFill } from "./SlimBars";
 
 type Source = { label: string; url: string };
-// The card's accent - its icon, badge and link - is the headings' ink, black and white, as asked: t.accent (lib/cardTokens).
+// The card's head in black and white, as asked: its icon on the tiles' ground, its badge an outlined chip, its link in the headings' ink (t.accent, lib/cardTokens).
 const GREEN = "#10b981";
 const RED = "#ef4444";
 
