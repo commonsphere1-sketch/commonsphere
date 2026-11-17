@@ -23,6 +23,14 @@ const TITLES = [
   "Fiscal conservatism", "Liberal conservatism", "National conservatism", "Ordoliberalism", "State socialism", "Stalinism",
   "Marxism–Leninism", "Ba'athism", "Laissez-faire", "Keynesian economics", "Capitalism", "Autocracy", "Plutocracy", "Agorism",
   "Left communism", "Council communism", "Right-libertarianism", "Left-libertarianism",
+  // Added November 2026, as asked: more ideologies, philosophies and political and economic theories.
+  "Hoxhaism", "Fidelismo", "Titoism", "Ujamaa", "Nasserism", "Kemalism", "Strasserism", "National Bolshevism",
+  "State capitalism", "Mercantilism", "Social market economy", "Monetarism",
+  "Falangism", "Clerical fascism", "Enlightened absolutism", "Dark Enlightenment", "Traditionalist conservatism", "Gaullism",
+  "One-nation conservatism", "National liberalism",
+  "Liberal socialism", "Social liberalism", "Guild socialism", "Participatory economics", "Democratic confederalism", "Gandhism",
+  "Syndicalism", "Anarcha-feminism", "Green anarchism", "Anarcho-primitivism",
+  "Libertarian conservatism", "Paleolibertarianism", "Geolibertarianism", "Individualist anarchism",
 ];
 
 async function qlever(query) {
