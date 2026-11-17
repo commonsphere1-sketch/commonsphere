@@ -402,14 +402,20 @@ export function Kpi({ t, label, value, color, sub }: { t: Tokens; label: string;
   );
 }
 
+/** The hover of a list's rows, as the Commodities card's on the Dashboard, as asked: lit in the row's colour when pointed at -
+ *  a tint, a fine edge and a soft glow - set above its neighbours so the glow is not cut. `--row` is the colour. */
+export const ROW_GLOW =
+  "relative transition-[background-color,box-shadow] duration-200 hover:z-[1] hover:bg-[color-mix(in_srgb,var(--row)_12%,transparent)] hover:shadow-[inset_0_0_0_1px_color-mix(in_srgb,var(--row)_40%,transparent),0_0_14px_-4px_var(--row)]";
+
 export function Row({ t, selected, color, onClick, children }: { t: Tokens; selected: boolean; color: string; onClick: () => void; children: ReactNode }) {
   return (
     <button
       type="button"
       onClick={onClick}
       aria-pressed={selected}
-      className="flex items-center gap-2.5 px-4 py-2.5 text-left transition-colors hover:opacity-90 cursor-pointer"
-      style={{ borderBottom: `1px solid ${t.gridLine}`, background: selected ? color + (t.isLight ? "12" : "1f") : "transparent" }}
+      className={`flex items-center gap-2.5 px-4 py-2.5 text-left cursor-pointer ${ROW_GLOW}`}
+      // The chosen row keeps its tint; the others have none of their own, so the hover's shows.
+      style={{ "--row": color, borderBottom: `1px solid ${t.gridLine}`, ...(selected ? { background: color + (t.isLight ? "12" : "1f") } : {}) } as React.CSSProperties}
     >
       {children}
       <ArrowRight size={10} weight="bold" style={{ color: selected ? color : t.mutedText, flexShrink: 0 }} aria-hidden />
@@ -1186,8 +1192,8 @@ function PolicyList({
             type="button"
             onClick={() => onPick(h)}
             aria-pressed={selected?.url === h.url}
-            className="flex items-start gap-3 px-4 py-3 text-left transition-colors hover:opacity-90 cursor-pointer"
-            style={{ borderBottom: `1px solid ${t.gridLine}`, background: selected?.url === h.url ? "#a855f7" + (t.isLight ? "10" : "1a") : "transparent" }}
+            className={`flex items-start gap-3 px-4 py-3 text-left cursor-pointer ${ROW_GLOW}`}
+            style={{ "--row": "#a855f7", borderBottom: `1px solid ${t.gridLine}`, ...(selected?.url === h.url ? { background: "#a855f7" + (t.isLight ? "10" : "1a") } : {}) } as React.CSSProperties}
           >
             <span className="w-6 h-6 rounded-lg flex items-center justify-center shrink-0 mt-0.5" style={{ background: "#a855f718", color: "#a855f7" }}>
               <Scales size={11} weight="fill" />
