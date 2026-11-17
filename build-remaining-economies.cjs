@@ -414,6 +414,8 @@ function bundle(file, name) {
       "je-gdp-per-head.csv",
     ),
   );
+  /** The year whose prices both of Statistics Jersey's series are in, as their files' names give it ("constant-2024-values"). */
+  const JE_BASE = "2024";
 
   const displayCurrency = new Intl.DisplayNames(["en"], { type: "currency" });
   const titleCase = (s) => s.replace(/\b\p{Ll}/gu, (m) => m.toUpperCase());
@@ -515,14 +517,27 @@ function bundle(file, name) {
       sources = [SOURCES.cbs];
       note = "Bonaire, Sint Eustatius and Saba together, in US dollars, their currency. Growth is CBS's volume change.";
     } else if (c.code === "JE") {
-      const y = Object.keys(jeGdp).sort().pop();
-      const [gdpLcu, growth] = jeGdp[y];
-      set("gdpTrillions", sig(toUsd(gdpLcu, "GBP", y) / 1e6), y);
+      /* Statistics Jersey gives its GDP and its GDP per head in the constant values of one year (JE_BASE, which its files'
+         names give). For that year a figure is its value in that year's prices; for a later year it is a real measure - 2025
+         at 2024 prices - not its value that year. So the GDP and GDP per head given are the base year's. The growth is the
+         latest year's real change: Statistics Jersey's own where its file gives it (it did until November 2026), or else
+         worked out here from the same series, the latest year on the one before, both at constant values. */
+      const base = JE_BASE;
+      if (!jeGdp[base] || !jePerHead[base]) throw new Error(`Statistics Jersey: no ${base} in its series - has the base year moved?`);
+      const ys = Object.keys(jeGdp).sort();
+      const y = ys[ys.length - 1];
+      const before = ys[ys.length - 2];
+      set("gdpTrillions", sig(toUsd(jeGdp[base][0], "GBP", base) / 1e6), base);
+      const published = jeGdp[y][1];
+      const worked = before ? (jeGdp[y][0] / jeGdp[before][0] - 1) * 100 : NaN;
+      const growth = Number.isFinite(published) ? published : worked;
       if (Number.isFinite(growth)) set("gdpGrowthRate", round(growth, 1), y);
-      const py = Object.keys(jePerHead).sort().pop();
-      set("gdpPerCapita", Math.round(toUsd(jePerHead[py][0], "GBP", py)), py);
+      set("gdpPerCapita", Math.round(toUsd(jePerHead[base][0], "GBP", base)), base);
       sources = [SOURCES.jersey, SOURCES.fx];
-      note = `GDP for ${y} from Statistics Jersey's series in constant ${y} values, which for ${y} is its value that year; converted from pounds at the World Bank's average rate.`;
+      note =
+        `GDP and GDP per head for ${base}, from Statistics Jersey's series in constant ${base} values - for ${base}, its value that year - ` +
+        `converted from pounds at the World Bank's average rate. Real growth for ${y}` +
+        (Number.isFinite(published) ? " as Statistics Jersey gives it." : `, worked out here from the same series: ${y} on ${before}, both at constant ${base} values.`);
     } else if (OFFICIAL[c.code]) {
       const o = OFFICIAL[c.code];
       set("gdpTrillions", sig(toUsd(o.gdp, o.currency, o.rateYear) / 1e6), o.year);
