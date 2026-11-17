@@ -1,8 +1,9 @@
 import { useTheme } from "../contexts/ThemeContext";
 
-/** The accent of a card's furniture - its icon tile, count pill, tabs, chips and "All … →" link - powder blue where it was
- *  purple: CSS powderblue in the dark theme, and in the light a deeper powder blue that reads on white (4.8:1). */
-export const powderBlue = (isLight: boolean) => (isLight ? "#3f7a8a" : "#b0e0e6");
+/** The accent of a card's furniture - its icon tile, count pill, tabs, chips and "All … →" link - where it was purple: CSS
+ *  powderblue in the dark theme, and in the light the blue of the headlines' wash (Tailwind blue-600, lib/blueHue), as
+ *  asked, which reads on white (5.2:1). */
+export const powderBlue = (isLight: boolean) => (isLight ? "#2563eb" : "#b0e0e6");
 
 /** The site's card colours, light and dark: the cards, their text, their grid lines and tooltips - one set for every chart card. */
 export function useTokens() {
