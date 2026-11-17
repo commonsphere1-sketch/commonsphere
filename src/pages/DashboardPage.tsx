@@ -1300,9 +1300,6 @@ function CompareCountriesTool({
                   className="grid"
                   style={{
                     gridTemplateColumns: `clamp(100px,28%,160px) repeat(${selectedCountries.length}, 1fr)`,
-                    background: isLight
-                      ? "rgba(0,0,0,0.03)"
-                      : "rgba(255,255,255,0.04)",
                     borderBottom: `1px solid ${gridLine}`,
                   }}
                 >
@@ -1367,12 +1364,6 @@ function CompareCountriesTool({
                       className="grid"
                       style={{
                         gridTemplateColumns: `clamp(100px,28%,160px) repeat(${selectedCountries.length}, 1fr)`,
-                        background:
-                          ri % 2 === 0
-                            ? "transparent"
-                            : isLight
-                              ? "rgba(0,0,0,0.018)"
-                              : "rgba(255,255,255,0.022)",
                         borderBottom:
                           ri < COMPARE_METRICS.length - 1
                             ? `1px solid ${gridLine}`
@@ -1670,9 +1661,6 @@ function CompareCountriesTool({
                   className="grid"
                   style={{
                     gridTemplateColumns: `clamp(100px,28%,160px) repeat(${selectedStates.length}, 1fr)`,
-                    background: isLight
-                      ? "rgba(0,0,0,0.03)"
-                      : "rgba(255,255,255,0.04)",
                     borderBottom: `1px solid ${gridLine}`,
                   }}
                 >
@@ -1738,12 +1726,6 @@ function CompareCountriesTool({
                       className="grid"
                       style={{
                         gridTemplateColumns: `clamp(100px,28%,160px) repeat(${selectedStates.length}, 1fr)`,
-                        background:
-                          ri % 2 === 0
-                            ? "transparent"
-                            : isLight
-                              ? "rgba(0,0,0,0.018)"
-                              : "rgba(255,255,255,0.022)",
                         borderBottom:
                           ri < STATE_COMPARE_METRICS.length - 1
                             ? `1px solid ${gridLine}`
