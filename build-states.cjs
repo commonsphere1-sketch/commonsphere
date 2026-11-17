@@ -491,12 +491,16 @@ const r1 = (v) => Math.round(v * 10) / 10;
     const q = `SELECT ?stateLabel ?govLabel ?start (GROUP_CONCAT(DISTINCT ?partyLabel;separator="|") AS ?parties) WHERE {
       ?state wdt:P31 wd:Q35657 ; wdt:P1313 ?office .
       ?gov p:P39 ?st . ?st ps:P39 ?office ; pq:P580 ?start .
-      FILTER NOT EXISTS { ?st pq:P582 ?end }
+      # A term is over once its end has passed: a sitting governor's term may be entered with the day it will end (Alaska's and
+      # Arizona's, November 2026), and a governor-elect's with the day it begins (Colorado's) - the first is still the governor.
+      FILTER NOT EXISTS { ?st pq:P582 ?end . FILTER(?end <= NOW()) }
       FILTER NOT EXISTS { ?gov wdt:P570 ?died }
       FILTER(YEAR(?start) >= 2010)
+      FILTER(?start <= NOW())
       OPTIONAL { ?gov p:P102 ?ps . ?ps ps:P102 ?party . FILTER NOT EXISTS { ?ps pq:P582 ?pend }
                  ?party rdfs:label ?partyLabel . FILTER(LANG(?partyLabel) = "en") }
-      SERVICE wikibase:label { bd:serviceParam wikibase:language "en". }
+      # An item may hold its name as its "mul" label, for every language, and none in English (Arizona's, November 2026).
+      SERVICE wikibase:label { bd:serviceParam wikibase:language "en,mul". }
     } GROUP BY ?stateLabel ?govLabel ?start`;
     const t = await text(`${U.wikidata}?query=${encodeURIComponent(q)}`, "governors.csv", { headers: { Accept: "text/csv" } });
     const rows = csv(t).slice(1);

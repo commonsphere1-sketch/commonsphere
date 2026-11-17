@@ -123,7 +123,10 @@ const wikitext = JSON.parse(
     "governors.json",
   ),
 ).parse.wikitext;
-const table = wikitext.slice(wikitext.indexOf("Current state governors of the United States"));
+// The table's caption: "Current state governors of the United States", and since late 2026 "Incumbent state governors ...".
+const caption = /\|\+\s*(?:Current|Incumbent) state governors of the United States/.exec(wikitext);
+if (!caption) throw new Error("the governors list's table was not found by its caption");
+const table = wikitext.slice(caption.index);
 let governors = 0;
 for (const row of table.split("\n|-")) {
   const st = row.match(/\[\[Governor of ([^|\]]+)\|([^\]]+)\]\]/);
@@ -149,7 +152,9 @@ for (const row of table.split("\n|-")) {
 if (governors !== 50) throw new Error(`read ${governors} governors' terms, not 50`);
 
 // ── Mayors: the fifty largest cities ──
-const mayorsText = wikitextOf(MAYORS_PAGE, "mayors.json");
+// Editors' hidden notes are not part of the list as published - one in Los Angeles's row named the mayor-elect and the day
+// the term begins (November 2026) - so they are taken out before the rows are read.
+const mayorsText = wikitextOf(MAYORS_PAGE, "mayors.json").replace(/<!--[\s\S]*?-->/g, "");
 const mayorsTable = mayorsText.slice(mayorsText.indexOf('{|class="wikitable plainrowheaders sortable'));
 const mayors = [];
 for (const row of mayorsTable.slice(0, mayorsTable.indexOf("\n|}")).split("\n|-")) {
