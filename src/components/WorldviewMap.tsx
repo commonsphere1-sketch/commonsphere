@@ -206,6 +206,14 @@ const CITIES_FROM = 4;
 const REGIONS_FROM = 1.3;
 /** Drawn this close, the country picked is pressed by its counties, districts and municipalities instead, where their outlines are held. */
 const COUNTIES_PICK_FROM = 3;
+/** What a press on the map selects, and its chip on the bar over the map. */
+type PressKind = "country" | "state" | "county" | "city";
+const PRESS_KINDS: [PressKind, string, string][] = [
+  ["country", "Country", "A press picks the whole country"],
+  ["state", "State", "A press picks a state, province or region of the country picked"],
+  ["county", "County", "A press picks a county, district or municipality of the country picked"],
+  ["city", "City / Town", "A press picks a city of the country picked"],
+];
 type Src = { label: string; url: string };
 /** A county or a city pressed on the map: what the column says of it, every line its publisher's. */
 type Pressed = { kind: "county" | "city"; key: string; name: string; sub: string; rows: [string, string][]; sources: Src[]; note?: string; parent?: string; people?: number; /** The windows other pages have for the same place. */ links?: { label: string; to: string }[] };
@@ -707,6 +715,13 @@ export default function WorldviewMap({ onPlace }: { onPlace?: (where: { cc: stri
   }, [picked]);
   /* How close the map is drawn and where its middle is, in the map's own units - 1 is the whole of it - as the Dashboard's map does. */
   const [view, setView] = useState({ k: 1, x: W / 2, y: H / 2 });
+  /* What a press on the map selects, as asked - the bar over the map, as the Dashboard's Find a place has it: a country, a
+     state or province of the country picked, a county or district of it, or a city of it. Until one is chosen it follows
+     how close the map is drawn, as it always did; once chosen it holds, and the map is drawn as close as that kind of place
+     needs. A place found by the search chooses its own kind. */
+  const [manualPress, setManualPress] = useState<PressKind | null>(null);
+  const autoPress: PressKind = view.k >= CITIES_FROM ? "city" : view.k >= COUNTIES_PICK_FROM ? "county" : view.k >= REGIONS_FROM ? "state" : "country";
+  const press = manualPress ?? autoPress;
   /* The counties, districts and municipalities of the country picked, fetched once it is drawn close enough to press them: the
      United States' are the Census Bureau's, by us-atlas; every other country's geoBoundaries', as the World Maps page draws them. */
   type County = { name: string; parent?: string; id: string; d: string; b: [[number, number], [number, number]]; geo: unknown; at?: number; a?: ReturnType<typeof anchorOf> };
@@ -977,6 +992,7 @@ export default function WorldviewMap({ onPlace }: { onPlace?: (where: { cc: stri
       if (!s?.a) return false;
       setToFind(null);
       setPicked(a.cc);
+      setManualPress("country");
       // Sized to the whole country, as a press on it draws it; centred on its mainland.
       const [[x0, y0], [x1, y1]] = s.b;
       glideOn(Math.max(1.4, Math.min(MAX_K, 0.8 * Math.min(W / Math.max(1, x1 - x0), H / Math.max(1, y1 - y0)))), s.a);
@@ -987,6 +1003,7 @@ export default function WorldviewMap({ onPlace }: { onPlace?: (where: { cc: stri
       const s = shapeOf(cc);
       if (!s?.a) return false;
       setPicked(cc);
+      setManualPress("state");
       // Drawn first to its point where its record gives one, else to its country, until its country's divisions are in to draw it to its own outline.
       const at = a.kind === "division" ? (pointOf(a.lon, a.lat) ?? undefined) : undefined;
       if (at) glideOn(2.2, at);
@@ -998,6 +1015,7 @@ export default function WorldviewMap({ onPlace }: { onPlace?: (where: { cc: stri
       const p = pointOf(a.lon, a.lat);
       if (!p) return false;
       setPicked("US");
+      setManualPress("county");
       glideOn(5, p);
       setToFind({ cc: "US", kind: "county", fips: a.fips });
       return true;
@@ -1008,9 +1026,40 @@ export default function WorldviewMap({ onPlace }: { onPlace?: (where: { cc: stri
     if (!p) return false;
     setToFind(null);
     setPicked(a.cc);
+    setManualPress("city");
     glideOn(6, p);
     return true;
   };
+  /** A chip on the bar pressed: that kind of place is what a press selects, and the map is drawn as close as it needs - to the
+   *  country picked, where the map is further out than its states are pressed from - and left as it is where it is already. */
+  const choosePress = (p: PressKind) => {
+    setManualPress(p);
+    const now = viewRef.current;
+    const need = p === "state" ? REGIONS_FROM : p === "county" ? COUNTIES_PICK_FROM : p === "city" ? CITIES_FROM : 0;
+    if (now.k >= need) return;
+    if (p === "state") return pick(picked);
+    const s = shapeOf(picked);
+    const at = now.k >= REGIONS_FROM || !s ? { x: now.x, y: now.y } : (s.a ?? { x: (s.b[0][0] + s.b[1][0]) / 2, y: (s.b[0][1] + s.b[1][1]) / 2 });
+    glideTo({ k: centred(need + 0.05, at.x, at.y), x: at.x, y: at.y });
+  };
+  /** What a press does now, said on the bar: led by the country picked, by its name as the map has it. */
+  const here = shapeOf(picked)?.name ?? picked;
+  const pressHint =
+    press === "country"
+      ? "Press a country to pick it: the panels under the map fill with its figures."
+      : press === "state"
+        ? regions?.code !== picked
+          ? `${here}: drawing its states and provinces…`
+          : regions.list.length
+            ? `${here}: press a state, province or region - the column beside the map gives its record.`
+            : `${here}: no states or provinces are held.`
+        : press === "county"
+          ? counties?.code !== picked
+            ? `${here}: drawing its counties and districts…`
+            : counties.list.length
+              ? `${here}: press a county, district or municipality - the column beside the map gives its record.`
+              : `${here}: no county or district outlines are held.`
+          : `${here}: press a city - those of 100,000 people or more, as GeoNames lists them.`;
 
   /* A pin pressed, on the map or in the list under it: told under the map, and the map drawn to it when pressed in the list.
      Pressed on the map with the account out of sight below, the page moves just far enough to show the account's head. */
@@ -1145,8 +1194,6 @@ export default function WorldviewMap({ onPlace }: { onPlace?: (where: { cc: stri
         <p className="text-[10px] font-mono uppercase tracking-widest" style={{ color: t.mutedText }}>
           The world, country by country
         </p>
-        {/* A search of every place the site holds, as asked: a place chosen is found on the map. */}
-        <PlaceSearch onPlace={findPlace} />
         {/* The conflicts and the disasters going on, as asked: each switched on and off here, in the layers' own chip. */}
         <div className="flex flex-wrap items-center gap-1.5">
           {(
@@ -1184,6 +1231,30 @@ export default function WorldviewMap({ onPlace }: { onPlace?: (where: { cc: stri
             </button>
           ))}
         </div>
+      </div>
+      {/* What a press on the map selects, as asked - the bar the Dashboard's Find a place has: its chips, what a press does
+          now, and the search of every place the site holds (a place chosen is found on the map). */}
+      <div className="flex flex-wrap items-center gap-2 px-4 py-2 border-b" style={{ borderColor: t.gridLine }} role="group" aria-label="What a press on the map selects">
+        <span className="text-[10px] font-mono uppercase tracking-widest text-muted-foreground mr-1">A press selects</span>
+        {PRESS_KINDS.map(([id, label, says]) => (
+          <button
+            key={id}
+            type="button"
+            aria-pressed={press === id}
+            onClick={() => choosePress(id)}
+            title={says}
+            aria-label={`${label}: ${says}`}
+            className={`px-3 py-1 rounded-full text-[11px] font-medium font-sans border transition-colors cursor-pointer shrink-0 whitespace-nowrap ${
+              press === id ? "chip-selected" : "bg-transparent border-border text-muted-foreground hover:text-foreground hover:bg-muted/60"
+            }`}
+          >
+            {label}
+          </button>
+        ))}
+        <p className="order-last basis-full lg:order-none lg:basis-0 lg:flex-1 min-w-0 truncate text-[13px] font-sans h-5 leading-5 px-1" style={{ color: t.bodyText }} title={pressHint} aria-live="polite">
+          {pressHint}
+        </p>
+        <PlaceSearch onPlace={findPlace} />
       </div>
       <div className="grid grid-cols-1 lg:grid-cols-[minmax(0,1fr)_15rem]">
         <div className="relative p-3 min-w-0">
@@ -1275,7 +1346,8 @@ export default function WorldviewMap({ onPlace }: { onPlace?: (where: { cc: stri
             {/* The country picked, by its divisions, once drawn closer: each lit when pointed at and pressed. */}
             {/* Closer still, the country picked by its counties, districts and municipalities, where they are held: those in view. */}
             {countiesShown && (
-              <g>
+              // Pressed only where a county is what a press selects; drawn all the same.
+              <g pointerEvents={press === "county" ? undefined : "none"}>
                 {counties!.list.map((c) => {
                   const hw = W / (2 * view.k);
                   const hh = H / (2 * view.k);
@@ -1312,8 +1384,9 @@ export default function WorldviewMap({ onPlace }: { onPlace?: (where: { cc: stri
                 })}
               </g>
             )}
-            {!countiesShown && view.k >= REGIONS_FROM && regions?.code === picked && (
-              <g>
+            {/* Over the counties where a state is what a press selects, however close the map is drawn. */}
+            {(press === "state" || !countiesShown) && view.k >= REGIONS_FROM && regions?.code === picked && (
+              <g pointerEvents={press === "state" ? undefined : "none"}>
                 {regions.list.map((r, i) => (
                   <path
                     key={`${r.name}-${i}`}
@@ -1346,7 +1419,7 @@ export default function WorldviewMap({ onPlace }: { onPlace?: (where: { cc: stri
                 const hh = H / (2 * view.k);
                 if (Math.abs(c.x - view.x) > hw || Math.abs(c.y - view.y) > hh) return null;
                 return (
-                  <circle key={`${c.name}-${c.country}-${c.x}`} cx={c.x} cy={c.y} r={((c.people >= 1e6 ? 2.6 : 1.6) * (pressed?.kind === "city" && pressed.key === `${c.name}-${c.country}` ? 1.8 : 1)) / view.k} fill={pressed?.kind === "city" && pressed.key === `${c.name}-${c.country}` ? inkOf(picked) : t.headText} fillOpacity={0.9} stroke={t.cardBg} strokeWidth={0.6 / view.k} className={c.cc === picked ? "cursor-pointer" : undefined} onClick={() => c.cc === picked && !dragged.current && pressCity(c)} onMouseEnter={() => c.cc === picked && setHoverRegion(`city:${c.name}`)} onMouseLeave={() => setHoverRegion(null)}>
+                  <circle key={`${c.name}-${c.country}-${c.x}`} cx={c.x} cy={c.y} r={((c.people >= 1e6 ? 2.6 : 1.6) * (pressed?.kind === "city" && pressed.key === `${c.name}-${c.country}` ? 1.8 : 1)) / view.k} fill={pressed?.kind === "city" && pressed.key === `${c.name}-${c.country}` ? inkOf(picked) : t.headText} fillOpacity={0.9} stroke={t.cardBg} strokeWidth={0.6 / view.k} className={c.cc === picked && press === "city" ? "cursor-pointer" : undefined} pointerEvents={press === "city" ? undefined : "none"} onClick={() => press === "city" && c.cc === picked && !dragged.current && pressCity(c)} onMouseEnter={() => c.cc === picked && setHoverRegion(`city:${c.name}`)} onMouseLeave={() => setHoverRegion(null)}>
                     <title>{`${c.name}, ${c.country}: ${c.people.toLocaleString("en-US")} people (GeoNames)`}</title>
                   </circle>
                 );
