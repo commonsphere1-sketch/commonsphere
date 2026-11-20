@@ -81,19 +81,29 @@ const r1 = (v) => Math.round(v * 10) / 10;
   const rows = [];
   const years = {};
   const dropped = [];
+  const fellBack = [];
   const none = [];
   for (const c of [...countries].sort((a, b) => a.id.localeCompare(b.id))) {
     const f = s.forest[c.code], a = s.agri[c.code], ar = s.arable[c.code], cr = s.crops[c.code];
     if (!f || !a || !ar || !cr) { none.push(c.name); continue; }
-    // Latest year all four are published for.
-    const year = Object.keys(f).filter((y) => y in a && y in ar && y in cr).sort().pop();
-    if (!year) { none.push(c.name); continue; }
-    const forest = f[year], crop = ar[year] + cr[year], pasture = a[year] - crop;
-    const other = 100 - forest - a[year];
-    if (pasture < -0.05 || other < -0.05) {
-      dropped.push(`${c.name} (${year}: forest ${forest.toFixed(1)}, agri ${a[year].toFixed(1)}, cropland ${crop.toFixed(1)})`);
+    // The latest year all four are published for whose figures fit FAO's definitions. Where the latest does not fit - in
+    // 2024, Dominica's, Guinea-Bissau's, Palau's, Rwanda's and São Tomé's forest and farmland came to over 100% of land -
+    // the year before that does is given, all four still of one year; a country is dropped only if no year fits.
+    const all = Object.keys(f).filter((y) => y in a && y in ar && y in cr).sort().reverse();
+    if (!all.length) { none.push(c.name); continue; }
+    const fits = (y) => {
+      const crop = ar[y] + cr[y];
+      return a[y] - crop >= -0.05 && 100 - f[y] - a[y] >= -0.05;
+    };
+    const year = all.find(fits);
+    if (!year) {
+      const y = all[0];
+      dropped.push(`${c.name} (${y}: forest ${f[y].toFixed(1)}, agri ${a[y].toFixed(1)}, cropland ${(ar[y] + cr[y]).toFixed(1)})`);
       continue;
     }
+    if (year !== all[0]) fellBack.push(`${c.name} (${year}; ${all[0]} does not fit)`);
+    const forest = f[year], crop = ar[year] + cr[year], pasture = a[year] - crop;
+    const other = 100 - forest - a[year];
     years[year] = (years[year] || 0) + 1;
     rows.push(
       `  ${JSON.stringify(c.id)}: { y: "${year}", forest: ${r1(forest)}, cropland: ${r1(crop)}, pasture: ${r1(Math.max(0, pasture))}, other: ${r1(Math.max(0, other))} },`,
@@ -139,5 +149,6 @@ ${rows.join("\n")}
   console.log(`wrote ${path.relative(__dirname, OUT)}: ${rows.length} countries`);
   console.log("  years: " + Object.entries(years).map(([y, n]) => `${y}=${n}`).join("  "));
   if (dropped.length) console.log("  dropped, figures do not fit FAO's definitions: " + dropped.join("; "));
+  if (fellBack.length) console.log("  an earlier year, the latest not fitting FAO's definitions: " + fellBack.join("; "));
   console.log("  not covered: " + none.join(", "));
 })().catch((e) => { console.error(e); process.exit(1); });
