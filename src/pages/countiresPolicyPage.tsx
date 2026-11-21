@@ -20,6 +20,8 @@ import {
   X,
 } from "@phosphor-icons/react";
 import { usStatesData } from "../data/statesData";
+import { SUBNATION_FLAG_COLOR } from "../data/subnationFlagColors";
+import { flagColor, seen } from "../lib/flagColor";
 import { countryMilitaryUsd, countryPolicyFigures, countrySpendingUsd, policyCountry, statePolicyFigures, type PolicyFigures } from "../data/policyFigures";
 import { usdFromBillions } from "../lib/money";
 import type { DataSource } from "../data/countriesData";
@@ -10809,8 +10811,15 @@ function EntityRow({ group }: { group: EntityGroup }) {
     return head.share !== undefined ? { value: head.value, label: `spending / GDP · ${head.when}` } : null;
   }, [group.policies, group.entityType]);
 
+  /* Lit in its flag's colour when pointed at, as the state pages' cards are, as asked: a country's flag's, a state's own (subnationFlagColors), lifted where too dark to show. */
+  const stateFlag = group.entityType === "state" ? SUBNATION_FLAG_COLOR.US?.[group.entityName] : undefined;
+  const glow = group.entityType === "country" ? flagColor(policyCountry(group.policies[0]?.code ?? "")?.code ?? "") : stateFlag ? seen(stateFlag) : null;
+
   return (
-    <div className="modal-tile rounded-2xl overflow-hidden transition-all duration-200 hover:scale-[1.01] hover:shadow-lg hover:border-secondary/40">
+    <div
+      className="cs-glow-card modal-tile rounded-2xl overflow-hidden transition-all duration-200 hover:scale-[1.01] hover:shadow-lg hover:border-secondary/40"
+      style={{ "--glow": glow ?? undefined } as React.CSSProperties}
+    >
       <button
         onClick={() => setOpen((o) => !o)}
         aria-expanded={open}

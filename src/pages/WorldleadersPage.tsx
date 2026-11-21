@@ -51,6 +51,7 @@ import { ArticlePanel } from "../components/HistoryPanel";
 import { WIKI_ARTICLES } from "../data/wikiArticles";
 import { LEADERS_BY_COUNTRY } from "../data/leaderIndex";
 import { TONE, CHIP_TEXT } from "@/lib/chipTone";
+import { flagColor } from "../lib/flagColor";
 import { Block, Empty, GoButton, Kpi, Label, Row, useTokens, type Tokens } from "../components/DataExplorer";
 // Globe is used in LeaderDetail tabs — do not remove
 
@@ -15121,12 +15122,13 @@ function LeaderCard({
   return (
     <button
       onClick={onClick}
-      // Plain, as asked: no bezel and no light-up (.cs-plain-card), only its own hover.
-      className={`cs-plain-card w-full text-left rounded-xl border transition-all duration-200 overflow-hidden group ${
+      // Lit in its country's flag's colour when pointed at, as the state cards are, as asked (it was plain, .cs-plain-card, before).
+      className={`w-full text-left rounded-xl border transition-all duration-200 overflow-hidden group ${
         isSelected
           ? "border-secondary/70 bg-secondary/5 ring-1 ring-secondary/30"
           : "border-border bg-card hover:border-secondary/40 hover:bg-card/80 hover:scale-[1.01] hover:shadow-lg"
       }`}
+      style={{ "--glow": flagColor(leader.countryCode.toUpperCase()) ?? undefined } as React.CSSProperties}
     >
       <div className="p-4 flex items-start gap-3">
         <div className="relative shrink-0">
@@ -15972,12 +15974,13 @@ function MonarchCard({
   return (
     <button
       onClick={onClick}
-      // Plain, as asked: no bezel and no light-up (.cs-plain-card), only its own hover.
-      className={`cs-plain-card w-full text-left rounded-xl border transition-all duration-200 overflow-hidden group ${
+      // Lit in its country's flag's colour when pointed at, as the state cards are, as asked (it was plain, .cs-plain-card, before).
+      className={`w-full text-left rounded-xl border transition-all duration-200 overflow-hidden group ${
         isSelected
           ? "border-yellow-500/50 bg-yellow-500/5 ring-1 ring-yellow-500/20"
           : "border-border bg-card hover:border-yellow-500/30 hover:bg-card/80 hover:scale-[1.01] hover:shadow-lg"
       }`}
+      style={{ "--glow": flagColor(monarch.countryCode.toUpperCase()) ?? undefined } as React.CSSProperties}
     >
       <div className="p-4 flex items-start gap-3">
         {/* Flag + net worth */}

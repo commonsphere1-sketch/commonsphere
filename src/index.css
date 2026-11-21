@@ -1005,10 +1005,14 @@ html.dark .modal-tile.cursor-pointer:hover {
    Last of the card rules, and of their weight - the theme's class, two of the
    card's and :hover - so that it is this halo that shows, not the plain shadow
    above: the place cards' own rule, which came before those, was outweighed
-   by them, and only its edge ever lit. !important as theirs are. */
+   by them, and only its edge ever lit. !important as theirs are.
+   A card that is not itself pressed but holds what is - the Policy page's
+   rows, a box round the button that opens them - lights up the same where it
+   is marked .cs-glow-card, as asked. */
 html:is(.dark, .light) :is(.cursor-pointer, button, [role="button"]):is(.rounded-xl, .rounded-2xl):not(.cs-plain-card):hover,
 html:is(.dark, .light) article.cursor-pointer:not(.cs-plain-card):hover,
-html:is(.dark, .light) .modal-tile.cursor-pointer:not(.cs-plain-card):hover {
+html:is(.dark, .light) .modal-tile.cursor-pointer:not(.cs-plain-card):hover,
+html:is(.dark, .light) .cs-glow-card:not(.cs-plain-card):hover {
   border-color: color-mix(in srgb, var(--glow, var(--color-foreground)) 70%, transparent) !important;
   box-shadow:
     var(--card-glow),
@@ -1018,8 +1022,9 @@ html:is(.dark, .light) .modal-tile.cursor-pointer:not(.cs-plain-card):hover {
 }
 
 /* ── Plain cards: no bezel, no halo ──────────────────────
-   A card marked .cs-plain-card - the World Leaders page's leaders, the
-   Economies page's resources and the two political compass bars, as asked -
+   A card marked .cs-plain-card - the Economies page's resources and the two
+   political compass bars, as asked (the World Leaders page's leaders and
+   monarchs were, and light up in their flags' colours now, as asked) -
    has neither the inset sheen along its top nor the light-up above: flat at
    rest, and pointed at, only its own hover (its utilities' shadow, tinted edge
    and lift), as it was before the light-up. Of the card rules' weight and
