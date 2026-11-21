@@ -1,7 +1,7 @@
 /**
  * What the site says of itself - its description, what it holds, the four principles it keeps to, the publishers its
- * figures are drawn from and its pages - in one place, for the About page and the Dashboard alike, so the two never say
- * different things. Every count is read from the site's own data, not typed.
+ * figures are drawn from and its pages - in one place, for the About page. The Dashboard drew its details from it too, until they were taken off, as asked.
+ * Every count is read from the site's own data, not typed.
  */
 import { Article, Bank, BookOpen, Briefcase, Buildings, ChartBar, CheckSquareOffset, Clock, CurrencyEur, Flag, Gavel, Globe, Leaf, Lightning, MapPin, Newspaper, Ranking, Scales, ShieldCheck, Sword, Users } from "@phosphor-icons/react";
 import { countriesData } from "../data/countriesData";

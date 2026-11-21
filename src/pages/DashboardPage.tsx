@@ -24,7 +24,6 @@ import { usStatesData } from "../data/statesData";
 import { STATE_INDICATORS as STATE_FIGURES } from "../data/stateIndicators";
 import { SourceLink } from "../components/SourceLink";
 import { DataExplorer } from "../components/DataExplorer";
-import { SiteDetails } from "../components/DashboardAbout";
 import { DashboardDrops } from "../components/DashboardDrops";
 import { hdiHex } from "../lib/hdiTier";
 import { CommodityMovers } from "../components/CommodityMovers";
@@ -2538,10 +2537,6 @@ export function DashboardPage() {
         {/* ── GLOBAL & GEOPOLITICAL ANALYTICS: where the National and International cards stood, replaced as asked.
             The world's figures, how its people are governed, and its blocs side by side - each published. ── */}
         <GlobalAnalytics />
-
-        {/* ── DETAILS: what the site keeps to, where its figures come from and its pages, at the foot as a dashboard has
-            them, as asked (DashboardAbout). ── */}
-        <SiteDetails />
 
         {/* ── FOOTER ────────────────────────────────────────────────────── */}
         <div className="text-center py-3 flex flex-col items-center gap-1">
