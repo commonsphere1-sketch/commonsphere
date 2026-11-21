@@ -35,8 +35,6 @@ import { PlanetaryBoundariesCard } from "../components/PlanetaryBoundariesWheel"
 
 /** Energy to 2050, the panel kept of the Trends & Projections desk, with the projections it draws on: loaded after the page. */
 const EnergyOutlook = lazy(() => import("../components/EnergyOutlook"));
-/** The map to any place - a country, its divisions, a US state's counties - with the boundary files it draws: loaded after the page. */
-const PlaceAtlas = lazy(() => import("../components/PlaceAtlas"));
 import { WORLD } from "../data/worldview";
 import { cardAccent } from "../lib/cardTokens";
 
@@ -2405,18 +2403,8 @@ export function DashboardPage() {
           )}
         />
 
-        {/* ── FIND A PLACE: a map to press. A country opens on its divisions, the United States on its states and a
-            state on its counties; a division or a county goes to its record on the Subnations page. Above the comparison
-            card, as asked. ── */}
-        <Suspense
-          fallback={
-            <div className="rounded-2xl p-5 text-[11px] font-sans" style={{ background: cardBg, border: cardBorder, color: mutedText }}>
-              Loading the map…
-            </div>
-          }
-        >
-          <PlaceAtlas />
-        </Suspense>
+        {/* The Find a place card (PlaceAtlas) stood here and was taken off, as asked; its bar - what a press selects, and the
+            search of every place - is on the Worldview page's map. */}
 
         {/* The political compass, as asked: the legend of its grid - what each part means and the ideas it is read by. */}
         <CompassLedger />
