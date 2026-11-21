@@ -17,7 +17,10 @@ import {
   ChartDonut,
   CaretLeft,
   CaretRight,
+  NotePencil,
 } from "@phosphor-icons/react";
+import { useNotes } from "../contexts/NotesContext";
+import { comparisonNote } from "../lib/noteKinds";
 import { countriesData } from "../data/countriesData";
 import { useLiveCountries } from "../contexts/LiveDataContext";
 import { usStatesData } from "../data/statesData";
@@ -1041,6 +1044,11 @@ function CompareCountriesTool({
     );
   };
 
+  /* A note on the places compared, as asked: kept in My Notes with their names and a link to the same comparison on the
+     Compare page (its ids as "Full explorer" hands them over). */
+  const { openNote } = useNotes();
+  const compared = tab === "countries" ? selectedCountries.map((c) => ({ name: c.name, id: `country-${c.id}` })) : selectedStates.map((s) => ({ name: s.name, id: `state-${s.id}` }));
+
 
   return (
     <div
@@ -1092,6 +1100,18 @@ function CompareCountriesTool({
             up to 4
           </span>
         </div>
+        <div className="flex items-center gap-3">
+        {compared.length >= 2 && (
+          <button
+            type="button"
+            onClick={() => openNote(comparisonNote(compared.map((p) => p.name), compared.map((p) => p.id)))}
+            className="flex items-center gap-1 text-[10px] font-semibold transition-opacity hover:opacity-70 cursor-pointer"
+            style={{ color: accent }}
+            title="Take a note on this comparison: it is kept in My Notes with the places and a link back to it"
+          >
+            <NotePencil size={11} weight="bold" aria-hidden /> Note
+          </button>
+        )}
         {/* Hands this card's pins to the rankings page, which is the same
             comparison with every indicator and each figure's rank — and which
             can hold countries and states at once, as this card cannot. */}
@@ -1109,6 +1129,7 @@ function CompareCountriesTool({
         >
           Full explorer <ArrowRight size={10} weight="bold" />
         </button>
+        </div>
       </div>
 
       <div className="p-5 flex flex-col gap-4">

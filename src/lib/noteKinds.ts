@@ -9,9 +9,42 @@
  * and not one place on it.
  *
  * The pages are the sidebar's own, by the same names.
+ *
+ * "Comparison" is a note about places set side by side, as asked: taken from
+ * the Compare page or the Dashboard's Compare card, it names the places and
+ * keeps a link that opens the same comparison again (comparisonNote).
  */
-export const NOTE_KINDS = ["Country", "State", "Municipality", "City", "Economy", "Leader", "Policy", "Page"] as const;
+export const NOTE_KINDS = ["Country", "State", "Municipality", "City", "Economy", "Leader", "Policy", "Comparison", "Page"] as const;
 export type NoteKind = (typeof NOTE_KINDS)[number];
+
+/** A note's name holds at most this many characters, as the notes table allows. */
+const NAME_MAX = 120;
+/** How the places of a comparison are set apart in its note's name. */
+export const COMPARISON_JOIN = " · ";
+
+/**
+ * What a note about a comparison is opened with: the places by name, and a link to the Compare page with the same places
+ * pinned (its ids as the page's ?compare= has them) and, for the systems of government, that view. Names that would not fit
+ * the name's 120 characters are counted instead ("and 2 more").
+ */
+export function comparisonNote(names: string[], ids: string[], view: "figures" | "systems" = "figures") {
+  let entityName = names.join(COMPARISON_JOIN);
+  for (let n = names.length - 1; entityName.length > NAME_MAX && n > 0; n--) entityName = `${names.slice(0, n).join(COMPARISON_JOIN)}${COMPARISON_JOIN}and ${names.length - n} more`;
+  const url = new URL("/dashboard/rankings", window.location.origin);
+  url.searchParams.set("compare", ids.join(","));
+  if (view === "systems") url.searchParams.set("compareView", "systems");
+  return { entityName: entityName.slice(0, NAME_MAX), entityType: "Comparison" as NoteKind, links: [url.toString()] };
+}
+
+/** The place a link on this site opens - its path and query - or null for a link elsewhere. */
+export function sitePath(link: string): string | null {
+  try {
+    const u = new URL(link);
+    return u.origin === window.location.origin ? `${u.pathname}${u.search}` : null;
+  } catch {
+    return null;
+  }
+}
 
 /** The pages of the site a note can be about, in the sidebar's order. */
 /* Each page as the side menu names it; a page renamed keeps its old name in `was`, so the notes taken under it still count. */

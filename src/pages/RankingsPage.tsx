@@ -25,8 +25,11 @@ import {
   X,
   MagnifyingGlass,
   ChartDonut,
+  NotePencil,
 } from "@phosphor-icons/react";
 import { FilterBar } from "../components/FilterBar";
+import { useNotes } from "../contexts/NotesContext";
+import { comparisonNote } from "../lib/noteKinds";
 import { STATE_ENERGY } from "../data/stateEnergy";
 import { HeadlinesBanner, ALL_TOPICS, namesPlace, pickWhere } from "../components/HeadlinesBanner";
 
@@ -1622,8 +1625,16 @@ function ComparisonPanel({
     ({ m }) => (rankByMetric.get(m.id)?.size ?? 0) > 0 && selected.some((r) => hasMetric(r, m.id)),
   );
   const cols = `clamp(132px, 30%, 220px) repeat(${selected.length}, minmax(6.5rem, 1fr))`;
-  /** What the card compares its pinned places on: their figures, or how they are governed. */
-  const [view, setView] = useState<"figures" | "systems">("figures");
+  /** What the card compares its pinned places on: their figures, or how they are governed - kept in ?compareView= beside the places, so a note's link opens the same view. */
+  const [view, setView] = useState<"figures" | "systems">(() => (new URLSearchParams(window.location.search).get("compareView") === "systems" ? "systems" : "figures"));
+  useEffect(() => {
+    const url = new URL(window.location.href);
+    if (view === "systems") url.searchParams.set("compareView", "systems");
+    else url.searchParams.delete("compareView");
+    window.history.replaceState(window.history.state, "", url.toString());
+  }, [view]);
+  /** A note on this comparison, as asked: kept in My Notes with the places' names and a link back to it. */
+  const { openNote } = useNotes();
   /** The pinned countries the systems view holds an account of, by ISO code, and the pinned places it does not: US states, and a country with no account. */
   const governed = selected.flatMap((r) => (r.type === "country" && CODE_OF_ROW.has(r.id) && COUNTRY_LAW_HELD.has(CODE_OF_ROW.get(r.id)!) ? [CODE_OF_ROW.get(r.id)!] : []));
   const ungoverned = selected.filter((r) => !(r.type === "country" && CODE_OF_ROW.has(r.id) && COUNTRY_LAW_HELD.has(CODE_OF_ROW.get(r.id)!)));
@@ -1688,9 +1699,21 @@ function ComparisonPanel({
           ))}
           <ComparePicker allRows={allRows} selectedIds={selectedIds} onAdd={onAdd} />
           {selected.length > 0 && (
-            <button type="button" onClick={onClear} className="text-[10px] font-mono text-muted-foreground hover:opacity-60 transition-opacity ml-auto cursor-pointer">
-              Clear all
-            </button>
+            <span className="ml-auto flex items-center gap-3">
+              {selected.length >= 2 && (
+                <button
+                  type="button"
+                  onClick={() => openNote(comparisonNote(selected.map((r) => r.name), selected.map((r) => r.id), view))}
+                  className="flex items-center gap-1 text-[10px] font-mono text-muted-foreground hover:text-foreground transition-colors cursor-pointer"
+                  title="Take a note on this comparison: it is kept in My Notes with the places and a link back to it"
+                >
+                  <NotePencil size={11} weight="bold" aria-hidden /> Note
+                </button>
+              )}
+              <button type="button" onClick={onClear} className="text-[10px] font-mono text-muted-foreground hover:opacity-60 transition-opacity cursor-pointer">
+                Clear all
+              </button>
+            </span>
           )}
         </div>
 

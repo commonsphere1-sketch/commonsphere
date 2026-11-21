@@ -21,7 +21,7 @@ import { ArrowRight, Plus, Star } from "@phosphor-icons/react";
 import { FilterBar } from "@/components/FilterBar";
 import { useNotes } from "@/contexts/NotesContext";
 import { useFollowedCities } from "@/lib/followedCities";
-import { NOTE_KINDS, SITE_SECTIONS, followedFallback, followedKind, followedLink } from "@/lib/noteKinds";
+import { COMPARISON_JOIN, NOTE_KINDS, SITE_SECTIONS, followedFallback, followedKind, followedLink, sectionOf, sitePath } from "@/lib/noteKinds";
 
 export function NotesPage() {
   const [search, setSearch] = useState("");
@@ -257,7 +257,13 @@ export function NotesPage() {
             {filtered.length === 0 ? (
               <div className="text-center py-20 text-muted-foreground font-sans">
                 <NotePencil size={48} weight="thin" className="mx-auto mb-3 text-muted-foreground" />
-                <p className="text-sm">{notes.length === 0 ? "No notes yet. Use the popup button in the corner of any page, or a + above, to write your first." : "No note matches."}</p>
+                <p className="text-sm">
+                  {filterType === "Comparison" && !notes.some((n: Note) => n.entityType === "Comparison")
+                    ? "No comparison noted yet. Pin two places or more on the Compare page, or on the Dashboard's Compare card, and press Note: the comparison is kept here with its places and a link that opens it again."
+                    : notes.length === 0
+                      ? "No notes yet. Use the popup button in the corner of any page, or a + above, to write your first."
+                      : "No note matches."}
+                </p>
               </div>
             ) : (
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 items-start">
@@ -285,7 +291,18 @@ function NoteCard({ note, formatDate, onDelete, isMutating }: {
   onDelete: (note: Note) => void;
   isMutating: boolean;
 }) {
-  const noteLinks = note.links;
+  const navigate = useNavigate();
+  /* A comparison's note, as asked, shows the comparison: its places, and a press that opens it again on the Compare page.
+     A link to another page of the site opens it here; a link elsewhere is listed as before. */
+  const isComparison = note.entityType === "Comparison";
+  const places = isComparison && note.entityName ? note.entityName.split(COMPARISON_JOIN) : [];
+  const onSite = note.links.flatMap((url) => {
+    const path = sitePath(url);
+    return path ? [{ url, path }] : [];
+  });
+  const comparisonAt = isComparison ? onSite.find((l) => l.path.startsWith("/dashboard/rankings")) : undefined;
+  const sitePages = onSite.filter((l) => l !== comparisonAt);
+  const noteLinks = note.links.filter((url) => !sitePath(url));
   const [isPlaying, setIsPlaying] = useState(false);
   const [audioSrc, setAudioSrc] = useState<string | null>(null);
   const [audioError, setAudioError] = useState(false);
@@ -328,12 +345,27 @@ function NoteCard({ note, formatDate, onDelete, isMutating }: {
       {/* Top row */}
       <div className="flex items-start justify-between gap-2">
         <div className="flex-1 min-w-0">
-          {note.entityName && (
+          {note.entityName && !isComparison && (
             <div className="flex items-center gap-1 mb-1.5">
               <Tag size={12} weight="fill" className="text-secondary shrink-0" />
               <span className="text-xs font-mono text-secondary truncate">
                 {note.entityName}{note.entityType ? ` · ${note.entityType}` : ""}
               </span>
+            </div>
+          )}
+          {isComparison && (
+            <div className="flex flex-col gap-1.5 mb-1.5">
+              <div className="flex items-center gap-1">
+                <Tag size={12} weight="fill" className="text-secondary shrink-0" />
+                <span className="text-xs font-mono text-secondary">Comparison · {places.length} places</span>
+              </div>
+              <div className="flex flex-wrap gap-1">
+                {places.map((p, i) => (
+                  <span key={`${p}-${i}`} className="px-2 py-0.5 rounded-full border border-border text-[10px] font-sans font-semibold text-foreground">
+                    {p}
+                  </span>
+                ))}
+              </div>
             </div>
           )}
           <h3
@@ -371,6 +403,31 @@ function NoteCard({ note, formatDate, onDelete, isMutating }: {
           </button>
         )}
       </div>
+
+      {/* The comparison itself, opened again on the Compare page; and any other page of the site the note links to. */}
+      {(comparisonAt || sitePages.length > 0) && (
+        <div className="flex flex-wrap gap-1.5">
+          {comparisonAt && (
+            <button
+              type="button"
+              onClick={() => navigate(comparisonAt.path)}
+              className="inline-flex items-center gap-1 px-2.5 h-7 rounded-full border border-border text-[11px] font-semibold font-sans text-foreground hover:bg-muted/60 transition-colors cursor-pointer"
+            >
+              Open the comparison <ArrowRight size={10} weight="bold" aria-hidden />
+            </button>
+          )}
+          {sitePages.map((l) => (
+            <button
+              key={l.url}
+              type="button"
+              onClick={() => navigate(l.path)}
+              className="inline-flex items-center gap-1 px-2.5 h-7 rounded-full border border-border text-[11px] font-sans text-muted-foreground hover:text-foreground hover:bg-muted/60 transition-colors cursor-pointer"
+            >
+              {sectionOf(new URL(l.url).pathname)?.label ?? "This site"} <ArrowRight size={10} weight="bold" aria-hidden />
+            </button>
+          ))}
+        </div>
+      )}
 
       {/* Links */}
       {noteLinks.length > 0 && (

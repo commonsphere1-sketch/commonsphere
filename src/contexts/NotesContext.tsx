@@ -3,6 +3,8 @@ import React, { createContext, useContext, useState, useCallback } from "react";
 interface NotesPrefill {
   entityName?: string;
   entityType?: string;
+  /** Links the note starts with: a comparison's link back to itself. */
+  links?: string[];
 }
 
 interface NotesContextValue {

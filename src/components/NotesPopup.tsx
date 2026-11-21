@@ -113,9 +113,15 @@ export function NotesPopup() {
       const detail = (e as CustomEvent).detail as {
         entityName?: string;
         entityType?: string;
+        links?: string[];
       };
       setEntityName(detail.entityName ?? "");
       setEntityType(detail.entityType ?? "");
+      // Links it is opened with - a comparison's link back to itself - checked as a link typed in is.
+      if (Array.isArray(detail.links)) {
+        const given = detail.links.map((u) => sanitizeUrl(String(u))).filter((u): u is string => u !== null);
+        setLinks(given.slice(0, LIMITS.NOTE_MAX_LINKS));
+      }
       setOpen(true);
       setMinimized(false);
     };
