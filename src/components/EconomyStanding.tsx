@@ -30,6 +30,7 @@ import { economiesData, ECONOMY_FIGURE_SOURCES, type Economy } from "../data/eco
 import { COUNTRY_ENERGY, ENERGY_SOURCE } from "../data/countryEnergy";
 import { COUNTRY_OF, CODE_OF_ECONOMY } from "../data/placeIndex";
 import { TOP_COMPANIES, TOP_COMPANY_LISTS } from "../data/topCompanies";
+import { tableName } from "../lib/companyTables";
 import { WORLD } from "../data/worldview";
 import { has } from "../lib/na";
 import { ChartTitle, PartsDonut, worldFor } from "./ModalCharts";
@@ -215,7 +216,13 @@ export function EconomyCompanies({ economy }: { economy: Economy }) {
                       <span className="text-[12px] font-sans font-semibold text-foreground">{c.name}</span>
                     )}
                     <span className="block text-[10px] font-sans text-muted-foreground">
-                      {[c.industry, c.rank ? `${ordinal(c.rank)} in ${TOP_COMPANY_LISTS[c.list].title.replace(/^List of /, "the list of ")}` : null].filter(Boolean).join(" · ")}
+                      {[
+                        c.industry,
+                        c.rank ? `${ordinal(c.rank)} in ${tableName(TOP_COMPANY_LISTS[c.list])}` : `in ${tableName(TOP_COMPANY_LISTS[c.list])}`,
+                        c.g500 ? `${ordinal(c.g500)} in the Fortune Global 500` : null,
+                      ]
+                        .filter(Boolean)
+                        .join(" · ")}
                     </span>
                   </span>
                   {c.revenue && (
@@ -234,15 +241,16 @@ export function EconomyCompanies({ economy }: { economy: Economy }) {
             </button>
           )}
           <p className="text-[10px] font-sans leading-snug text-muted-foreground mt-2">
-            The companies based in {economy.name} that Wikipedia's lists of the world's and its region's largest companies name, in the order and with the revenue each list
-            gives. They are those large enough for such a ranking - not a ranking made for {economy.name}, and not every large company it has.
+            The companies based in {economy.name} that Wikipedia's tables of the world's, its region's and its own largest companies by revenue name, in the order and with
+            the revenue each table gives - the newest table first, each of its own year. They are those large enough for such a ranking - not a ranking made for{" "}
+            {economy.name}, and not every large company it has.
           </p>
-          <SourceLink sources={lists.map((l) => ({ label: `Wikipedia — ${l.title} (revision ${l.revision})`, url: l.url }))} className="mt-1" />
+          <SourceLink sources={lists.map((l) => ({ label: `Wikipedia — ${l.title}, "${l.section}": ${l.about.split(/(?<=\.)\s/)[0]} (revision ${l.revision})`, url: l.url }))} className="mt-1" />
         </>
       ) : (
         <p className="modal-tile rounded-xl px-4 py-3 text-[11px] font-sans leading-snug text-muted-foreground">
-          None is named. No company based in {economy.name} is in the lists of the world's and its region's largest companies that the site reads ({TOP_COMPANY_LISTS.length} of
-          Wikipedia's lists), and no other open source ranks its companies - so none is put here.
+          None is named. No company based in {economy.name} is in the tables of the world's, its region's and its own largest companies that the site reads ({TOP_COMPANY_LISTS.length} of
+          Wikipedia's tables), and no other open source ranks its companies - so none is put here.
         </p>
       )}
     </div>

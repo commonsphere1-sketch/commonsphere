@@ -62,16 +62,20 @@ const GeopoliticsTab = lazy(() => import("./GeopoliticsExplorer"));
 const UnrestTab = lazy(() => import("./UnrestExplorer"));
 // The explorer the Climate page has now - the crises, disasters and events of the moment. The one it replaced (ClimateExplorer: boundaries, tipping points, treaties) is kept, and is not drawn.
 const ClimateTab = lazy(() => import("./ClimateNowExplorer"));
+/** What each continent makes, sells and owns - its output, exports, sectors, largest companies and stock markets - as asked: loaded when its tab is opened. */
+const IndustryTab = lazy(() => import("./IndustryExplorer"));
 
 export type ExplorerTab = "countries" | "economies" | "policies";
 /** The Dashboard's tabs: countries and economies, and the explorers that come from other pages. */
-type Tab = ExplorerTab | "resources" | "geopolitics" | "ideologies" | "unrest" | "climate";
+type Tab = ExplorerTab | "resources" | "industry" | "geopolitics" | "ideologies" | "unrest" | "climate";
 type TabDef = { id: Tab; label: string; color: string; path: string };
 
 const TABS: TabDef[] = [
   { id: "countries", label: "Countries", color: "#6366f1", path: "/dashboard/countries" },
   { id: "economies", label: "Economies", color: "#f59e0b", path: "/dashboard/economies" },
   { id: "resources", label: "Resources", color: "#059669", path: "/dashboard/economies?view=resources" },
+  // Industry, as asked: what each continent digs and sells, its largest companies and its stock markets. (Not the Industries tab of world series that stood here once and was taken off.)
+  { id: "industry", label: "Industry", color: "#0ea5e9", path: "" },
   // The Developments tab stood here, the figures of a page that was taken off; it was taken off too, as asked.
   // The explorers added since: power; political theories and forms of governance; revolutions, protests and boycotts; the climate.
   // Geopolitics and the ideologies were one tab, and are two as asked: each is a half of the Worldview page's explorer.
@@ -187,6 +191,7 @@ export function DataExplorer({
     policies: `${headlines.length}${capped ? "+" : ""}`,
     resources: `${RESOURCES.length}`,
     // Their counts are in their data, which is loaded only when the tab is opened: no number is shown on the tab.
+    industry: "",
     geopolitics: "",
     ideologies: "",
     unrest: "",
@@ -259,6 +264,8 @@ export function DataExplorer({
         <Suspense fallback={<Empty t={t}>Loading…</Empty>}>
           {tab === "resources" ? (
             <ResourcesTab action={toPage} />
+          ) : tab === "industry" ? (
+            <IndustryTab embedded />
           ) : tab === "geopolitics" ? (
             <GeopoliticsTab embedded only="geopolitics" />
           ) : tab === "ideologies" ? (

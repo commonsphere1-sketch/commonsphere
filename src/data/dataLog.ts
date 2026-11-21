@@ -22,6 +22,14 @@ export interface DataLogEntry {
 
 export const DATA_LOG: DataLogEntry[] = [
   {
+    "what": "The largest companies based in each country, as the world's, each region's and each country's Fortune Global 500 rankings by revenue name them, each of its own year",
+    "from": "Wikipedia",
+    "page": "/dashboard/economies",
+    "where": "Economies",
+    "read": "2026-11-21",
+    "files": 1
+  },
+  {
     "what": "Each city's population, land and built-up area, 1975 to 2050",
     "from": "United Nations (World Urbanization Prospects), Wikidata",
     "page": "/dashboard/cities",
@@ -506,14 +514,6 @@ export const DATA_LOG: DataLogEntry[] = [
     "from": "UN OCHA, Humanitarian Programme Cycle",
     "page": "/dashboard/worldview",
     "where": "Worldview · Critical zones",
-    "read": "2026-11-14",
-    "files": 1
-  },
-  {
-    "what": "The largest companies based in each country, as the world's and each region's rankings name them",
-    "from": "Wikipedia",
-    "page": "/dashboard/economies",
-    "where": "Economies",
     "read": "2026-11-14",
     "files": 1
   },
