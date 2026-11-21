@@ -198,37 +198,7 @@ function CountryCarousel({
         boxSizing: "border-box",
       }}
     >
-      {/* Header */}
-      <div
-        className="flex items-center justify-between px-5 py-3.5"
-        style={{ borderBottom: `1px solid ${gridLine}` }}
-      >
-        <div className="flex items-center gap-2.5">
-          <div
-            className="w-7 h-7 rounded-lg flex items-center justify-center shrink-0 bg-muted/60 text-foreground"
-          >
-            <Globe size={13} weight="fill" />
-          </div>
-          <span
-            className="text-sm font-bold font-sans"
-            style={{ color: headText }}
-          >
-            Countries
-          </span>
-          <span
-            className="text-[10px] font-mono px-2 py-0.5 rounded-full border border-border text-muted-foreground"
-          >
-            {sorted.length} tracked
-          </span>
-        </div>
-        <button
-          onClick={() => onNav("/dashboard/countries")}
-          className="flex items-center gap-1 text-[10px] font-semibold transition-opacity hover:opacity-70"
-          style={{ color: ACCENT(isLight) }}
-        >
-          All Countries <ArrowRight size={10} weight="bold" />
-        </button>
-      </div>
+      {/* The card's head - "Countries", how many are tracked and "All Countries" - stood here and was taken off, as asked: the card is the cards alone. */}
 
       {/* Outer wrapper: full width, centers the fixed-5-card viewport */}
       <div className="relative py-4 flex justify-center px-4">
