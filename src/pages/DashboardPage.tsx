@@ -24,6 +24,7 @@ import { usStatesData } from "../data/statesData";
 import { STATE_INDICATORS as STATE_FIGURES } from "../data/stateIndicators";
 import { SourceLink } from "../components/SourceLink";
 import { DataExplorer } from "../components/DataExplorer";
+import { SiteDetails, SiteOverview } from "../components/DashboardAbout";
 import { DashboardDrops } from "../components/DashboardDrops";
 import { hdiHex } from "../lib/hdiTier";
 import { CommodityMovers } from "../components/CommodityMovers";
@@ -2373,6 +2374,9 @@ export function DashboardPage() {
           </div>
         </div>
 
+        {/* ── ABOUT THIS SITE: what the site is and what it holds, as a dashboard opens, as asked (DashboardAbout). ── */}
+        <SiteOverview />
+
         {/* The Quarter Tracker stood here. It is the calendar button at the top right of every page now, as asked, with a full
             calendar beside it (CalendarPopup). */}
 
@@ -2538,6 +2542,10 @@ export function DashboardPage() {
         {/* ── GLOBAL & GEOPOLITICAL ANALYTICS: where the National and International cards stood, replaced as asked.
             The world's figures, how its people are governed, and its blocs side by side - each published. ── */}
         <GlobalAnalytics />
+
+        {/* ── DETAILS: what the site keeps to, where its figures come from and its pages, at the foot as a dashboard has
+            them, as asked (DashboardAbout). ── */}
+        <SiteDetails />
 
         {/* ── FOOTER ────────────────────────────────────────────────────── */}
         <div className="text-center py-3 flex flex-col items-center gap-1">

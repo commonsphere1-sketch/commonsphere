@@ -1,0 +1,112 @@
+/**
+ * The Dashboard's description of the site and its details, as asked, to make it read as a dashboard does: what the site is
+ * and what it holds, at the head of the page; and at its foot what it keeps to, where its figures come from and its pages.
+ * Every word and count is the site's own, from lib/siteAbout - the same the About page gives.
+ */
+import { useNavigate } from "react-router-dom";
+import { ArrowRight, ArrowSquareOut, Info, ListBullets } from "@phosphor-icons/react";
+import { useTokens } from "../lib/cardTokens";
+import { SITE_DESCRIPTION, SITE_PAGES, SITE_PRINCIPLES, SITE_SOURCES, SITE_STATS } from "../lib/siteAbout";
+import { Card, Head } from "./DashboardCitiesSectors";
+import { ROW_GLOW } from "./DataExplorer";
+
+/** The site described, under the logo: the About page's sentence, and what it holds below the countries - those the headline counts lower on the page do not give. */
+export function SiteOverview() {
+  const t = useTokens();
+  // The countries and territories are among the headline counts further down; the rest of what the site holds is here.
+  const held = SITE_STATS.filter((s) => s.lbl !== "Countries and territories");
+  return (
+    <Card t={t}>
+      <Head t={t} icon={<Info size={13} weight="fill" />} label="About this site" badge="CommonSphere" color={t.headText} cta="About" to="/dashboard/about" />
+      <p className="text-[13px] font-sans leading-relaxed max-w-3xl -mt-1" style={{ color: t.bodyText }}>
+        {SITE_DESCRIPTION}
+      </p>
+      <div className={`grid ${held.length === 3 ? "grid-cols-3" : "grid-cols-2"} cs-figlines mt-4`}>
+        {held.map((s) => (
+          <div key={s.lbl} className="py-2">
+            <p className="text-xl font-bold font-mono tabular-nums" style={{ color: t.headText }}>
+              {s.val}
+            </p>
+            <p className="text-[10px] font-sans uppercase tracking-widest" style={{ color: t.mutedText }}>
+              {s.lbl}
+            </p>
+          </div>
+        ))}
+      </div>
+    </Card>
+  );
+}
+
+/** The site's details, at the foot of the page: what it keeps to, where its figures come from, and its pages. */
+export function SiteDetails() {
+  const t = useTokens();
+  const navigate = useNavigate();
+  const kicker = "text-[10px] font-mono uppercase tracking-widest mb-2";
+  return (
+    <Card t={t}>
+      <Head t={t} icon={<ListBullets size={13} weight="fill" />} label="Details" badge="how the site works" color={t.headText} cta="About" to="/dashboard/about" />
+
+      {/* What it keeps to: the About page's four principles, parted by lines. */}
+      <p className={kicker} style={{ color: t.mutedText }}>
+        What the site keeps to
+      </p>
+      <div className="grid grid-cols-2 cs-figlines">
+        {SITE_PRINCIPLES.map((p) => (
+          <div key={p.title} className="py-3">
+            <p className="text-[13px] font-semibold font-sans" style={{ color: t.headText }}>
+              {p.title}
+            </p>
+            <p className="text-[11px] font-sans leading-snug mt-1" style={{ color: t.bodyText }}>
+              {p.desc}
+            </p>
+          </div>
+        ))}
+      </div>
+
+      {/* Where the figures come from: every publisher the About page lists, each a link to its own site. */}
+      <p className={`${kicker} mt-5`} style={{ color: t.mutedText }}>
+        Where the figures come from · {SITE_SOURCES.length} publishers, each named beside its figures
+      </p>
+      <div className="flex flex-wrap gap-1.5">
+        {SITE_SOURCES.map((s) => (
+          <a
+            key={s.name}
+            href={s.url}
+            target="_blank"
+            rel="noopener noreferrer"
+            title={s.desc}
+            className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-sans border border-border text-muted-foreground hover:text-foreground transition-colors"
+          >
+            {s.name} <ArrowSquareOut size={10} aria-hidden />
+          </a>
+        ))}
+      </div>
+
+      {/* The site's pages, as the side menu has them: each a row that opens it, lit when pointed at as the Data Explorer's rows are. */}
+      <p className={`${kicker} mt-5`} style={{ color: t.mutedText }}>
+        The site's pages
+      </p>
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6">
+        {SITE_PAGES.map((p) => (
+          <button
+            key={p.to}
+            type="button"
+            onClick={() => navigate(p.to)}
+            className={`flex items-center gap-3 px-2 py-2 text-left cursor-pointer rounded-md ${ROW_GLOW}`}
+            style={{ "--row": t.headText, borderBottom: `1px solid ${t.gridLine}` } as React.CSSProperties}
+          >
+            <span className="min-w-0 flex-1">
+              <span className="block text-[12px] font-semibold font-sans" style={{ color: t.headText }}>
+                {p.label}
+              </span>
+              <span className="block text-[11px] font-sans truncate" style={{ color: t.mutedText }}>
+                {p.desc}
+              </span>
+            </span>
+            <ArrowRight size={11} weight="bold" aria-hidden style={{ color: t.mutedText, flexShrink: 0 }} />
+          </button>
+        ))}
+      </div>
+    </Card>
+  );
+}
