@@ -22,19 +22,379 @@ export interface DataLogEntry {
 
 export const DATA_LOG: DataLogEntry[] = [
   {
+    "what": "Each city's population, land and built-up area, 1975 to 2050",
+    "from": "United Nations (World Urbanization Prospects), Wikidata",
+    "page": "/dashboard/cities",
+    "where": "Cities",
+    "read": "2026-11-20",
+    "files": 1
+  },
+  {
+    "what": "Each country's mean income or consumption per person a day, from household surveys",
+    "from": "World Bank Poverty and Inequality Platform",
+    "page": "/dashboard/maps",
+    "where": "World Maps",
+    "read": "2026-11-20",
+    "files": 1
+  },
+  {
+    "what": "Each country's people, health, schooling, land, energy and forces",
+    "from": "World Bank, UN, UNDP, FAO, U.S. EIA, SIPRI",
+    "page": "/dashboard/countries",
+    "where": "Countries",
+    "read": "2026-11-20",
+    "files": 4
+  },
+  {
+    "what": "Each US state's public schools: their graduation rate and spending per pupil",
+    "from": "National Center for Education Statistics, Digest of Education Statistics",
+    "page": "/dashboard/states",
+    "where": "US States",
+    "read": "2026-11-20",
+    "files": 1
+  },
+  {
+    "what": "El Niño and La Niña, the records in the measured series, disasters by country, erosion, and projected warming by country",
+    "from": "NOAA, NASA GISS, NSIDC, IDMC, GDACS, World Bank",
+    "page": "/dashboard/planetary-boundaries",
+    "where": "Climate",
+    "read": "2026-11-20",
+    "files": 1
+  },
+  {
+    "what": "Every city the United Nations counts: where it is, its population in 1975, 2000 and 2025 and projected for 2050, its area and density",
+    "from": "United Nations",
+    "page": "/dashboard/cities",
+    "where": "Global cities",
+    "read": "2026-11-20",
+    "files": 1
+  },
+  {
+    "what": "Every economy's figures and what it is made of",
+    "from": "World Bank, IMF, UN Statistics Division, Eurostat and others",
+    "page": "/dashboard/economies",
+    "where": "Economies",
+    "read": "2026-11-20",
+    "files": 5
+  },
+  {
+    "what": "Growth, prices and jobs, the stock market and the cost of borrowing, year by year, by country",
+    "from": "World Bank",
+    "page": "/dashboard/economies",
+    "where": "Economies",
+    "read": "2026-11-20",
+    "files": 1
+  },
+  {
+    "what": "How each country's people work: informal employment, young people not in work, education or training, hours worked, trade union membership and collective bargaining",
+    "from": "International Labour Organization (ILOSTAT)",
+    "page": "/dashboard/worldview",
+    "where": "Worldview · the country picked",
+    "read": "2026-11-20",
+    "files": 1
+  },
+  {
+    "what": "The composite indexes each country is scored on: human development and its adjusted forms, gender, inequality and poverty, the six governance scores, human capital, logistics and statistics",
+    "from": "UNDP (Human Development Report), World Bank",
+    "page": "/dashboard/subnations",
+    "where": "Municipalities",
+    "read": "2026-11-20",
+    "files": 1
+  },
+  {
+    "what": "The journey to work: how long it takes, and how people make it",
+    "from": "Eurostat, US Census Bureau",
+    "page": "/dashboard/cities",
+    "where": "Cities",
+    "read": "2026-11-20",
+    "files": 1
+  },
+  {
+    "what": "The state of the world's fresh water, forests, wildfires and coral reefs",
+    "from": "World Bank, Global Forest Watch, GWIS, NOAA",
+    "page": "/dashboard/planetary-boundaries",
+    "where": "Climate",
+    "read": "2026-11-20",
+    "files": 1
+  },
+  {
+    "what": "Each elected official's education and career, a member of Congress's voting score, and the money the campaign reports",
+    "from": "Wikipedia, congress-legislators, Voteview, Federal Election Commission",
+    "page": "/dashboard/states",
+    "where": "US states",
+    "read": "2026-11-18",
+    "files": 1
+  },
+  {
+    "what": "How the people of every US county work and live: unemployment since 2000, median household income, poverty, schooling, rural or urban",
+    "from": "USDA Economic Research Service (BLS, Census Bureau)",
+    "page": "/dashboard/worldview",
+    "where": "Worldview",
+    "read": "2026-11-18",
+    "files": 1
+  },
+  {
+    "what": "The world's figures, year by year, and by region",
+    "from": "World Bank, V-Dem, UNDP, IMF, UCDP and others",
+    "page": "/dashboard/worldview",
+    "where": "Worldview",
+    "read": "2026-11-18",
+    "files": 2
+  },
+  {
+    "what": "What homes rent and sell for: HUD's fair market rents in each county's rent area, and FHFA's house price index for each state and metro area (with static/housing/)",
+    "from": "US Department of Housing and Urban Development (Fair Market Rents FY2026); Federal Housing Finance Agency (House Price Index); US Census Bureau (metro delineations)",
+    "page": "/dashboard/states",
+    "where": "US States · Pay & prices; each county's window",
+    "read": "2026-11-18",
+    "files": 1
+  },
+  {
+    "what": "A country's people: its languages, religions, peoples and ages, how its income is shared, and how many are poor",
+    "from": "CIA World Factbook, World Bank",
+    "page": "/dashboard/countries",
+    "where": "Countries",
+    "read": "2026-11-17",
+    "files": 1
+  },
+  {
+    "what": "Each country's historic events of six kinds, past and present (with eventHistory/*.json)",
+    "from": "Wikidata, UCDP/PRIO, NOAA NCEI, GDACS",
+    "page": "/dashboard/news",
+    "where": "News",
+    "read": "2026-11-17",
+    "files": 1
+  },
+  {
+    "what": "Each economy's inflation, deficits and tariffs, with the IMF's projections",
+    "from": "IMF (World Economic Outlook, Fiscal Monitor), World Bank",
+    "page": "/dashboard/economies",
+    "where": "Economies",
+    "read": "2026-11-17",
+    "files": 1
+  },
+  {
+    "what": "Each economy's manufacturing: value added, share of GDP, growth, manufactures in trade, high-technology exports, jobs in industry",
+    "from": "World Bank",
+    "page": "/dashboard/economies",
+    "where": "Economies",
+    "read": "2026-11-17",
+    "files": 1
+  },
+  {
+    "what": "Public security: stability, conflict deaths, terrorism and displacement, by country",
+    "from": "World Bank (Worldwide Governance Indicators), UCDP, Global Terrorism Database, UNHCR, IDMC",
+    "page": "/dashboard/countries",
+    "where": "Countries",
+    "read": "2026-11-17",
+    "files": 1
+  },
+  {
+    "what": "Taxation over the years: corporate rates of central and sub-central government, the top income tax rate, and tax revenue",
+    "from": "OECD, World Bank",
+    "page": "/dashboard/economies",
+    "where": "Economies",
+    "read": "2026-11-17",
+    "files": 1
+  },
+  {
+    "what": "The fifty states: people, incomes, budgets and power",
+    "from": "US Census Bureau, BEA, BLS, BJS, U.S. EIA and others",
+    "page": "/dashboard/states",
+    "where": "US states",
+    "read": "2026-11-17",
+    "files": 3
+  },
+  {
+    "what": "The political ideas the compass places that the record of political ideas does not hold, each described, with the encyclopedia entries recorded for it",
+    "from": "Wikipedia, Wikidata; Encyclopaedia Britannica, Stanford Encyclopedia of Philosophy, Internet Encyclopedia of Philosophy",
+    "page": "/dashboard",
+    "where": "Dashboard · The political compass",
+    "read": "2026-11-17",
+    "files": 1
+  },
+  {
+    "what": "The space race, science and invention, and new medicines: orbital launches by year and by agency, objects launched, R&D spending, researchers, journal articles, patents, novel drug approvals",
+    "from": "GCAT; UNOOSA via Our World in Data; World Bank; US FDA",
+    "page": "/dashboard/trends",
+    "where": "Developments",
+    "read": "2026-11-17",
+    "files": 1
+  },
+  {
+    "what": "What each country sells abroad: its largest goods exports by HS chapter, with their value",
+    "from": "UN Comtrade",
+    "page": "/dashboard/worldview",
+    "where": "Worldview",
+    "read": "2026-11-17",
+    "files": 1
+  },
+  {
+    "what": "What each university named in a state's window is, and the year it was founded",
+    "from": "Wikidata, Wikipedia",
+    "page": "/dashboard/states",
+    "where": "US states",
+    "read": "2026-11-17",
+    "files": 1
+  },
+  {
+    "what": "When each state's senators', representatives' and governor's terms end",
+    "from": "congress-legislators, Wikipedia (citing the National Governors Association)",
+    "page": "/dashboard/states",
+    "where": "US states",
+    "read": "2026-11-17",
+    "files": 1
+  },
+  {
+    "what": "A state's people: the languages spoken at home, and how household income is shared",
+    "from": "US Census Bureau",
+    "page": "/dashboard/states",
+    "where": "US States",
+    "read": "2026-11-14",
+    "files": 1
+  },
+  {
+    "what": "Commodity prices, month by month",
+    "from": "World Bank, IMF",
+    "page": "/dashboard/economies?view=resources",
+    "where": "Resources",
+    "read": "2026-11-14",
+    "files": 1
+  },
+  {
+    "what": "Conflict deaths and disaster alerts by continent and by country, year by year",
+    "from": "UCDP (via Our World in Data), GDACS",
+    "page": "/dashboard/news",
+    "where": "News",
+    "read": "2026-11-14",
+    "files": 2
+  },
+  {
+    "what": "Each country's headline figures and GDP history",
+    "from": "World Bank, IMF, UN",
+    "page": "/dashboard/countries",
+    "where": "Countries",
+    "read": "2026-11-14",
+    "files": 3
+  },
+  {
+    "what": "Each country's history: its regime year by year, its national elections and their results, its changes of government and its heads of state and of government",
+    "from": "Wikidata, ParlGov, V-Dem via Our World in Data",
+    "page": "/dashboard/elections",
+    "where": "Polls & Elections",
+    "read": "2026-11-14",
+    "files": 1
+  },
+  {
+    "what": "Each country's place in the United Nations: its date of admission, its regional group, and its seat and past terms on the Security Council",
+    "from": "United Nations",
+    "page": "/dashboard/countries",
+    "where": "Countries",
+    "read": "2026-11-14",
+    "files": 1
+  },
+  {
+    "what": "Each country's political parties and the seats they hold",
+    "from": "CIA World Factbook (final edition)",
+    "page": "/dashboard/countries",
+    "where": "Countries",
+    "read": "2026-11-14",
+    "files": 1
+  },
+  {
+    "what": "Each country's political regime: closed or electoral autocracy, electoral or liberal democracy",
+    "from": "V-Dem (Regimes of the World), via Our World in Data",
+    "page": "/dashboard/maps",
+    "where": "World maps",
+    "read": "2026-11-14",
+    "files": 1
+  },
+  {
+    "what": "Each country's sovereignty, and its death rates, disaster displacements and natural hazards",
+    "from": "CIA World Factbook (final edition), World Bank (WHO, IDMC)",
+    "page": "/dashboard/countries",
+    "where": "Countries",
+    "read": "2026-11-14",
+    "files": 1
+  },
+  {
+    "what": "Each US state's life expectancy at birth and its deaths by homicide to 100,000 residents",
+    "from": "CDC (National Center for Health Statistics; National Center for Injury Prevention and Control)",
+    "page": "/dashboard/maps",
+    "where": "World maps",
+    "read": "2026-11-14",
+    "files": 1
+  },
+  {
+    "what": "Elections by country and US state, and US city council meetings, for the calendar",
+    "from": "Wikidata (with the page each date cites); US Code, US Senate, National Governors Association; cities' Legistar calendars",
+    "page": "/dashboard",
+    "where": "Calendar",
+    "read": "2026-11-14",
+    "files": 1
+  },
+  {
+    "what": "Endangered and critically endangered mammals and birds, with about how many of each are left",
+    "from": "Wikipedia, Wikidata",
+    "page": "/dashboard/planetary-boundaries",
+    "where": "Climate",
+    "read": "2026-11-14",
+    "files": 1
+  },
+  {
     "what": "Foreign aid: what each donor gives and each country receives in official development assistance",
     "from": "World Bank WDI (OECD Development Assistance Committee)",
     "page": "/dashboard/countries",
     "where": "Countries · Government, defence & the world",
-    "read": "2026-11-04",
+    "read": "2026-11-14",
     "files": 1
+  },
+  {
+    "what": "Free schooling, public health cover and what care costs",
+    "from": "UNESCO, OECD, WHO (via the World Bank)",
+    "page": "/dashboard/countries",
+    "where": "Countries",
+    "read": "2026-11-14",
+    "files": 1
+  },
+  {
+    "what": "Geography, languages, religions, heritage sites and dependencies",
+    "from": "CIA World Factbook (final edition), Wikidata, UNESCO",
+    "page": "/dashboard/countries",
+    "where": "Countries",
+    "read": "2026-11-14",
+    "files": 3
   },
   {
     "what": "How each member of the House voted: every recorded vote of the 119th Congress (with static/votes/house/)",
     "from": "Clerk of the US House of Representatives (roll call votes)",
     "page": "/dashboard/states",
     "where": "US States · each representative's profile",
-    "read": "2026-11-04",
+    "read": "2026-11-14",
+    "files": 1
+  },
+  {
+    "what": "How far each government watches and restricts its people online: social media monitoring, filtering, shutdowns, arrests, privacy law",
+    "from": "V-Dem Institute, Digital Society Project",
+    "page": "/dashboard/worldview",
+    "where": "Worldview",
+    "read": "2026-11-14",
+    "files": 1
+  },
+  {
+    "what": "How far each kind of right is respected: civil, political and private liberties, expression, association, academic freedom, the rule of law, women's political empowerment",
+    "from": "V-Dem Institute, via Our World in Data",
+    "page": "/dashboard/worldview",
+    "where": "Worldview",
+    "read": "2026-11-14",
+    "files": 1
+  },
+  {
+    "what": "Legal systems, the stages of criminal justice and the people who staff it",
+    "from": "CIA World Factbook (final edition), UNODC, World Bank",
+    "page": "/dashboard/crime",
+    "where": "Crime statistics",
+    "read": "2026-11-14",
     "files": 1
   },
   {
@@ -42,7 +402,47 @@ export const DATA_LOG: DataLogEntry[] = [
     "from": "World Bank WDI (UN Population Division's International Migrant Stock and World Population Prospects; IMF and World Bank remittances)",
     "page": "/dashboard/countries",
     "where": "Countries · People & society",
-    "read": "2026-11-04",
+    "read": "2026-11-14",
+    "files": 1
+  },
+  {
+    "what": "Modern slavery: the world's and the regions' estimates, and the forms it takes",
+    "from": "ILO, Walk Free and IOM (Global Estimates), Walk Free (Global Slavery Index), ILO (main figures on forced labour)",
+    "page": "/dashboard/crime",
+    "where": "Crime statistics",
+    "read": "2026-11-14",
+    "files": 1
+  },
+  {
+    "what": "Projections: the economy to five years out, people to 2100",
+    "from": "IMF World Economic Outlook, UN World Population Prospects",
+    "page": "/dashboard/trends",
+    "where": "Trends",
+    "read": "2026-11-14",
+    "files": 1
+  },
+  {
+    "what": "Recorded crime and prison populations",
+    "from": "UNODC, World Prison Brief",
+    "page": "/dashboard/crime",
+    "where": "Crime statistics",
+    "read": "2026-11-14",
+    "files": 3
+  },
+  {
+    "what": "Renewable power: generation, capacity, cost and investment",
+    "from": "IRENA, Ember, U.S. EIA, OECD",
+    "page": "/dashboard/trends",
+    "where": "Trends",
+    "read": "2026-11-14",
+    "files": 1
+  },
+  {
+    "what": "Revolutions, protests, boycotts and internal conflicts, each with its cause, what it cost and how it ended",
+    "from": "Wikipedia",
+    "page": "/dashboard/crime",
+    "where": "Crime stats",
+    "read": "2026-11-14",
     "files": 1
   },
   {
@@ -50,15 +450,159 @@ export const DATA_LOG: DataLogEntry[] = [
     "from": "US Treasury (OFAC SDN list); UK FCDO (UK Sanctions List); European Commission (EU financial sanctions list)",
     "page": "/dashboard/countries",
     "where": "Countries · Government, defence & the world",
-    "read": "2026-11-04",
+    "read": "2026-11-14",
     "files": 1
   },
   {
-    "what": "What homes rent and sell for: HUD's fair market rents in each county's rent area, and FHFA's house price index for each state and metro area (with static/housing/)",
-    "from": "US Department of Housing and Urban Development (Fair Market Rents FY2026); Federal Housing Finance Agency (House Price Index); US Census Bureau (metro delineations)",
+    "what": "Satellites and probes working in space, by owner, class and use; government research budgets by objective; MRI, CT and PET scanners per million people",
+    "from": "GCAT; OECD GBARD; OECD Health Statistics",
+    "page": "/dashboard/trends",
+    "where": "Developments",
+    "read": "2026-11-14",
+    "files": 1
+  },
+  {
+    "what": "Species described in the last three years, with what is known of each and where it was found",
+    "from": "Wikipedia, Wikidata",
+    "page": "/dashboard/planetary-boundaries",
+    "where": "Climate",
+    "read": "2026-11-14",
+    "files": 1
+  },
+  {
+    "what": "Technology and the trends, by region, country and name",
+    "from": "World Bank, ITU, Epoch AI, OpenAlex and others",
+    "page": "/dashboard/trends",
+    "where": "Trends",
+    "read": "2026-11-14",
+    "files": 2
+  },
+  {
+    "what": "The air people breathe: PM2.5 exposure by country",
+    "from": "World Bank",
+    "page": "/dashboard/maps",
+    "where": "World maps",
+    "read": "2026-11-14",
+    "files": 1
+  },
+  {
+    "what": "The armed conflicts of the latest month: each fatal event, where it happened, pinned on the world map (with static/geo/conflicts.json)",
+    "from": "UCDP (Candidate Events; UCDP/PRIO Armed Conflict Dataset)",
+    "page": "/dashboard/maps",
+    "where": "World maps",
+    "read": "2026-11-14",
+    "files": 1
+  },
+  {
+    "what": "The frontiers of invention: AI training compute, clean energy costs and capacity, electric cars, robots, supercomputers, nuclear arsenals, the Nobel Prizes in the sciences",
+    "from": "Epoch AI, IRENA, Ember, IEA, IFR, TOP500, FAS via Our World in Data; the Nobel Prize",
+    "page": "/dashboard/trends",
+    "where": "Developments",
+    "read": "2026-11-14",
+    "files": 1
+  },
+  {
+    "what": "The humanitarian crises the United Nations is appealing for now: each country's response plan and the flash appeals, with the money each asks for",
+    "from": "UN OCHA, Humanitarian Programme Cycle",
+    "page": "/dashboard/worldview",
+    "where": "Worldview · Critical zones",
+    "read": "2026-11-14",
+    "files": 1
+  },
+  {
+    "what": "The largest companies based in each country, as the world's and each region's rankings name them",
+    "from": "Wikipedia",
+    "page": "/dashboard/economies",
+    "where": "Economies",
+    "read": "2026-11-14",
+    "files": 1
+  },
+  {
+    "what": "The law a place is under and how its country is governed: what is illegal and legal there, its legal system, constitution, courts, executive, legislature, citizenship and vote",
+    "from": "UK Foreign, Commonwealth & Development Office, CIA World Factbook",
+    "page": "/dashboard/cities",
+    "where": "Cities",
+    "read": "2026-11-14",
+    "files": 1
+  },
+  {
+    "what": "The measured state of the climate",
+    "from": "NOAA, NASA GISS, NSIDC",
+    "page": "/dashboard/planetary-boundaries",
+    "where": "Climate",
+    "read": "2026-11-14",
+    "files": 1
+  },
+  {
+    "what": "The year so far in each country: the dated events of Wikipedia's article for the year, each with the report it cites",
+    "from": "Wikipedia",
+    "page": "/dashboard/countries",
+    "where": "Countries",
+    "read": "2026-11-14",
+    "files": 1
+  },
+  {
+    "what": "What each of 830 jobs pays, and how many hold it, in the nation, each state and each metro area (with static/pay/)",
+    "from": "US Bureau of Labor Statistics (Occupational Employment and Wage Statistics, May 2025)",
     "page": "/dashboard/states",
-    "where": "US States · Pay & prices; each county's window",
-    "read": "2026-11-04",
+    "where": "US States · Jobs & pay",
+    "read": "2026-11-14",
+    "files": 1
+  },
+  {
+    "what": "What electricity, gas and fuel cost: each US state's electricity by sector and pump prices week by week, and each European country's household energy and pump prices",
+    "from": "US Energy Information Administration; Eurostat; European Commission (Weekly Oil Bulletin)",
+    "page": "/dashboard/states",
+    "where": "US States · Pay & prices; Countries · Energy",
+    "read": "2026-11-14",
+    "files": 1
+  },
+  {
+    "what": "What governments spend, by function",
+    "from": "IMF",
+    "page": "/dashboard/economies",
+    "where": "Economies",
+    "read": "2026-11-14",
+    "files": 1
+  },
+  {
+    "what": "What is being warned of in each country now: travel advisories, outbreaks of disease and disaster alerts",
+    "from": "US Department of State, UK Foreign Office, US CDC, GDACS",
+    "page": "/dashboard/countries",
+    "where": "Countries",
+    "read": "2026-11-14",
+    "files": 1
+  },
+  {
+    "what": "What things cost: each country's price level against the world's and the EU's average, and each US state's and metro area's against the nation's (with static/prices/)",
+    "from": "World Bank (International Comparison Program 2021); Eurostat; US Bureau of Economic Analysis (Regional Price Parities)",
+    "page": "/dashboard/countries",
+    "where": "Countries · Money & work; US States · Pay & prices",
+    "read": "2026-11-14",
+    "files": 1
+  },
+  {
+    "what": "Which countries keep military bases abroad, and where",
+    "from": "Wikipedia (List of countries with overseas military bases)",
+    "page": "/dashboard/countries",
+    "where": "Countries",
+    "read": "2026-11-14",
+    "files": 1
+  },
+  {
+    "what": "Who produces and holds each commodity",
+    "from": "USGS, U.S. EIA, OPEC, USDA and others",
+    "page": "/dashboard/economies?view=resources",
+    "where": "Resources",
+    "read": "2026-11-14",
+    "files": 4
+  },
+  {
+    "what": "Which countries' district boundaries do not fit together, measured",
+    "from": "geoBoundaries, Natural Earth",
+    "page": "/dashboard/maps",
+    "where": "World Maps",
+    "read": "2026-11-05",
     "files": 1
   },
   {
@@ -70,179 +614,11 @@ export const DATA_LOG: DataLogEntry[] = [
     "files": 1
   },
   {
-    "what": "What each of 830 jobs pays, and how many hold it, in the nation, each state and each metro area (with static/pay/)",
-    "from": "US Bureau of Labor Statistics (Occupational Employment and Wage Statistics, May 2025)",
-    "page": "/dashboard/states",
-    "where": "US States · Jobs & pay",
-    "read": "2026-11-03",
-    "files": 1
-  },
-  {
-    "what": "What electricity, gas and fuel cost: each US state's electricity by sector and pump prices week by week, and each European country's household energy and pump prices",
-    "from": "US Energy Information Administration; Eurostat; European Commission (Weekly Oil Bulletin)",
-    "page": "/dashboard/states",
-    "where": "US States · Pay & prices; Countries · Energy",
-    "read": "2026-11-03",
-    "files": 1
-  },
-  {
-    "what": "What things cost: each country's price level against the world's and the EU's average, and each US state's and metro area's against the nation's (with static/prices/)",
-    "from": "World Bank (International Comparison Program 2021); Eurostat; US Bureau of Economic Analysis (Regional Price Parities)",
-    "page": "/dashboard/countries",
-    "where": "Countries · Money & work; US States · Pay & prices",
-    "read": "2026-11-03",
-    "files": 1
-  },
-  {
-    "what": "Each country's political regime: closed or electoral autocracy, electoral or liberal democracy",
-    "from": "V-Dem (Regimes of the World), via Our World in Data",
-    "page": "/dashboard/maps",
-    "where": "World maps",
-    "read": "2026-11-02",
-    "files": 1
-  },
-  {
-    "what": "The armed conflicts of the latest month: each fatal event, where it happened, pinned on the world map (with static/geo/conflicts.json)",
-    "from": "UCDP (Candidate Events; UCDP/PRIO Armed Conflict Dataset)",
-    "page": "/dashboard/maps",
-    "where": "World maps",
-    "read": "2026-11-02",
-    "files": 1
-  },
-  {
-    "what": "Conflict deaths and disaster alerts by continent and by country, year by year",
-    "from": "UCDP (via Our World in Data), GDACS",
-    "page": "/dashboard/news",
-    "where": "News",
-    "read": "2026-10-29",
-    "files": 2
-  },
-  {
-    "what": "Each country's historic events of six kinds, past and present (with eventHistory/*.json)",
-    "from": "Wikidata, UCDP/PRIO, NOAA NCEI, GDACS",
-    "page": "/dashboard/news",
-    "where": "News",
-    "read": "2026-10-29",
-    "files": 1
-  },
-  {
-    "what": "Elections by country and US state, and US city council meetings, for the calendar",
-    "from": "Wikidata (with the page each date cites); US Code, US Senate, National Governors Association; cities' Legistar calendars",
-    "page": "/dashboard",
-    "where": "Calendar",
-    "read": "2026-10-29",
-    "files": 1
-  },
-  {
     "what": "Political theories, forms of governance, philosophies and doctrines, each described and with works to read; where each began, its figures, history, countries and parties",
     "from": "Wikidata, CIA World Factbook, Wikipedia; links to Britannica, the Stanford and Internet encyclopedias of philosophy",
     "page": "/dashboard",
     "where": "Dashboard",
     "read": "2026-10-29",
-    "files": 1
-  },
-  {
-    "what": "The space race, science and invention, and new medicines: orbital launches by year and by agency, objects launched, R&D spending, researchers, journal articles, patents, novel drug approvals",
-    "from": "GCAT; UNOOSA via Our World in Data; World Bank; US FDA",
-    "page": "/dashboard/trends",
-    "where": "Developments",
-    "read": "2026-10-28",
-    "files": 1
-  },
-  {
-    "what": "Satellites and probes working in space, by owner, class and use; government research budgets by objective; MRI, CT and PET scanners per million people",
-    "from": "GCAT; OECD GBARD; OECD Health Statistics",
-    "page": "/dashboard/trends",
-    "where": "Developments",
-    "read": "2026-10-25",
-    "files": 1
-  },
-  {
-    "what": "What is being warned of in each country now: travel advisories, outbreaks of disease and disaster alerts",
-    "from": "US Department of State, UK Foreign Office, US CDC, GDACS",
-    "page": "/dashboard/countries",
-    "where": "Countries",
-    "read": "2026-10-24",
-    "files": 1
-  },
-  {
-    "what": "Which countries' district boundaries do not fit together, measured",
-    "from": "geoBoundaries, Natural Earth",
-    "page": "/dashboard/maps",
-    "where": "World Maps",
-    "read": "2026-10-24",
-    "files": 1
-  },
-  {
-    "what": "How far each kind of right is respected: civil, political and private liberties, expression, association, academic freedom, the rule of law, women's political empowerment",
-    "from": "V-Dem Institute, via Our World in Data",
-    "page": "/dashboard/worldview",
-    "where": "Worldview",
-    "read": "2026-10-15",
-    "files": 1
-  },
-  {
-    "what": "How the people of every US county work and live: unemployment since 2000, median household income, poverty, schooling, rural or urban",
-    "from": "USDA Economic Research Service (BLS, Census Bureau)",
-    "page": "/dashboard/worldview",
-    "where": "Worldview",
-    "read": "2026-10-15",
-    "files": 1
-  },
-  {
-    "what": "Recorded crime and prison populations",
-    "from": "UNODC, World Prison Brief",
-    "page": "/dashboard/crime",
-    "where": "Crime statistics",
-    "read": "2026-10-15",
-    "files": 3
-  },
-  {
-    "what": "The frontiers of invention: AI training compute, clean energy costs and capacity, electric cars, robots, supercomputers, nuclear arsenals, the Nobel Prizes in the sciences",
-    "from": "Epoch AI, IRENA, Ember, IEA, IFR, TOP500, FAS via Our World in Data; the Nobel Prize",
-    "page": "/dashboard/trends",
-    "where": "Developments",
-    "read": "2026-10-15",
-    "files": 1
-  },
-  {
-    "what": "What each country sells abroad: its largest goods exports by HS chapter, with their value",
-    "from": "UN Comtrade",
-    "page": "/dashboard/worldview",
-    "where": "Worldview",
-    "read": "2026-10-15",
-    "files": 1
-  },
-  {
-    "what": "How far each government watches and restricts its people online: social media monitoring, filtering, shutdowns, arrests, privacy law",
-    "from": "V-Dem Institute, Digital Society Project",
-    "page": "/dashboard/worldview",
-    "where": "Worldview",
-    "read": "2026-10-14",
-    "files": 1
-  },
-  {
-    "what": "A country's people: its languages, religions, peoples and ages, how its income is shared, and how many are poor",
-    "from": "CIA World Factbook, World Bank",
-    "page": "/dashboard/countries",
-    "where": "Countries",
-    "read": "2026-10-13",
-    "files": 1
-  },
-  {
-    "what": "A state's people: the languages spoken at home, and how household income is shared",
-    "from": "US Census Bureau",
-    "page": "/dashboard/states",
-    "where": "US States",
-    "read": "2026-10-13",
-    "files": 1
-  },
-  {
-    "what": "Each country's place in the United Nations: its date of admission, its regional group, and its seat and past terms on the Security Council",
-    "from": "United Nations",
-    "page": "/dashboard/countries",
-    "where": "Countries",
-    "read": "2026-10-13",
     "files": 1
   },
   {
@@ -254,99 +630,11 @@ export const DATA_LOG: DataLogEntry[] = [
     "files": 1
   },
   {
-    "what": "Each US state's life expectancy at birth and its deaths by homicide to 100,000 residents",
-    "from": "CDC (National Center for Health Statistics; National Center for Injury Prevention and Control)",
-    "page": "/dashboard/maps",
-    "where": "World maps",
-    "read": "2026-10-13",
-    "files": 1
-  },
-  {
-    "what": "El Niño and La Niña, the records in the measured series, disasters by country, erosion, and projected warming by country",
-    "from": "NOAA, NASA GISS, NSIDC, IDMC, GDACS, World Bank",
-    "page": "/dashboard/planetary-boundaries",
-    "where": "Climate",
-    "read": "2026-10-13",
-    "files": 1
-  },
-  {
-    "what": "Taxation over the years: corporate rates of central and sub-central government, the top income tax rate, and tax revenue",
-    "from": "OECD, World Bank",
-    "page": "/dashboard/economies",
-    "where": "Economies",
-    "read": "2026-10-13",
-    "files": 1
-  },
-  {
-    "what": "The composite indexes each country is scored on: human development and its adjusted forms, gender, inequality and poverty, the six governance scores, human capital, logistics and statistics",
-    "from": "UNDP (Human Development Report), World Bank",
-    "page": "/dashboard/subnations",
-    "where": "Municipalities",
-    "read": "2026-10-13",
-    "files": 1
-  },
-  {
-    "what": "The journey to work: how long it takes, and how people make it",
-    "from": "Eurostat, US Census Bureau",
-    "page": "/dashboard/cities",
-    "where": "Cities",
-    "read": "2026-10-13",
-    "files": 1
-  },
-  {
-    "what": "The law a place is under and how its country is governed: what is illegal and legal there, its legal system, constitution, courts, executive, legislature, citizenship and vote",
-    "from": "UK Foreign, Commonwealth & Development Office, CIA World Factbook",
-    "page": "/dashboard/cities",
-    "where": "Cities",
-    "read": "2026-10-13",
-    "files": 1
-  },
-  {
-    "what": "The measured state of the climate",
-    "from": "NOAA, NASA GISS, NSIDC",
-    "page": "/dashboard/planetary-boundaries",
-    "where": "Climate",
-    "read": "2026-10-13",
-    "files": 1
-  },
-  {
-    "what": "The state of the world's fresh water, forests, wildfires and coral reefs",
-    "from": "World Bank, Global Forest Watch, GWIS, NOAA",
-    "page": "/dashboard/planetary-boundaries",
-    "where": "Climate",
-    "read": "2026-10-13",
-    "files": 1
-  },
-  {
-    "what": "The year so far in each country: the dated events of Wikipedia's article for the year, each with the report it cites",
-    "from": "Wikipedia",
-    "page": "/dashboard/countries",
-    "where": "Countries",
-    "read": "2026-10-13",
-    "files": 1
-  },
-  {
-    "what": "Each economy's manufacturing: value added, share of GDP, growth, manufactures in trade, high-technology exports, jobs in industry",
-    "from": "World Bank",
-    "page": "/dashboard/economies",
-    "where": "Economies",
-    "read": "2026-10-09",
-    "files": 1
-  },
-  {
     "what": "Which divisions' flags are saved with the site, and under what file name",
     "from": "Wikimedia Commons",
     "page": "/dashboard/subnations",
     "where": "Municipalities",
     "read": "2026-10-09",
-    "files": 1
-  },
-  {
-    "what": "Every city the United Nations counts: where it is, its population in 1975, 2000 and 2025 and projected for 2050, its area and density",
-    "from": "United Nations",
-    "page": "/dashboard/cities",
-    "where": "Global cities",
-    "read": "2026-10-08",
     "files": 1
   },
   {
@@ -382,46 +670,6 @@ export const DATA_LOG: DataLogEntry[] = [
     "files": 1
   },
   {
-    "what": "Each economy's inflation, deficits and tariffs, with the IMF's projections",
-    "from": "IMF (World Economic Outlook, Fiscal Monitor), World Bank",
-    "page": "/dashboard/economies",
-    "where": "Economies",
-    "read": "2026-10-07",
-    "files": 1
-  },
-  {
-    "what": "Each elected official's education and career, a member of Congress's voting score, and the money the campaign reports",
-    "from": "Wikipedia, congress-legislators, Voteview, Federal Election Commission",
-    "page": "/dashboard/states",
-    "where": "US states",
-    "read": "2026-10-07",
-    "files": 1
-  },
-  {
-    "what": "Endangered and critically endangered mammals and birds, with about how many of each are left",
-    "from": "Wikipedia, Wikidata",
-    "page": "/dashboard/planetary-boundaries",
-    "where": "Climate",
-    "read": "2026-10-07",
-    "files": 1
-  },
-  {
-    "what": "Growth, prices and jobs, the stock market and the cost of borrowing, year by year, by country",
-    "from": "World Bank",
-    "page": "/dashboard/economies",
-    "where": "Economies",
-    "read": "2026-10-07",
-    "files": 1
-  },
-  {
-    "what": "Legal systems, the stages of criminal justice and the people who staff it",
-    "from": "CIA World Factbook (final edition), UNODC, World Bank",
-    "page": "/dashboard/crime",
-    "where": "Crime statistics",
-    "read": "2026-10-07",
-    "files": 1
-  },
-  {
     "what": "One colour for each country, read off its flag",
     "from": "flagcdn.com flag images",
     "page": "/dashboard/countries",
@@ -430,34 +678,10 @@ export const DATA_LOG: DataLogEntry[] = [
     "files": 1
   },
   {
-    "what": "Revolutions, protests, boycotts and internal conflicts, each with its cause, what it cost and how it ended",
-    "from": "Wikipedia",
-    "page": "/dashboard/crime",
-    "where": "Crime stats",
-    "read": "2026-10-07",
-    "files": 1
-  },
-  {
-    "what": "Species described in the last three years, with what is known of each and where it was found",
-    "from": "Wikipedia, Wikidata",
-    "page": "/dashboard/planetary-boundaries",
-    "where": "Climate",
-    "read": "2026-10-07",
-    "files": 1
-  },
-  {
     "what": "The heads of regions and municipalities that three records agree on, with where each place is",
     "from": "Wikidata, Wikipedia",
     "page": "/dashboard/maps",
     "where": "World maps",
-    "read": "2026-10-07",
-    "files": 1
-  },
-  {
-    "what": "The largest companies based in each country, as the world's and each region's rankings name them",
-    "from": "Wikipedia",
-    "page": "/dashboard/economies",
-    "where": "Economies",
     "read": "2026-10-07",
     "files": 1
   },
@@ -476,184 +700,8 @@ export const DATA_LOG: DataLogEntry[] = [
     "where": "Cities",
     "read": "2026-10-07",
     "files": 1
-  },
-  {
-    "what": "What each university named in a state's window is, and the year it was founded",
-    "from": "Wikidata, Wikipedia",
-    "page": "/dashboard/states",
-    "where": "US states",
-    "read": "2026-10-07",
-    "files": 1
-  },
-  {
-    "what": "When each state's senators', representatives' and governor's terms end",
-    "from": "congress-legislators, Wikipedia (citing the National Governors Association)",
-    "page": "/dashboard/states",
-    "where": "US states",
-    "read": "2026-10-07",
-    "files": 1
-  },
-  {
-    "what": "Which countries keep military bases abroad, and where",
-    "from": "Wikipedia (List of countries with overseas military bases)",
-    "page": "/dashboard/countries",
-    "where": "Countries",
-    "read": "2026-10-07",
-    "files": 1
-  },
-  {
-    "what": "Each city's population, land and built-up area, 1975 to 2050",
-    "from": "United Nations (World Urbanization Prospects), Wikidata",
-    "page": "/dashboard/cities",
-    "where": "Cities",
-    "read": "2026-10-06",
-    "files": 1
-  },
-  {
-    "what": "Each country's political parties and the seats they hold",
-    "from": "CIA World Factbook (final edition)",
-    "page": "/dashboard/countries",
-    "where": "Countries",
-    "read": "2026-10-06",
-    "files": 1
-  },
-  {
-    "what": "Each country's sovereignty, and its death rates, disaster displacements and natural hazards",
-    "from": "CIA World Factbook (final edition), World Bank (WHO, IDMC)",
-    "page": "/dashboard/countries",
-    "where": "Countries",
-    "read": "2026-10-06",
-    "files": 1
-  },
-  {
-    "what": "Free schooling, public health cover and what care costs",
-    "from": "UNESCO, OECD, WHO (via the World Bank)",
-    "page": "/dashboard/countries",
-    "where": "Countries",
-    "read": "2026-10-06",
-    "files": 1
-  },
-  {
-    "what": "Geography, languages, religions, heritage sites and dependencies",
-    "from": "CIA World Factbook (final edition), Wikidata, UNESCO",
-    "page": "/dashboard/countries",
-    "where": "Countries",
-    "read": "2026-10-06",
-    "files": 3
-  },
-  {
-    "what": "Modern slavery: the world's and the regions' estimates, and the forms it takes",
-    "from": "ILO, Walk Free and IOM (Global Estimates), Walk Free (Global Slavery Index), ILO (main figures on forced labour)",
-    "page": "/dashboard/crime",
-    "where": "Crime statistics",
-    "read": "2026-10-06",
-    "files": 1
-  },
-  {
-    "what": "Public security: stability, conflict deaths, terrorism and displacement, by country",
-    "from": "World Bank (Worldwide Governance Indicators), UCDP, Global Terrorism Database, UNHCR, IDMC",
-    "page": "/dashboard/countries",
-    "where": "Countries",
-    "read": "2026-10-06",
-    "files": 1
-  },
-  {
-    "what": "Renewable power: generation, capacity, cost and investment",
-    "from": "IRENA, Ember, U.S. EIA, OECD",
-    "page": "/dashboard/trends",
-    "where": "Trends",
-    "read": "2026-10-02",
-    "files": 1
-  },
-  {
-    "what": "Technology and the trends, by region, country and name",
-    "from": "World Bank, ITU, Epoch AI, OpenAlex and others",
-    "page": "/dashboard/trends",
-    "where": "Trends",
-    "read": "2026-10-02",
-    "files": 2
-  },
-  {
-    "what": "The world's figures, year by year, and by region",
-    "from": "World Bank, V-Dem, UNDP, IMF, UCDP and others",
-    "page": "/dashboard/worldview",
-    "where": "Worldview",
-    "read": "2026-10-02",
-    "files": 2
-  },
-  {
-    "what": "Commodity prices, month by month",
-    "from": "World Bank, IMF",
-    "page": "/dashboard/economies?view=resources",
-    "where": "Resources",
-    "read": "2026-10-01",
-    "files": 1
-  },
-  {
-    "what": "Projections: the economy to five years out, people to 2100",
-    "from": "IMF World Economic Outlook, UN World Population Prospects",
-    "page": "/dashboard/trends",
-    "where": "Trends",
-    "read": "2026-10-01",
-    "files": 1
-  },
-  {
-    "what": "The fifty states: people, incomes, budgets and power",
-    "from": "US Census Bureau, BEA, BLS, BJS, U.S. EIA and others",
-    "page": "/dashboard/states",
-    "where": "US states",
-    "read": "2026-10-01",
-    "files": 3
-  },
-  {
-    "what": "Every economy's figures and what it is made of",
-    "from": "World Bank, IMF, UN Statistics Division, Eurostat and others",
-    "page": "/dashboard/economies",
-    "where": "Economies",
-    "read": "2026-09-29",
-    "files": 5
-  },
-  {
-    "what": "Each country's headline figures and GDP history",
-    "from": "World Bank, IMF, UN",
-    "page": "/dashboard/countries",
-    "where": "Countries",
-    "read": "2026-09-24",
-    "files": 3
-  },
-  {
-    "what": "Each country's people, health, schooling, land, energy and forces",
-    "from": "World Bank, UN, UNDP, FAO, U.S. EIA, SIPRI",
-    "page": "/dashboard/countries",
-    "where": "Countries",
-    "read": "2026-09-24",
-    "files": 4
-  },
-  {
-    "what": "Who produces and holds each commodity",
-    "from": "USGS, U.S. EIA, OPEC, USDA and others",
-    "page": "/dashboard/economies?view=resources",
-    "where": "Resources",
-    "read": "2026-09-23",
-    "files": 4
-  },
-  {
-    "what": "What governments spend, by function",
-    "from": "IMF",
-    "page": "/dashboard/economies",
-    "where": "Economies",
-    "read": "2026-09-21",
-    "files": 1
-  },
-  {
-    "what": "The air people breathe: PM2.5 exposure by country",
-    "from": "World Bank",
-    "page": "/dashboard/maps",
-    "where": "World maps",
-    "read": "2026-09-15",
-    "files": 1
   }
 ];
 
 /** How many data files the log covers. */
-export const DATA_LOG_FILES = 100;
+export const DATA_LOG_FILES = 106;

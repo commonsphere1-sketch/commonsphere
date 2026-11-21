@@ -106,6 +106,12 @@ const SETS = [
   { files: ["innovation.ts"], what: "The space race, science and invention, and new medicines: orbital launches by year and by agency, objects launched, R&D spending, researchers, journal articles, patents, novel drug approvals", from: "GCAT; UNOOSA via Our World in Data; World Bank; US FDA", page: "/dashboard/trends", where: "Developments" },
   { files: ["surveillance.ts"], what: "How far each government watches and restricts its people online: social media monitoring, filtering, shutdowns, arrests, privacy law", from: "V-Dem Institute, Digital Society Project", page: "/dashboard/worldview", where: "Worldview" },
   { files: ["politicalTheories.ts"], what: "Political theories, forms of governance, philosophies and doctrines, each described and with works to read; where each began, its figures, history, countries and parties", from: "Wikidata, CIA World Factbook, Wikipedia; links to Britannica, the Stanford and Internet encyclopedias of philosophy", page: "/dashboard", where: "Dashboard" },
+  { files: ["compassMoreIdeas.ts"], what: "The political ideas the compass places that the record of political ideas does not hold, each described, with the encyclopedia entries recorded for it", from: "Wikipedia, Wikidata; Encyclopaedia Britannica, Stanford Encyclopedia of Philosophy, Internet Encyclopedia of Philosophy", page: "/dashboard", where: "Dashboard · The political compass" },
+  { files: ["countryLabour.ts"], what: "How each country's people work: informal employment, young people not in work, education or training, hours worked, trade union membership and collective bargaining", from: "International Labour Organization (ILOSTAT)", page: "/dashboard/worldview", where: "Worldview · the country picked" },
+  { files: ["countryMeanIncome.ts"], what: "Each country's mean income or consumption per person a day, from household surveys", from: "World Bank Poverty and Inequality Platform", page: "/dashboard/maps", where: "World Maps" },
+  { files: ["electionHistory.ts"], what: "Each country's history: its regime year by year, its national elections and their results, its changes of government and its heads of state and of government", from: "Wikidata, ParlGov, V-Dem via Our World in Data", page: "/dashboard/elections", where: "Polls & Elections" },
+  { files: ["humanitarianPlans.ts"], what: "The humanitarian crises the United Nations is appealing for now: each country's response plan and the flash appeals, with the money each asks for", from: "UN OCHA, Humanitarian Programme Cycle", page: "/dashboard/worldview", where: "Worldview · Critical zones" },
+  { files: ["stateSchools.ts"], what: "Each US state's public schools: their graduation rate and spending per pupil", from: "National Center for Education Statistics, Digest of Education Statistics", page: "/dashboard/states", where: "US States" },
   { files: ["topCompanies.ts"], what: "The largest companies based in each country, as the world's and each region's rankings name them", from: "Wikipedia", page: "/dashboard/economies", where: "Economies" },
   { files: ["unrest.ts"], what: "Revolutions, protests, boycotts and internal conflicts, each with its cause, what it cost and how it ended", from: "Wikipedia", page: "/dashboard/crime", where: "Crime stats" },
   { files: ["endangeredSpecies.ts"], what: "Endangered and critically endangered mammals and birds, with about how many of each are left", from: "Wikipedia, Wikidata", page: "/dashboard/planetary-boundaries", where: "Climate" },
@@ -117,7 +123,8 @@ const SETS = [
 ];
 /** Generated files that are indexes of the site's own content - names, places, feeds - not readings of figures. */
 // wealthyFamilies.ts is held and no page draws it: the Richest Families tab was taken off the World Leaders page, and the log lists what the site shows.
-const NOT_DATA = new Set(["dataLog.ts", "leaderIndex.ts", "newsSources.ts", "wikiArticles.ts", "admin1Sources.ts", "cityPlaces.ts", "placeIndex.ts", "wealthyFamilies.ts"]);
+// countrySlums.ts is held and no page draws it either.
+const NOT_DATA = new Set(["dataLog.ts", "leaderIndex.ts", "newsSources.ts", "wikiArticles.ts", "admin1Sources.ts", "cityPlaces.ts", "placeIndex.ts", "wealthyFamilies.ts", "countrySlums.ts"]);
 
 const builtOn = (file) => {
   const head = fs.readFileSync(path.join(DATA, file), "utf8").slice(0, 2500);
