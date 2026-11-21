@@ -16,7 +16,8 @@ export function SiteOverview() {
   // The countries and territories are among the headline counts further down; the rest of what the site holds is here.
   const held = SITE_STATS.filter((s) => s.lbl !== "Countries and territories");
   return (
-    <Card t={t}>
+    // On the page's own ground, with no card around it, as asked.
+    <section className="flex flex-col px-1 py-2" aria-label="About this site">
       <Head t={t} icon={<Info size={13} weight="fill" />} label="About this site" badge="CommonSphere" color={t.headText} cta="About" to="/dashboard/about" />
       <p className="text-[13px] font-sans leading-relaxed max-w-3xl -mt-1" style={{ color: t.bodyText }}>
         {SITE_DESCRIPTION}
@@ -33,7 +34,7 @@ export function SiteOverview() {
           </div>
         ))}
       </div>
-    </Card>
+    </section>
   );
 }
 
