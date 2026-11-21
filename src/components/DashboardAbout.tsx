@@ -7,14 +7,25 @@ import { useNavigate } from "react-router-dom";
 import { ArrowRight, ArrowSquareOut, Info, ListBullets } from "@phosphor-icons/react";
 import { useTokens } from "../lib/cardTokens";
 import { SITE_DESCRIPTION, SITE_PAGES, SITE_PRINCIPLES, SITE_SOURCES, SITE_STATS } from "../lib/siteAbout";
+import { DATA_LOG } from "../data/dataLog";
+import { NEWS_SOURCES } from "../data/newsSources";
+import { AdSlot } from "./AdSlot";
 import { Card, Head } from "./DashboardCitiesSectors";
 import { ROW_GLOW } from "./DataExplorer";
 
 /** The site described, under the logo: the About page's sentence, and what it holds below the countries - those the headline counts lower on the page do not give. */
 export function SiteOverview() {
   const t = useTokens();
-  // The countries and territories are among the headline counts further down; the rest of what the site holds is here.
-  const held = SITE_STATS.filter((s) => s.lbl !== "Countries and territories");
+  /* What the site holds and reads, as asked - every one counted from its own data: the places (the countries and
+     territories are among the headline counts further down, so not here), the outlets its headlines come from, the data
+     sets its figures are in, and the day the newest of them was read from its source (the data log, newest first). */
+  const newest = DATA_LOG[0]?.read;
+  const facts = [
+    ...SITE_STATS.filter((s) => s.lbl !== "Countries and territories"),
+    { val: String(new Set(NEWS_SOURCES.map((s) => s.outlet)).size), lbl: "News outlets read" },
+    { val: String(DATA_LOG.length), lbl: "Data sets, each from its source" },
+    ...(newest ? [{ val: new Date(`${newest}T12:00:00Z`).toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" }), lbl: "Newest data read" }] : []),
+  ];
   return (
     // On the page's own ground, with no card around it, as asked.
     <section className="flex flex-col px-1 py-2" aria-label="About this site">
@@ -22,8 +33,8 @@ export function SiteOverview() {
       <p className="text-[13px] font-sans leading-relaxed max-w-3xl -mt-1" style={{ color: t.bodyText }}>
         {SITE_DESCRIPTION}
       </p>
-      <div className={`grid ${held.length === 3 ? "grid-cols-3" : "grid-cols-2"} cs-figlines mt-4`}>
-        {held.map((s) => (
+      <div className="grid grid-cols-3 cs-figlines mt-4">
+        {facts.map((s) => (
           <div key={s.lbl} className="py-2">
             <p className="text-xl font-bold font-mono tabular-nums" style={{ color: t.headText }}>
               {s.val}
@@ -34,6 +45,8 @@ export function SiteOverview() {
           </div>
         ))}
       </div>
+      {/* A banner's place, for when the site carries ads, as asked: nothing shows until they are switched on (AdSlot). */}
+      <AdSlot slot="dashboard-about" className="mt-4" />
     </section>
   );
 }
