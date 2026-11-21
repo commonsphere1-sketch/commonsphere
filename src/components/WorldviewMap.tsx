@@ -39,7 +39,7 @@ import { SiteLoading } from "./SiteLoading";
 import { ArrowCounterClockwise, MagnifyingGlassMinus, MagnifyingGlassPlus } from "@phosphor-icons/react";
 import { CountryHoverCard, type CountryHoverHandle } from "./CountryHoverCard";
 import PlaceSearch, { type Hit, type Locate } from "./PlaceSearch";
-import { geoArea, geoContains, geoEqualEarth, geoGraticule10, geoPath } from "d3-geo";
+import { geoArea, geoBounds, geoContains, geoEqualEarth, geoGraticule10, geoPath } from "d3-geo";
 import type { Subnation } from "../data/subnations";
 import { ADMIN2_SOURCE, loadAdmin2, useAdmin2Manifest } from "../lib/admin2";
 import { feature } from "topojson-client";
@@ -231,6 +231,8 @@ function rewind(f: Geo): Geo {
 }
 /** The outline map's round buttons, for its zoom. */
 const TOOL = "w-7 h-7 rounded-full border border-border bg-background/70 text-muted-foreground hover:text-foreground flex items-center justify-center cursor-pointer transition-colors disabled:opacity-40 disabled:cursor-default";
+/** A city on the map, told apart from another of its name in its country by where it is drawn. */
+const cityKeyOf = (c: { name: string; country: string; x: number }) => `${c.name}-${c.country}-${c.x}`;
 
 /** A share of world output as its publisher bounds it. */
 const shareText = (s: Share) => `${s.bound === "atMost" ? "<" : s.bound === "atLeast" ? ">" : ""}${s.pct < 1 ? s.pct.toFixed(1) : Math.round(s.pct)}%`;
@@ -244,8 +246,13 @@ const PRODUCED = Object.entries({ ...RESOURCE_PRODUCERS, ...ENERGY_PRODUCERS });
  * languages; Wikipedia's list of current heads of state and government, which the site's World Leaders audit checks
  * (the page's own leaders explorer reads the same list); the World Bank's and UNDP's figures; the USGS's, the EIA's and
  * OPEC's tables of the largest producers. A line with nothing held is left out.
+ *
+ * It tells what the pointer is on, as asked - another country, or a state, county or city of the country picked - while the
+ * pointer is on it (`pointing`), and the place picked again once it leaves; a press keeps it.
  */
-function PickedColumn({ code, name, t, region, onClearRegion, pressed, onClearPressed }: { code: string; name: string; t: Tokens; region: string | null; onClearRegion: () => void; pressed: Pressed | null; onClearPressed: () => void }) {
+/** Each country's type of government, once read: a country pointed at again is told at once, and the column does not jump. */
+const GOV_TYPES = new Map<string, string>();
+function PickedColumn({ code, name, t, region, onClearRegion, pressed, onClearPressed, pointing = null }: { code: string; name: string; t: Tokens; region: string | null; onClearRegion: () => void; pressed: Pressed | null; onClearPressed: () => void; /** What the column tells is under the pointer, not picked: a country, or a place within the country picked. */ pointing?: "country" | "place" | null }) {
   // The divisions' records - Natural Earth's divisions, each with its own Wikidata record - read when a division is first pressed.
   const [subs, setSubs] = useState<{ list: Subnation[]; sources: Record<string, { label: string; url: string }> } | null>(null);
   useEffect(() => {
@@ -268,18 +275,20 @@ function PickedColumn({ code, name, t, region, onClearRegion, pressed, onClearPr
   const [gov, setGov] = useState<{ code: string; type: string } | null>(null);
   useEffect(() => {
     let off = false;
-    if (!COUNTRY_LAW_HELD.has(code)) return;
+    if (!COUNTRY_LAW_HELD.has(code) || GOV_TYPES.has(code)) return;
     fetch(`/law/${code}.json`)
       .then((r) => (r.ok ? r.json() : Promise.reject()))
       .then((j: CountryLawFile) => {
-        if (!off && j.gov?.type) setGov({ code, type: j.gov.type });
+        if (!j.gov?.type) return;
+        GOV_TYPES.set(code, j.gov.type);
+        if (!off) setGov({ code, type: j.gov.type });
       })
       .catch(() => {});
     return () => {
       off = true;
     };
   }, [code]);
-  const govType = gov?.code === code ? gov.type : null;
+  const govType = GOV_TYPES.get(code) ?? (gov?.code === code ? gov.type : null);
   // Each person once, with every office the list gives them (Saudi Arabia's crown prince is its prime minister too).
   const leaders = (NATIONAL_HEADS.find((r) => r[0] === code)?.[4] ?? []).reduce<{ who: string; titles: string[] }[]>((all, [, said]) => {
     const at = said.indexOf(" – ");
@@ -317,6 +326,8 @@ function PickedColumn({ code, name, t, region, onClearRegion, pressed, onClearPr
       {children}
     </div>
   );
+  // In place of Back while the column tells what the pointer is on: a press on the map keeps it.
+  const pointedTag = <span className="px-2 h-6 inline-flex items-center rounded-full border border-dashed border-border text-[9px] font-mono uppercase tracking-wider text-muted-foreground shrink-0">Pointed at</span>;
   return (
     <div className="flex flex-col gap-2 p-4 border-t lg:border-t-0 lg:border-l" style={{ borderColor: t.gridLine }}>
       <div className="flex items-center gap-2.5">
@@ -326,7 +337,7 @@ function PickedColumn({ code, name, t, region, onClearRegion, pressed, onClearPr
             {name}
           </p>
           <p className="text-[10px] font-sans" style={{ color: t.mutedText }}>
-            picked on the map
+            {pointing === "country" ? "under the pointer · press to pick it" : "picked on the map"}
           </p>
         </div>
       </div>
@@ -342,9 +353,13 @@ function PickedColumn({ code, name, t, region, onClearRegion, pressed, onClearPr
                 {pressed.sub}
               </p>
             </div>
-            <button type="button" onClick={onClearPressed} aria-label={`Back to the whole of ${name}`} title={`Back to ${name}`} className="px-2 h-6 rounded-full border border-border bg-background/70 text-[9px] font-mono uppercase tracking-wider text-muted-foreground hover:text-foreground cursor-pointer transition-colors shrink-0">
-              Back
-            </button>
+            {pointing ? (
+              pointedTag
+            ) : (
+              <button type="button" onClick={onClearPressed} aria-label={`Back to the whole of ${name}`} title={`Back to ${name}`} className="px-2 h-6 rounded-full border border-border bg-background/70 text-[9px] font-mono uppercase tracking-wider text-muted-foreground hover:text-foreground cursor-pointer transition-colors shrink-0">
+                Back
+              </button>
+            )}
           </div>
           {pressed.rows.length > 0 && (
             <ul className="flex flex-col">
@@ -389,9 +404,13 @@ function PickedColumn({ code, name, t, region, onClearRegion, pressed, onClearPr
                 {rec?.kind ? `${rec.kind}, ${name}` : `a division of ${name}`}
               </p>
             </div>
-            <button type="button" onClick={onClearRegion} aria-label={`Back to the whole of ${name}`} title={`Back to ${name}`} className="px-2 h-6 rounded-full border border-border bg-background/70 text-[9px] font-mono uppercase tracking-wider text-muted-foreground hover:text-foreground cursor-pointer transition-colors shrink-0">
-              Back
-            </button>
+            {pointing ? (
+              pointedTag
+            ) : (
+              <button type="button" onClick={onClearRegion} aria-label={`Back to the whole of ${name}`} title={`Back to ${name}`} className="px-2 h-6 rounded-full border border-border bg-background/70 text-[9px] font-mono uppercase tracking-wider text-muted-foreground hover:text-foreground cursor-pointer transition-colors shrink-0">
+                Back
+              </button>
+            )}
           </div>
           {rec ? (
             <ul className="flex flex-col">
@@ -755,9 +774,32 @@ export default function WorldviewMap({ onPlace }: { onPlace?: (where: { cc: stri
     };
   }, [wantCounties, picked, counties?.code]);
   const countiesShown = wantCounties && counties?.code === picked && counties.list.length > 0;
-  /** A county pressed: the Census Bureau's record of it in the United States; elsewhere what its boundaries' publisher records. */
-  const pressCounty = (c: County) => {
-    setRegion(null);
+  /* Each country's towns and villages - GeoNames' places of more than 500 people - read once, for its counties' and cities' records. */
+  type PlacesFile = { places: [string, number, number, number, number, number, number][] };
+  const placesFiles = useRef(new Map<string, Promise<PlacesFile | null>>());
+  const placesOf = (cc: string) => {
+    let p = placesFiles.current.get(cc);
+    if (!p) {
+      p = fetch(`/places/${cc}.json`).then((res) => (res.ok ? (res.json() as Promise<PlacesFile>) : null));
+      placesFiles.current.set(cc, p);
+      // A file that did not come is asked for again the next time.
+      p.catch(() => placesFiles.current.delete(cc));
+    }
+    return p;
+  };
+  /** A press: its record set beside the map at once, and each part that comes in later only while the same place is pressed. */
+  const toPressed = () => {
+    let first = true;
+    return (p: Pressed) => {
+      if (first) {
+        first = false;
+        setPressed(p);
+      } else setPressed((cur) => (cur?.key === p.key ? p : cur));
+    };
+  };
+  /** A county's record, told to `emit` as each part comes in - the Census Bureau's in the United States; elsewhere what its
+   *  boundaries' publisher records - the same for a press and for the pointer. */
+  const countyRecord = (c: County, emit: (p: Pressed) => void) => {
     const country = shapeOf(picked)?.name ?? picked;
     if (picked === "US") {
       import("../data/usCounties").then((m) => {
@@ -765,7 +807,7 @@ export default function WorldviewMap({ onPlace }: { onPlace?: (where: { cc: stri
         const years = m.US_COUNTY_YEARS;
         const people = r?.[7] ?? [];
         const st = usStatesData.find((s) => s.name === c.parent);
-        setPressed({
+        emit({
           kind: "county",
           key: c.id,
           links: [
@@ -794,14 +836,21 @@ export default function WorldviewMap({ onPlace }: { onPlace?: (where: { cc: stri
     const info = admin2?.[picked];
     // What can be measured and counted of it from its outline: its area, and the cities of 100,000 or more inside it.
     const area = Math.round(geoArea(c.geo as never) * 6371.0088 * 6371.0088);
-    const big = cities.filter((x) => x.cc === picked && geoContains(c.geo as never, [x.lon, x.lat])).sort((a, b) => b.people - a.people);
+    // Its bounds in longitude and latitude, a little wide: only the places inside them are tried against its outline. The
+    // longitudes are measured round from its western edge, for a division across the 180th meridian, or one whose file holds
+    // it past it (Kiribati's Kiritimati, at 202°).
+    const [[w, s], [e, n]] = geoBounds(c.geo as never);
+    const wide = (((e - w) % 360) + 360) % 360;
+    const near = (lon: number, lat: number) =>
+      ![w, s, e, n].every(Number.isFinite) || e - w >= 359 || (lat >= s - 0.01 && lat <= n + 0.01 && (((lon - w + 0.01) % 360) + 360) % 360 <= wide + 0.02);
+    const big = cities.filter((x) => x.cc === picked && near(x.lon, x.lat) && geoContains(c.geo as never, [x.lon, x.lat])).sort((a, b) => b.people - a.people);
     const base: [string, string][] = [
       ["Area", `${area.toLocaleString("en-US")} km², from its outline`],
       ...(c.parent ? [["In", c.parent] as [string, string]] : []),
       ["Cities of 100,000+", big.length ? `${big.length} · ${big[0].name}, ${big[0].people.toLocaleString("en-US")}` : "none"],
     ];
     const card = (rows: [string, string][], counted: boolean) =>
-      setPressed({
+      emit({
         kind: "county",
         key: c.id,
         name: c.name,
@@ -819,10 +868,9 @@ export default function WorldviewMap({ onPlace }: { onPlace?: (where: { cc: stri
       });
     card(base, false);
     // Its towns and villages: GeoNames' places of more than 500 people inside its outline.
-    fetch(`/places/${picked}.json`)
-      .then((res) => (res.ok ? res.json() : null))
-      .then((file: { places: [string, number, number, number][] } | null) => {
-        const inside = (file?.places ?? []).filter((p) => geoContains(c.geo as never, [p[2], p[1]]));
+    placesOf(picked)
+      .then((file) => {
+        const inside = (file?.places ?? []).filter((p) => near(p[2], p[1]) && geoContains(c.geo as never, [p[2], p[1]]));
         const peopled = inside.filter((p) => p[3] > 0).sort((a, b) => b[3] - a[3]);
         card(
           [
@@ -836,21 +884,27 @@ export default function WorldviewMap({ onPlace }: { onPlace?: (where: { cc: stri
       })
       .catch(() => card(base, true));
   };
-  /** A city pressed: GeoNames' count of its people. */
-  const pressCity = (c: { name: string; country: string; people: number }) => {
+  const pressCounty = (c: County) => {
     setRegion(null);
+    countyRecord(c, toPressed());
+  };
+  /** A city's record: GeoNames' count of its people, and the windows the other pages have for it. */
+  const cityRecord = (c: { name: string; country: string; people: number }, emit: (p: Pressed) => void) => {
     const profile = citiesData.find((x) => x.countryCode === picked && x.name === c.name);
     const base = { kind: "city" as const, key: `${c.name}-${c.country}`, name: c.name, people: c.people, sub: `City, ${c.country}`, rows: [["People", c.people.toLocaleString("en-US")]] as [string, string][], note: "GeoNames' count of its people, of the city itself.", sources: [GEONAMES] };
     const links = profile ? [{ label: "Its profile on the Cities page", to: `/dashboard/cities?open=${profile.id}` }] : [];
-    setPressed({ ...base, links });
+    emit({ ...base, links });
     // Its place's window on the Municipalities page, by the GeoNames id its row in the country's list of places carries.
-    fetch(`/places/${picked}.json`)
-      .then((res) => (res.ok ? res.json() : null))
-      .then((file: { places: [string, number, number, number, number, number, number][] } | null) => {
+    placesOf(picked)
+      .then((file) => {
         const row = file?.places.filter((p) => p[0] === c.name).sort((a, b) => b[3] - a[3])[0];
-        if (row) setPressed((p) => (p?.key === base.key ? { ...p, links: [...links, { label: "Its window on the Municipalities page", to: `/dashboard/subnations?open=place:${picked}:${row[6]}` }] } : p));
+        if (row) emit({ ...base, links: [...links, { label: "Its window on the Municipalities page", to: `/dashboard/subnations?open=place:${picked}:${row[6]}` }] });
       })
       .catch(() => {});
+  };
+  const pressCity = (c: { name: string; country: string; people: number }) => {
+    setRegion(null);
+    cityRecord(c, toPressed());
   };
   const keep = (k: number, x: number, y: number) => {
     const z = Math.max(1, Math.min(MAX_K, k));
@@ -888,6 +942,7 @@ export default function WorldviewMap({ onPlace }: { onPlace?: (where: { cc: stri
   const [cities, setCities] = useState<{ name: string; country: string; cc: string | null; people: number; x: number; y: number; lon: number; lat: number }[]>([]);
   // The largest first, sorted once: not at every step of a pan.
   const citiesByPeople = useMemo(() => [...cities].sort((a, b) => b.people - a.people), [cities]);
+  const cityByKey = useMemo(() => new Map(cities.map((c) => [cityKeyOf(c), c])), [cities]);
   /* The names on the map, as asked: the countries' at every zoom; drawn closer, the picked country's divisions, then its
      counties and districts; and the cities once they show - as many as fit in view without meeting (MapLabels). */
   const labels = useMemo(() => {
@@ -1046,20 +1101,20 @@ export default function WorldviewMap({ onPlace }: { onPlace?: (where: { cc: stri
   const here = shapeOf(picked)?.name ?? picked;
   const pressHint =
     press === "country"
-      ? "Press a country to pick it: the panels under the map fill with its figures."
+      ? "Point at a country and the column beside the map tells it; press it to pick it, and the panels under the map fill with its figures."
       : press === "state"
         ? regions?.code !== picked
           ? `${here}: drawing its states and provinces…`
           : regions.list.length
-            ? `${here}: press a state, province or region - the column beside the map gives its record.`
+            ? `${here}: point at a state, province or region and the column beside the map gives its record; press it to keep it.`
             : `${here}: no states or provinces are held.`
         : press === "county"
           ? counties?.code !== picked
             ? `${here}: drawing its counties and districts…`
             : counties.list.length
-              ? `${here}: press a county, district or municipality - the column beside the map gives its record.`
+              ? `${here}: point at a county, district or municipality and the column beside the map gives its record; press it to keep it.`
               : `${here}: no county or district outlines are held.`
-          : `${here}: press a city - those of 100,000 people or more, as GeoNames lists them.`;
+          : `${here}: point at a city and the column beside the map gives its record; press it to keep it - those of 100,000 people or more, as GeoNames lists them.`;
 
   /* A pin pressed, on the map or in the list under it: told under the map, and the map drawn to it when pressed in the list.
      Pressed on the map with the account out of sight below, the page moves just far enough to show the account's head. */
@@ -1182,6 +1237,62 @@ export default function WorldviewMap({ onPlace }: { onPlace?: (where: { cc: stri
   }, [toFind, picked, regions, counties, countiesShown]);
   const shown = hover ? shapeOf(hover) : null;
   const pickedName = shapeOf(picked)?.name ?? picked;
+  /* What the pointer is on, as asked, for the column beside the map to tell: a country other than the one picked, or - where
+     a press selects them - a state or province, a county or district, or a city of the country picked (named with it, so
+     that one of the country picked before is never told as this one's). Settled a little after the pointer stops, so that
+     crossing the map does not flicker the column; off the map, the column tells the place picked again. */
+  const pointedNow = hoverRegion
+    ? hoverRegion.startsWith("city:")
+      ? press === "city"
+        ? `city:${picked}:${hoverRegion.slice(5)}`
+        : null
+      : press === "county" && countiesShown
+        ? `county:${picked}:${hoverRegion}`
+        : press === "state"
+          ? `region:${picked}:${hoverRegion}`
+          : null
+    : hover && hover !== picked
+      ? `country:${hover}`
+      : null;
+  const [pointed, setPointed] = useState<string | null>(null);
+  useEffect(() => {
+    const id = window.setTimeout(() => setPointed(pointedNow), 120);
+    return () => window.clearTimeout(id);
+  }, [pointedNow]);
+  /** The name of the place of this kind pointed at in the country picked, or nothing. */
+  const pointedIn = (kind: "region" | "county" | "city") => (pointed?.startsWith(`${kind}:${picked}:`) ? pointed.slice(kind.length + picked.length + 2) : null);
+  /* The record of the county or city pointed at - the same a press gives - kept with what it is the record of. */
+  const [pointedRecord, setPointedRecord] = useState<{ at: string; p: Pressed } | null>(null);
+  const pointedRef = useRef<string | null>(null);
+  useEffect(() => {
+    pointedRef.current = pointed;
+    if (!pointed) return;
+    const emit = (p: Pressed) => {
+      if (pointedRef.current === pointed) setPointedRecord({ at: pointed, p });
+    };
+    const county = pointedIn("county");
+    const city = pointedIn("city");
+    if (county !== null) {
+      const c = counties?.code === picked ? counties.list.find((x) => x.id === county) : undefined;
+      if (c) countyRecord(c, emit);
+    } else if (city !== null) {
+      const c = cityByKey.get(city);
+      if (c && c.cc === picked) cityRecord(c, emit);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [pointed]);
+  /* What the column beside the map tells: what the pointer is on, while it is on something other than what is picked; else what is picked. */
+  const pointedCountry = pointed?.startsWith("country:") ? pointed.slice(8) : null;
+  const pointedRegion = regions?.code === picked ? pointedIn("region") : null;
+  const pointedPlace = pointed && pointedRecord?.at === pointed ? pointedRecord.p : null;
+  const column =
+    pointedCountry && pointedCountry !== picked && shapeOf(pointedCountry)
+      ? { code: pointedCountry, name: shapeOf(pointedCountry)!.name, region: null, pressed: null, pointing: "country" as const }
+      : pointedRegion && !(region === pointedRegion && !pressed)
+        ? { code: picked, name: pickedName, region: pointedRegion, pressed: null, pointing: "place" as const }
+        : pointedPlace && pointedPlace.key !== pressed?.key
+          ? { code: picked, name: pickedName, region: null, pressed: pointedPlace, pointing: "place" as const }
+          : { code: picked, name: pickedName, region, pressed, pointing: null };
   useEffect(() => {
     onPlace?.({ cc: picked, country: pickedName, divisions: [pressed?.name, region].filter((n): n is string => Boolean(n)) });
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -1419,7 +1530,7 @@ export default function WorldviewMap({ onPlace }: { onPlace?: (where: { cc: stri
                 const hh = H / (2 * view.k);
                 if (Math.abs(c.x - view.x) > hw || Math.abs(c.y - view.y) > hh) return null;
                 return (
-                  <circle key={`${c.name}-${c.country}-${c.x}`} cx={c.x} cy={c.y} r={((c.people >= 1e6 ? 2.6 : 1.6) * (pressed?.kind === "city" && pressed.key === `${c.name}-${c.country}` ? 1.8 : 1)) / view.k} fill={pressed?.kind === "city" && pressed.key === `${c.name}-${c.country}` ? inkOf(picked) : t.headText} fillOpacity={0.9} stroke={t.cardBg} strokeWidth={0.6 / view.k} className={c.cc === picked && press === "city" ? "cursor-pointer" : undefined} pointerEvents={press === "city" ? undefined : "none"} onClick={() => press === "city" && c.cc === picked && !dragged.current && pressCity(c)} onMouseEnter={() => c.cc === picked && setHoverRegion(`city:${c.name}`)} onMouseLeave={() => setHoverRegion(null)}>
+                  <circle key={`${c.name}-${c.country}-${c.x}`} cx={c.x} cy={c.y} r={((c.people >= 1e6 ? 2.6 : 1.6) * (pressed?.kind === "city" && pressed.key === `${c.name}-${c.country}` ? 1.8 : 1)) / view.k} fill={pressed?.kind === "city" && pressed.key === `${c.name}-${c.country}` ? inkOf(picked) : t.headText} fillOpacity={0.9} stroke={t.cardBg} strokeWidth={0.6 / view.k} className={c.cc === picked && press === "city" ? "cursor-pointer" : undefined} pointerEvents={press === "city" ? undefined : "none"} onClick={() => press === "city" && c.cc === picked && !dragged.current && pressCity(c)} onMouseEnter={() => c.cc === picked && setHoverRegion(`city:${cityKeyOf(c)}`)} onMouseLeave={() => setHoverRegion(null)}>
                     <title>{`${c.name}, ${c.country}: ${c.people.toLocaleString("en-US")} people (GeoNames)`}</title>
                   </circle>
                 );
@@ -1466,7 +1577,7 @@ export default function WorldviewMap({ onPlace }: { onPlace?: (where: { cc: stri
               </>
             ) : hoverRegion && view.k >= REGIONS_FROM ? (
               <>
-                <span className="font-sans font-semibold text-foreground truncate">{hoverRegion.startsWith("city:") ? hoverRegion.slice(5) : countiesShown ? (counties!.list.find((c) => c.id === hoverRegion)?.name ?? hoverRegion) : hoverRegion}</span>
+                <span className="font-sans font-semibold text-foreground truncate">{hoverRegion.startsWith("city:") ? (cityByKey.get(hoverRegion.slice(5))?.name ?? "") : countiesShown ? (counties!.list.find((c) => c.id === hoverRegion)?.name ?? hoverRegion) : hoverRegion}</span>
                 <span>press for its record</span>
               </>
             ) : shown ? (
@@ -1479,12 +1590,12 @@ export default function WorldviewMap({ onPlace }: { onPlace?: (where: { cc: stri
             )}
           </div>
         </div>
-        {/* The place picked, beside the map: what it is and who leads it, as asked. */}
-        <PickedColumn code={picked} name={pickedName} t={t} region={region} onClearRegion={() => setRegion(null)} pressed={pressed} onClearPressed={() => setPressed(null)} />
+        {/* The place pointed at or picked, beside the map: what it is and who leads it, as asked. */}
+        <PickedColumn code={column.code} name={column.name} t={t} region={column.region} onClearRegion={() => setRegion(null)} pressed={column.pressed} onClearPressed={() => setPressed(null)} pointing={column.pointing} />
       </div>
       <div className="flex flex-wrap items-center gap-x-4 gap-y-2 px-4 py-3 border-t" style={{ borderColor: t.gridLine }}>
         <p className="text-[10px] font-sans flex-1 min-w-[12rem]" style={{ color: t.mutedText }}>
-          Every country in one colour, the one picked drawn more solid; press one for its own figures, beside the map and under it. The {new Set(shapes.flatMap((s) => (s.code ? [s.code] : []))).size} countries the map draws; the smallest, the island nations among them, from a finer tracing, each with a heavier edge so that it shows.
+          Every country in one colour, the one picked drawn more solid; point at one and the column beside the map tells it, press it for its own figures beside the map and under it. The {new Set(shapes.flatMap((s) => (s.code ? [s.code] : []))).size} countries the map draws; the smallest, the island nations among them, from a finer tracing, each with a heavier edge so that it shows.
         </p>
         <SourceLink sources={[{ label: "Natural Earth, via world-atlas — country outlines (public domain)", url: "https://github.com/topojson/world-atlas" }, { label: "geoBoundaries (gbOpen, each country's under its publisher's open licence) and Natural Earth (public domain) — state, province, county and district borders", url: "https://www.geoboundaries.org/" }, { label: "GeoNames — cities of 100,000 or more (CC BY 4.0)", url: "https://www.geonames.org/" }]} />
       </div>
