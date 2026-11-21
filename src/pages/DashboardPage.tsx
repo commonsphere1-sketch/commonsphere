@@ -2367,18 +2367,9 @@ export function DashboardPage() {
         {/* The Quarter Tracker stood here. It is the calendar button at the top right of every page now, as asked, with a full
             calendar beside it (CalendarPopup). */}
 
-        {/* ── COUNTRIES CAROUSEL ─────────────────────────────────────────── */}
-        <CountryCarousel
-          isLight={isLight}
-          cardBg={cardBg}
-          cardBorder={cardBorder}
-          headText={headText}
-          mutedText={mutedText}
-          gridLine={gridLine}
-          onNav={navigate}
-        />
+        {/* The Countries carousel stood here; it is above the Climate card now, as asked. */}
 
-        {/* ── LATEST HEADLINES: every desk the site reads - under the Countries carousel, as asked ── */}
+        {/* ── LATEST HEADLINES: every desk the site reads - under the logo ── */}
         <HeadlinesBanner
           label="Latest headlines"
           topics={ALL_TOPICS}
@@ -2489,6 +2480,18 @@ export function DashboardPage() {
           {/* The parts of the site the Dashboard did not show: the countries set against each other, the climate, and
               how the world lives. The card for the Human Rights page went with that page. */}
           <CountryLeaders />
+          {/* ── COUNTRIES CAROUSEL: directly above the Climate card, as asked - across both columns, so it is as wide as it was. ── */}
+          <div className="lg:col-span-2 min-w-0">
+            <CountryCarousel
+              isLight={isLight}
+              cardBg={cardBg}
+              cardBorder={cardBorder}
+              headText={headText}
+              mutedText={mutedText}
+              gridLine={gridLine}
+              onNav={navigate}
+            />
+          </div>
           <PlanetNow />
           {/* The planetary boundaries wheel and the note on the framework stood here, across the row; taken off, as asked
               (PlanetaryBoundariesWheel.tsx is kept). */}
