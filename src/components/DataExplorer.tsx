@@ -290,31 +290,30 @@ export function DataExplorer({
         </Suspense>
       ) : (
         <>
-      {/* Search */}
-      <div className="px-4 py-2.5 border-b flex items-center gap-2" style={{ borderColor: t.gridLine }}>
-        <MagnifyingGlass size={13} style={{ color: t.mutedText }} aria-hidden />
-        <input
-          type="text"
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-          aria-label={tab === "countries" ? "Search countries" : tab === "economies" ? "Search regions" : "Search policy headlines"}
-          placeholder={tab === "countries" ? "Search countries, continents…" : tab === "economies" ? "Search regions…" : "Search policy headlines, outlets, places…"}
-          className="flex-1 bg-transparent text-[11px] font-sans outline-none border-none"
-          style={{ color: t.bodyText }}
-        />
-        {search && (
-          <button type="button" onClick={() => setSearch("")} aria-label="Clear the search" className="cursor-pointer" style={{ color: t.mutedText }}>
-            <X size={11} weight="bold" />
-          </button>
-        )}
-      </div>
-
-      {/* List beside detail; stacked on a phone */}
+      {/* List beside detail, the search at the head of the list; stacked on a phone */}
       <div className="explorer-panes flex flex-col md:flex-row md:h-[520px]">
         <div
           className="explorer-list flex flex-col overflow-y-auto max-h-[320px] md:max-h-none md:h-full md:w-[44%] border-b md:border-b-0 md:border-r"
           style={{ borderColor: t.gridLine }}
         >
+          {/* The search, at the head of the list it narrows, as asked - it ran across the top of the explorer. */}
+          <div className="px-4 py-2.5 border-b flex items-center gap-2 shrink-0" style={{ borderColor: t.gridLine }}>
+            <MagnifyingGlass size={13} style={{ color: t.mutedText }} aria-hidden />
+            <input
+              type="text"
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              aria-label={tab === "countries" ? "Search countries" : tab === "economies" ? "Search regions" : "Search policy headlines"}
+              placeholder={tab === "countries" ? "Search countries, continents…" : tab === "economies" ? "Search regions…" : "Search policy headlines, outlets, places…"}
+              className="flex-1 bg-transparent text-[11px] font-sans outline-none border-none"
+              style={{ color: t.bodyText }}
+            />
+            {search && (
+              <button type="button" onClick={() => setSearch("")} aria-label="Clear the search" className="cursor-pointer" style={{ color: t.mutedText }}>
+                <X size={11} weight="bold" />
+              </button>
+            )}
+          </div>
           {tab === "countries" && <CountryList t={t} countries={countries} selected={country} onPick={(c) => setCountryId(c.id)} searching={!!q} />}
           {tab === "economies" && <EconomyList t={t} regions={regionList} selected={region} onPick={(id) => setRegionId(id)} />}
           {tab === "policies" && (

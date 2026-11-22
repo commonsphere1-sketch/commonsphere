@@ -143,26 +143,26 @@ export default function ClimateNowExplorer({ embedded = false }: { /** Inside th
         </div>
       )}
 
-      <div className="px-4 py-2.5 border-b flex items-center gap-2" style={{ borderColor: t.gridLine }}>
-        <MagnifyingGlass size={13} style={{ color: t.mutedText }} aria-hidden />
-        <input
-          type="text"
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-          aria-label="Search the disasters, countries, seasons, records and readings"
-          placeholder="Search disasters, countries, El Niño, records…"
-          className="flex-1 bg-transparent text-[11px] font-sans outline-none border-none"
-          style={{ color: t.bodyText }}
-        />
-        {search && (
-          <button type="button" onClick={() => setSearch("")} aria-label="Clear the search" className="cursor-pointer" style={{ color: t.mutedText }}>
-            <X size={11} weight="bold" />
-          </button>
-        )}
-      </div>
-
       <div className="explorer-panes flex flex-col md:flex-row md:h-[520px]">
         <div className="explorer-list flex flex-col overflow-y-auto max-h-[320px] md:max-h-none md:h-full md:w-[44%] border-b md:border-b-0 md:border-r" style={{ borderColor: t.gridLine }}>
+          {/* The search, at the head of the list it narrows, as asked - it ran across the top of the explorer. */}
+          <div className="px-4 py-2.5 border-b flex items-center gap-2 shrink-0" style={{ borderColor: t.gridLine }}>
+            <MagnifyingGlass size={13} style={{ color: t.mutedText }} aria-hidden />
+            <input
+              type="text"
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              aria-label="Search the disasters, countries, seasons, records and readings"
+              placeholder="Search disasters, countries, El Niño, records…"
+              className="flex-1 bg-transparent text-[11px] font-sans outline-none border-none"
+              style={{ color: t.bodyText }}
+            />
+            {search && (
+              <button type="button" onClick={() => setSearch("")} aria-label="Clear the search" className="cursor-pointer" style={{ color: t.mutedText }}>
+                <X size={11} weight="bold" />
+              </button>
+            )}
+          </div>
           {/* How many of each kind there are: pick one to see only those. */}
           <div className="grid grid-cols-3 gap-2 px-4 pt-3 cs-figlines">
             {KINDS.map((k) => {

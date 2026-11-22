@@ -166,26 +166,26 @@ export function IndustryExplorer({ embedded = false }: { /** Shown inside anothe
 
   return (
     <div className={embedded ? "flex flex-col w-full" : "explorer flex flex-col rounded-2xl overflow-hidden w-full"} style={embedded ? undefined : { background: t.cardBg, border: t.cardBorder, boxShadow: t.cardShadow }}>
-      <div className="px-4 py-2.5 border-b flex items-center gap-2" style={{ borderColor: t.gridLine }}>
-        <MagnifyingGlass size={13} style={{ color: t.mutedText }} aria-hidden />
-        <input
-          type="text"
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-          aria-label="Search the continents, their countries and companies"
-          placeholder="Search a continent, a country or a company…"
-          className="flex-1 bg-transparent text-[11px] font-sans outline-none border-none"
-          style={{ color: t.bodyText }}
-        />
-        {search && (
-          <button type="button" onClick={() => setSearch("")} aria-label="Clear the search" className="cursor-pointer" style={{ color: t.mutedText }}>
-            <X size={11} weight="bold" />
-          </button>
-        )}
-      </div>
-
       <div className="explorer-panes flex flex-col md:flex-row md:h-[560px]">
         <div className="explorer-list flex flex-col overflow-y-auto max-h-[340px] md:max-h-none md:h-full md:w-[38%] border-b md:border-b-0 md:border-r" style={{ borderColor: t.gridLine }}>
+          {/* The search, at the head of the list it narrows, as asked - it ran across the top of the explorer. */}
+          <div className="px-4 py-2.5 border-b flex items-center gap-2 shrink-0" style={{ borderColor: t.gridLine }}>
+            <MagnifyingGlass size={13} style={{ color: t.mutedText }} aria-hidden />
+            <input
+              type="text"
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              aria-label="Search the continents, their countries and companies"
+              placeholder="Search a continent, a country or a company…"
+              className="flex-1 bg-transparent text-[11px] font-sans outline-none border-none"
+              style={{ color: t.bodyText }}
+            />
+            {search && (
+              <button type="button" onClick={() => setSearch("")} aria-label="Clear the search" className="cursor-pointer" style={{ color: t.mutedText }}>
+                <X size={11} weight="bold" />
+              </button>
+            )}
+          </div>
           <div className="px-4 pt-3 pb-1">
             <Label t={t}>The continents · what each makes, sells and owns</Label>
           </div>

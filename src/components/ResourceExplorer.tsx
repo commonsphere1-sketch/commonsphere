@@ -75,26 +75,26 @@ export function ResourceExplorer({
       </div>
       )}
 
-      <div className="px-4 py-2.5 border-b flex items-center gap-2" style={{ borderColor: t.gridLine }}>
-        <MagnifyingGlass size={13} style={{ color: t.mutedText }} aria-hidden />
-        <input
-          type="text"
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-          aria-label="Search resources"
-          placeholder="Search resources, benchmarks, uses…"
-          className="flex-1 bg-transparent text-[11px] font-sans outline-none border-none"
-          style={{ color: t.bodyText }}
-        />
-        {search && (
-          <button type="button" onClick={() => setSearch("")} aria-label="Clear the search" className="cursor-pointer" style={{ color: t.mutedText }}>
-            <X size={11} weight="bold" />
-          </button>
-        )}
-      </div>
-
       <div className="explorer-panes flex flex-col md:flex-row md:h-[520px]">
         <div className="explorer-list flex flex-col overflow-y-auto max-h-[320px] md:max-h-none md:h-full md:w-[44%] border-b md:border-b-0 md:border-r" style={{ borderColor: t.gridLine }}>
+          {/* The search, at the head of the list it narrows, as asked - it ran across the top of the explorer. */}
+          <div className="px-4 py-2.5 border-b flex items-center gap-2 shrink-0" style={{ borderColor: t.gridLine }}>
+            <MagnifyingGlass size={13} style={{ color: t.mutedText }} aria-hidden />
+            <input
+              type="text"
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              aria-label="Search resources"
+              placeholder="Search resources, benchmarks, uses…"
+              className="flex-1 bg-transparent text-[11px] font-sans outline-none border-none"
+              style={{ color: t.bodyText }}
+            />
+            {search && (
+              <button type="button" onClick={() => setSearch("")} aria-label="Clear the search" className="cursor-pointer" style={{ color: t.mutedText }}>
+                <X size={11} weight="bold" />
+              </button>
+            )}
+          </div>
           <ResourceList t={t} entries={entries} list={list} selected={shown} onPick={(n) => setName(n)} />
         </div>
         <div className="explorer-detail flex-1 overflow-y-auto p-4 flex flex-col gap-3 md:h-full">{shown && <ResourceDetail key={shown.r.name} t={t} entry={shown} onOpen={() => onOpen(shown.r)} />}</div>
