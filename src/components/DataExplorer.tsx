@@ -47,6 +47,7 @@ import { ago, placeName, useHeadlines, type Headline } from "./HeadlinesBanner";
 import type { TopicHit } from "./PolicyContext";
 import { RESOURCES } from "../data/resourceList";
 import { ExplorerHeadlines } from "./ExplorerHeadlines";
+import { ROW_GLOW } from "../lib/rowGlow";
 
 /** A policy headline's fuller detail, with the data it draws on: loaded when one is first shown. */
 const PolicyContext = lazy(() => import("./PolicyContext"));
@@ -142,6 +143,8 @@ export function DataExplorer({
   }, [urlSearch, only]);
   const tab: Tab = only ?? picked;
   const [search, setSearch] = useState("");
+  /** The foot of the card, where the headlines banner puts its sources. */
+  const [sourcesAt, setSourcesAt] = useState<HTMLDivElement | null>(null);
   const q = search.trim().toLowerCase();
 
   // Countries, largest economy first.
@@ -267,7 +270,7 @@ export function DataExplorer({
       {!only && tab !== "policies" && (
         // Gone, padding and all, while a tab has no headlines to show.
         <div className="px-4 pt-3 pb-1 empty:hidden">
-          <ExplorerHeadlines tab={tab} country={tab === "countries" ? country : null} region={tab === "economies" ? region : null} />
+          <ExplorerHeadlines tab={tab} country={tab === "countries" ? country : null} region={tab === "economies" ? region : null} sourcesAt={sourcesAt} />
         </div>
       )}
 
@@ -377,6 +380,10 @@ export function DataExplorer({
       </div>
         </>
       )}
+
+      {/* The sources of the headlines banner, at the foot of the card, as asked: the oval button in the banner's blue, and
+          the outlets it opens under it (drawn here by the banner, HeadlinesBanner's sourcesAt). Gone while it holds nothing. */}
+      {!only && tab !== "policies" && <div ref={setSourcesAt} className="px-4 py-3 border-t empty:hidden" style={{ borderColor: t.gridLine }} />}
     </div>
   );
 }
@@ -424,10 +431,8 @@ export function Kpi({ t, label, value, color, sub }: { t: Tokens; label: string;
   );
 }
 
-/** The hover of a list's rows, as the Commodities card's on the Dashboard, as asked: lit in the row's colour when pointed at -
- *  a tint, a fine edge and a soft glow - set above its neighbours so the glow is not cut. `--row` is the colour. */
-export const ROW_GLOW =
-  "relative transition-[background-color,box-shadow] duration-200 hover:z-[1] hover:bg-[color-mix(in_srgb,var(--row)_12%,transparent)] hover:shadow-[inset_0_0_0_1px_color-mix(in_srgb,var(--row)_40%,transparent),0_0_14px_-4px_var(--row)]";
+/** The hover of a list's rows (lib/rowGlow), given on from here as before. */
+export { ROW_GLOW };
 
 export function Row({ t, selected, color, onClick, children }: { t: Tokens; selected: boolean; color: string; onClick: () => void; children: ReactNode }) {
   return (

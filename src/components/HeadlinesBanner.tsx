@@ -3,6 +3,8 @@ import { CaretDown, MagnifyingGlass, Pause, Play, Star, X } from "@phosphor-icon
 import { supabase } from "@/lib/supabase";
 import { TONE } from "@/lib/chipTone";
 import { BLUE_HUE } from "@/lib/blueHue";
+import { ROW_GLOW } from "@/lib/rowGlow";
+import { createPortal } from "react-dom";
 import { countriesData } from "@/data/countriesData";
 import { usStatesData } from "@/data/statesData";
 import { useWatchlist } from "@/contexts/WatchlistContext";
@@ -668,6 +670,7 @@ export function HeadlinesBanner({
   open = false,
   note,
   plain = false,
+  sourcesAt,
   className = "",
 }: {
   /** The heading: "World headlines". */
@@ -694,6 +697,12 @@ export function HeadlinesBanner({
   note: (outlets: string) => ReactNode;
   /** Without the line's description: only its list of the sources, as the Data Explorer's banners have it, as asked. */
   plain?: boolean;
+  /**
+   * Where the sources go instead of under the moving row, as the Data Explorer has them, as asked: an oval button in the
+   * banner's blue, lit when pointed at as the explorer's rows are, at the foot of the explorer's card, and the list of
+   * outlets it opens under it there.
+   */
+  sourcesAt?: HTMLElement | null;
   className?: string;
 }) {
   const own = useHeadlineRead(topics, days, read, untagged, subject);
@@ -741,22 +750,44 @@ export function HeadlinesBanner({
           }
         />
       )}
-      {showSources && <SourcesList {...sources} />}
-      <p className="mt-2 text-[10px] font-sans text-muted-foreground leading-snug">
-        <ListToggle
-          open={showSources}
-          onToggle={() => setShowSources((v) => !v)}
-          show={allSourcesLabel(sources)}
-          hide="Hide the sources"
-        />
-        {!plain && (
-          <>
-            {" · "}
-            {note(outletList(shown.map((s) => s.h)))}
-            {toppedUp && " These desks have been quiet, so headlines from other desks that are about the same subject fill in."}
-          </>
-        )}
-      </p>
+      {sourcesAt !== undefined ? (
+        // The sources elsewhere - at the foot of the Data Explorer's card - once that place is drawn.
+        sourcesAt &&
+        createPortal(
+          <div className="flex flex-col items-start">
+            <button
+              type="button"
+              onClick={() => setShowSources((v) => !v)}
+              aria-expanded={showSources}
+              className={`cs-on-hue ${BLUE_HUE} border border-border rounded-full px-3.5 py-1.5 text-[11px] font-semibold font-sans text-foreground cursor-pointer ${ROW_GLOW}`}
+              style={{ "--row": "#3b82f6" } as React.CSSProperties}
+            >
+              {showSources ? "Hide the sources" : allSourcesLabel(sources)}
+            </button>
+            {showSources && <SourcesList {...sources} />}
+          </div>,
+          sourcesAt,
+        )
+      ) : (
+        <>
+          {showSources && <SourcesList {...sources} />}
+          <p className="mt-2 text-[10px] font-sans text-muted-foreground leading-snug">
+            <ListToggle
+              open={showSources}
+              onToggle={() => setShowSources((v) => !v)}
+              show={allSourcesLabel(sources)}
+              hide="Hide the sources"
+            />
+            {!plain && (
+              <>
+                {" · "}
+                {note(outletList(shown.map((s) => s.h)))}
+                {toppedUp && " These desks have been quiet, so headlines from other desks that are about the same subject fill in."}
+              </>
+            )}
+          </p>
+        </>
+      )}
     </Ticker>
   );
 }

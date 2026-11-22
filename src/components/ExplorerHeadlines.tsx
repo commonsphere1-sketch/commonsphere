@@ -63,7 +63,18 @@ const CLIMATE: Topic[] = ["climate"];
 /** The line every note ends with: what the tag is, and where each goes. */
 const TAIL = "refreshed every half hour. The tag is the place a story is about, cyan for more than one. Each links to the outlet.";
 
-export function ExplorerHeadlines({ tab, country, region }: { tab: NewsTab; country?: { code: string; name: string } | null; region?: { id: string; name: string; members: string[] } | null }) {
+export function ExplorerHeadlines({
+  tab,
+  country,
+  region,
+  sourcesAt,
+}: {
+  tab: NewsTab;
+  country?: { code: string; name: string } | null;
+  region?: { id: string; name: string; members: string[] } | null;
+  /** The place at the foot of the explorer's card where the banner's sources go, as asked. */
+  sourcesAt: HTMLElement | null;
+}) {
   const code = country?.code ?? null;
   const pickCountry = useMemo(() => (code ? firstThen((h) => h.places.includes(`c:${code}`), namesPlace) : firstThen(() => false, namesPlace)), [code]);
   const memberKey = region?.members.join(",") ?? "";
@@ -141,7 +152,7 @@ export function ExplorerHeadlines({ tab, country, region }: { tab: NewsTab; coun
   const read = tab === "resources" || tab === "industry" ? 400 : 150;
   // The description under each banner was taken off, as asked (`plain`): only its sources stay, a press away. What each tab
   // reads and puts first is set out above and in each `note`, kept here for the record.
-  return <HeadlinesBanner key={tab} label={cfg.label} topics={cfg.topics} days={2} read={read} untagged={cfg.topics === ALL_TOPICS} pick={cfg.pick} subject={cfg.subject} note={cfg.note} plain />;
+  return <HeadlinesBanner key={tab} label={cfg.label} topics={cfg.topics} days={2} read={read} untagged={cfg.topics === ALL_TOPICS} pick={cfg.pick} subject={cfg.subject} note={cfg.note} plain sourcesAt={sourcesAt} />;
 }
 
 export default ExplorerHeadlines;
