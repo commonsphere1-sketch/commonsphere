@@ -38,7 +38,8 @@ function radius(p: number): number {
   return WHEEL.highRisk + (WHEEL.edge - WHEEL.highRisk) * Math.min(1, p - 2);
 }
 
-function PlanetaryBoundariesRadialChart({
+/** The wheel alone, as the Dashboard's Climate card has it beside its list of the nine, as asked. */
+export function PlanetaryBoundariesRadialChart({
   selected,
   onSelect,
   isLight,

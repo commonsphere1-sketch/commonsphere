@@ -38,6 +38,7 @@ import { Card, Go, Head, Kicker } from "./DashboardCitiesSectors";
 import { SLIM_TRACK, slimFill } from "./SlimBars";
 import { useTokens, type Tokens } from "./DataExplorer";
 import { SourceLink } from "./SourceLink";
+import { PlanetaryBoundariesRadialChart } from "./PlanetaryBoundariesWheel";
 
 type Source = { label: string; url: string };
 const GREEN = "#10b981";
@@ -195,6 +196,9 @@ export function PlanetNow() {
   const t = useTokens();
   const color = "#10b981";
   const sources = [...new Map(CLIMATE_INDICATORS.map((c) => [publisher(c.source), { label: publisher(c.source), url: c.url }])).values()];
+  /** The boundary picked on the wheel or in its list: the climate's to begin with, as the wheel's own card had it. */
+  const [picked, setPicked] = useState("climate");
+  const chosen = BOUNDARIES.find((b) => b.id === picked) ?? BOUNDARIES[0];
   return (
     // Across the page's full width, as asked: the readings two to a row on a wide window, the boundaries as many as fit.
     <Card t={t} className="lg:col-span-2">
@@ -239,21 +243,49 @@ export function PlanetNow() {
 
       <div className="flex-1 mt-4">
         <Kicker t={t}>The nine planetary boundaries · {PHC_2026.title}</Kicker>
-        {/* As many columns as the card has room for: the card's width, not the window's, decides. */}
-        <ul className="grid grid-cols-[repeat(auto-fit,minmax(min(11rem,100%),1fr))] gap-x-6 gap-y-1.5
-">
-          {BOUNDARIES.map((b) => (
-            <li key={b.id} className="flex items-baseline gap-2 min-w-0" title={`${b.name}: ${b.verdict}`}>
-              <span className="w-1.5 h-1.5 rounded-full shrink-0 self-center" style={{ background: ZONE[b.zone].color }} aria-hidden />
-              <span className="text-[10px] font-sans shrink-0" style={{ color: t.bodyText }}>
-                {b.shortName}
-              </span>
-              <span className="text-[9px] font-mono flex-1 min-w-0 text-right leading-snug" style={{ color: ZONE[b.zone].color }}>
-                {b.verdict}
-              </span>
-            </li>
-          ))}
-        </ul>
+        {/* The wheel of the nine, as asked, beside their list: a wedge or a line pressed picks it, and its measures are read under the list. */}
+        <div className="grid grid-cols-1 md:grid-cols-[minmax(0,18rem)_1fr] gap-x-8 gap-y-3 items-center">
+          <PlanetaryBoundariesRadialChart selected={chosen.id} onSelect={setPicked} isLight={t.isLight} />
+          <div className="min-w-0">
+            {/* As many columns as the card has room for: the card's width, not the window's, decides. */}
+            <ul className="grid grid-cols-[repeat(auto-fit,minmax(min(11rem,100%),1fr))] gap-x-6 gap-y-1.5">
+              {BOUNDARIES.map((b) => (
+                <li key={b.id} className="min-w-0" title={`${b.name}: ${b.verdict}`}>
+                  <button type="button" onClick={() => setPicked(b.id)} aria-pressed={b.id === chosen.id} className="flex items-baseline gap-2 w-full min-w-0 text-left cursor-pointer">
+                    <span className="w-1.5 h-1.5 rounded-full shrink-0 self-center" style={{ background: ZONE[b.zone].color }} aria-hidden />
+                    <span className={`text-[10px] font-sans shrink-0 ${b.id === chosen.id ? "font-bold underline underline-offset-2" : ""}`} style={{ color: b.id === chosen.id ? t.headText : t.bodyText }}>
+                      {b.shortName}
+                    </span>
+                    <span className="text-[9px] font-mono flex-1 min-w-0 text-right leading-snug" style={{ color: ZONE[b.zone].color }}>
+                      {b.verdict}
+                    </span>
+                  </button>
+                </li>
+              ))}
+            </ul>
+            {/* The boundary picked: its measures, in the report's own figures. */}
+            <div className="mt-3 pt-2" style={{ borderTop: `1px solid ${t.gridLine}` }}>
+              <p className="text-[11px] font-sans font-semibold" style={{ color: t.headText }}>
+                {chosen.name}
+              </p>
+              <ul className="mt-1 space-y-0.5">
+                {chosen.variables.map((v) => (
+                  <li key={v.name} className="text-[10px] font-mono" style={{ color: t.mutedText }}>
+                    {v.name}:{" "}
+                    <span className="font-semibold" style={{ color: t.headText }}>
+                      {v.current}
+                      {v.unit && !v.unit.startsWith("%") ? " " : ""}
+                      {v.unit}
+                    </span>{" "}
+                    · boundary {v.boundary}
+                    {v.highRisk != null ? ` · high risk ${v.highRisk}` : ""}
+                    {v.regional ? " · regional" : ""}
+                  </li>
+                ))}
+              </ul>
+            </div>
+          </div>
+        </div>
         <p className="flex flex-wrap items-center gap-x-3 gap-y-1 text-[9px] font-mono mt-2" style={{ color: t.mutedText }}>
           {(Object.keys(ZONE) as Zone[]).map((z) => (
             <span key={z} className="inline-flex items-center gap-1">
@@ -265,7 +297,9 @@ export function PlanetNow() {
       </div>
       <Note t={t}>
         Each reading is the latest its agency publishes, read on {CLIMATE_RETRIEVED}, beside the same period ten years earlier; nothing is projected. A single year of sea ice
-        can run against its trend. The verdict on each boundary is the report's own.
+        can run against its trend. The verdict on each boundary is the report's own. On the wheel each wedge starts at the pre-human baseline (the edge of the core) and
+        runs to its most transgressed measure, reaching the green ring at the boundary and the red ring at the high-risk line; nitrogen, phosphorus and radiative forcing
+        lie beyond the chart's edge, and novel entities, which has no single measure, is drawn to the high-risk line, where the report places it, with a dashed edge.
       </Note>
       <SourceLink sources={[...sources, { label: `${PHC_2026.publisher} — ${PHC_2026.title}`, url: PHC_2026.siteUrl }]} className="mt-1" />
     </Card>
