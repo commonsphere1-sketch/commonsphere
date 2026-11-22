@@ -33,7 +33,6 @@ import { CommodityMovers } from "../components/CommodityMovers";
 import { GlobalAnalytics } from "../components/DashboardGlobal";
 import { SectorOutlook } from "../components/DashboardCitiesSectors";
 import { CountryLeaders, PlanetNow, WorldLiving } from "../components/DashboardSignals";
-import { CompassLedger } from "../components/CompassLedger";
 
 /** Energy to 2050, the panel kept of the Trends & Projections desk, with the projections it draws on: loaded after the page. */
 const EnergyOutlook = lazy(() => import("../components/EnergyOutlook"));
@@ -2388,8 +2387,6 @@ export function DashboardPage() {
         {/* The Find a place card (PlaceAtlas) stood here and was taken off, as asked; its bar - what a press selects, and the
             search of every place - is on the Worldview page's map. */}
 
-        {/* The political compass stood here; it is above the Compare card now, as asked. */}
-
         {/* ── INTERACTIVE DATA PANEL (standalone full-width) ─────────────── */}
         <DataExplorer />
 
@@ -2448,8 +2445,7 @@ export function DashboardPage() {
         {/* The Trends & Projections desk stood here and was removed as asked; its energy panel is kept, lower on the
             page under the sectors and commodities. */}
 
-        {/* The political compass, as asked: the legend of its grid - what each part means and the ideas it is read by - directly above the Compare card, as asked. */}
-        <CompassLedger />
+        {/* The political compass card stood here, above the Compare card, and was taken off the Dashboard, as asked (CompassLedger.tsx is kept). */}
 
         {/* ── COMPARE: the countries or states set side by side - directly above the sector outlook, as asked. ── */}
         <PinnedSection

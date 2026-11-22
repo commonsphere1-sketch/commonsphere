@@ -196,16 +196,18 @@ export function PlanetNow() {
   const color = "#10b981";
   const sources = [...new Map(CLIMATE_INDICATORS.map((c) => [publisher(c.source), { label: publisher(c.source), url: c.url }])).values()];
   return (
-    <Card t={t}>
+    // Across the page's full width, as asked: the readings two to a row on a wide window, the boundaries as many as fit.
+    <Card t={t} className="lg:col-span-2">
       <Head t={t} icon={<Leaf size={16} weight="fill" />} label="Climate" badge={`${TRANSGRESSED} of ${BOUNDARIES.length} crossed`} color={color} />
       <Kicker t={t}>The latest reading of each · and the same period ten years before</Kicker>
-      <ul className="flex flex-col">
-        {CLIMATE_INDICATORS.map((c, i) => {
+      <ul className="grid grid-cols-1 md:grid-cols-2 gap-x-8">
+        {CLIMATE_INDICATORS.map((c) => {
           // To as many places as the finer of the two readings, so a change is not rounded away.
           const dp = Math.max(places(c.value), c.decadeAgo === null ? 0 : places(c.decadeAgo));
           const change = c.decadeAgo === null ? null : c.value - c.decadeAgo;
           return (
-            <li key={c.id} className="flex items-center gap-2 py-2" style={{ borderBottom: i < CLIMATE_INDICATORS.length - 1 ? `1px solid ${t.gridLine}` : "none" }} title={c.note ?? `${c.label}, ${c.period} · ${c.source}`}>
+            // A line under each reading, the last row's parting it from the boundaries.
+            <li key={c.id} className="flex items-center gap-2 py-2 min-w-0" style={{ borderBottom: `1px solid ${t.gridLine}` }} title={c.note ?? `${c.label}, ${c.period} · ${c.source}`}>
               <span className="flex-1 min-w-0">
                 <span className="block text-xs font-semibold font-sans truncate" style={{ color: t.headText }}>
                   {c.label}
@@ -235,7 +237,7 @@ export function PlanetNow() {
         })}
       </ul>
 
-      <div className="flex-1 mt-3 pt-3" style={{ borderTop: `1px solid ${t.gridLine}` }}>
+      <div className="flex-1 mt-4">
         <Kicker t={t}>The nine planetary boundaries · {PHC_2026.title}</Kicker>
         {/* As many columns as the card has room for: the card's width, not the window's, decides. */}
         <ul className="grid grid-cols-[repeat(auto-fit,minmax(min(11rem,100%),1fr))] gap-x-6 gap-y-1.5
@@ -309,7 +311,8 @@ export function CountryLeaders() {
     ...[...new Set(shown.flatMap((r) => (r.s ? [r.s] : [])))].map((s) => COUNTRY_INDICATOR_FALLBACKS[s]),
   ];
   return (
-    <Card t={t}>
+    // Across the page's full width, as asked: the ten in two columns on a wide window, read down the first and then the second.
+    <Card t={t} className="lg:col-span-2">
       <Head t={t} icon={<Globe size={16} weight="fill" />} label="Countries" badge={`${STATES.length} countries`} color={color} cta="All Countries" to="/dashboard/countries" />
       <p className="text-[10px] font-sans leading-snug -mt-2 mb-2" style={{ color: t.mutedText }}>
         The ten highest or the ten lowest countries on one measure. Choose the measure, and which end of the order.
@@ -354,9 +357,9 @@ export function CountryLeaders() {
           ))}
         </div>
       </div>
-      <ul className="flex flex-col flex-1">
+      <ul className="flex-1 md:columns-2 md:gap-x-8">
         {shown.map((r, i) => (
-          <li key={r.c.id} style={{ borderBottom: i < shown.length - 1 ? `1px solid ${t.gridLine}` : "none" }}>
+          <li key={r.c.id} className="break-inside-avoid" style={{ borderBottom: `1px solid ${t.gridLine}` }}>
             <button
               type="button"
               onClick={() => navigate(`/dashboard/countries?open=${r.c.id}`)}
@@ -388,7 +391,7 @@ export function CountryLeaders() {
           </li>
         ))}
       </ul>
-      <div className="flex flex-wrap items-center gap-x-4 gap-y-1 mt-3 pt-3" style={{ borderTop: `1px solid ${t.gridLine}` }}>
+      <div className="flex flex-wrap items-center gap-x-4 gap-y-1 mt-3">
         <Go color={color} onClick={() => navigate("/dashboard/rankings")}>
           <ArrowsLeftRight size={11} weight="bold" aria-hidden /> Compare countries side by side
         </Go>
