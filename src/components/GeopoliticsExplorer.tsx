@@ -281,9 +281,12 @@ export function GeopoliticsExplorer({
                 </div>
                 {rows.map((x) => (
                   <Row key={x.key} t={t} selected={shown?.key === x.key} color={x.color} onClick={() => setPickedKey(x.key)}>
-                    <span className="w-1.5 h-6 rounded-full shrink-0" style={{ background: x.color }} aria-hidden />
+                    {/* The coloured bar at the start of each row was taken off, as asked: the name is underlined in the row's colour instead. */}
                     <span className="flex-1 min-w-0">
-                      <span className="block text-xs font-semibold font-sans truncate" style={{ color: t.headText }}>
+                      <span
+                        className="block text-xs font-semibold font-sans truncate underline decoration-2 underline-offset-[3px]"
+                        style={{ color: t.headText, textDecorationColor: x.color }}
+                      >
                         {x.name}
                       </span>
                       <span className="block text-[10px] font-mono truncate" style={{ color: t.mutedText }}>
