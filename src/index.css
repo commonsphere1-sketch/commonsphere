@@ -432,9 +432,14 @@ html.light .modal-tile {
     color 0.2s ease !important;
 }
 
+/* In the dark theme every page's name and icon is white, as asked - the open page, the others, About and the toggles - not
+   the muted grey they had; the light theme keeps its inks (below). */
 .nav-item-idle {
   background: transparent;
-  color: var(--color-muted-foreground);
+  color: #ffffff;
+}
+html.dark .sidebar-bar button.text-muted-foreground {
+  color: #ffffff;
 }
 /* The page open, and the one pointed at, in the calendar and notes buttons' colours (.notes-fab), as asked: their frosted
    fill, edge and ink, and their soft shadow under them - not pressed in, so no inset sheen and no darkening of the bar
@@ -442,7 +447,7 @@ html.light .modal-tile {
 .nav-item-idle:hover {
   background: rgba(255, 255, 255, 0.06);
   border-color: rgba(255, 255, 255, 0.14);
-  color: rgba(255, 255, 255, 0.92);
+  color: #ffffff;
 }
 
 .nav-item-active {
@@ -450,7 +455,7 @@ html.light .modal-tile {
   backdrop-filter: blur(16px) saturate(180%);
   -webkit-backdrop-filter: blur(16px) saturate(180%);
   border-color: rgba(255, 255, 255, 0.2);
-  color: rgba(255, 255, 255, 0.92);
+  color: #ffffff;
   box-shadow: 0 4px 16px rgba(0, 0, 0, 0.35) !important;
 }
 
