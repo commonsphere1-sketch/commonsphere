@@ -136,10 +136,11 @@ function ResourceList({ t, entries, list, selected, onPick }: { t: Tokens; entri
             <p className="text-[9px] font-sans" style={{ color: t.mutedText }}>
               {m.label}
             </p>
-            <p className="text-base font-bold font-mono truncate" style={{ color: t.headText }}>
+            {/* In the site's reading face, as asked - a commodity's name and a month read as words, not as code; the figures keep the site's digits. */}
+            <p className="text-[15px] font-semibold font-sans leading-snug truncate mt-0.5" style={{ color: t.headText }}>
               {m.value}
             </p>
-            <p className="text-[10px] font-mono" style={{ color: m.color === t.headText ? t.mutedText : m.color }}>
+            <p className="text-[10px] font-sans leading-snug mt-0.5" style={{ color: m.color === t.headText ? t.mutedText : m.color }}>
               {m.sub}
             </p>
           </div>
@@ -151,9 +152,12 @@ function ResourceList({ t, entries, list, selected, onPick }: { t: Tokens; entri
       </div>
       {list.map(({ r, price }) => (
         <Row key={r.name} t={t} selected={selected?.r.name === r.name} color={COLOR} onClick={() => onPick(r.name)}>
-          <span className="w-2 h-2 rounded-full shrink-0" style={{ background: r.color }} aria-hidden />
+          {/* The coloured dot at the start of each row was taken off, as asked: the name is underlined in the commodity's colour instead. */}
           <span className="flex-1 min-w-0">
-            <span className="block text-xs font-semibold font-sans truncate" style={{ color: t.headText }}>
+            <span
+              className="block text-xs font-semibold font-sans truncate underline decoration-2 underline-offset-[3px]"
+              style={{ color: t.headText, textDecorationColor: r.color }}
+            >
               {r.name}
             </span>
             <span className="block text-[9px] font-mono truncate" style={{ color: t.mutedText }}>
