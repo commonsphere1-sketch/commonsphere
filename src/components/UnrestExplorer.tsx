@@ -157,9 +157,12 @@ export function UnrestExplorer({ embedded = false }: { /** Shown inside another 
           </div>
           {list.map((e) => (
             <Row key={key(e)} t={t} selected={shown ? key(shown) === key(e) : false} color={KIND_COLOR[e.kind]} onClick={() => setPickedKey(key(e))}>
-              <span className="w-2 h-8 rounded-full shrink-0" style={{ background: KIND_COLOR[e.kind] }} aria-hidden />
+              {/* The coloured bar at the start of each row was taken off, as asked: the title is underlined in its kind's colour instead. */}
               <span className="flex-1 min-w-0">
-                <span className="block text-xs font-semibold font-sans truncate" style={{ color: t.headText }}>
+                <span
+                  className="block text-xs font-semibold font-sans truncate underline decoration-2 underline-offset-[3px]"
+                  style={{ color: t.headText, textDecorationColor: KIND_COLOR[e.kind] }}
+                >
                   {e.title}
                 </span>
                 <span className="block text-[10px] font-mono truncate" style={{ color: t.mutedText }}>

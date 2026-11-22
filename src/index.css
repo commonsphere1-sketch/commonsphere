@@ -257,11 +257,12 @@ html.light .header-search-input::placeholder {
 }
 
 /* ── Header icon/text — dark mode white, light mode dark ─── */
+/* White in the dark theme, as the side menu's icons are, as asked (it was three quarters white); pointed at, a little dimmed. */
 .header-action-icon {
-  color: rgba(255, 255, 255, 0.75) !important;
+  color: #ffffff !important;
 }
 .header-action-icon:hover {
-  color: hsl(0, 0%, 92%) !important;
+  color: hsl(0, 0%, 80%) !important;
 }
 
 html.light .header-action-icon {

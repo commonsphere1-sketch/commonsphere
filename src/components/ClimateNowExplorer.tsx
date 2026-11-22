@@ -198,9 +198,12 @@ export default function ClimateNowExplorer({ embedded = false }: { /** Inside th
               </div>
               {g.rows.map((x) => (
                 <Row key={x.key} t={t} selected={shown?.key === x.key} color={"e" in x ? toneOf(x, g.k.color) : g.k.color} onClick={() => setPickedKey(x.key)}>
-                  <span className="w-1.5 h-6 rounded-full shrink-0" style={{ background: toneOf(x, g.k.color) }} aria-hidden />
+                  {/* The coloured bar at the start of each row was taken off, as asked: the name is underlined in its colour instead. */}
                   <span className="flex-1 min-w-0">
-                    <span className="block text-xs font-semibold font-sans truncate" style={{ color: t.headText }}>
+                    <span
+                      className="block text-xs font-semibold font-sans truncate underline decoration-2 underline-offset-[3px]"
+                      style={{ color: t.headText, textDecorationColor: toneOf(x, g.k.color) }}
+                    >
                       {x.name}
                     </span>
                     <span className="block text-[10px] font-mono truncate" style={{ color: t.mutedText }}>

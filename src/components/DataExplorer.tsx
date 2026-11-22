@@ -893,9 +893,12 @@ function EconomyList({ t, regions, selected, onPick }: { t: Tokens; regions: Reg
         const [, g] = lastOf(r.growth);
         return (
           <Row key={r.id} t={t} selected={selected?.id === r.id} color="#f59e0b" onClick={() => onPick(r.id)}>
-            <span className="w-2 h-2 rounded-full shrink-0" style={{ background: g >= 0 ? GREEN : RED }} aria-hidden />
+            {/* The dot at the start of each row - green for growth, red for a fall - was taken off, as asked: the name is underlined in that colour instead. */}
             <span className="flex-1 min-w-0">
-              <span className="block text-xs font-semibold font-sans truncate" style={{ color: t.headText }}>
+              <span
+                className="block text-xs font-semibold font-sans truncate underline decoration-2 underline-offset-[3px]"
+                style={{ color: t.headText, textDecorationColor: g >= 0 ? GREEN : RED }}
+              >
                 {r.name}
               </span>
               <span className="block text-[9px] font-mono" style={{ color: t.mutedText }}>
