@@ -223,7 +223,19 @@ export function PartsBar({ parts, colors = PART_COLORS, label, columns = 2 }: { 
  * names the largest part, or the part the pointer is on; pointing at a part,
  * on the ring or in the legend, dims the others. Nothing spins into place.
  */
-export function PartsDonut({ parts, colors = PART_COLORS, label }: { parts: Part[]; colors?: string[]; /** What the ring shows, for a screen reader. */ label: string }) {
+export function PartsDonut({
+  parts,
+  colors = PART_COLORS,
+  label,
+  focus,
+}: {
+  parts: Part[];
+  colors?: string[];
+  /** What the ring shows, for a screen reader. */
+  label: string;
+  /** The part named in the middle until another is pointed at, and set in bold in the legend - instead of the largest. */
+  focus?: string;
+}) {
   const [on, setOn] = useState<string | null>(null);
   const gid = useId().replace(/:/g, "");
   const shown = parts.filter((p) => p.value > 0);
@@ -245,7 +257,7 @@ export function PartsDonut({ parts, colors = PART_COLORS, label }: { parts: Part
     return arc;
   });
   const largest = shown.reduce((a, p) => (p.value > a.value ? p : a));
-  const part = shown.find((p) => p.label === on) ?? largest;
+  const part = shown.find((p) => p.label === on) ?? shown.find((p) => p.label === focus) ?? largest;
   const mid = part.mid ?? part;
   // The middle is about 60 units across: a line too long for it is set smaller, never run over the ring.
   const fit = (s: string, size: number, em: number) => Math.min(size, 60 / (em * Math.max(1, s.length)));
@@ -301,8 +313,8 @@ export function PartsDonut({ parts, colors = PART_COLORS, label }: { parts: Part
             onMouseLeave={() => setOn(null)}
           >
             <span className="w-2 h-2 rounded-full shrink-0 translate-y-px" style={{ background: fill(p, i) }} aria-hidden />
-            <span className="text-[11px] font-sans text-foreground leading-snug">{p.label}</span>
-            <span className="text-[11px] font-mono font-semibold text-foreground ml-auto whitespace-nowrap">{p.text}</span>
+            <span className={`text-[11px] font-sans text-foreground leading-snug ${p.label === focus ? "font-bold" : ""}`}>{p.label}</span>
+            <span className={`text-[11px] font-mono text-foreground ml-auto whitespace-nowrap ${p.label === focus ? "font-bold" : "font-semibold"}`}>{p.text}</span>
           </li>
         ))}
         <li className="list-none">

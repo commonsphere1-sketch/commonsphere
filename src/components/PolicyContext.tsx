@@ -47,6 +47,10 @@ import { SourceLink } from "./SourceLink";
 import { semanticColor } from "../lib/semanticColors";
 import { ago, outletList, placeName, type Headline } from "./HeadlinesBanner";
 import { Kpi, Label, type Tokens } from "./DataExplorer";
+import { PartsDonut } from "./ModalCharts";
+
+/** A colour for each of the ten functions and the unclassified, none repeated: the ring's own seven would come round again. */
+const SPEND_COLORS = ["#6366f1", "#d97706", "#0d9488", "#c026d3", "#2563eb", "#65a30d", "#ef4444", "#7c3aed", "#0891b2", "#b45309", "#64748b"];
 
 /** A policy topic whose words are in the headline, with the words found. */
 export type TopicHit = { label: string; color: string; words: string[] };
@@ -482,12 +486,18 @@ export function CountryRecord({
                 </>
               )}
               Each function's share of it, for {budget.basis === "general" ? "central, state and local government together" : "central government alone"}
-              {marked.size > 0 ? "; in bold, the function nearest the headline's topic" : ""}.
+              {marked.size > 0 ? "; in the middle of the ring and in bold, the function nearest the headline's topic" : ""}.
               {unreported.length > 0 && ` It reports nothing under ${unreported.join(" or ")}.`}
             </>
           }
         >
-          <Bars t={t} rows={spending} />
+          {/* The shares of one whole, as a ring, as asked - each function an arc, named with its share beside it. */}
+          <PartsDonut
+            label={`Government spending by function in ${the(c.name)}, ${budget.y}`}
+            parts={spending.map((r) => ({ label: r.label, value: r.value, text: r.text }))}
+            focus={spending.find((r) => r.strong)?.label}
+            colors={SPEND_COLORS}
+          />
           <SourceLink sources={{ label: `${BUDGET_SOURCE.label}, ${budget.y}`, url: BUDGET_SOURCE.url }} />
         </Section>
       )}
