@@ -699,10 +699,10 @@ export function HeadlinesBanner({
   plain?: boolean;
   /**
    * Where the sources go instead of under the moving row, as the Data Explorer has them, as asked: an oval button in the
-   * banner's blue, lit when pointed at as the explorer's rows are, at the foot of the explorer's card, and the list of
-   * outlets it opens under it there.
+   * banner's blue, lit when pointed at as the explorer's rows are, beside the banner at the foot of the explorer's card
+   * (`button`), and the list of outlets it opens under them there (`list`).
    */
-  sourcesAt?: HTMLElement | null;
+  sourcesAt?: { button: HTMLElement | null; list: HTMLElement | null };
   className?: string;
 }) {
   const own = useHeadlineRead(topics, days, read, untagged, subject);
@@ -751,23 +751,23 @@ export function HeadlinesBanner({
         />
       )}
       {sourcesAt !== undefined ? (
-        // The sources elsewhere - at the foot of the Data Explorer's card - once that place is drawn.
-        sourcesAt &&
-        createPortal(
-          <div className="flex flex-col items-start">
-            <button
-              type="button"
-              onClick={() => setShowSources((v) => !v)}
-              aria-expanded={showSources}
-              className={`cs-on-hue ${BLUE_HUE} border border-border rounded-full px-3.5 py-1.5 text-[11px] font-semibold font-sans text-foreground cursor-pointer ${ROW_GLOW}`}
-              style={{ "--row": "#3b82f6" } as React.CSSProperties}
-            >
-              {showSources ? "Hide the sources" : allSourcesLabel(sources)}
-            </button>
-            {showSources && <SourcesList {...sources} />}
-          </div>,
-          sourcesAt,
-        )
+        // The sources elsewhere - beside the banner at the foot of the Data Explorer's card - once those places are drawn.
+        <>
+          {sourcesAt.button &&
+            createPortal(
+              <button
+                type="button"
+                onClick={() => setShowSources((v) => !v)}
+                aria-expanded={showSources}
+                className={`cs-on-hue ${BLUE_HUE} border border-border rounded-full px-3.5 py-1.5 text-[11px] font-semibold font-sans text-foreground whitespace-nowrap cursor-pointer ${ROW_GLOW}`}
+                style={{ "--row": "#3b82f6" } as React.CSSProperties}
+              >
+                {showSources ? "Hide the sources" : allSourcesLabel(sources)}
+              </button>,
+              sourcesAt.button,
+            )}
+          {showSources && sourcesAt.list && createPortal(<SourcesList {...sources} />, sourcesAt.list)}
+        </>
       ) : (
         <>
           {showSources && <SourcesList {...sources} />}

@@ -143,8 +143,9 @@ export function DataExplorer({
   }, [urlSearch, only]);
   const tab: Tab = only ?? picked;
   const [search, setSearch] = useState("");
-  /** The foot of the card, where the headlines banner puts its sources. */
-  const [sourcesAt, setSourcesAt] = useState<HTMLDivElement | null>(null);
+  /** The places at the foot of the card where the headlines banner puts its sources: the button beside it, the list under it. */
+  const [sourcesButtonAt, setSourcesButtonAt] = useState<HTMLDivElement | null>(null);
+  const [sourcesListAt, setSourcesListAt] = useState<HTMLDivElement | null>(null);
   const q = search.trim().toLowerCase();
 
   // Countries, largest economy first.
@@ -264,15 +265,8 @@ export function DataExplorer({
         </div>
       )}
 
-      {/* The Dashboard's latest headlines, merged in under the tabs, as asked: the same banner, its headlines following the
-          tab that is open and the country or region chosen in it (ExplorerHeadlines). Not on a page's own explorer (`only`),
-          whose page has its own banner. */}
-      {!only && tab !== "policies" && (
-        // Gone, padding and all, while a tab has no headlines to show.
-        <div className="px-4 pt-3 pb-1 empty:hidden">
-          <ExplorerHeadlines tab={tab} country={tab === "countries" ? country : null} region={tab === "economies" ? region : null} sourcesAt={sourcesAt} />
-        </div>
-      )}
+      {/* The Dashboard's latest headlines stood here, under the tabs; they are at the foot of the card now, beside their
+          sources' button, as asked. */}
 
       {tab !== "countries" && tab !== "economies" && tab !== "policies" ? (
         // Another page's explorer, in this card: it brings its own search, list, detail and footer.
@@ -381,9 +375,21 @@ export function DataExplorer({
         </>
       )}
 
-      {/* The sources of the headlines banner, at the foot of the card, as asked: the oval button in the banner's blue, and
-          the outlets it opens under it (drawn here by the banner, HeadlinesBanner's sourcesAt). Gone while it holds nothing. */}
-      {!only && tab !== "policies" && <div ref={setSourcesAt} className="px-4 py-3 border-t empty:hidden" style={{ borderColor: t.gridLine }} />}
+      {/* The Dashboard's latest headlines, merged into the explorer, as asked: the same banner, its headlines following the tab
+          that is open and the country or region chosen in it (ExplorerHeadlines), at the foot of the card beside the oval
+          button of its sources, and the outlets that button opens under them both (drawn here by the banner, HeadlinesBanner's
+          sourcesAt). Not on a page's own explorer (`only`), whose page has its own banner; gone while a tab has no headlines. */}
+      {!only && tab !== "policies" && (
+        <div className="hidden has-[section]:block px-4 py-3 border-t" style={{ borderColor: t.gridLine }}>
+          <div className="flex flex-wrap items-center gap-3">
+            <div ref={setSourcesButtonAt} className="shrink-0 empty:hidden" />
+            <div className="flex-1 min-w-[16rem]">
+              <ExplorerHeadlines tab={tab} country={tab === "countries" ? country : null} region={tab === "economies" ? region : null} sourcesAt={{ button: sourcesButtonAt, list: sourcesListAt }} />
+            </div>
+          </div>
+          <div ref={setSourcesListAt} className="empty:hidden" />
+        </div>
+      )}
     </div>
   );
 }

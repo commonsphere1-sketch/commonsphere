@@ -72,8 +72,8 @@ export function ExplorerHeadlines({
   tab: NewsTab;
   country?: { code: string; name: string } | null;
   region?: { id: string; name: string; members: string[] } | null;
-  /** The place at the foot of the explorer's card where the banner's sources go, as asked. */
-  sourcesAt: HTMLElement | null;
+  /** The places at the foot of the explorer's card where the banner's sources go, as asked: their button, and their list. */
+  sourcesAt: { button: HTMLElement | null; list: HTMLElement | null };
 }) {
   const code = country?.code ?? null;
   const pickCountry = useMemo(() => (code ? firstThen((h) => h.places.includes(`c:${code}`), namesPlace) : firstThen(() => false, namesPlace)), [code]);
