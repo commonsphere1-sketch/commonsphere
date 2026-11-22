@@ -46,7 +46,6 @@ import { hdiHex } from "../lib/hdiTier";
 import { ago, placeName, useHeadlines, type Headline } from "./HeadlinesBanner";
 import type { TopicHit } from "./PolicyContext";
 import { RESOURCES } from "../data/resourceList";
-import { ExplorerHeadlines } from "./ExplorerHeadlines";
 import { ROW_GLOW } from "../lib/rowGlow";
 
 /** A policy headline's fuller detail, with the data it draws on: loaded when one is first shown. */
@@ -143,9 +142,6 @@ export function DataExplorer({
   }, [urlSearch, only]);
   const tab: Tab = only ?? picked;
   const [search, setSearch] = useState("");
-  /** The places at the foot of the card where the headlines banner puts its sources: the button beside it, the list under it. */
-  const [sourcesButtonAt, setSourcesButtonAt] = useState<HTMLDivElement | null>(null);
-  const [sourcesListAt, setSourcesListAt] = useState<HTMLDivElement | null>(null);
   const q = search.trim().toLowerCase();
 
   // Countries, largest economy first.
@@ -265,8 +261,6 @@ export function DataExplorer({
         </div>
       )}
 
-      {/* The Dashboard's latest headlines stood here, under the tabs; they are at the foot of the card now, beside their
-          sources' button, as asked. */}
 
       {tab !== "countries" && tab !== "economies" && tab !== "policies" ? (
         // Another page's explorer, in this card: it brings its own search, list, detail and footer.
@@ -375,21 +369,8 @@ export function DataExplorer({
         </>
       )}
 
-      {/* The Dashboard's latest headlines, merged into the explorer, as asked: the same banner, its headlines following the tab
-          that is open and the country or region chosen in it (ExplorerHeadlines), at the foot of the card beside the oval
-          button of its sources, and the outlets that button opens under them both (drawn here by the banner, HeadlinesBanner's
-          sourcesAt). Not on a page's own explorer (`only`), whose page has its own banner; gone while a tab has no headlines. */}
-      {!only && tab !== "policies" && (
-        <div className="hidden has-[section]:block px-4 py-3 border-t" style={{ borderColor: t.gridLine }}>
-          <div className="flex flex-wrap items-center gap-3">
-            <div ref={setSourcesButtonAt} className="shrink-0 empty:hidden" />
-            <div className="flex-1 min-w-[16rem]">
-              <ExplorerHeadlines tab={tab} country={tab === "countries" ? country : null} region={tab === "economies" ? region : null} sourcesAt={{ button: sourcesButtonAt, list: sourcesListAt }} />
-            </div>
-          </div>
-          <div ref={setSourcesListAt} className="empty:hidden" />
-        </div>
-      )}
+      {/* The headlines banner, following the tab open, and the oval button of its sources stood here at the foot of the card;
+          both were taken off, as asked (ExplorerHeadlines.tsx is kept). */}
     </div>
   );
 }
