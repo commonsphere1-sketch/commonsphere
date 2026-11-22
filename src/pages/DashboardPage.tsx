@@ -7,9 +7,7 @@ import { useTheme } from "../contexts/ThemeContext";
 import {
   Globe,
   MapTrifold,
-  Crosshair,
   ArrowRight,
-  TrendUp,
   MagnifyingGlass,
   X,
   CheckCircle,
@@ -35,7 +33,6 @@ import { CountryLeaders, PlanetNow, WorldLiving } from "../components/DashboardS
 
 /** Energy to 2050, the panel kept of the Trends & Projections desk, with the projections it draws on: loaded after the page. */
 const EnergyOutlook = lazy(() => import("../components/EnergyOutlook"));
-import { WORLD } from "../data/worldview";
 import { cardAccent } from "../lib/cardTokens";
 
 /** The accent of a card's furniture: the headings' ink, black and white, as asked (lib/cardTokens). */
@@ -2336,8 +2333,6 @@ export function DashboardPage() {
   const headText = isLight ? "#0f172a" : "#f1f0ff";
   const gridLine = isLight ? "rgba(0,0,0,0.06)" : "rgba(255,255,255,0.12)";
 
-  /* UCDP's count of state-based armed conflicts for its latest year. */
-  const [conflictYear, conflictCount] = WORLD.conflicts.series[WORLD.conflicts.series.length - 1];
 
   return (
     <div
@@ -2376,56 +2371,12 @@ export function DashboardPage() {
         {/* ── INTERACTIVE DATA PANEL (standalone full-width) ─────────────── */}
         <DataExplorer />
 
-        {/* ── HEADLINE COUNTS, below the Data Explorer as asked: counted from the site's own data. They were typed in - "195 countries",
-            "42 active conflicts, 3 escalating", "1,200+ policies, +48 this month" - and matched nothing the site held. ── */}
-        <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
-          {[
-            {
-              label: "Countries and territories",
-              value: `${countriesData.length}`,
-              note: `${countriesData.filter((c) => c.territory).length} of them territories and dependencies`,
-              icon: <Globe size={14} weight="fill" />,
-            },
-            {
-              label: "Armed conflicts",
-              value: `${conflictCount}`,
-              note: `state-based, in ${conflictYear} · Uppsala Conflict Data Program`,
-              icon: <Crosshair size={14} weight="fill" />,
-            },
-            {
-              label: "World figures followed",
-              value: `${Object.keys(WORLD).length}`,
-              note: "each a published series, year by year",
-              icon: <TrendUp size={14} weight="fill" />,
-            },
-          ].map((k) => (
-            <div
-              key={k.label}
-              className="rounded-2xl px-5 py-4 flex flex-col gap-1.5"
-              style={{
-                background: cardBg,
-                border: cardBorder,
-                boxShadow: cardShadow,
-              }}
-            >
-              <p
-                className="text-[11px] font-sans uppercase tracking-widest"
-                style={{ color: mutedText }}
-              >
-                {k.label}
-              </p>
-              <p
-                className="text-2xl font-bold font-mono"
-                style={{ color: headText }}
-              >
-                {k.value}
-              </p>
-              <div className="flex items-center gap-1.5" style={{ color: mutedText }}>
-                {k.icon}
-                <span className="text-[11px] font-mono leading-snug">{k.note}</span>
-              </div>
-            </div>
-          ))}
+        {/* The headline counts - countries and territories, armed conflicts, world figures followed - stood here and were
+            taken off, as asked: the four drop-down cards stand in their place. */}
+        {/* The four drop-down cards - industries, funding, alliances, research - each the full width of the page, under the
+            Data Explorer, as asked. They open on published series; what they held was typed in. */}
+        <div className="flex flex-col gap-4">
+          <DashboardDrops />
         </div>
 
         {/* The Trends & Projections desk stood here and was removed as asked; its energy panel is kept, lower on the
@@ -2495,11 +2446,7 @@ export function DashboardPage() {
           <EnergyOutlook />
         </Suspense>
 
-        {/* The four drop-down cards - industries, funding, alliances, research - each the full width of the page.
-            They open on published series; what they held was typed in. */}
-        <div className="flex flex-col gap-4">
-          <DashboardDrops />
-        </div>
+        {/* The four drop-down cards stood here; they are under the Data Explorer now, where the headline counts stood, as asked. */}
 
         {/* ── US STATES CAROUSEL ────────────────────────────────────────── */}
         <StatesCarousel
