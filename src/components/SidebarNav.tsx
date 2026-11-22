@@ -424,10 +424,11 @@ function NavItem({
       <NavLink
         to={to}
         end={end}
+        // A circle round the icon while the bar is closed, as asked; open, an oval round the page's name.
         className={({ isActive }) =>
-          `flex items-center py-2 rounded-lg transition-all duration-250 ease-in-out cursor-pointer group w-full ${
+          `flex items-center rounded-full transition-all duration-250 ease-in-out cursor-pointer group ${
             isActive ? "nav-item-active" : "nav-item-idle"
-          } ${collapsed && !mobile ? "justify-center px-0" : "gap-3 px-3"}`
+          } ${collapsed && !mobile ? "w-9 h-9 mx-auto justify-center px-0" : "w-full py-2 gap-3 px-3"}`
         }
         title={collapsed && !mobile ? label : undefined}
         aria-label={collapsed && !mobile ? label : undefined}
@@ -479,8 +480,8 @@ function CollapseToggle({ collapsed, onToggle }: { collapsed: boolean; onToggle:
   return (
     <button
       onClick={onToggle}
-      className={`flex items-center gap-2 px-2.5 py-2 rounded-lg w-full text-muted-foreground hover:bg-muted hover:text-foreground transition-all duration-250 ease-in-out cursor-pointer ${
-        collapsed ? "justify-center px-0" : ""
+      className={`flex items-center rounded-full text-muted-foreground hover:bg-muted hover:text-foreground transition-all duration-250 ease-in-out cursor-pointer ${
+        collapsed ? "w-9 h-9 mx-auto justify-center px-0" : "gap-2 px-2.5 py-2 w-full"
       }`}
       aria-label={collapsed ? "Expand sidebar" : "Collapse sidebar"}
     >
@@ -521,7 +522,9 @@ export function SidebarNav({
           links stranded at the foot; there the items are spread evenly down
           the bar instead (and the spacer that pushes the account links down
           is not needed). */}
-      <ul className="flex flex-col px-1.5 flex-1 md:max-lg:justify-between">
+      {/* Closed, the icons stand in one tall pill of the header search's make, as asked (.sidebar-pill); open, no pill - only
+          the page chosen has its oval. */}
+      <ul className={`flex flex-col flex-1 md:max-lg:justify-between ${collapsed && !mobile ? "sidebar-pill mx-1.5 py-1.5 gap-0.5 rounded-full" : "px-1.5"}`}>
         {mainNav.map((item) => (
           <NavItem
             key={item.to}
@@ -560,7 +563,7 @@ export function SidebarNav({
         <li>
           <button
             onClick={() => setShowAbout(true)}
-            className={`flex items-center py-2 rounded-lg transition-all duration-250 ease-in-out cursor-pointer group w-full text-muted-foreground hover:bg-muted hover:text-foreground border border-transparent hover:border-border ${collapsed && !mobile ? "justify-center px-0" : "gap-3 px-3"}`}
+            className={`flex items-center rounded-full transition-all duration-250 ease-in-out cursor-pointer group text-muted-foreground hover:bg-muted hover:text-foreground border border-transparent hover:border-border ${collapsed && !mobile ? "w-9 h-9 mx-auto justify-center px-0" : "w-full py-2 gap-3 px-3"}`}
             title={collapsed && !mobile ? "About" : undefined}
             aria-label="About CommonSphere"
           >
