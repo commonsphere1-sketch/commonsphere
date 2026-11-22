@@ -522,9 +522,9 @@ export function SidebarNav({
           links stranded at the foot; there the items are spread evenly down
           the bar instead (and the spacer that pushes the account links down
           is not needed). */}
-      {/* Closed, the icons stand in one tall pill of the header search's make, as asked (.sidebar-pill); open, no pill - only
-          the page chosen has its oval. */}
-      <ul className={`flex flex-col flex-1 md:max-lg:justify-between ${collapsed && !mobile ? "sidebar-pill mx-1.5 py-1.5 gap-0.5 rounded-full" : "px-1.5"}`}>
+      {/* Closed, each icon in its circle; open, the page chosen in its oval. The tall pill the closed icons stood in was taken
+          off, as asked. */}
+      <ul className={`flex flex-col flex-1 md:max-lg:justify-between px-1.5 ${collapsed && !mobile ? "gap-0.5" : ""}`}>
         {mainNav.map((item) => (
           <NavItem
             key={item.to}
