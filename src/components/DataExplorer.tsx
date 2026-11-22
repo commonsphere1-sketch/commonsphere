@@ -222,7 +222,9 @@ export function DataExplorer({
           </span>
         </div>
       ) : (
-        <div role="tablist" aria-label="Data explorer" className="flex items-center overflow-x-auto border-b" style={{ borderColor: t.gridLine }}>
+        // Scrolled sideways where the tabs are wider than the card, and never up and down: a row that scrolls one way scrolls the
+        // other too unless told not to, and the tabs, a pixel lower than the row, gave it a scroll bar of its own, as was asked about.
+        <div role="tablist" aria-label="Data explorer" className="flex items-center overflow-x-auto overflow-y-hidden border-b" style={{ borderColor: t.gridLine }}>
           {TABS.map((x) => {
             const on = tab === x.id;
             return (
@@ -244,7 +246,6 @@ export function DataExplorer({
                     color: on ? x.color : t.mutedText,
                     ...(on ? { background: t.tile } : {}),
                     borderBottom: `2px solid ${on ? x.color : "transparent"}`,
-                    marginBottom: -1,
                   } as React.CSSProperties
                 }
               >
