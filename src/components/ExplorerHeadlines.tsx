@@ -139,7 +139,9 @@ export function ExplorerHeadlines({ tab, country, region }: { tab: NewsTab; coun
   // tagged are read only where every desk is (Countries, Resources, Industry): a tab of one kind of desk takes only that desk's.
   // A tab matched on words reads deeper into the two days - the 400 newest - so that it finds more than a handful.
   const read = tab === "resources" || tab === "industry" ? 400 : 150;
-  return <HeadlinesBanner key={tab} label={cfg.label} topics={cfg.topics} days={2} read={read} untagged={cfg.topics === ALL_TOPICS} pick={cfg.pick} subject={cfg.subject} note={cfg.note} />;
+  // The description under each banner was taken off, as asked (`plain`): only its sources stay, a press away. What each tab
+  // reads and puts first is set out above and in each `note`, kept here for the record.
+  return <HeadlinesBanner key={tab} label={cfg.label} topics={cfg.topics} days={2} read={read} untagged={cfg.topics === ALL_TOPICS} pick={cfg.pick} subject={cfg.subject} note={cfg.note} plain />;
 }
 
 export default ExplorerHeadlines;

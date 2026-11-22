@@ -667,6 +667,7 @@ export function HeadlinesBanner({
   subject,
   open = false,
   note,
+  plain = false,
   className = "",
 }: {
   /** The heading: "World headlines". */
@@ -691,6 +692,8 @@ export function HeadlinesBanner({
   open?: boolean;
   /** The line under the banner, given the outlets it is showing. */
   note: (outlets: string) => ReactNode;
+  /** Without the line's description: only its list of the sources, as the Data Explorer's banners have it, as asked. */
+  plain?: boolean;
   className?: string;
 }) {
   const own = useHeadlineRead(topics, days, read, untagged, subject);
@@ -746,9 +749,13 @@ export function HeadlinesBanner({
           show={allSourcesLabel(sources)}
           hide="Hide the sources"
         />
-        {" · "}
-        {note(outletList(shown.map((s) => s.h)))}
-        {toppedUp && " These desks have been quiet, so headlines from other desks that are about the same subject fill in."}
+        {!plain && (
+          <>
+            {" · "}
+            {note(outletList(shown.map((s) => s.h)))}
+            {toppedUp && " These desks have been quiet, so headlines from other desks that are about the same subject fill in."}
+          </>
+        )}
       </p>
     </Ticker>
   );
