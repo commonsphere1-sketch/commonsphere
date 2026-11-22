@@ -278,8 +278,9 @@ html.light .header-action-icon:hover {
 html.light .header-action-icon.header-glow:hover {
   color: hsl(0, 0%, 22%) !important;
 }
+/* "Common" white in the dark theme, as asked (it was 92% white); "Sphere" keeps its own grey, set on it. */
 .header-logo-text {
-  color: rgba(255, 255, 255, 0.92) !important;
+  color: #ffffff !important;
 }
 html.light .header-logo-text {
   color: hsl(38, 18%, 12%) !important;
