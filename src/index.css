@@ -436,23 +436,22 @@ html.light .modal-tile {
   background: transparent;
   color: var(--color-muted-foreground);
 }
+/* The page open, and the one pointed at, in the calendar and notes buttons' colours (.notes-fab), as asked: their frosted
+   fill, edge and ink, and their soft shadow under them - not pressed in, so no inset sheen and no darkening of the bar
+   behind it, as there was. */
 .nav-item-idle:hover {
-  background: transparent;
-  backdrop-filter: blur(10px) saturate(140%) brightness(1.5);
-  -webkit-backdrop-filter: blur(10px) saturate(140%) brightness(1.5);
-  border-color: rgba(255, 255, 255, 0.13);
-  color: hsl(0, 0%, 96%);
+  background: rgba(255, 255, 255, 0.06);
+  border-color: rgba(255, 255, 255, 0.14);
+  color: rgba(255, 255, 255, 0.92);
 }
 
 .nav-item-active {
-  background: transparent;
-  backdrop-filter: blur(14px) saturate(170%) brightness(1.9);
-  -webkit-backdrop-filter: blur(14px) saturate(170%) brightness(1.9);
-  border-color: rgba(255, 255, 255, 0.26);
-  color: hsl(0, 0%, 100%);
-  box-shadow:
-    0 2px 10px rgba(0, 0, 0, 0.3),
-    inset 0 1px 0 rgba(255, 255, 255, 0.22) !important;
+  background: rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(16px) saturate(180%);
+  -webkit-backdrop-filter: blur(16px) saturate(180%);
+  border-color: rgba(255, 255, 255, 0.2);
+  color: rgba(255, 255, 255, 0.92);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.35) !important;
 }
 
 html.light .nav-item-idle {
@@ -460,21 +459,17 @@ html.light .nav-item-idle {
   color: var(--color-muted-foreground);
 }
 html.light .nav-item-idle:hover {
-  background: transparent;
-  backdrop-filter: blur(10px) saturate(140%) brightness(0.965);
-  -webkit-backdrop-filter: blur(10px) saturate(140%) brightness(0.965);
-  border-color: rgba(120, 100, 70, 0.15);
-  color: var(--color-foreground);
+  background: rgba(255, 255, 255, 0.55);
+  border-color: rgba(120, 100, 70, 0.14);
+  color: hsl(38, 18%, 12%);
 }
 html.light .nav-item-active {
-  background: transparent;
-  backdrop-filter: blur(14px) saturate(170%) brightness(0.925);
-  -webkit-backdrop-filter: blur(14px) saturate(170%) brightness(0.925);
-  border-color: rgba(120, 100, 70, 0.26);
-  color: var(--color-foreground);
-  box-shadow:
-    0 2px 10px rgba(90, 75, 45, 0.12),
-    inset 0 1px 0 rgba(255, 255, 255, 0.7) !important;
+  background: rgba(255, 255, 255, 0.55);
+  backdrop-filter: blur(16px) saturate(180%);
+  -webkit-backdrop-filter: blur(16px) saturate(180%);
+  border-color: rgba(120, 100, 70, 0.18);
+  color: hsl(38, 18%, 12%);
+  box-shadow: 0 4px 16px rgba(90, 75, 45, 0.16) !important;
 }
 
 /* ── Notes launcher: frosted glass ───────────────────────

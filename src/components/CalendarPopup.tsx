@@ -20,6 +20,7 @@ import { StyledSelect } from "./StyledSelect";
 import { useTokens } from "./DataExplorer";
 import { QuarterTracker } from "./QuarterTracker";
 import { SourceLink } from "./SourceLink";
+import { HideFab, useFloatingButton } from "../lib/floatingButtons";
 
 const KIND_COLOR: Record<EntryKind, string> = { Political: "#6366f1", Economic: "#f59e0b", Social: "#10b981", Election: "#ef4444", Council: "#0ea5e9", Quarter: "#64748b" };
 
@@ -246,6 +247,7 @@ function MonthCalendar({ wide = false }: { wide?: boolean } = {}) {
 export function CalendarPopup() {
   const t = useTokens();
   const [open, setOpen] = useState(false);
+  const [shown, setShown] = useFloatingButton("calendar");
   /* Opened, the window starts at its top, so that the whole month is in view, as asked. */
   const windowRef = useRef<HTMLDivElement>(null);
   /* The quarter tracker, under the calendar: the button in the title goes straight to it, as asked. */
@@ -262,12 +264,16 @@ export function CalendarPopup() {
     return () => document.removeEventListener("keydown", onKey);
   }, [open]);
 
+  // The button, unless the reader has taken it off (its × when pointed at, or Settings), as asked.
   if (!open)
-    return (
-      <button onClick={() => setOpen(true)} className="notes-fab fixed top-20 right-4 z-40 w-9 h-9 rounded-full flex items-center justify-center hover:scale-105" aria-label="Open the calendar" title="Calendar and quarter tracker">
-        <CalendarBlank size={16} weight="fill" />
-      </button>
-    );
+    return shown ? (
+      <div className="fixed top-20 right-4 z-40 group">
+        <button onClick={() => setOpen(true)} className="notes-fab w-9 h-9 rounded-full flex items-center justify-center hover:scale-105" aria-label="Open the calendar" title="Calendar and quarter tracker">
+          <CalendarBlank size={16} weight="fill" />
+        </button>
+        <HideFab what="calendar" onHide={() => setShown(false)} />
+      </div>
+    ) : null;
 
   return (
     <div

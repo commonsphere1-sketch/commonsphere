@@ -41,6 +41,7 @@ import { followedFallback, followedKind, followedLink } from "@/lib/noteKinds";
 import { StyledSelect } from "@/components/StyledSelect";
 import { AREA_OPTIONS, useCalendarArea } from "@/lib/calendarArea";
 import { useElectionSeason } from "../lib/electionSeason";
+import { useFloatingButton } from "../lib/floatingButtons";
 
 /** A search result: "country-ke" / "state-ca" plus what to show. */
 interface WatchedEntity {
@@ -606,6 +607,7 @@ export function SettingsPage() {
 
         {/* Election season, as asked: the 2026 midterm counts across the site - the bar at the head of every page and the layer on the map. */}
         <ElectionSeasonSetting />
+        <FloatingButtonsSetting />
 
         {/* Calendar: the area it opens on, as asked - everywhere, the international meetings, a country or a US state. */}
         <section aria-labelledby="calendar-settings" className="bg-card border border-border rounded-lg p-6 mb-6">
@@ -1064,6 +1066,48 @@ function SecurityPanel() {
         </Button>
       </div>
     </div>
+  );
+}
+
+/** The round buttons at the edge of every page - the calendar's and the notes' - each shown or taken off, as asked. */
+function FloatingButtonsSetting() {
+  const [calendar, setCalendar] = useFloatingButton("calendar");
+  const [notes, setNotes] = useFloatingButton("notes");
+  const rows: [string, boolean, (v: boolean) => void][] = [
+    ["Show the calendar button, at the top right", calendar, setCalendar],
+    ["Show the notes button, at the bottom right", notes, setNotes],
+  ];
+  return (
+    <section aria-labelledby="floating-buttons" className="bg-card border border-border rounded-lg p-6 mb-6">
+      <div className="flex items-center gap-2 mb-1">
+        <CheckSquare size={20} weight="fill" className="text-secondary" />
+        <h2 id="floating-buttons" className="text-base font-semibold font-sans text-foreground">
+          Page buttons
+        </h2>
+      </div>
+      <p className="text-xs text-muted-foreground font-sans mb-4 leading-relaxed">
+        The round buttons at the edge of every page. Take either off here, or with the × that shows on it when you point at it;
+        turn it on here to bring it back. With the notes button off, a note can still be written from a place's window, a
+        comparison or My Notes. Saved in this browser.
+      </p>
+      <div className="flex flex-col gap-3">
+        {rows.map(([label, on, set]) => (
+          <div key={label} className="flex items-center justify-between gap-4">
+            <p className="text-sm font-sans text-foreground">{label}</p>
+            <button
+              type="button"
+              role="switch"
+              aria-checked={on}
+              aria-label={label}
+              onClick={() => set(!on)}
+              className={`relative inline-flex h-6 w-11 shrink-0 items-center rounded-full border border-border transition-colors cursor-pointer ${on ? "bg-foreground" : "bg-muted"}`}
+            >
+              <span className={`inline-block h-4 w-4 rounded-full bg-background shadow transition-transform ${on ? "translate-x-6" : "translate-x-1"}`} />
+            </button>
+          </div>
+        ))}
+      </div>
+    </section>
   );
 }
 
