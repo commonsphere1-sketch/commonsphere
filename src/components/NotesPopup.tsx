@@ -12,7 +12,7 @@ import { countriesData } from "../data/countriesData";
 import { usStatesData } from "../data/statesData";
 import { followedNow } from "../lib/followedCities";
 import { NOTE_KINDS, followedKind, sectionOf, type NoteKind } from "../lib/noteKinds";
-import { HideFab, useFloatingButton } from "../lib/floatingButtons";
+import { useFloatingButton } from "../lib/floatingButtons";
 import {
   NotePencil,
   X,
@@ -31,7 +31,7 @@ import {
 
 export function NotesPopup() {
   const [open, setOpen] = useState(false);
-  const [buttonShown, setButtonShown] = useFloatingButton("notes");
+  const [buttonShown] = useFloatingButton("notes");
   const [minimized, setMinimized] = useState(false);
   const [title, setTitle] = useState("");
   const [content, setContent] = useState("");
@@ -264,20 +264,17 @@ export function NotesPopup() {
     };
   }, []);
 
-  // The button, unless the reader has taken it off (its × when pointed at, or Settings), as asked. Off, the popup still opens
-  // where a note is asked for - a place's window, a comparison, My Notes.
+  // The button, unless the reader has taken it off in Settings, as asked - there alone, not on the button itself. Off, the
+  // popup still opens where a note is asked for - a place's window, a comparison, My Notes.
   if (!open) {
     return buttonShown ? (
-      <div className="fixed bottom-4 right-4 z-50 group">
-        <button
-          onClick={() => setOpen(true)}
-          className="notes-fab w-9 h-9 rounded-full flex items-center justify-center hover:scale-105"
-          aria-label="Open notes"
-        >
-          <NotePencil size={16} weight="fill" />
-        </button>
-        <HideFab what="notes" onHide={() => setButtonShown(false)} />
-      </div>
+      <button
+        onClick={() => setOpen(true)}
+        className="notes-fab fixed bottom-4 right-4 z-50 w-9 h-9 rounded-full flex items-center justify-center hover:scale-105"
+        aria-label="Open notes"
+      >
+        <NotePencil size={16} weight="fill" />
+      </button>
     ) : null;
   }
 

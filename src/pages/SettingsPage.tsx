@@ -1086,9 +1086,8 @@ function FloatingButtonsSetting() {
         </h2>
       </div>
       <p className="text-xs text-muted-foreground font-sans mb-4 leading-relaxed">
-        The round buttons at the edge of every page. Take either off here, or with the × that shows on it when you point at it;
-        turn it on here to bring it back. With the notes button off, a note can still be written from a place's window, a
-        comparison or My Notes. Saved in this browser.
+        The round buttons at the edge of every page. Take either off here, and turn it on here to bring it back. With the notes
+        button off, a note can still be written from a place's window, a comparison or My Notes. Saved in this browser.
       </p>
       <div className="flex flex-col gap-3">
         {rows.map(([label, on, set]) => (
