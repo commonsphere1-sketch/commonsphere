@@ -4,7 +4,6 @@ import { usdFromBillions } from "../lib/money";
 import React, { lazy, Suspense, useMemo, useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { useTheme } from "../contexts/ThemeContext";
-import { HeadlinesBanner, ALL_TOPICS } from "../components/HeadlinesBanner";
 import {
   Globe,
   MapTrifold,
@@ -2368,21 +2367,8 @@ export function DashboardPage() {
 
         {/* The Countries carousel stood here; it is above the Climate card now, as asked. */}
 
-        {/* ── LATEST HEADLINES: every desk the site reads - under the logo ── */}
-        <HeadlinesBanner
-          label="Latest headlines"
-          topics={ALL_TOPICS}
-          days={2}
-          read={150}
-          untagged
-          note={(outlets) => (
-            <>
-              The last two days' headlines from every desk the site reads - world affairs, US news, the economy, policy,
-              humanitarian crises, the climate, crime and justice - from {outlets} (five at most from each), refreshed every
-              half hour. The tag is the place a story is about, cyan for more than one. Each links to the outlet.
-            </>
-          )}
-        />
+        {/* The latest headlines stood here, a banner of their own; they are in the Data Explorer under its tabs now, as asked,
+            following the tab that is open (ExplorerHeadlines). */}
 
         {/* The Find a place card (PlaceAtlas) stood here and was taken off, as asked; its bar - what a press selects, and the
             search of every place - is on the Worldview page's map. */}

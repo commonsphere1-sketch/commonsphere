@@ -46,6 +46,7 @@ import { hdiHex } from "../lib/hdiTier";
 import { ago, placeName, useHeadlines, type Headline } from "./HeadlinesBanner";
 import type { TopicHit } from "./PolicyContext";
 import { RESOURCES } from "../data/resourceList";
+import { ExplorerHeadlines } from "./ExplorerHeadlines";
 
 /** A policy headline's fuller detail, with the data it draws on: loaded when one is first shown. */
 const PolicyContext = lazy(() => import("./PolicyContext"));
@@ -256,6 +257,16 @@ export function DataExplorer({
               </button>
             );
           })}
+        </div>
+      )}
+
+      {/* The Dashboard's latest headlines, merged in under the tabs, as asked: the same banner, its headlines following the
+          tab that is open and the country or region chosen in it (ExplorerHeadlines). Not on a page's own explorer (`only`),
+          whose page has its own banner. */}
+      {!only && tab !== "policies" && (
+        // Gone, padding and all, while a tab has no headlines to show.
+        <div className="px-4 pt-3 pb-1 empty:hidden">
+          <ExplorerHeadlines tab={tab} country={tab === "countries" ? country : null} region={tab === "economies" ? region : null} />
         </div>
       )}
 
