@@ -44,6 +44,7 @@ import { citiesData } from "@/data/citiesData";
 import { economiesData } from "@/data/economiesData";
 import { LIMITS } from "@/lib/security";
 import { useAuth } from "@/contexts/AuthContext";
+import { ROW_GLOW } from "@/lib/rowGlow";
 import { useWatchlist } from "@/contexts/WatchlistContext";
 
 interface HeaderNavProps {
@@ -478,7 +479,10 @@ export function HeaderNav({ onMenuToggle, mobileSidebarOpen }: HeaderNavProps) {
       <div className="flex items-center gap-2 ml-auto">
         <button
           onClick={toggleTheme}
-          className="header-action-icon relative p-2 text-primary-foreground hover:text-secondary transition-colors duration-150 rounded-md"
+          // Lit when pointed at, as asked - the tint, fine edge and glow of the explorer's rows and tabs (ROW_GLOW), in the
+          // theme's ink - in a round button; the icon keeps its ink rather than dimming (.header-glow).
+          className={`header-action-icon header-glow p-2 rounded-full ${ROW_GLOW}`}
+          style={{ "--row": theme === "dark" ? "#ffffff" : "#0f172a" } as React.CSSProperties}
           aria-label={
             theme === "dark" ? "Switch to light mode" : "Switch to dark mode"
           }

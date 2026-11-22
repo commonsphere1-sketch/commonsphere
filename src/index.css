@@ -271,6 +271,13 @@ html.light .header-action-icon {
 html.light .header-action-icon:hover {
   color: hsl(0, 0%, 38%) !important;
 }
+/* The theme button lights up when pointed at (its glow, in the component) and its icon keeps its ink, as asked. */
+.header-action-icon.header-glow:hover {
+  color: #ffffff !important;
+}
+html.light .header-action-icon.header-glow:hover {
+  color: hsl(0, 0%, 22%) !important;
+}
 .header-logo-text {
   color: rgba(255, 255, 255, 0.92) !important;
 }
