@@ -162,7 +162,8 @@ export default function ElectionsPage() {
       {data === undefined && <p className="text-[11px] font-sans text-muted-foreground px-1">Reading its history…</p>}
       {data === null && <p className="text-[11px] font-sans text-muted-foreground px-1">No elections, governments or regimes are held for {country.name}.</p>}
       {data && <Timeline key={country.code} data={data} today={today} regimeInk={regimeInk} turning={turning} country={country.name} />}
-      {data && data.regimes.length > 0 && <RegimeBreakdown key={data.cc} data={data} turning={turning} today={today} regimeInk={regimeInk} />}
+      {/* Keyed apart from the timeline beside it: two siblings with the one key ("US") drew the timeline twice. */}
+      {data && data.regimes.length > 0 && <RegimeBreakdown key={`regimes-${data.cc}`} data={data} turning={turning} today={today} regimeInk={regimeInk} />}
 
       {/* The Factbook's most recent election for each chamber, beside the history. */}
       {politics && politics.chambers.some((c) => c.lastElection) && (
