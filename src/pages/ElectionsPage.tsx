@@ -23,7 +23,7 @@ import { lockScroll } from "../lib/scrollLock";
 import { WindowTitle } from "../components/WindowTitle";
 import { type Tip, TipCard } from "../components/TipCard";
 import { CompassPlot, CompassPositions, inQuarter, type CompassDot, type Quarter } from "../components/PoliticalCompass";
-import { ArrowsIn, ArrowsOut, X } from "@phosphor-icons/react";
+import { ArrowsIn, ArrowsOut, CaretDown, X } from "@phosphor-icons/react";
 
 /** A party's result: its share of the vote, its seats, and its place from left (0) to right (10) on ParlGov's scale. */
 type Party = [name: string, vote: number | null, seats: number | null, leftRight?: number | null];
@@ -162,7 +162,7 @@ export default function ElectionsPage() {
       {data === undefined && <p className="text-[11px] font-sans text-muted-foreground px-1">Reading its history…</p>}
       {data === null && <p className="text-[11px] font-sans text-muted-foreground px-1">No elections, governments or regimes are held for {country.name}.</p>}
       {data && <Timeline key={country.code} data={data} today={today} regimeInk={regimeInk} turning={turning} country={country.name} />}
-      {data && data.regimes.length > 0 && <RegimeBreakdown data={data} turning={turning} today={today} regimeInk={regimeInk} />}
+      {data && data.regimes.length > 0 && <RegimeBreakdown key={data.cc} data={data} turning={turning} today={today} regimeInk={regimeInk} />}
 
       {/* The Factbook's most recent election for each chamber, beside the history. */}
       {politics && politics.chambers.some((c) => c.lastElection) && (
@@ -956,100 +956,175 @@ function Timeline({ data, today, regimeInk, turning, country }: { data: History;
 /**
  * Each regime of the country's, newest first, as asked: its years and V-Dem's type, the heads of state and of government in
  * office in those years, and its turning points - revolutions, coups and wars - each with its source.
+ *
+ * Made quicker to read, as asked: each regime is one line - its type, its years, how long it lasted and how many leaders and
+ * turning points it holds - that opens to its details; the newest is open to begin with. Opened: what the type means, V-Dem's
+ * indices from its first year to its last as small figures, the parties of its heads of government in turn, and two columns,
+ * its leaders and its turning points, eight of each until asked for all. A person who was head of state and of government
+ * in the one term (a president) is one line, not two.
  */
 function RegimeBreakdown({ data, turning, today, regimeInk }: { data: History; turning: Turning[]; today: string; regimeInk: (r: number) => string }) {
+  const regimes = [...data.regimes].reverse();
+  const [opened, setOpened] = useState<Set<number>>(() => new Set(regimes.length ? [regimes[0][0]] : []));
   const [more, setMore] = useState<Set<number>>(new Set());
   const leaders = data.leaders ?? [];
   const now = +today.slice(0, 4);
+  const latest = data.regimes[data.regimes.length - 1][1];
+  const allOpen = opened.size === regimes.length;
+  const flip = (set: Set<number>, k: number) => new Set(set.has(k) ? [...set].filter((x) => x !== k) : [...set, k]);
   return (
     <section className="modal-tile rounded-xl px-4 py-3 mb-4">
-      <p className="text-[10px] font-mono uppercase tracking-widest text-muted-foreground mb-2">Its regimes, with their leaders and turning points</p>
-      <ol className="space-y-3">
-        {[...data.regimes].reverse().map(([from, to, type]) => {
-          const last = to >= data.regimes[data.regimes.length - 1][1];
-          // Newest first, as its turning points are.
-          const inOffice = [...leaders].reverse().filter((l) => {
+      <div className="flex flex-wrap items-baseline justify-between gap-2 mb-1">
+        <p className="text-[10px] font-mono uppercase tracking-widest text-muted-foreground">Its regimes, with their leaders and turning points</p>
+        {regimes.length > 1 && (
+          <button
+            type="button"
+            onClick={() => setOpened(allOpen ? new Set() : new Set(regimes.map((r) => r[0])))}
+            className="text-[10px] font-sans text-muted-foreground hover:text-foreground underline underline-offset-2 cursor-pointer"
+          >
+            {allOpen ? "Close all" : "Open all"}
+          </button>
+        )}
+      </div>
+      <ol className="divide-y divide-border/50">
+        {regimes.map(([from, to, type]) => {
+          const last = to >= latest;
+          // Newest first, as its turning points are; a person in both offices for the one term is one line.
+          const terms = [...leaders].reverse().filter((l) => {
             const a = yearOf(l.from);
             const b = l.to ? yearOf(l.to) : l.now ? now : a;
             return a <= to && b >= from;
           });
+          const inOffice = terms.reduce<{ l: Leader; roles: string[] }[]>((acc, l) => {
+            const same = acc.find((x) => x.l.id === l.id && x.l.from === l.from && x.l.to === l.to && x.l.now === l.now);
+            if (same) same.roles.push(l.role);
+            else acc.push({ l, roles: [l.role] });
+            return acc;
+          }, []);
           const points = turning.filter((tp) => tp.y >= from && tp.y <= to).reverse();
           const moved = FREEDOMS.flatMap((fr) => {
             const a = indexAt(data.indices?.[fr.key], from);
             const b = indexAt(data.indices?.[fr.key], to);
-            return a !== null && b !== null ? [`${fr.name.toLowerCase()} ${a.toFixed(2)} → ${b.toFixed(2)}`] : [];
+            return a !== null && b !== null ? [{ name: fr.name, ink: fr.ink, a, b }] : [];
           });
-          const leanings = inOffice
+          const leanings = terms
             .filter((l) => l.role === "government" && l.align)
             .reverse()
             .reduce<string[]>((acc, l) => (acc[acc.length - 1] === l.align ? acc : [...acc, l.align!]), []);
-          const open = more.has(from);
-          const cut = (n: number) => (open ? n : Math.min(n, 8));
+          const isOpen = opened.has(from);
+          const all = more.has(from);
+          const cut = (n: number) => (all ? n : Math.min(n, 8));
+          const years = to - from + 1;
           return (
-            <li key={from} className="border-t border-border/50 pt-2 first:border-t-0 first:pt-0">
-              <div className="flex items-center gap-2 flex-wrap">
-                <span className="w-3 h-3 rounded-sm shrink-0" style={{ background: regimeInk(type), opacity: 0.8 }} />
-                <span className="text-[12px] font-semibold font-sans text-foreground">{REGIME_TYPES[type].name}</span>
+            <li key={from}>
+              <button
+                type="button"
+                onClick={() => setOpened((s) => flip(s, from))}
+                aria-expanded={isOpen}
+                className="group w-full flex items-center gap-2 py-2 text-left cursor-pointer"
+              >
+                <span className="w-2.5 h-2.5 rounded-sm shrink-0" style={{ background: regimeInk(type), opacity: 0.85 }} aria-hidden />
+                <span className="text-[12px] font-semibold font-sans text-foreground group-hover:underline underline-offset-2">{REGIME_TYPES[type].name}</span>
                 <span className="text-[11px] font-mono text-muted-foreground">
-                  {from} to {last ? `${to}, V-Dem's latest year` : to}
+                  {from === to ? from : `${from}–${to}`}
+                  {last && <span className="font-sans"> · V-Dem's latest year</span>}
                 </span>
-                <span className="text-[10px] font-sans text-muted-foreground">· {REGIME_TYPES[type].said}</span>
-              </div>
-              {(moved.length > 0 || leanings.length > 0) && (
-                <p className="text-[10px] font-sans text-muted-foreground mt-1 leading-snug">
-                  {moved.length > 0 && <>From {from} to {to}, V-Dem's indices: {moved.join("; ")}. </>}
-                  {leanings.length > 0 && <>Its heads of government's parties, in turn: {leanings.slice(-5).join(" → ")} (Wikidata).</>}
-                </p>
-              )}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-1 mt-1.5">
-                <div className="min-w-0">
-                  <p className="text-[9px] font-mono uppercase tracking-wider text-muted-foreground">Leaders in office</p>
-                  {inOffice.length ? (
-                    <ul className="mt-0.5 space-y-0.5">
-                      {inOffice.slice(0, cut(inOffice.length)).map((l, i) => (
-                        <li key={`${l.id}-${l.from}-${i}`} className="text-[11px] font-sans text-foreground truncate" title={`${ROLE[l.role]} · ${termOf(l)}`}>
-                          <a href={`https://www.wikidata.org/wiki/${l.id}`} target="_blank" rel="noopener noreferrer" className="hover:underline">
-                            {l.name}
-                          </a>
-                          <span className="text-muted-foreground"> · {l.role === "pope" ? "pope" : l.role === "state" ? "state" : "government"} · {termOf(l)}</span>
-                        </li>
+                <span className="hidden sm:inline text-[10px] font-mono text-muted-foreground/80">
+                  · {years} year{years === 1 ? "" : "s"}
+                </span>
+                <span className="ml-auto flex items-center gap-3 shrink-0 text-[10px] font-sans text-muted-foreground">
+                  <span className="hidden sm:inline">
+                    <span className="font-mono text-foreground">{inOffice.length}</span> leader{inOffice.length === 1 ? "" : "s"}
+                  </span>
+                  <span className="hidden sm:inline">
+                    <span className="font-mono text-foreground">{points.length}</span> turning point{points.length === 1 ? "" : "s"}
+                  </span>
+                  <CaretDown size={11} weight="bold" className={`transition-transform ${isOpen ? "rotate-180" : ""}`} aria-hidden />
+                </span>
+              </button>
+              {isOpen && (
+                <div className="pb-3 pl-[18px] flex flex-col gap-2">
+                  <p className="text-[10px] font-sans text-muted-foreground leading-snug">{REGIME_TYPES[type].said}.</p>
+                  {(moved.length > 0 || leanings.length > 0) && (
+                    <div className="flex flex-wrap items-center gap-1.5">
+                      {moved.map((m) => (
+                        <span
+                          key={m.name}
+                          className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full border border-border text-[10px] font-sans text-muted-foreground"
+                          title={`V-Dem's ${m.name.toLowerCase()} index, 0 to 1: ${from === to ? `${m.b.toFixed(2)} in ${to}` : `${m.a.toFixed(2)} in ${from}, ${m.b.toFixed(2)} in ${to}`}`}
+                        >
+                          <span className="w-1.5 h-1.5 rounded-full shrink-0" style={{ background: m.ink }} aria-hidden />
+                          {m.name}
+                          <span className="font-mono text-foreground">{from === to ? m.b.toFixed(2) : `${m.a.toFixed(2)} → ${m.b.toFixed(2)}`}</span>
+                        </span>
                       ))}
-                    </ul>
-                  ) : (
-                    <p className="text-[11px] font-sans text-muted-foreground">None whose two records agree.</p>
+                      {moved.length > 0 && <span className="text-[9px] font-mono text-muted-foreground/80">V-Dem</span>}
+                      {leanings.length > 0 && (
+                        <span className="text-[10px] font-sans text-muted-foreground basis-full sm:basis-auto sm:ml-2">
+                          Heads of government's parties: <span className="text-foreground">{leanings.slice(-5).join(" → ")}</span>{" "}
+                          <span className="text-[9px] font-mono text-muted-foreground/80">Wikidata</span>
+                        </span>
+                      )}
+                    </div>
+                  )}
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-2">
+                    <div className="min-w-0">
+                      <p className="text-[9px] font-mono uppercase tracking-wider text-muted-foreground mb-0.5">Leaders in office</p>
+                      {inOffice.length ? (
+                        <ul className="space-y-0.5">
+                          {inOffice.slice(0, cut(inOffice.length)).map(({ l, roles }, i) => {
+                            const role = roles.includes("pope") ? "pope" : roles.length > 1 ? "state and government" : roles[0];
+                            return (
+                              <li key={`${l.id}-${l.from}-${i}`} className="flex items-baseline gap-2 text-[11px] font-sans min-w-0" title={`${roles.map((r) => ROLE[r as Leader["role"]]).join(" and ")} · ${termOf(l)}`}>
+                                <a href={`https://www.wikidata.org/wiki/${l.id}`} target="_blank" rel="noopener noreferrer" className="text-foreground hover:underline truncate">
+                                  {l.name}
+                                </a>
+                                <span className="text-[10px] text-muted-foreground shrink-0">{role}</span>
+                                <span className="ml-auto text-[10px] font-mono text-muted-foreground shrink-0">{termOf(l)}</span>
+                              </li>
+                            );
+                          })}
+                        </ul>
+                      ) : (
+                        <p className="text-[11px] font-sans text-muted-foreground">None whose two records agree.</p>
+                      )}
+                    </div>
+                    <div className="min-w-0">
+                      <p className="text-[9px] font-mono uppercase tracking-wider text-muted-foreground mb-0.5">Turning points</p>
+                      {points.length ? (
+                        <ul className="space-y-0.5">
+                          {points.slice(0, cut(points.length)).map((tp, i) => (
+                            <li key={`${tp.y}-${i}`} className="flex items-baseline gap-2 text-[11px] font-sans min-w-0" title={tp.desc ?? tp.kind}>
+                              <span className="font-mono text-[10px] text-muted-foreground shrink-0 w-8">{tp.y}</span>
+                              {tp.sources[0] ? (
+                                <a href={tp.sources[0][1]} target="_blank" rel="noopener noreferrer" className="text-foreground hover:underline truncate">
+                                  {tp.title}
+                                </a>
+                              ) : (
+                                <span className="text-foreground truncate">{tp.title}</span>
+                              )}
+                              <span className="ml-auto text-[10px] text-muted-foreground shrink-0">
+                                {tp.kind.toLowerCase()}
+                                {tp.abroad ? ", abroad" : ""}
+                              </span>
+                            </li>
+                          ))}
+                        </ul>
+                      ) : (
+                        <p className="text-[11px] font-sans text-muted-foreground">None in the record.</p>
+                      )}
+                    </div>
+                  </div>
+                  {(inOffice.length > 8 || points.length > 8) && (
+                    <button
+                      type="button"
+                      onClick={() => setMore((m) => flip(m, from))}
+                      className="self-start text-[10px] font-sans text-muted-foreground hover:text-foreground underline underline-offset-2 cursor-pointer"
+                    >
+                      {all ? "Fewer" : `All ${inOffice.length} leaders and ${points.length} turning points`}
+                    </button>
                   )}
                 </div>
-                <div className="min-w-0">
-                  <p className="text-[9px] font-mono uppercase tracking-wider text-muted-foreground">Turning points</p>
-                  {points.length ? (
-                    <ul className="mt-0.5 space-y-0.5">
-                      {points.slice(0, cut(points.length)).map((tp, i) => (
-                        <li key={`${tp.y}-${i}`} className="text-[11px] font-sans text-foreground truncate" title={tp.desc ?? tp.kind}>
-                          <span className="font-mono text-muted-foreground">{tp.y} </span>
-                          {tp.sources[0] ? (
-                            <a href={tp.sources[0][1]} target="_blank" rel="noopener noreferrer" className="hover:underline">
-                              {tp.title}
-                            </a>
-                          ) : (
-                            tp.title
-                          )}
-                          <span className="text-muted-foreground"> · {tp.kind.toLowerCase()}{tp.abroad ? ", taken part in" : ""}</span>
-                        </li>
-                      ))}
-                    </ul>
-                  ) : (
-                    <p className="text-[11px] font-sans text-muted-foreground">None in the record.</p>
-                  )}
-                </div>
-              </div>
-              {(inOffice.length > 8 || points.length > 8) && (
-                <button
-                  type="button"
-                  onClick={() => setMore((m) => new Set(open ? [...m].filter((x) => x !== from) : [...m, from]))}
-                  className="mt-1 text-[10px] font-sans text-muted-foreground hover:text-foreground cursor-pointer"
-                >
-                  {open ? "Fewer" : `All ${inOffice.length} leaders and ${points.length} turning points`}
-                </button>
               )}
             </li>
           );
