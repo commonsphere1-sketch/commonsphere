@@ -41,6 +41,7 @@ const SETS = [
   { files: ["renewables.ts"], what: "Renewable power: generation, capacity, cost and investment", from: "IRENA, Ember, U.S. EIA, OECD", page: "/dashboard/trends", where: "Trends" },
   { files: ["technology.ts", "trendDetails.ts"], what: "Technology and the trends, by region, country and name", from: "World Bank, ITU, Epoch AI, OpenAlex and others", page: "/dashboard/trends", where: "Trends" },
   { files: ["commodityPrices.ts"], what: "Commodity prices, month by month", from: "World Bank, IMF", page: "/dashboard/economies?view=resources", where: "Resources" },
+  { files: ["fxRates.ts"], what: "Exchange rates for the currency converter", from: "European Central Bank, US Treasury", page: "/dashboard/economies", where: "Economies" },
   { files: ["resourceProducers.ts", "energyProducers.ts", "otherProducers.ts", "criticalMinerals.ts"], what: "Who produces and holds each commodity", from: "USGS, U.S. EIA, OPEC, USDA and others", page: "/dashboard/economies?view=resources", where: "Resources" },
   { files: ["countryIndicators.ts", "gdpHistory.ts", "developmentStatus.ts"], what: "Each country's headline figures and GDP history", from: "World Bank, IMF, UN", page: "/dashboard/countries", where: "Countries" },
   { files: ["countryPanels.ts", "landUse.ts", "countryEnergy.ts", "militarySpending.ts"], what: "Each country's people, health, schooling, land, energy and forces", from: "World Bank, UN, UNDP, FAO, U.S. EIA, SIPRI", page: "/dashboard/countries", where: "Countries" },

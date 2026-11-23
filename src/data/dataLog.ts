@@ -22,6 +22,14 @@ export interface DataLogEntry {
 
 export const DATA_LOG: DataLogEntry[] = [
   {
+    "what": "Exchange rates for the currency converter",
+    "from": "European Central Bank, US Treasury",
+    "page": "/dashboard/economies",
+    "where": "Economies",
+    "read": "2026-11-23",
+    "files": 1
+  },
+  {
     "what": "The largest companies based in each country, as the world's, each region's and each country's Fortune Global 500 rankings by revenue name them, each of its own year",
     "from": "Wikipedia",
     "page": "/dashboard/economies",
@@ -704,4 +712,4 @@ export const DATA_LOG: DataLogEntry[] = [
 ];
 
 /** How many data files the log covers. */
-export const DATA_LOG_FILES = 106;
+export const DATA_LOG_FILES = 107;

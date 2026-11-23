@@ -96,6 +96,7 @@ import { EconomyCompanies, EconomyHasNeeds, EconomyTrade, hasEconomyHasNeeds } f
 import { HeadlinesBanner, SUBJECT } from "@/components/HeadlinesBanner";
 import { AgainstAverage } from "@/components/AgainstAverage";
 import { ECONOMY_PEERS, economyAverageRows } from "@/lib/placeAverages";
+import { FX_RATES, FX_SOURCES, FX_ECB_DATE } from "@/data/fxRates";
 
 
 // Default for economies without specific data
@@ -328,111 +329,16 @@ const CURRENCY_SYMBOLS: Record<string, string> = {
   MMK: "K",
   KHR: "៛",
   LKR: "Rs",
+  ISK: "kr",
   NPR: "Rs",
   IRR: "﷼",
   IQD: "ع.د",
   COP: "$",
 };
 
-// Static mid-market rates vs USD (Aug 2026 approx.)
-const FX_RATES: Record<string, number> = {
-  USD: 1,
-  EUR: 0.921,
-  GBP: 0.787,
-  JPY: 149.8,
-  CNY: 7.24,
-  INR: 83.5,
-  BRL: 4.97,
-  CAD: 1.363,
-  AUD: 1.531,
-  KRW: 1325,
-  RUB: 91.2,
-  MXN: 17.15,
-  IDR: 15640,
-  CHF: 0.894,
-  ARS: 874,
-  AED: 3.673,
-  SAR: 3.751,
-  TRY: 32.4,
-  PLN: 3.96,
-  SEK: 10.42,
-  DKK: 6.87,
-  NOK: 10.55,
-  SGD: 1.339,
-  MYR: 4.71,
-  ILS: 3.73,
-  EGP: 30.9,
-  ZAR: 18.62,
-  THB: 35.1,
-  NGN: 1480,
-  PKR: 278,
-  VND: 24350,
-  CLP: 897,
-  PHP: 56.2,
-  BDT: 110,
-  NZD: 1.628,
-  HUF: 352,
-  CZK: 22.7,
-  RON: 4.58,
-  UAH: 37.2,
-  KWD: 0.308,
-  QAR: 3.641,
-  TWD: 31.9,
-  HKD: 7.825,
-  HKD2: 7.825,
-  KZT: 455,
-  MMK: 2098,
-  LKR: 327,
-};
-
-const CURRENCY_NAMES: Record<string, string> = {
-  USD: "US Dollar",
-  EUR: "Euro",
-  GBP: "British Pound",
-  JPY: "Japanese Yen",
-  CNY: "Chinese Yuan",
-  INR: "Indian Rupee",
-  BRL: "Brazilian Real",
-  CAD: "Canadian Dollar",
-  AUD: "Australian Dollar",
-  KRW: "South Korean Won",
-  RUB: "Russian Ruble",
-  MXN: "Mexican Peso",
-  IDR: "Indonesian Rupiah",
-  CHF: "Swiss Franc",
-  ARS: "Argentine Peso",
-  AED: "UAE Dirham",
-  SAR: "Saudi Riyal",
-  TRY: "Turkish Lira",
-  PLN: "Polish Złoty",
-  SEK: "Swedish Krona",
-  DKK: "Danish Krone",
-  NOK: "Norwegian Krone",
-  SGD: "Singapore Dollar",
-  MYR: "Malaysian Ringgit",
-  ILS: "Israeli Shekel",
-  EGP: "Egyptian Pound",
-  ZAR: "South African Rand",
-  THB: "Thai Baht",
-  NGN: "Nigerian Naira",
-  PKR: "Pakistani Rupee",
-  VND: "Vietnamese Dong",
-  CLP: "Chilean Peso",
-  PHP: "Philippine Peso",
-  BDT: "Bangladeshi Taka",
-  NZD: "New Zealand Dollar",
-  HUF: "Hungarian Forint",
-  CZK: "Czech Koruna",
-  RON: "Romanian Leu",
-  UAH: "Ukrainian Hryvnia",
-  KWD: "Kuwaiti Dinar",
-  QAR: "Qatari Riyal",
-  TWD: "Taiwan Dollar",
-  HKD: "Hong Kong Dollar",
-  KZT: "Kazakhstani Tenge",
-  MMK: "Myanmar Kyat",
-  LKR: "Sri Lankan Rupee",
-};
+// The converter's rates and currency names are published ones now (src/data/fxRates.ts, from build-fx-rates.cjs): the
+// ECB's euro reference rates and, for the currencies it does not publish, the US Treasury's reporting rates. The rates
+// typed here, "Aug 2026 approx.", were far out - a dollar at 83.5 rupees, where the ECB's of 20 Nov 2026 give 92.68.
 
 const POPULAR_PAIRS = [
   { from: "USD", to: "EUR" },
@@ -451,8 +357,8 @@ function CurrencyConverter() {
   const convert = useCallback((val: string, from: string, to: string) => {
     const n = parseFloat(val);
     if (isNaN(n) || !FX_RATES[from] || !FX_RATES[to]) return "—";
-    const inUSD = n / FX_RATES[from];
-    const result = inUSD * FX_RATES[to];
+    const inUSD = n / FX_RATES[from].perUsd;
+    const result = inUSD * FX_RATES[to].perUsd;
     if (result >= 1e6)
       return result.toLocaleString("en-US", { maximumFractionDigits: 0 });
     if (result >= 1000)
@@ -468,7 +374,7 @@ function CurrencyConverter() {
 
   const rate = useCallback((from: string, to: string) => {
     if (!FX_RATES[from] || !FX_RATES[to]) return "—";
-    const r = FX_RATES[to] / FX_RATES[from];
+    const r = FX_RATES[to].perUsd / FX_RATES[from].perUsd;
     if (r >= 100)
       return r.toLocaleString("en-US", { maximumFractionDigits: 1 });
     return r.toLocaleString("en-US", {
@@ -485,11 +391,11 @@ function CurrencyConverter() {
   const fromSym = CURRENCY_SYMBOLS[fromCur] ?? fromCur;
   const toSym = CURRENCY_SYMBOLS[toCur] ?? toCur;
   const resultVal = convert(amount, fromCur, toCur);
-  const currencies = Object.keys(FX_RATES).filter((c) => c !== "HKD2");
+  const currencies = Object.keys(FX_RATES);
 
   const currencyOptions = currencies.map((c) => ({
     value: c,
-    label: `${c} — ${CURRENCY_NAMES[c] ?? c}`,
+    label: `${c} — ${FX_RATES[c].name}`,
   }));
 
   // The site's clear glass, as asked, with no colour of its own: it was teal, green and teal before.
@@ -504,7 +410,7 @@ function CurrencyConverter() {
             Currency Converter
           </p>
           <p className="text-[10px] text-muted-foreground font-sans">
-            Mid-market rates · Aug 2026
+            ECB reference rates · {fxDay(FX_ECB_DATE)}
           </p>
         </div>
         <div className="ml-auto flex items-center gap-1.5">
@@ -608,8 +514,39 @@ function CurrencyConverter() {
           Not for transactional use.
         </p>
       </div>
+      {/* Whose rates the pair is worked out from, and of when: the ECB's (a dollar rate through the euro, worked out
+          here) or, for a currency it does not publish, the US Treasury's quarterly reporting rate. */}
+      <p className="mt-2 text-[10px] font-sans text-muted-foreground leading-snug">
+        {fxNote(fromCur, toCur)}{" "}
+        <a href={FX_SOURCES.ECB.url} target="_blank" rel="noopener noreferrer" className="underline hover:text-foreground">ECB</a>
+        {" · "}
+        <a href={FX_SOURCES.Treasury.url} target="_blank" rel="noopener noreferrer" className="underline hover:text-foreground">US Treasury</a>
+      </p>
     </div>
   );
+}
+
+/** A rate's day, as the page writes days: 20 Nov 2026 (three letters a month - a browser's own short form gives "Sept"). */
+const FX_MONTHS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+function fxDay(iso: string) {
+  const [y, m, d] = iso.split("-").map(Number);
+  return `${d} ${FX_MONTHS[m - 1]} ${y}`;
+}
+
+/** Which publisher's rate each side of the pair is, and of what day. */
+function fxNote(from: string, to: string) {
+  const side = [from, to].filter((c) => c !== "USD").map((c) => FX_RATES[c]).filter(Boolean);
+  const viaEcb = side.filter((r) => r.source === "ECB");
+  const viaTreasury = [from, to].filter((c) => FX_RATES[c]?.source === "Treasury");
+  const parts: string[] = [];
+  if (viaEcb.length || side.length === 0)
+    parts.push(`The European Central Bank's euro reference rates of ${fxDay(FX_ECB_DATE)}${from !== "EUR" && to !== "EUR" && viaEcb.length ? ", crossed through the euro here" : ""}`);
+  if (viaTreasury.length)
+    parts.push(`the US Treasury's reporting rate${viaTreasury.length > 1 ? "s" : ""} for ${viaTreasury.join(" and ")}, of ${fxDay(FX_RATES[viaTreasury[0]].date)}`);
+  // A Treasury rate against anything but the dollar is a pair the Treasury does not give: worked out here, through it.
+  if (viaTreasury.length && !(from === "USD" || to === "USD")) parts.push("the pair worked out here through the dollar");
+  const said = parts.join("; ");
+  return `${said.charAt(0).toUpperCase()}${said.slice(1)}.`;
 }
 
 const getCurrencyDisplay = (code: string, name: string) => {
