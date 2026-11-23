@@ -323,68 +323,24 @@ export function NotesPopup() {
       {/* Body */}
       {!minimized && (
         <div className="flex flex-col flex-1 p-3 gap-2 overflow-y-auto">
-          {entityName && (
-            <div className="flex items-center gap-1.5 px-2 py-1 bg-secondary/10 border border-secondary/20 rounded text-[10px] font-sans text-secondary">
-              <span className="opacity-70">{entityType || "Entity"}:</span>
-              <span className="font-semibold">{entityName}</span>
+          {/* The page it is taken on, offered with a press. */}
+          {!entityName && here && (
+            <div className="flex flex-wrap items-center gap-1">
               <button
                 onClick={() => {
-                  setEntityName("");
-                  setEntityType("");
+                  setEntityName(here.label);
+                  setEntityType("Page");
                 }}
-                className="ml-auto opacity-60 hover:opacity-100"
-                aria-label="Clear the place this note is about"
+                className="px-2 py-0.5 rounded-full border border-border/60 text-[10px] font-sans text-muted-foreground hover:text-foreground hover:border-secondary/40 transition-colors"
               >
-                <X size={9} weight="bold" />
+                About this page · {here.label}
               </button>
             </div>
           )}
-
           {/* The places the reader already follows or pinned, so a note can
               be attached to one without typing it. Opened from a country
               page the entity is already set, but the popup is also opened
               from the corner of any page, where it is not. */}
-          {/* What the note is about, where no chip offers it: the page it is taken on, or anything named with its kind. */}
-          {!entityName && (
-            <div className="flex flex-wrap items-center gap-1">
-              {here && (
-                <button
-                  onClick={() => {
-                    setEntityName(here.label);
-                    setEntityType("Page");
-                  }}
-                  className="px-2 py-0.5 rounded-full border border-border/60 text-[10px] font-sans text-muted-foreground hover:text-foreground hover:border-secondary/40 transition-colors"
-                >
-                  About this page · {here.label}
-                </button>
-              )}
-              <span className="flex items-center gap-1 flex-1 min-w-[10rem]">
-                <select
-                  value={aboutKind}
-                  onChange={(e) => setAboutKind(e.target.value as NoteKind)}
-                  aria-label="What kind of thing the note is about"
-                  className="bg-transparent border border-border/60 rounded px-1 py-0.5 text-[10px] font-sans text-muted-foreground focus:outline-none cursor-pointer"
-                >
-                  {NOTE_KINDS.map((k) => (
-                    <option key={k} value={k}>
-                      {k}
-                    </option>
-                  ))}
-                </select>
-                <input
-                  type="text"
-                  value={aboutName}
-                  onChange={(e) => setAboutName(e.target.value)}
-                  onKeyDown={(e) => e.key === "Enter" && (e.preventDefault(), setAbout())}
-                  onBlur={setAbout}
-                  placeholder="…or name what it is about"
-                  aria-label="What the note is about"
-                  maxLength={120}
-                  className="flex-1 min-w-0 bg-transparent border border-border/60 rounded px-1.5 py-0.5 text-[10px] font-sans text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-secondary/50"
-                />
-              </span>
-            </div>
-          )}
           {!entityName && savedPlaces.length > 0 && (
             <div>
               <p className="text-[10px] font-sans text-muted-foreground mb-1">
@@ -407,23 +363,75 @@ export function NotesPopup() {
               </div>
             </div>
           )}
-          <input
-            type="text"
-            value={title}
-            onChange={(e) => setTitle(e.target.value)}
-            placeholder="Name my file…"
-            aria-label="Name my file"
-            maxLength={LIMITS.NOTE_TITLE}
-            className="modal-tile border border-border/60 rounded px-2.5 py-1.5 text-xs font-sans text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-secondary/50 w-full"
-          />
-          <textarea
-            value={content}
-            onChange={(e) => setContent(e.target.value)}
-            placeholder="Write your note here…"
-            rows={3}
-            maxLength={LIMITS.NOTE_CONTENT}
-            className="modal-tile border border-border/60 rounded px-2.5 py-1.5 text-xs font-sans text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-secondary/50 resize-none w-full"
-          />
+          {/* What the note is about, its name and its words in one box, as asked - three lines of the one note, parted by
+              hairlines; each is still kept apart in the note, so My Notes can sort and show them. */}
+          <div className="modal-tile border border-border/60 rounded-lg overflow-hidden focus-within:ring-1 focus-within:ring-secondary/50">
+            <div className="flex items-center gap-1.5 px-2.5 py-1.5 border-b border-border/60 min-h-[1.9rem]">
+              {entityName ? (
+                <>
+                  <span className="text-[10px] font-sans text-secondary opacity-70">{entityType || "Entity"}:</span>
+                  <span className="text-[10px] font-sans font-semibold text-secondary truncate">{entityName}</span>
+                  <button
+                    onClick={() => {
+                      setEntityName("");
+                      setEntityType("");
+                    }}
+                    className="ml-auto text-secondary opacity-60 hover:opacity-100"
+                    aria-label="Clear the place this note is about"
+                  >
+                    <X size={9} weight="bold" />
+                  </button>
+                </>
+              ) : (
+                <>
+                  <select
+                    value={aboutKind}
+                    onChange={(e) => setAboutKind(e.target.value as NoteKind)}
+                    aria-label="What kind of thing the note is about"
+                    className="bg-transparent border-none px-0 py-0 text-[10px] font-sans text-muted-foreground focus:outline-none cursor-pointer"
+                  >
+                    {NOTE_KINDS.map((k) => (
+                      <option key={k} value={k}>
+                        {k}
+                      </option>
+                    ))}
+                  </select>
+                  <span className="text-[10px] text-muted-foreground/60" aria-hidden>
+                    ·
+                  </span>
+                  <input
+                    type="text"
+                    value={aboutName}
+                    onChange={(e) => setAboutName(e.target.value)}
+                    onKeyDown={(e) => e.key === "Enter" && (e.preventDefault(), setAbout())}
+                    onBlur={setAbout}
+                    placeholder="what it is about…"
+                    aria-label="What the note is about"
+                    maxLength={120}
+                    className="flex-1 min-w-0 bg-transparent border-none p-0 text-[10px] font-sans text-foreground placeholder:text-muted-foreground focus:outline-none"
+                  />
+                </>
+              )}
+            </div>
+            <input
+              type="text"
+              value={title}
+              onChange={(e) => setTitle(e.target.value)}
+              placeholder="Name my file…"
+              aria-label="Name my file"
+              maxLength={LIMITS.NOTE_TITLE}
+              className="block w-full bg-transparent border-0 border-b border-border/60 px-2.5 py-1.5 text-xs font-semibold font-sans text-foreground placeholder:text-muted-foreground placeholder:font-normal focus:outline-none"
+            />
+            <textarea
+              value={content}
+              onChange={(e) => setContent(e.target.value)}
+              placeholder="Write your note here…"
+              aria-label="Write your note"
+              rows={4}
+              maxLength={LIMITS.NOTE_CONTENT}
+              className="block w-full bg-transparent border-none px-2.5 py-1.5 text-xs font-sans text-foreground placeholder:text-muted-foreground focus:outline-none resize-none"
+            />
+          </div>
           {content.length > LIMITS.NOTE_CONTENT * 0.9 && (
             <p className="text-[10px] text-muted-foreground text-right font-mono">
               {content.length}/{LIMITS.NOTE_CONTENT}
