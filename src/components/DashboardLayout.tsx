@@ -6,6 +6,7 @@ import { SidebarNav } from "./SidebarNav";
 import { NotesPopup } from "./NotesPopup";
 import { CalendarPopup } from "./CalendarPopup";
 import { ElectionBroadcast } from "./ElectionBroadcast";
+import { SavedBar } from "./FollowedPlaces";
 
 /** Tablet widths: where the desktop sidebar shows (768px up) but the page is not yet desktop-wide. */
 const TABLET = "(max-width: 1023px)";
@@ -128,6 +129,9 @@ export function DashboardLayout() {
       <NotesPopup />
       {/* The calendar and the quarter tracker: a button at the top right of every page, as the notes are at the bottom right. */}
       <CalendarPopup />
+      {/* Everything followed - countries, states, cities, municipalities, leaders, economies - on a bar at the foot of every
+          page, folded until opened, as asked. */}
+      <SavedBar />
     </div>
   );
 }

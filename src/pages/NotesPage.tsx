@@ -178,9 +178,9 @@ export function NotesPage() {
 
         {/* The cities and municipalities followed with a star: kept in this browser. */}
         {followedLocal.length > 0 && (
-          <section className="mb-6" aria-label="Cities and municipalities you follow">
+          <section className="mb-6" aria-label="Cities, municipalities, leaders and economies you follow">
             <div className="flex items-center gap-2 mb-2">
-              <h2 className="text-[10px] font-bold font-sans text-muted-foreground uppercase tracking-widest">Cities and municipalities you follow · {followedLocal.length}</h2>
+              <h2 className="text-[10px] font-bold font-sans text-muted-foreground uppercase tracking-widest">Cities, municipalities, leaders and economies you follow · {followedLocal.length}</h2>
               <div className="flex-1 h-px bg-border/60" />
             </div>
             <div className="flex flex-wrap gap-2">

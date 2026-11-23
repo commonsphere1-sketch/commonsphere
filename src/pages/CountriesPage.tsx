@@ -6,7 +6,7 @@ import { PublicServicesSection, ServiceBadges } from "../components/PublicServic
 import { ACCENT, ChartNote, ChartTitle, FigureRow, FigureTile, HdiScale, MeasureBars, PartsBar, PartsDonut, worldFor, type MeasureRow } from "../components/ModalCharts";
 import { COUNTRY_FIGURES, COUNTRY_FIGURE_SOURCES } from "../data/worldview";
 import React, { lazy, Suspense, useMemo, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import { LEADERS_BY_COUNTRY } from "../data/leaderIndex";
 import { SeeAlso } from "../components/SeeAlso";
 import { hdiTitle, hdiTone } from "../lib/hdiTier";
@@ -81,7 +81,6 @@ import { HeadlinesBanner, ALL_TOPICS, followedFirst, namesAbroad, useFollowedTag
 import { FilterBar } from "../components/FilterBar";
 import { TONE } from "@/lib/chipTone";
 import { useWatchlist } from "@/contexts/WatchlistContext";
-import { FollowedPlaces } from "@/components/FollowedPlaces";
 import { HistoryPanel } from "@/components/HistoryPanel";
 import { fmtArea, fmtGDP, fmtPop } from "@/lib/placeFormat";
 import { CountryOutline } from "@/components/PlaceOutlines";
@@ -8969,7 +8968,9 @@ export function CountriesPage() {
   >("gdp");
   const [modalCountry, setModalCountry] = useState<Country | null>(null);
 
-  // Deep-link: open entity from search bar via ?open=<id>
+  // Deep-link: open entity from search bar via ?open=<id>. Read again at each move of the router (its key), so a link made
+  // while the page is open - the bar of what is followed - opens its window too.
+  const routeKey = useLocation().key;
   React.useEffect(() => {
     const params = new URLSearchParams(window.location.search);
     const openId = params.get("open");
@@ -8980,7 +8981,7 @@ export function CountriesPage() {
       url.searchParams.delete("open");
       window.history.replaceState({}, "", url.toString());
     }
-  }, [liveCountries]);
+  }, [liveCountries, routeKey]);
 
   const continents = [
     "All",
@@ -9078,17 +9079,8 @@ export function CountriesPage() {
           ))}
         </div>
 
-        {/* ── COUNTRIES YOU FOLLOW: on a bar at the foot of the screen, as on the States page, folded until opened ── */}
-        <FollowedPlaces
-          dock
-          types={["country"]}
-          title="Countries you follow"
-          emptyText="Follow a country with the ☆ on its card or in its pop-up and it stays here, with its key figures and anything that changes in a data update since you last looked. The same list is in My Notes."
-          onOpen={(_, id) => {
-            const c = liveCountries.find((x) => x.id === id);
-            if (c) setModalCountry(c);
-          }}
-        />
+        {/* The places followed stood here on a bar of the page's own; the bar at the foot of every page (SavedBar, in the
+            layout) holds them now, with every other kind followed, as asked. */}
 
         {/* ── INTERNATIONAL SNAPSHOT ── */}
         <InternationalSnapshot countries={liveCountries} />

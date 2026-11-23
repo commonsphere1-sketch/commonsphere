@@ -70,10 +70,14 @@ export function sectionOf(pathname: string) {
 
 /** What kind of place a followed id is, from the id's own form. */
 export function followedKind(id: string): NoteKind {
+  if (id.startsWith("leader:")) return "Leader";
+  if (id.startsWith("economy:")) return "Economy";
   return /^(division|county|district|place):/.test(id) ? "Municipality" : "City";
 }
 /** Where a followed place opens, where its id alone says: a town's needs its country too, which the star keeps with its name. */
 export function followedLink(id: string): string | null {
+  if (id.startsWith("leader:")) return `/dashboard/world-leaders?open=${encodeURIComponent(id.slice(7))}`;
+  if (id.startsWith("economy:")) return `/dashboard/economies?open=${encodeURIComponent(id.slice(8))}`;
   if (id.startsWith("division:")) return `/dashboard/subnations?open=${encodeURIComponent(id.slice(9))}`;
   if (id.startsWith("county:") || id.startsWith("district:")) return `/dashboard/subnations?open=${encodeURIComponent(id)}`;
   if (id.startsWith("place:")) return null;
@@ -81,5 +85,5 @@ export function followedLink(id: string): string | null {
 }
 /** What a followed place is called where its name was not kept: the kind its id shows. */
 export function followedFallback(id: string): string {
-  return id.startsWith("division:") ? "A division" : id.startsWith("county:") ? "A county" : id.startsWith("district:") ? "A district" : id.startsWith("place:") ? "A town or village" : "A city";
+  return id.startsWith("leader:") ? "A leader" : id.startsWith("economy:") ? "An economy" : id.startsWith("division:") ? "A division" : id.startsWith("county:") ? "A county" : id.startsWith("district:") ? "A district" : id.startsWith("place:") ? "A town or village" : "A city";
 }

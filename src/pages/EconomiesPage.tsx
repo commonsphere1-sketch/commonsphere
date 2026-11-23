@@ -1,4 +1,6 @@
 import { WindowTitle } from "../components/WindowTitle";
+import { FollowStar } from "../components/FollowStar";
+import { useLocation } from "react-router-dom";
 import { FilterSelect } from "../components/FilterSelect";
 import { SiteMark } from "../components/SiteMark";
 import { na, has, sortKey } from "../lib/na";
@@ -1030,6 +1032,14 @@ function EconomyModal({
         <div className="p-6">
           {/* Its name and the window's buttons: one bar across the top of the window, in sight as it is scrolled - the same in every window of the site. */}
           <WindowTitle title={economy.name}>
+            <FollowStar
+              where="window"
+              id={`economy:${economy.id}`}
+              name={economy.name}
+              to={`/dashboard/economies?open=${economy.id}`}
+              sub={economy.entityType}
+              flag={economyCode(economy) ?? undefined}
+            />
             <button
               onClick={() => setIsExpanded((v) => !v)}
               className="p-2 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted/60 transition-colors cursor-pointer"
@@ -2112,7 +2122,9 @@ export function EconomiesPage() {
   const listTop = React.useRef<HTMLDivElement>(null);
   React.useEffect(() => setPage(0), [search, typeFilter, sortBy]);
 
-  // Deep-link: open entity from search bar via ?open=<id>
+  // Deep-link: open entity from search bar via ?open=<id>. Read again at each move of the router (its key), so a link made
+  // while the page is open - the bar of what is followed - opens its window too.
+  const routeKey = useLocation().key;
   React.useEffect(() => {
     const params = new URLSearchParams(window.location.search);
     const openId = params.get("open");
@@ -2145,7 +2157,7 @@ export function EconomiesPage() {
       url.searchParams.delete("resource");
       window.history.replaceState({}, "", url.toString());
     }
-  }, []);
+  }, [routeKey]);
 
   const filtered = economiesData
     .filter((e) => {
@@ -2596,9 +2608,19 @@ export function EconomiesPage() {
                         </p>
                       </div>
                       <div className="text-right shrink-0">
-                        <p className="text-lg font-bold font-mono text-secondary leading-tight">
-                          {na(economy.gdpTrillions, fmtUsdT)}
-                        </p>
+                        {/* Followed with a star, as a city is, as asked: kept in this browser, and on the bar of what is followed. */}
+                        <div className="flex items-center justify-end gap-2">
+                          <FollowStar
+                            id={`economy:${economy.id}`}
+                            name={economy.name}
+                            to={`/dashboard/economies?open=${economy.id}`}
+                            sub={economy.entityType}
+                            flag={economyCode(economy) ?? undefined}
+                          />
+                          <p className="text-lg font-bold font-mono text-secondary leading-tight">
+                            {na(economy.gdpTrillions, fmtUsdT)}
+                          </p>
+                        </div>
                         {has(economy.gdpGrowthRate) && (
                           <p
                             className={`text-xs font-mono flex items-center gap-0.5 justify-end ${economy.gdpGrowthRate >= 0 ? "text-success" : "text-destructive"}`}

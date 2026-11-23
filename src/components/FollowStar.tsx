@@ -29,6 +29,8 @@ export function FollowStar({
   where = "card",
   watched,
   to,
+  sub,
+  flag,
 }: {
   /** What the place is followed by: a city's id, placeFollowId of a municipality's, or a division's, a county's or a district's own. */
   id: string;
@@ -36,12 +38,16 @@ export function FollowStar({
   where?: "card" | "window";
   /** The path its window opens at, where its id alone does not say - a town's needs its country. Kept with its name when it is followed. */
   to?: string;
+  /** A line saying what it is - a leader's office and country - kept with its name, for the bar of what is followed. */
+  sub?: string;
+  /** Its flag's code (flagcdn's: "fr"), kept with its name. */
+  flag?: string;
   /** For a place the watch list takes: whether it is followed there, and what a press does. Given, the star is the watch list's and not this browser's. */
   watched?: { on: boolean; toggle: () => void };
 }) {
   const local = useFollowedCities();
   // Followed in this browser, its name and where it opens are kept with it.
-  const follow = watched ? { isFollowed: () => watched.on, toggle: () => watched.toggle() } : { isFollowed: local.isFollowed, toggle: (x: string) => local.toggle(x, { name, to }) };
+  const follow = watched ? { isFollowed: () => watched.on, toggle: () => watched.toggle() } : { isFollowed: local.isFollowed, toggle: (x: string) => local.toggle(x, { name, to, sub, flag: flag?.toLowerCase() }) };
   const on = follow.isFollowed(id);
   const label = on ? `Unfollow ${name}` : `Follow ${name}`;
   const title = on ? "Following · press to stop" : watched ? "Follow" : "Follow · saved in this browser";

@@ -1,4 +1,5 @@
 import { WindowTitle } from "../components/WindowTitle";
+import { FollowStar } from "../components/FollowStar";
 import { FilterSelect } from "../components/FilterSelect";
 import { SiteMark } from "../components/SiteMark";
 import { ChipRow } from "../components/ChipRow";
@@ -15168,6 +15169,14 @@ function LeaderCard({
             <span>{yearsInCurrentRole}y in role</span>
           </p>
         </div>
+        {/* Followed with a star, as a city is, as asked: kept in this browser, and on the bar of what is followed. */}
+        <FollowStar
+          id={`leader:${leader.id}`}
+          name={leader.name}
+          to={`/dashboard/world-leaders?open=${leader.id}`}
+          sub={`${leader.title} · ${leader.country}`}
+          flag={leader.countryCode}
+        />
       </div>
     </button>
   );
@@ -15260,6 +15269,14 @@ function LeaderDetail({
           {/* Its name and the window's buttons: one bar across the top of the window, in sight as it is scrolled - the same in every window of the site. */}
           {/* Its country, and the region of the world the page sets it in, as asked. */}
           <WindowTitle title={leader.name} where={leader.region ? `${leader.country} · ${leader.region}` : leader.country}>
+            <FollowStar
+              where="window"
+              id={`leader:${leader.id}`}
+              name={leader.name}
+              to={`/dashboard/world-leaders?open=${leader.id}`}
+              sub={`${leader.title} · ${leader.country}`}
+              flag={leader.countryCode}
+            />
             <button
               onClick={() => setIsExpanded((v) => !v)}
               className="p-2 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted/60 transition-colors cursor-pointer"

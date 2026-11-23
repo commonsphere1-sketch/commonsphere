@@ -4,7 +4,7 @@ import { seen } from "../lib/flagColor";
 import React, { useState, useEffect, lazy, Suspense } from "react";
 import { SLIM_TRACK, slimFill } from "../components/SlimBars";
 import { FilterSelect } from "../components/FilterSelect";
-import { useNavigate } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import { SiteMark } from "../components/SiteMark";
 import {
   MapPin,
@@ -60,7 +60,6 @@ import { FilterBar } from "../components/FilterBar";
 import { TONE, CHIP_TEXT } from "@/lib/chipTone";
 import { BLUE_HUE } from "@/lib/blueHue";
 import { useWatchlist } from "@/contexts/WatchlistContext";
-import { FollowedPlaces } from "@/components/FollowedPlaces";
 import { HistoryPanel } from "@/components/HistoryPanel";
 import { usdFromBillions } from "@/lib/money";
 import { has } from "@/lib/na";
@@ -7198,7 +7197,9 @@ export function StatesPage() {
     };
   }, [liveStates]);
 
-  // Deep-link: open entity from search bar via ?open=<id>
+  // Deep-link: open entity from search bar via ?open=<id>. Read again at each move of the router (its key), so a link made
+  // while the page is open - the bar of what is followed - opens its window too.
+  const routeKey = useLocation().key;
   React.useEffect(() => {
     const params = new URLSearchParams(window.location.search);
     const openId = params.get("open");
@@ -7210,7 +7211,7 @@ export function StatesPage() {
       url.searchParams.delete("open");
       window.history.replaceState({}, "", url.toString());
     }
-  }, [liveStates]);
+  }, [liveStates, routeKey]);
 
   const regions = ["All", "West", "South", "Northeast", "Midwest"];
   const parties = ["All", "Democrat", "Republican", "Independent"];
@@ -7275,17 +7276,8 @@ export function StatesPage() {
         {/* US National Banner */}
         <USNationalBanner />
 
-        {/* States you follow: on a bar at the foot of the screen, as asked, folded until the reader opens it. */}
-        <FollowedPlaces
-          dock
-          types={["state"]}
-          title="States you follow"
-          emptyText="Follow a state with the ☆ on its card or in its pop-up and it stays here, with its key figures and anything that changes in a data update since you last looked - a new governor, a new minimum wage, a revised unemployment rate. The same list is in My Notes."
-          onOpen={(_, id) => {
-            const st = liveStates.find((x) => x.id === id);
-            if (st) setModalState(st);
-          }}
-        />
+        {/* The places followed stood here on a bar of the page's own; the bar at the foot of every page (SavedBar, in the
+            layout) holds them now, with every other kind followed, as asked. */}
 
         {/* The explorer of elected officials (OfficialsExplorer) stood here; it was taken off as asked - only the Dashboard
             keeps its explorer. */}

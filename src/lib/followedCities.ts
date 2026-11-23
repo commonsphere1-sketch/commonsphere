@@ -1,5 +1,6 @@
 /**
- * The cities a reader follows: the star on a city's card and in its window.
+ * The cities a reader follows: the star on a city's card and in its window - and, as asked, the leaders and the economies
+ * (ids "leader:<id>" and "economy:<id>"), which the watch list does not take either.
  *
  * Countries and states are followed through the watch list
  * (contexts/WatchlistContext), which is the account's when signed in and
@@ -31,17 +32,24 @@ function read(): string[] {
 }
 
 const NAMES = "cs-followed-names";
-/** What is kept of a followed place beside its id: its name, and the path its window opens at. */
-export type FollowedAbout = { name: string; to?: string };
+/** What is kept of a followed place beside its id: its name, the path its window opens at, a line saying what it is (a
+ *  leader's office and country), and its flag's code (flagcdn's: "fr", or "us-oh" for a state). */
+export type FollowedAbout = { name: string; to?: string; sub?: string; flag?: string };
 function readNames(): Record<string, FollowedAbout> {
   try {
     const raw: unknown = JSON.parse(localStorage.getItem(NAMES) ?? "{}");
     if (!raw || typeof raw !== "object" || Array.isArray(raw)) return {};
     const out: Record<string, FollowedAbout> = {};
     for (const [id, v] of Object.entries(raw as Record<string, unknown>)) {
-      const a = v as { name?: unknown; to?: unknown };
-      // Only a name of a sane length, and a path of the site's own, are read back.
-      if (a && typeof a.name === "string" && a.name.length > 0 && a.name.length <= 160) out[id] = { name: a.name, ...(typeof a.to === "string" && /^\/dashboard\//.test(a.to) && a.to.length <= 240 ? { to: a.to } : {}) };
+      const a = v as { name?: unknown; to?: unknown; sub?: unknown; flag?: unknown };
+      // Only a name and a line of a sane length, a path of the site's own and a flag's code are read back.
+      if (a && typeof a.name === "string" && a.name.length > 0 && a.name.length <= 160)
+        out[id] = {
+          name: a.name,
+          ...(typeof a.to === "string" && /^\/dashboard\//.test(a.to) && a.to.length <= 240 ? { to: a.to } : {}),
+          ...(typeof a.sub === "string" && a.sub.length > 0 && a.sub.length <= 160 ? { sub: a.sub } : {}),
+          ...(typeof a.flag === "string" && /^[a-z]{2}(-[a-z]{2})?$/.test(a.flag) ? { flag: a.flag } : {}),
+        };
     }
     return out;
   } catch {
