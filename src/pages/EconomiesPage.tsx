@@ -22,11 +22,6 @@ import {
   X,
 } from "@phosphor-icons/react";
 import {
-  AreaChart,
-  Area,
-  XAxis,
-  YAxis,
-  CartesianGrid,
   Tooltip,
   ResponsiveContainer,
   
@@ -145,17 +140,6 @@ const economyFlag = (e: Economy) => {
   const code = economyCode(e);
   return code ? `https://flagcdn.com/w640/${code.toLowerCase()}.png` : null;
 };
-
-/**
- * The unit a GDP series reads best in: trillions for the largest economies,
- * billions or millions below that, so a chart of a small economy is not a
- * row of 0.00s.
- */
-function gdpScale(maxT: number): { mul: number; unit: string } {
-  if (maxT >= 1) return { mul: 1, unit: "$T" };
-  if (maxT >= 0.001) return { mul: 1000, unit: "$B" };
-  return { mul: 1e6, unit: "$M" };
-}
 
 /** Most cards carry a central-bank policy rate; the generated ones the World Bank lending rate. */
 const rateLabel = (e: Economy) =>
