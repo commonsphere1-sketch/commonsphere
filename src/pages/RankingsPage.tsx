@@ -1130,24 +1130,16 @@ function ProfileStrip({
 function MobileCard({
   row,
   rank,
-  activeMetrics,
   allValuesMap,
   isExpanded,
   onClick,
 }: {
   row: RankRow;
   rank: number;
-  activeMetrics: CategoryMetric[];
   allValuesMap: Partial<Record<string, number[]>>;
   isExpanded: boolean;
   onClick: () => void;
 }) {
-  const primary =
-    activeMetrics.find((m) => m.id !== "composite") ?? activeMetrics[0];
-  const primaryVal = primary.accessor(row);
-  // In ink: the figure was green, amber or red by which third of the range it fell in.
-  const textColor = "text-foreground";
-
   return (
     <div
       className={`border-b border-border/50 cursor-pointer select-none transition-colors ${isExpanded ? "bg-muted/20" : "hover:bg-muted/20"}`}
@@ -1183,12 +1175,7 @@ function MobileCard({
         <div className="shrink-0 hidden sm:block">
           <ProfileStrip row={row} allValuesMap={allValuesMap} bare />
         </div>
-        {/* Primary metric */}
-        <div className="flex flex-col items-end gap-0.5 shrink-0">
-          <span className={`text-xs font-mono font-bold ${textColor}`}>
-            {fmtMetric(primary, primaryVal)}
-          </span>
-        </div>
+        {/* The category's first measure stood here, as its column did in the wide table; both were taken off, as asked. */}
         {/* Score */}
         <div className="flex flex-col items-end gap-0.5 shrink-0 w-10">
           <span className="text-xs font-bold text-yellow-400 font-mono">
@@ -2012,8 +1999,10 @@ export function RankingsPage() {
     [categoryTableRows, page],
   );
 
-  // The columns to show in the table = active category metrics
-  const tableColumns = activeCategoryMetrics;
+  // The table's figure columns: the score alone. Each category's own measures (GDP/cap and Unemploy. on Economy, HDI on
+  // Development...) stood beside it and were taken off, as asked - each place's every measure is in its profile and,
+  // opened, its line of bars; the sort menu still orders the table by any of them.
+  const tableColumns = activeCategoryMetrics.filter((m) => m.id === "composite");
 
   function handleSortClick(metricId: MetricId) {
     if (sortMetric === metricId) {
@@ -2421,7 +2410,6 @@ export function RankingsPage() {
                 <MobileCard
                   row={row}
                   rank={globalRank}
-                  activeMetrics={activeCategoryMetrics}
                   allValuesMap={allValuesMap}
                   isExpanded={isExpanded}
                   onClick={() =>
