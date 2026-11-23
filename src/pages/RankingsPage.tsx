@@ -3,6 +3,7 @@ import { SLIM_TRACK, slimFill } from "../components/SlimBars";
 import { SiteMark } from "../components/SiteMark";
 import React, { useState, useMemo, useCallback, useEffect, useRef, lazy, Suspense } from "react";
 import { COUNTRY_LAW_HELD } from "../data/countryLaw";
+import { useSidewaysWheel } from "../lib/sidewaysWheel";
 
 /** How the pinned countries are governed, side by side: the Compare card's second view. Fetched country by country. */
 const SystemsTable = lazy(() => import("../components/SystemsComparator").then((m) => ({ default: m.SystemsTable })));
@@ -954,6 +955,7 @@ function ProfileStrip({
   /* The bar whose details are open under the strip: the one pointed at, or the one last selected. */
   const [picked, setPicked] = useState<string | null>(null);
   const [hovered, setHovered] = useState<string | null>(null);
+  const lineRef = useSidewaysWheel<HTMLDivElement>();
   // Every measure the Compare table carries, for whichever this entity
   // publishes — in the list rows and the detail panel alike.
   const shown: { id: string; label: string; shortLabel: string; description?: string; higherIsBetter: boolean; neutral?: boolean; format: (v: number) => string }[] =
@@ -997,15 +999,16 @@ function ProfileStrip({
   // A measure pressed is selected and stays, as asked: pointing at another shows it only while none is selected.
   const open = placed.find((x) => x.m.id === (picked ?? hovered)) ?? null;
   return (
-    /* The heading and the buttons across the top; under them the bars, across the whole width in three rows on a wide
-       window, as asked; and under the bars the details of the one pointed at. On a narrow window the bars wrap as they fit. */
+    /* The heading and the buttons across the top; under them the bars, in one line across, with no box round each, as
+       asked - the line scrolls sideways (the wheel, a drag of the trackpad, its scrollbar) where they are more than the
+       width holds; and under the bars the details of the one pointed at. */
     <div className="grid grid-cols-[minmax(0,1fr)_auto] items-start gap-x-4 gap-y-3">
       <div className="min-w-0">{head}</div>
       <div className="flex justify-end">{actions}</div>
       <div
-        className="col-span-2 flex flex-wrap md:grid md:[grid-template-columns:repeat(var(--cols),minmax(0,1fr))] items-end gap-x-1 gap-y-3 pb-1"
-        // Three rows on a wide window: as many columns as a third of the measures, and never fewer than eight, so that a place with few measures does not stretch them across the panel.
-        style={{ ["--cols" as string]: Math.max(8, Math.ceil(placed.length / 3)) }}
+        ref={lineRef}
+        className="col-span-2 flex flex-nowrap items-end gap-x-1 overflow-x-auto pb-2"
+        style={{ scrollbarWidth: "thin" }}
         role="group"
         aria-label={`${row.name}: its placing on each measure`}
       >
@@ -1027,15 +1030,27 @@ function ProfileStrip({
               aria-label={`${m.label}: ${fmtMetric(m, val)}, ${ordinal(p.rank)} of ${p.of}. Select for details.`}
               // Fixed narrow columns, not flex-1: an entity with three measures
               // would otherwise stretch three bars across the whole panel, which
-              // reads as a chart of something rather than a profile.
-              className={`w-[5.25rem] md:w-auto min-w-0 shrink-0 flex flex-col items-center gap-0.5 rounded-lg px-1 py-1.5 cursor-pointer transition-colors border ${picked === m.id ? "bg-muted/70 border-foreground/40 shadow-sm" : isOpen ? "bg-muted/50 border-transparent" : "border-transparent hover:bg-muted/40 hover:border-border"}`}
+              // reads as a chart of something rather than a profile. No box, as
+              // asked: the one pointed at or selected shows in its words, not a
+              // frame (and no rounded-lg, which the site gives a card's edge).
+              className="group/bar w-[4.25rem] shrink-0 flex flex-col items-center gap-0.5 px-0.5 py-1 cursor-pointer bg-transparent border-0 rounded-sm focus:outline-none focus-visible:ring-1 focus-visible:ring-secondary/50"
             >
               <span className="text-[10px] font-mono font-bold text-foreground truncate max-w-full">{fmtMetric(m, val)}</span>
               {/* The same bar as the list rows and the Public Policy page. */}
               <span className="h-9 bg-muted rounded-full overflow-hidden flex items-end" style={{ width: "4px" }}>
                 <span className={`w-full rounded-full ${colorOf(m)}`} style={{ height: `${Math.max(4, p.ahead)}%` }} />
               </span>
-              <span className="text-[9px] text-muted-foreground text-center leading-tight">{m.shortLabel}</span>
+              <span
+                className={`text-[9px] text-center leading-tight transition-colors ${
+                  picked === m.id
+                    ? "text-foreground font-semibold underline decoration-foreground/60 underline-offset-2"
+                    : isOpen
+                      ? "text-foreground"
+                      : "text-muted-foreground group-hover/bar:text-foreground"
+                }`}
+              >
+                {m.shortLabel}
+              </span>
               {/* Its rank, under every bar: the detail the height stands for. */}
               <span className="text-[9px] font-mono text-foreground/80 text-center leading-tight">
                 {ordinal(p.rank)}
