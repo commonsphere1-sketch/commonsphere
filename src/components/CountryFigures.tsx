@@ -171,6 +171,42 @@ function Bars({ t, rows, wide = false }: { t: Tokens; rows: { label: string; tex
     </ul>
   );
 }
+/**
+ * Shares as columns side by side, as asked: each on a slim track of one height, filled from its foot to its share on the
+ * scale `max` (in the shares' own unit), its figure and year above it and its name under it.
+ */
+function Columns({ t, rows, max }: { t: Tokens; rows: { label: string; text: string; y?: string | number; share: number; color?: string }[]; max: number }) {
+  usePanelRows(rows.map((r) => [r.label, r.text, numberOf(r.text), r.y]));
+  return (
+    <div className="grid gap-x-1.5" style={{ gridTemplateColumns: `repeat(${rows.length}, minmax(0, 1fr))` }}>
+      {rows.map((r, i) => {
+        const c = r.color ?? INK[i % INK.length];
+        return (
+          <div key={r.label} className="flex flex-col items-center min-w-0" title={`${r.label}: ${r.text}${r.y !== undefined ? ` · ${r.y}` : ""}`}>
+            <span className="text-[11px] font-mono font-semibold tabular-nums" style={{ color: t.headText }}>
+              {r.text}
+            </span>
+            {r.y !== undefined && (
+              <span className="text-[9px] font-mono" style={{ color: t.mutedText }}>
+                {r.y}
+              </span>
+            )}
+            <span className="relative w-2.5 h-32 rounded-full overflow-hidden mt-1.5" style={{ background: t.gridLine }} aria-hidden>
+              <span
+                className="absolute inset-x-0 bottom-0 rounded-full"
+                style={{ height: `${Math.max(2, Math.min(100, (100 * r.share) / max))}%`, background: `linear-gradient(0deg, color-mix(in srgb, ${c} 35%, transparent), ${c})` }}
+              />
+            </span>
+            <span className="text-[10px] font-sans text-center leading-tight mt-1.5 break-words" style={{ color: t.bodyText }}>
+              {r.label}
+            </span>
+          </div>
+        );
+      })}
+    </div>
+  );
+}
+
 /** A ring of shares, with its largest parts listed beside it. */
 export function Ring({ t, slices, unit = "%" }: { t: Tokens; slices: { name: string; v: number; color?: string }[]; unit?: string }) {
   const parts = slices.map((s, i) => ({ ...s, color: s.color ?? INK[i % INK.length] }));
@@ -407,6 +443,8 @@ export default function CountryFigures({ code, name }: { code: string; name: str
     .filter((r, i, all) => all.findIndex((x) => x.what.toLowerCase().replace(/s$/, "") === r.what.toLowerCase().replace(/s$/, "")) === i)
     .sort((x, y) => y.share.pct - x.share.pct);
   const producedSources = produced.slice(0, 8).flatMap((r) => r.sources);
+  /** The top of the columns' scale: half the world's output, or the largest share where one is larger, so no column is cut off. */
+  const producedTop = Math.max(50, Math.ceil(Math.max(0, ...produced.slice(0, 8).map((r) => r.share.pct))));
   const axis = { tick: { fontSize: 9, fill: t.mutedText, fontFamily: "monospace" }, axisLine: false, tickLine: false } as const;
   const tip = { contentStyle: { background: t.tooltipBg, border: t.cardBorder, borderRadius: 8, fontSize: 11 }, labelStyle: { color: t.headText }, itemStyle: { color: t.headText } };
   // Every kind of offence UNODC records for it, in four groups; each group is drawn on its own scale, since a theft and a bribe are counted in very different numbers.
@@ -675,9 +713,15 @@ export default function CountryFigures({ code, name }: { code: string; name: str
         <Panel t={t} title="Minerals and fuels it produces" meta="share of world output">
           {produced.length ? (
             <>
-              <Bars t={t} rows={produced.slice(0, 8).map((r, i) => ({ label: r.what, text: shareOf(r.share), y: r.year, share: Math.max(2, r.share.pct * 2), color: INK[(i + 2) % INK.length] }))} />
+              {/* Upright, as asked: a column for each, side by side. */}
+              <Columns
+                t={t}
+                max={producedTop}
+                rows={produced.slice(0, 8).map((r, i) => ({ label: r.what, text: shareOf(r.share), y: r.year, share: r.share.pct, color: INK[(i + 2) % INK.length] }))}
+              />
               <Note t={t}>
-                Its share of the world's production of each, as the publisher's tables of the largest producers give it, the largest first; a country outside a table is not listed for it. The bars are drawn twice as long, so that small shares show.
+                Its share of the world's production of each, as the publisher's tables of the largest producers give it, the largest first; a country outside a table is not listed for it. The columns run from
+                nothing to {producedTop === 50 ? "half the world's output" : `${producedTop}% of the world's output, its largest share`}, so that small shares show.
               </Note>
               <Foot sources={producedSources} />
             </>
