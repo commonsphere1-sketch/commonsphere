@@ -1,41 +1,62 @@
 /**
  * The world as one place, as asked: a card the width of the Dashboard with the International Flag of Planet Earth on its
- * face (Oskar Pernefeldt's design, 2015 - simple geometric shapes, public domain on Wikimedia Commons; static/flags/
- * planet-earth.svg), as a country's card has its flag, and a window like a country's: every world figure the site holds
- * (data/worldview.ts - the World Bank's world aggregates, the IMF, UNDP, V-Dem, UNHCR, Uppsala and the others each names),
- * in tabs - the economy, people, the planet, rights and government, technology, security.
+ * face (Oskar Pernefeldt's design, 2015 - simple geometric shapes, public domain on Wikimedia Commons, and offered by its
+ * makers free to use, personal or commercial, to represent the planet; static/flags/planet-earth.svg), as a country's card
+ * has its flag, and a window like a country's: every world figure the site holds (data/worldview.ts - the World Bank's
+ * world aggregates, the IMF, UNDP, V-Dem, UNHCR, Uppsala and the others each names), in tabs.
  *
- * Each figure is its publisher's latest, with its year, its change on ten years before where the series reaches back (the
- * site's own sum, said as such), a line of the series, and its source. Nothing is estimated here: a figure the source does
- * not give is not drawn.
+ * Laid out as a country's window is, as asked: each tab a column of panels, each panel a head, its key figures as tiles,
+ * then its charts - the parts of a whole as a ring, a set of shares or of V-Dem's indices as bars on one scale, the
+ * Human Development Index on UNDP's scale - and its other figures as a short table, with its sources under it
+ * (ModalCharts, the country window's own). Each figure is its publisher's latest, with its year; a change on ten years
+ * before, where the series reaches back, is the site's own sum and said as such. Nothing is estimated: a figure the
+ * source does not give is not drawn. Parts are drawn as a ring only where they are of one whole and one year.
  */
 import { useCallback, useEffect, useMemo, useState, type ReactNode } from "react";
 import {
-  ArrowDownRight,
-  ArrowRight,
-  ArrowUpRight,
-  ArrowsIn,
-  ArrowsOut,
   Atom,
   Bank,
+  Briefcase,
+  ChartLineUp,
   Cpu,
+  Drop,
+  Factory,
+  FirstAid,
+  Flag,
+  Gavel,
   Globe,
+  GraduationCap,
+  HandHeart,
   Leaf,
+  Lightning,
   ListBullets,
+  Robot,
   Scales,
   ShieldWarning,
   SquaresFour,
   Users,
+  Wind,
+  ArrowsIn,
+  ArrowsOut,
   X,
+  Sword,
+  Plant,
+  GenderFemale,
+  CloudRain,
+  Coins,
+  WifiHigh,
 } from "@phosphor-icons/react";
 import { WORLD, WORLDVIEW_RETRIEVED, type WorldIndicator, type WorldPoint } from "../data/worldview";
 import { WindowTitle } from "./WindowTitle";
 import { SourceLink } from "./SourceLink";
+import { ChartNote, ChartTitle, FigureRow, FigureTile, HdiScale, MeasureBars, PartsDonut } from "./ModalCharts";
 import { lockScroll } from "../lib/scrollLock";
 
 const FLAG = "/flags/planet-earth.svg";
 /** The flag's own blue, for the card's glow. */
 const FLAG_BLUE = "#013ba6";
+const FLAG_PAGE = { label: "The International Flag of Planet Earth Organization - the flag", url: "https://www.flagofplanetearth.com/the-flag" };
+const FLAG_FILE = { label: "Wikimedia Commons - International Flag of Planet Earth.svg (public domain)", url: "https://commons.wikimedia.org/wiki/File:International_Flag_of_Planet_Earth.svg" };
 
 /* ── Figures, written as the Worldview page writes them ─────────────────── */
 function compact(v: number, digits = 3): string {
@@ -57,175 +78,454 @@ function fmt(ind: WorldIndicator, v: number): string {
       return v.toLocaleString("en-US", { minimumFractionDigits: ind.dp, maximumFractionDigits: ind.dp });
   }
 }
-const lastOf = (ind: WorldIndicator): WorldPoint | null => ind.series[ind.series.length - 1] ?? null;
+const lastOf = (ind: WorldIndicator | undefined): WorldPoint | null => (ind && ind.series.length ? ind.series[ind.series.length - 1] : null);
+const held = (id: string) => (lastOf(WORLD[id]) ? WORLD[id] : null);
 
-/** The point ten years before the latest, or within two years of it - else none, and no change is said. */
-function decadeBefore(series: WorldPoint[]): WorldPoint | null {
-  if (!series.length) return null;
-  const [lastYear] = series[series.length - 1];
-  const earlier = series.filter(([y]) => y <= lastYear - 10);
-  const p = earlier[earlier.length - 1];
-  return p && lastYear - 10 - p[0] <= 2 ? p : null;
-}
-type Delta = { text: string; dir: "up" | "down" | "flat"; verdict: "better" | "worse" | null };
-function delta(ind: WorldIndicator): Delta | null {
-  if (ind.stated) return { ...ind.stated, verdict: null };
+/** The change on the point ten years before the latest (or within two years of that), worked out here; none where the series is shorter. */
+function changeOf(ind: WorldIndicator): string | null {
+  if (ind.stated) return ind.stated.text;
   const last = lastOf(ind);
-  const prev = decadeBefore(ind.series);
-  if (!last || !prev) return null;
+  const earlier = last ? ind.series.filter(([y]) => y <= last[0] - 10) : [];
+  const prev = earlier[earlier.length - 1];
+  if (!last || !prev || last[0] - 10 - prev[0] > 2) return null;
   const diff = last[1] - prev[1];
-  const flat = Math.abs(diff) < 10 ** -ind.dp / 2;
-  const dir = flat ? "flat" : diff > 0 ? "up" : "down";
-  const verdict = flat || ind.upIsGood === null ? null : (diff > 0) === ind.upIsGood ? "better" : "worse";
-  let text: string;
   if (ind.format === "count" || ind.format === "usd") {
     const pct = (100 * diff) / prev[1];
-    text = `${pct > 0 ? "+" : ""}${pct.toFixed(Math.abs(pct) < 10 ? 1 : 0)}% since ${prev[0]}`;
-  } else if (ind.format === "pct") {
-    text = `${diff > 0 ? "+" : ""}${diff.toFixed(ind.dp)} points since ${prev[0]}`;
-  } else {
-    text = `${diff > 0 ? "+" : ""}${diff.toLocaleString("en-US", { maximumFractionDigits: ind.dp })} since ${prev[0]}`;
+    return `${pct > 0 ? "+" : ""}${pct.toFixed(Math.abs(pct) < 10 ? 1 : 0)}% since ${prev[0]}`;
   }
-  return { text, dir, verdict };
-}
-const BETTER = "text-emerald-700 dark:text-emerald-400";
-const WORSE = "text-red-600 dark:text-red-400";
-
-/** The series as a line, its last point marked: no axis, as on the Worldview page's tiles. */
-function Spark({ ind }: { ind: WorldIndicator }) {
-  const pts = ind.series;
-  if (pts.length < 3) return null;
-  const W = 120;
-  const H = 28;
-  const xs = pts.map((p) => p[0]);
-  const ys = pts.map((p) => p[1]);
-  const [x0, x1] = [Math.min(...xs), Math.max(...xs)];
-  const [y0, y1] = [Math.min(...ys), Math.max(...ys)];
-  const x = (v: number) => (x1 === x0 ? W / 2 : ((v - x0) / (x1 - x0)) * (W - 4) + 2);
-  const y = (v: number) => (y1 === y0 ? H / 2 : H - 3 - ((v - y0) / (y1 - y0)) * (H - 6));
-  const d = pts.map((p, i) => `${i ? "L" : "M"}${x(p[0]).toFixed(1)},${y(p[1]).toFixed(1)}`).join("");
-  const last = pts[pts.length - 1];
-  return (
-    <svg viewBox={`0 0 ${W} ${H}`} className="w-full h-7 text-secondary" aria-hidden preserveAspectRatio="none">
-      <path d={d} fill="none" stroke="currentColor" strokeWidth={1.4} vectorEffect="non-scaling-stroke" strokeLinejoin="round" />
-      <circle cx={x(last[0])} cy={y(last[1])} r={2} className="fill-current" />
-    </svg>
-  );
+  if (ind.format === "pct") return `${diff > 0 ? "+" : ""}${diff.toFixed(ind.dp)} points since ${prev[0]}`;
+  return `${diff > 0 ? "+" : ""}${diff.toLocaleString("en-US", { maximumFractionDigits: ind.dp })} since ${prev[0]}`;
 }
 
-function Tile({ ind }: { ind: WorldIndicator }) {
-  const last = lastOf(ind);
-  if (!last) return null;
-  const d = delta(ind);
-  const Icon = d?.dir === "up" ? ArrowUpRight : d?.dir === "down" ? ArrowDownRight : ArrowRight;
-  const first = ind.series[0];
-  return (
-    <div className="modal-tile rounded-lg px-3 py-2.5 flex flex-col gap-1 min-w-0" title={ind.note ?? `${ind.label}, ${ind.unit} - ${ind.source.label}`}>
-      <p className="text-[10px] font-sans text-muted-foreground uppercase tracking-wider truncate">{ind.label}</p>
-      <p className="text-sm font-bold font-mono text-foreground leading-tight">
-        {fmt(ind, last[1])} <span className="text-[10px] font-sans font-normal text-muted-foreground">· {last[0]}</span>
-      </p>
-      <p className="text-[10px] font-sans text-muted-foreground truncate">{ind.unit}</p>
-      <Spark ind={ind} />
-      {d ? (
-        <p className={`flex items-center gap-1 text-[10px] font-sans ${d.verdict === "better" ? BETTER : d.verdict === "worse" ? WORSE : "text-muted-foreground"}`}>
-          <Icon size={10} weight="bold" aria-hidden />
-          <span className="truncate">
-            {d.text}
-            {d.verdict && <span className="font-semibold">{` · ${d.verdict}`}</span>}
-          </span>
-        </p>
-      ) : (
-        first && first[0] !== last[0] && <p className="text-[10px] font-sans text-muted-foreground">Series from {first[0]}</p>
-      )}
-      <a href={ind.source.url} target="_blank" rel="noopener noreferrer" className="text-[9px] font-sans text-muted-foreground underline decoration-dotted underline-offset-2 hover:text-foreground truncate">
-        {ind.source.label}
-      </a>
-    </div>
-  );
-}
+/* ── What a tab holds: panels of blocks, each naming the world figures it draws by id ─────────────────────────── */
+type Block =
+  /** Key figures as tiles, four across. */
+  | { kind: "tiles"; ids: string[] }
+  /** Parts of one whole in one year, as a ring: each id with the name its part is given. */
+  | { kind: "ring"; title: string; parts: [id: string, label: string][]; note?: string }
+  /** One measure's kind across several figures, as bars on one scale: 100 for shares, 1 for V-Dem's indices. */
+  | { kind: "bars"; title: string; ids: string[]; max?: number; note?: string }
+  /** The Human Development Index on UNDP's scale. */
+  | { kind: "hdi" }
+  /** Figures as a short table: each with its unit, year and change. */
+  | { kind: "rows"; title?: string; ids: string[] };
+type PanelDef = { title: string; sub: string; icon: ReactNode; blocks: Block[] };
+type TabDef = { id: string; label: string; icon: ReactNode; panels: PanelDef[] };
 
-/* ── The window's tabs: each the world figures of one subject, by id ───── */
-type Tab = { id: string; label: string; icon: ReactNode; ids: string[] };
-const TABS: Tab[] = [
+const I = { size: 13, weight: "fill" as const };
+const REGIME_RING: Block = {
+  kind: "ring",
+  title: "How its people are governed · % of people",
+  parts: [
+    ["democracyShare", "In a democracy"],
+    ["electoralAutocracyShare", "In an electoral autocracy"],
+    ["closedAutocracyShare", "In a closed autocracy"],
+  ],
+  note: "V-Dem's Regimes of the World. A democracy here is liberal or electoral; the share in a liberal democracy alone is given below.",
+};
+const TABS: TabDef[] = [
   {
     id: "overview",
     label: "Overview",
-    icon: <ListBullets size={13} weight="fill" />,
-    ids: ["population", "gdp", "gdpGrowth", "inflation", "lifeExpectancy", "extremePoverty", "hdi", "internet", "co2", "conflicts", "democracyShare", "displaced"],
+    icon: <ListBullets {...I} />,
+    panels: [
+      {
+        title: "The world at a glance",
+        sub: "Its people, its output and how they live",
+        icon: <Globe {...I} />,
+        blocks: [
+          { kind: "tiles", ids: ["population", "gdp", "gdpGrowth", "inflation", "unemployment", "lifeExpectancy", "extremePoverty", "internet"] },
+          { kind: "hdi" },
+          REGIME_RING,
+          { kind: "rows", title: "And", ids: ["co2", "conflicts", "displaced"] },
+        ],
+      },
+    ],
   },
   {
     id: "economy",
     label: "Economy",
-    icon: <Bank size={13} weight="fill" />,
-    ids: [
-      "gdp", "gdpGrowth", "gdpPerCapitaPpp", "inflation", "unemployment", "youthUnemployment", "labourForce", "wageWorkers", "vulnerableWork",
-      "agEmployment", "industryEmployment", "servicesEmployment", "agricultureVA", "industryVA", "manufacturingVA", "servicesVA", "manufacturingUsd",
-      "industryReal", "investment", "savings", "fdi", "trade", "manufacturesExports", "marketCap", "accounts", "remittances", "govDebt", "govRevenue",
-      "govExpense", "taxRevenue", "interestPayments", "extDebt", "extDebtUsd", "resourceRents", "oilRents", "gasRents", "coalRents", "mineralRents",
+    icon: <Bank {...I} />,
+    panels: [
+      {
+        title: "Output and growth",
+        sub: "What the world makes, and how fast it grows",
+        icon: <ChartLineUp {...I} />,
+        blocks: [
+          { kind: "tiles", ids: ["gdp", "gdpGrowth", "gdpPerCapitaPpp", "inflation"] },
+          { kind: "bars", title: "What its output is made of · % of GDP", ids: ["agricultureVA", "industryVA", "manufacturingVA", "servicesVA"], max: 100, note: "Each as the World Bank publishes it: manufacturing is part of industry, and the sectors do not add up to 100." },
+          { kind: "rows", ids: ["manufacturingUsd", "industryReal", "investment", "savings"] },
+        ],
+      },
+      {
+        title: "Work",
+        sub: "Who works, and where",
+        icon: <Briefcase {...I} />,
+        blocks: [
+          { kind: "tiles", ids: ["unemployment", "youthUnemployment", "labourForce", "wageWorkers"] },
+          { kind: "ring", title: "Where its workers work · % of employment", parts: [["agEmployment", "Farming"], ["industryEmployment", "Industry"], ["servicesEmployment", "Services"]] },
+          { kind: "rows", ids: ["vulnerableWork"] },
+        ],
+      },
+      {
+        title: "Trade and money",
+        sub: "What crosses borders, and who holds an account",
+        icon: <Coins {...I} />,
+        blocks: [{ kind: "rows", ids: ["trade", "fdi", "manufacturesExports", "marketCap", "accounts", "remittances"] }],
+      },
+      {
+        title: "Government",
+        sub: "What governments take in, spend and owe",
+        icon: <Gavel {...I} />,
+        blocks: [
+          { kind: "bars", title: "Governments · % of GDP", ids: ["govRevenue", "govExpense", "taxRevenue", "govDebt"], max: 100 },
+          { kind: "rows", ids: ["interestPayments", "extDebt", "extDebtUsd"] },
+        ],
+      },
+      {
+        title: "Natural resources",
+        sub: "What the earth yields, as a share of output",
+        icon: <Factory {...I} />,
+        blocks: [{ kind: "bars", title: "Rents from natural resources · % of GDP", ids: ["resourceRents", "oilRents", "gasRents", "coalRents", "mineralRents"] }],
+      },
     ],
   },
   {
     id: "people",
     label: "People",
-    icon: <Users size={13} weight="fill" />,
-    ids: [
-      "population", "popGrowth", "fertility", "urban", "aged65", "under15", "migrants", "migrantShare", "lifeExpectancy", "healthyLifeExpectancy",
-      "childMortality", "maternalMortality", "measles", "stunting", "hiv", "healthSpend", "suicide", "roadDeaths", "extremePoverty", "poverty420",
-      "poverty830", "undernourished", "foodInsecure", "electricity", "cleanCooking", "water", "sanitation", "handwashing", "literacy", "schoolingYears",
-      "primaryCompletion", "lowerSecondary", "secondaryEnrol", "tertiaryEnrol", "eduSpend", "hdi", "ihdi", "lifeSatisfaction", "airPassengers",
-      "christians", "muslims", "unaffiliated", "hindus", "buddhists", "jews", "otherReligions",
+    icon: <Users {...I} />,
+    panels: [
+      {
+        title: "Its people",
+        sub: "How many, how fast they grow, where they live",
+        icon: <Users {...I} />,
+        blocks: [
+          { kind: "tiles", ids: ["population", "popGrowth", "fertility", "urban"] },
+          { kind: "bars", title: "By age · % of people", ids: ["under15", "aged65"], max: 100 },
+          { kind: "rows", ids: ["migrants", "migrantShare", "airPassengers"] },
+        ],
+      },
+      {
+        title: "Health",
+        sub: "How long people live, and what cuts lives short",
+        icon: <FirstAid {...I} />,
+        blocks: [
+          { kind: "tiles", ids: ["lifeExpectancy", "healthyLifeExpectancy", "childMortality", "maternalMortality"] },
+          { kind: "bars", title: "Children and adults · % of each group", ids: ["measles", "stunting", "hiv"], max: 100 },
+          { kind: "rows", ids: ["healthSpend", "suicide", "roadDeaths"] },
+        ],
+      },
+      {
+        title: "Living standards",
+        sub: "What people have, and go without",
+        icon: <HandHeart {...I} />,
+        blocks: [
+          { kind: "hdi" },
+          { kind: "bars", title: "Going without · % of people", ids: ["extremePoverty", "poverty420", "poverty830", "undernourished", "foodInsecure"], max: 100 },
+          { kind: "bars", title: "Have · % of people", ids: ["electricity", "cleanCooking", "water", "sanitation", "handwashing"], max: 100 },
+          { kind: "rows", ids: ["ihdi", "lifeSatisfaction"] },
+        ],
+      },
+      {
+        title: "Schooling",
+        sub: "Who reads, and how far they go in school",
+        icon: <GraduationCap {...I} />,
+        blocks: [
+          { kind: "tiles", ids: ["literacy", "schoolingYears", "primaryCompletion", "tertiaryEnrol"] },
+          { kind: "rows", ids: ["lowerSecondary", "secondaryEnrol", "eduSpend"] },
+        ],
+      },
+      {
+        title: "Faith",
+        sub: "The religions of the world's people",
+        icon: <Flag {...I} />,
+        blocks: [
+          {
+            kind: "ring",
+            title: "Its people by religion · % of people",
+            parts: [["christians", "Christians"], ["muslims", "Muslims"], ["unaffiliated", "No religion"], ["hindus", "Hindus"], ["buddhists", "Buddhists"], ["jews", "Jews"], ["otherReligions", "Other religions"]],
+          },
+        ],
+      },
     ],
   },
   {
     id: "planet",
     label: "Planet",
-    icon: <Leaf size={13} weight="fill" />,
-    ids: [
-      "co2", "co2PerPerson", "ghg", "methane", "pm25", "renewables", "fossilShare", "energySupply", "energyIntensity", "energyPerPerson",
-      "electricityPerPerson", "electricityGeneration", "fossilElectricity", "renewableElectricity", "oilProduction", "gasProduction", "coalProduction",
-      "evSalesShare", "forest", "protectedLand", "protectedSea", "farmland", "waterWithdrawals", "cerealProduction", "cerealYield", "fertilizer",
-      "disasterDisplacement", "disasterDeaths",
+    icon: <Leaf {...I} />,
+    panels: [
+      {
+        title: "Emissions and air",
+        sub: "What the world puts into the air",
+        icon: <Wind {...I} />,
+        blocks: [
+          { kind: "tiles", ids: ["co2", "ghg", "methane", "co2PerPerson"] },
+          { kind: "rows", ids: ["pm25"] },
+        ],
+      },
+      {
+        title: "Energy",
+        sub: "How much is used, and where it comes from",
+        icon: <Lightning {...I} />,
+        blocks: [
+          { kind: "tiles", ids: ["energySupply", "renewables", "fossilShare", "evSalesShare"] },
+          { kind: "bars", title: "Electricity generated · % from each", ids: ["fossilElectricity", "renewableElectricity"], max: 100 },
+          { kind: "rows", ids: ["electricityGeneration", "energyIntensity", "energyPerPerson", "electricityPerPerson", "oilProduction", "gasProduction", "coalProduction"] },
+        ],
+      },
+      {
+        title: "Land and water",
+        sub: "Forest, farmland and what is protected",
+        icon: <Plant {...I} />,
+        blocks: [
+          { kind: "bars", title: "The world's land · %", ids: ["forest", "farmland", "protectedLand"], max: 100 },
+          { kind: "rows", ids: ["protectedSea", "waterWithdrawals", "cerealProduction", "cerealYield", "fertilizer"] },
+        ],
+      },
+      {
+        title: "Disasters",
+        sub: "Lives lost and homes left to natural disasters",
+        icon: <CloudRain {...I} />,
+        blocks: [{ kind: "tiles", ids: ["disasterDeaths", "disasterDisplacement"] }],
+      },
     ],
   },
   {
     id: "rights",
     label: "Rights",
-    icon: <Scales size={13} weight="fill" />,
-    ids: [
-      "democracyShare", "liberalDemocracyShare", "electoralAutocracyShare", "closedAutocracyShare", "democracies", "autocratizing", "democratizing",
-      "autocratizingShare", "democratizingShare", "electoralDemocracy", "liberalDemocracy", "participatoryDemocracy", "deliberativeDemocracy",
-      "egalitarianDemocracy", "ruleOfLaw", "judicialConstraints", "legislativeConstraints", "civilLiberties", "politicalLiberties", "privateLiberties",
-      "physicalIntegrity", "equalityBeforeLaw", "freeExpression", "freeAssociation", "academicFreedom", "civilSociety", "engagedSociety", "polarization",
-      "voterTurnout", "womenEmpowerment", "womenCivilLiberties", "womenParliament", "womenMinisters", "workGap",
+    icon: <Scales {...I} />,
+    panels: [
+      {
+        title: "How it is governed",
+        sub: "Democracies and autocracies, and which way they move",
+        icon: <Gavel {...I} />,
+        blocks: [
+          REGIME_RING,
+          { kind: "tiles", ids: ["democracies", "autocratizing", "democratizing", "voterTurnout"] },
+          { kind: "rows", ids: ["liberalDemocracyShare", "autocratizingShare", "democratizingShare"] },
+        ],
+      },
+      {
+        title: "Democracy and the rule of law",
+        sub: "V-Dem's indices for the world, 0 to 1",
+        icon: <Scales {...I} />,
+        blocks: [
+          {
+            kind: "bars",
+            title: "V-Dem indices · 0 to 1",
+            ids: ["electoralDemocracy", "liberalDemocracy", "participatoryDemocracy", "deliberativeDemocracy", "egalitarianDemocracy", "ruleOfLaw", "judicialConstraints", "legislativeConstraints"],
+            max: 1,
+          },
+        ],
+      },
+      {
+        title: "Liberties",
+        sub: "How far each kind of freedom is respected",
+        icon: <Drop {...I} />,
+        blocks: [
+          {
+            kind: "bars",
+            title: "V-Dem indices · 0 to 1",
+            ids: ["civilLiberties", "politicalLiberties", "privateLiberties", "physicalIntegrity", "equalityBeforeLaw", "freeExpression", "freeAssociation", "academicFreedom", "civilSociety"],
+            max: 1,
+          },
+          { kind: "rows", ids: ["engagedSociety", "polarization"] },
+        ],
+      },
+      {
+        title: "Women",
+        sub: "Women's power and freedoms",
+        icon: <GenderFemale {...I} />,
+        blocks: [
+          { kind: "bars", title: "V-Dem indices · 0 to 1", ids: ["womenEmpowerment", "womenCivilLiberties"], max: 1 },
+          { kind: "bars", title: "Seats and posts held by women · %", ids: ["womenParliament", "womenMinisters"], max: 100 },
+          { kind: "rows", ids: ["workGap"] },
+        ],
+      },
     ],
   },
   {
     id: "technology",
     label: "Technology",
-    icon: <Cpu size={13} weight="fill" />,
-    ids: [
-      "internet", "mobile", "broadband", "landlines", "secureServers", "ictServiceExports", "ictGoodsExports", "highTechExports", "research",
-      "researchers", "patents", "sciArticles", "ipReceipts", "aiInvestment", "genAiInvestment", "aiPublications", "robotInstalls", "robotStock",
+    icon: <Cpu {...I} />,
+    panels: [
+      {
+        title: "Connected",
+        sub: "Who is online, and what the world trades in digital goods",
+        icon: <WifiHigh {...I} />,
+        blocks: [
+          { kind: "tiles", ids: ["internet", "mobile", "broadband", "secureServers"] },
+          { kind: "rows", ids: ["landlines", "ictServiceExports", "ictGoodsExports", "highTechExports"] },
+        ],
+      },
+      {
+        title: "Research",
+        sub: "What is spent on it, and what it produces",
+        icon: <Atom {...I} />,
+        blocks: [
+          { kind: "tiles", ids: ["research", "researchers", "sciArticles", "patents"] },
+          { kind: "rows", ids: ["ipReceipts"] },
+        ],
+      },
+      {
+        title: "AI and robots",
+        sub: "Money and work in artificial intelligence, and robots at work",
+        icon: <Robot {...I} />,
+        blocks: [
+          { kind: "tiles", ids: ["aiInvestment", "genAiInvestment", "aiPublications", "robotInstalls"] },
+          { kind: "rows", ids: ["robotStock"] },
+        ],
+      },
     ],
   },
   {
     id: "security",
     label: "Security",
-    icon: <ShieldWarning size={13} weight="fill" />,
-    ids: [
-      "conflicts", "conflictDeaths", "displaced", "terrorAttacks", "terrorDeaths", "homicide", "militaryGdp", "militaryUsd", "militaryShare",
-      "armedForces", "armedForcesShare", "armsTransfers", "nuclearWarheads",
+    icon: <ShieldWarning {...I} />,
+    panels: [
+      {
+        title: "Conflict and violence",
+        sub: "Wars, the people they drive from home, and killings",
+        icon: <ShieldWarning {...I} />,
+        blocks: [
+          { kind: "tiles", ids: ["conflicts", "conflictDeaths", "displaced", "homicide"] },
+          { kind: "rows", ids: ["terrorAttacks", "terrorDeaths"] },
+        ],
+      },
+      {
+        title: "Armed forces",
+        sub: "What the world spends on arms, and holds",
+        icon: <Sword {...I} />,
+        blocks: [
+          { kind: "tiles", ids: ["militaryGdp", "militaryUsd", "armedForces", "nuclearWarheads"] },
+          { kind: "rows", ids: ["militaryShare", "armedForcesShare", "armsTransfers"] },
+        ],
+      },
     ],
   },
 ];
-/* Any world figure the tabs above do not name has a tab of its own, so none the site holds is left out. */
-const NAMED = new Set(TABS.flatMap((t) => t.ids));
-const REST = Object.keys(WORLD).filter((id) => !NAMED.has(id));
-const ALL_TABS: Tab[] = REST.length ? [...TABS, { id: "more", label: "More", icon: <SquaresFour size={13} weight="fill" />, ids: REST }] : TABS;
-const indicators = (t: Tab) => t.ids.flatMap((id) => (WORLD[id] && WORLD[id].series.length ? [WORLD[id]] : []));
+
+const idsOf = (b: Block): string[] => (b.kind === "ring" ? b.parts.map((p) => p[0]) : b.kind === "hdi" ? ["hdi"] : b.ids);
+/* Any world figure no panel names has a tab of its own, so none the site holds is left out. */
+const NAMED = new Set(TABS.flatMap((t) => t.panels.flatMap((p) => p.blocks.flatMap(idsOf))));
+const REST = Object.keys(WORLD).filter((id) => !NAMED.has(id) && held(id));
+const ALL_TABS: TabDef[] = REST.length
+  ? [...TABS, { id: "more", label: "More", icon: <SquaresFour {...I} />, panels: [{ title: "More figures", sub: "The rest the site holds for the world", icon: <SquaresFour {...I} />, blocks: [{ kind: "rows", ids: REST }] }] }]
+  : TABS;
+const countOf = (t: TabDef) => new Set(t.panels.flatMap((p) => p.blocks.flatMap(idsOf)).filter((id) => held(id))).size;
 /** The latest year of any figure the site holds for the world. */
 const LATEST = Math.max(...Object.values(WORLD).flatMap((i) => (i.series.length ? [i.series[i.series.length - 1][0]] : [])));
+const day = (iso: string) =>
+  new Date(`${iso}T12:00:00Z`).toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric", timeZone: "UTC" }).replace("Sept", "Sep");
+
+/* ── Drawing a block, as the country window draws its own ─────────────── */
+function BlockView({ b }: { b: Block }) {
+  if (b.kind === "tiles") {
+    const inds = b.ids.flatMap((id) => (held(id) ? [WORLD[id]] : []));
+    if (!inds.length) return null;
+    return (
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+        {inds.map((ind) => {
+          const [y, v] = lastOf(ind)!;
+          return <FigureTile key={ind.id} label={ind.label} value={fmt(ind, v)} sub={`${ind.unit} · ${y}`} />;
+        })}
+      </div>
+    );
+  }
+  if (b.kind === "hdi") {
+    const hdi = lastOf(WORLD.hdi);
+    return hdi ? (
+      <div>
+        <HdiScale value={hdi[1]} year={String(hdi[0])} />
+        <ChartNote className="mt-1">The world's value on UNDP's scale; its tiers begin at 0.550, 0.700 and 0.800, marked on it.</ChartNote>
+      </div>
+    ) : null;
+  }
+  if (b.kind === "ring") {
+    const pts = b.parts.flatMap(([id, label]) => {
+      const p = lastOf(WORLD[id]);
+      return p ? [{ id, label, y: p[0], v: p[1] }] : [];
+    });
+    // A ring only where every part is there and of the one year: otherwise each is a bar of its own.
+    const oneYear = pts.length === b.parts.length && pts.every((p) => p.y === pts[0].y);
+    if (!pts.length) return null;
+    return (
+      <div>
+        <ChartTitle>
+          {b.title}
+          {oneYear ? ` · ${pts[0].y}` : ""}
+        </ChartTitle>
+        {oneYear ? (
+          <PartsDonut label={b.title} parts={pts.map((p) => ({ label: p.label, value: p.v, text: fmt(WORLD[p.id], p.v) }))} />
+        ) : (
+          <MeasureBars label={b.title} max={100} rows={pts.map((p) => ({ label: p.label, value: p.v, text: fmt(WORLD[p.id], p.v), sub: String(p.y) }))} />
+        )}
+        {b.note && <ChartNote className="mt-2">{b.note}</ChartNote>}
+      </div>
+    );
+  }
+  if (b.kind === "bars") {
+    const inds = b.ids.flatMap((id) => (held(id) ? [WORLD[id]] : []));
+    if (!inds.length) return null;
+    return (
+      <div>
+        <ChartTitle>{b.title}</ChartTitle>
+        <MeasureBars
+          label={b.title}
+          max={b.max}
+          rows={inds.map((ind) => {
+            const [y, v] = lastOf(ind)!;
+            return { key: ind.id, label: ind.label, value: v, text: fmt(ind, v), sub: String(y) };
+          })}
+        />
+        {b.note && <ChartNote className="mt-2">{b.note}</ChartNote>}
+      </div>
+    );
+  }
+  const inds = b.ids.flatMap((id) => (held(id) ? [WORLD[id]] : []));
+  if (!inds.length) return null;
+  return (
+    <div>
+      {b.title && <ChartTitle>{b.title}</ChartTitle>}
+      <div className="flex flex-col">
+        {inds.map((ind) => {
+          const [y, v] = lastOf(ind)!;
+          const ch = changeOf(ind);
+          return <FigureRow key={ind.id} label={ind.label} value={fmt(ind, v)} sub={[ind.unit, String(y), ch].filter(Boolean).join(" · ")} />;
+        })}
+      </div>
+    </div>
+  );
+}
+
+function Panel({ p }: { p: PanelDef }) {
+  const sources = useMemo(() => {
+    const seen = new Map<string, { label: string; url: string }>();
+    for (const id of p.blocks.flatMap(idsOf)) {
+      const ind = held(id);
+      if (ind && !seen.has(ind.source.label)) seen.set(ind.source.label, ind.source);
+    }
+    return [...seen.values()];
+  }, [p]);
+  return (
+    <div className="modal-tile rounded-lg p-4 mt-4 first:mt-0">
+      {/* The panel's head, as a country window's panels have it. */}
+      <div className="flex items-center gap-2 min-w-0 mb-4">
+        <div className="p-1.5 rounded-md border border-border bg-muted text-muted-foreground shrink-0">{p.icon}</div>
+        <div className="min-w-0">
+          <h3 className="text-xs font-bold font-sans text-foreground uppercase tracking-widest">{p.title}</h3>
+          <p className="text-[10px] text-muted-foreground font-sans mt-0.5">{p.sub}</p>
+        </div>
+      </div>
+      <div className="flex flex-col gap-4">
+        {p.blocks.map((b, i) => (
+          <BlockView key={i} b={b} />
+        ))}
+      </div>
+      <SourceLink sources={sources} className="mt-3" />
+    </div>
+  );
+}
 
 function WorldModal({ onClose }: { onClose: () => void }) {
   const [tab, setTab] = useState(ALL_TABS[0].id);
@@ -239,14 +539,9 @@ function WorldModal({ onClose }: { onClose: () => void }) {
       window.removeEventListener("keydown", key);
     };
   }, [onClose]);
-  const shown = useMemo(() => indicators(ALL_TABS.find((t) => t.id === tab) ?? ALL_TABS[0]), [tab]);
-  const sources = useMemo(() => {
-    const seen = new Map<string, { label: string; url: string }>();
-    for (const i of shown) if (!seen.has(i.source.label)) seen.set(i.source.label, i.source);
-    return [...seen.values()];
-  }, [shown]);
-  const pop = WORLD.population && lastOf(WORLD.population);
-  const gdp = WORLD.gdp && lastOf(WORLD.gdp);
+  const current = ALL_TABS.find((t) => t.id === tab) ?? ALL_TABS[0];
+  const pop = lastOf(WORLD.population);
+  const gdp = lastOf(WORLD.gdp);
 
   return (
     <div
@@ -277,22 +572,54 @@ function WorldModal({ onClose }: { onClose: () => void }) {
           </WindowTitle>
 
           {/* Its flag and what it is, as a country's window opens. */}
-          <div className="flex items-center gap-4 mb-5">
+          <div className="flex items-start gap-4 mb-4">
             <div className="w-24 h-16 rounded-xl overflow-hidden shrink-0 border border-border shadow-md">
               <img src={FLAG} alt="International Flag of Planet Earth" className="w-full h-full object-cover" />
             </div>
-            <div className="min-w-0">
+            <div className="min-w-0 flex flex-col gap-1.5">
               <div className="flex items-center gap-2 flex-wrap">
                 <span className="text-xs border border-border px-2 py-0.5 rounded-full font-sans text-muted-foreground">World aggregates</span>
                 {pop && <span className="text-xs px-2 py-0.5 rounded-full font-mono font-semibold border border-border text-foreground">{compact(pop[1])} people · {pop[0]}</span>}
                 {gdp && <span className="text-xs px-2 py-0.5 rounded-full font-mono font-semibold border border-border text-foreground">GDP ${compact(gdp[1])} · {gdp[0]}</span>}
               </div>
-              <p className="text-[11px] font-sans text-muted-foreground mt-1.5 leading-snug">
+              <p className="text-[11px] font-sans text-muted-foreground leading-snug">
                 {Object.keys(WORLD).length} figures for the world as a whole, each its publisher's latest, to {LATEST}; read from their sources on{" "}
-                {new Date(`${WORLDVIEW_RETRIEVED}T12:00:00Z`).toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric", timeZone: "UTC" }).replace("Sept", "Sep")}. The
-                flag is the International Flag of Planet Earth (Oskar Pernefeldt, 2015).
+                {day(WORLDVIEW_RETRIEVED)}.
               </p>
             </div>
+          </div>
+
+          {/* The flag: what it is and what it stands for, as its makers describe it - in the site's words. */}
+          <div className="modal-tile rounded-lg p-4 mb-5">
+            <div className="flex items-center gap-2 min-w-0 mb-2">
+              <div className="p-1.5 rounded-md border border-border bg-muted text-muted-foreground shrink-0">
+                <Flag {...I} />
+              </div>
+              <div className="min-w-0">
+                <h3 className="text-xs font-bold font-sans text-foreground uppercase tracking-widest">The flag</h3>
+                <p className="text-[10px] text-muted-foreground font-sans mt-0.5">The International Flag of Planet Earth</p>
+              </div>
+            </div>
+            <p className="text-xs font-sans text-foreground leading-relaxed">
+              Designed by Oskar Pernefeldt as his graduation project at Beckmans College of Design in Stockholm, and first shown in 2015. At its
+              centre seven rings, linked together, make a flower: the flower stands for life on Earth, and the linking of the rings for how
+              everything on the planet is connected, directly or not. The blue field is water, which life depends on and which covers most of
+              the planet; the outer rings together form a circle that can be read as the Earth itself, with the blue around it as space.
+            </p>
+            {/* Its facts in words, as a country window's geography list has them: a line between each. */}
+            <dl className="mt-3 divide-y divide-border">
+              {[
+                ["Proportions", "2:3"],
+                ["Blazon", "Seven silver circles interlaced on a blue field - its makers' heraldic description"],
+                ["Use", "Free to use, personal or commercial, to represent the planet - not a business, a body or a person"],
+              ].map(([k, v]) => (
+                <div key={k} className="grid grid-cols-[7rem_1fr] gap-3 py-2">
+                  <dt className="text-[10px] font-semibold font-sans text-muted-foreground uppercase tracking-wider pt-0.5">{k}</dt>
+                  <dd className="text-xs font-sans text-foreground leading-relaxed">{v}</dd>
+                </div>
+              ))}
+            </dl>
+            <SourceLink sources={[FLAG_PAGE, FLAG_FILE]} className="mt-2" />
           </div>
 
           {/* Tab bar, as a country's window has it. */}
@@ -309,21 +636,20 @@ function WorldModal({ onClose }: { onClose: () => void }) {
               >
                 {t.icon}
                 {t.label}
-                <span className="text-[10px] font-mono opacity-60">{indicators(t).length}</span>
+                <span className="text-[10px] font-mono opacity-60">{countOf(t)}</span>
               </button>
             ))}
           </div>
 
-          <div className={`grid grid-cols-1 sm:grid-cols-2 ${isExpanded ? "lg:grid-cols-4" : "md:grid-cols-3"} gap-2`}>
-            {shown.map((ind) => (
-              <Tile key={ind.id} ind={ind} />
+          <div className="flex flex-col">
+            {current.panels.map((p) => (
+              <Panel key={p.title} p={p} />
             ))}
           </div>
-          <p className="text-[10px] font-sans text-muted-foreground leading-snug mt-3">
-            A change is the latest figure against the one ten years before it (or within two years of that), worked out here; green where the
-            change is for the better, red where for the worse, grey where neither is said. Point at a figure for what it is.
-          </p>
-          <SourceLink sources={sources} className="mt-2" />
+          <ChartNote className="mt-3">
+            Each figure is its publisher's latest for the world, with its year. A change is the latest against the figure ten years before
+            it (or within two years of that), worked out here. Bars on one chart share its scale: 100 for shares, 1 for V-Dem's indices.
+          </ChartNote>
         </div>
       </div>
     </div>
@@ -336,7 +662,7 @@ export function WorldCard() {
   const close = useCallback(() => setOpen(false), []);
   const head = ["population", "gdp", "gdpGrowth", "inflation", "lifeExpectancy", "extremePoverty"].flatMap((id) => {
     const ind = WORLD[id];
-    const last = ind && lastOf(ind);
+    const last = lastOf(ind);
     return ind && last ? [{ ind, last }] : [];
   });
   return (
