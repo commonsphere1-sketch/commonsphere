@@ -46,7 +46,7 @@ import {
   Coins,
   WifiHigh,
 } from "@phosphor-icons/react";
-import { WORLD, WORLDVIEW_RETRIEVED, type WorldIndicator, type WorldPoint } from "../data/worldview";
+import { POPULATION_PROJECTION, WORLD, WORLDVIEW_RETRIEVED, type WorldIndicator, type WorldPoint } from "../data/worldview";
 import { WindowTitle } from "./WindowTitle";
 import { SourceLink } from "./SourceLink";
 import { ChartNote, ChartTitle, FigureRow, FigureTile, HdiScale, MeasureBars, PartsDonut } from "./ModalCharts";
@@ -108,7 +108,9 @@ type Block =
   /** The Human Development Index on UNDP's scale. */
   | { kind: "hdi" }
   /** Figures as a short table: each with its unit, year and change. */
-  | { kind: "rows"; title?: string; ids: string[] };
+  | { kind: "rows"; title?: string; ids: string[] }
+  /** The people alive now, running: the UN's projection, as the Worldview page's counter has it. */
+  | { kind: "counter" };
 type PanelDef = { title: string; sub: string; icon: ReactNode; blocks: Block[] };
 type TabDef = { id: string; label: string; icon: ReactNode; panels: PanelDef[] };
 
@@ -200,6 +202,7 @@ const TABS: TabDef[] = [
         sub: "How many, how fast they grow, where they live",
         icon: <Users {...I} />,
         blocks: [
+          { kind: "counter" },
           { kind: "tiles", ids: ["population", "popGrowth", "fertility", "urban"] },
           { kind: "bars", title: "By age · % of people", ids: ["under15", "aged65"], max: 100 },
           { kind: "rows", ids: ["migrants", "migrantShare", "airPassengers"] },
@@ -405,7 +408,7 @@ const TABS: TabDef[] = [
   },
 ];
 
-const idsOf = (b: Block): string[] => (b.kind === "ring" ? b.parts.map((p) => p[0]) : b.kind === "hdi" ? ["hdi"] : b.ids);
+const idsOf = (b: Block): string[] => (b.kind === "ring" ? b.parts.map((p) => p[0]) : b.kind === "hdi" ? ["hdi"] : b.kind === "counter" ? [] : b.ids);
 /* Any world figure no panel names has a tab of its own, so none the site holds is left out. */
 const NAMED = new Set(TABS.flatMap((t) => t.panels.flatMap((p) => p.blocks.flatMap(idsOf))));
 const REST = Object.keys(WORLD).filter((id) => !NAMED.has(id) && held(id));
@@ -418,8 +421,66 @@ const LATEST = Math.max(...Object.values(WORLD).flatMap((i) => (i.series.length 
 const day = (iso: string) =>
   new Date(`${iso}T12:00:00Z`).toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric", timeZone: "UTC" }).replace("Sept", "Sep");
 
+/**
+ * The people alive now, as asked: the UN's medium-variant projection for 1 January of this year and the next, and the
+ * year's projected births and deaths (data/worldview.ts POPULATION_PROJECTION), run between them by the second - the
+ * Worldview page's counter. A projection, not a count, and said so; nothing is drawn for a year the UN's table does not hold.
+ */
+function PeopleCounter() {
+  const [now, setNow] = useState(() => Date.now());
+  useEffect(() => {
+    const id = window.setInterval(() => setNow(Date.now()), 500);
+    return () => window.clearInterval(id);
+  }, []);
+  const year = new Date(now).getUTCFullYear();
+  const a = POPULATION_PROJECTION.years.find((r) => r[0] === year);
+  const b = POPULATION_PROJECTION.years.find((r) => r[0] === year + 1);
+  if (!a || !b) return null;
+  const start = Date.UTC(year, 0, 1);
+  const yearMs = Date.UTC(year + 1, 0, 1) - start;
+  const people = a[1] + ((b[1] - a[1]) * (now - start)) / yearMs;
+  const midnight = new Date(now);
+  midnight.setHours(0, 0, 0, 0);
+  // The year's births and deaths spread evenly over it: so many by this time of day, and of the year.
+  const share = (n: number, ms: number) => Math.floor((n * ms) / yearMs).toLocaleString("en-US");
+  const todayMs = now - midnight.getTime();
+  const yearSoFar = now - start;
+  return (
+    <div className="rounded-lg border border-border bg-background/40 px-4 py-3">
+      <p className="text-[10px] font-mono uppercase tracking-widest text-muted-foreground">People alive now · UN projection</p>
+      <p
+        className="text-2xl sm:text-3xl font-bold font-mono text-foreground leading-tight tabular-nums mt-1"
+        title={`The UN's figure for 1 January ${year}, ${a[1].toLocaleString("en-US")}, and since then the year's projected births less its deaths`}
+        aria-hidden
+      >
+        {Math.round(people).toLocaleString("en-US")}
+      </p>
+      <span className="sr-only">About {compact(people)} people, on the UN's medium-variant projection.</span>
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-x-4 gap-y-2 mt-3">
+        {[
+          ["Born today", share(a[2], todayMs)],
+          ["Died today", share(a[3], todayMs)],
+          [`Born in ${year}`, share(a[2], yearSoFar)],
+          [`Died in ${year}`, share(a[3], yearSoFar)],
+        ].map(([k, v]) => (
+          <div key={k} className="min-w-0">
+            <p className="text-[10px] font-sans text-muted-foreground">{k}</p>
+            <p className="text-sm font-bold font-mono text-foreground tabular-nums">{v}</p>
+          </div>
+        ))}
+      </div>
+      <ChartNote className="mt-2">
+        A projection, not a count: the UN's World Population Prospects {POPULATION_PROJECTION.revision}, medium variant, for 1 January {year} and {year + 1},
+        with the year's projected births and deaths spread evenly over it - worked out here, by the second. The figure in the tiles below is
+        the World Bank's count for its own year.
+      </ChartNote>
+    </div>
+  );
+}
+
 /* ── Drawing a block, as the country window draws its own ─────────────── */
 function BlockView({ b }: { b: Block }) {
+  if (b.kind === "counter") return <PeopleCounter />;
   if (b.kind === "tiles") {
     const inds = b.ids.flatMap((id) => (held(id) ? [WORLD[id]] : []));
     if (!inds.length) return null;
@@ -501,6 +562,7 @@ function BlockView({ b }: { b: Block }) {
 function Panel({ p }: { p: PanelDef }) {
   const sources = useMemo(() => {
     const seen = new Map<string, { label: string; url: string }>();
+    if (p.blocks.some((b) => b.kind === "counter")) seen.set(POPULATION_PROJECTION.source.label, POPULATION_PROJECTION.source);
     for (const id of p.blocks.flatMap(idsOf)) {
       const ind = held(id);
       if (ind && !seen.has(ind.source.label)) seen.set(ind.source.label, ind.source);
