@@ -28,6 +28,7 @@ import { DashboardDrops } from "../components/DashboardDrops";
 import { hdiHex } from "../lib/hdiTier";
 import { CommodityMovers } from "../components/CommodityMovers";
 import { GlobalAnalytics } from "../components/DashboardGlobal";
+import { WorldCard } from "../components/WorldCard";
 import { SectorOutlook } from "../components/DashboardCitiesSectors";
 import { CountryLeaders, PlanetNow, WorldLiving } from "../components/DashboardSignals";
 
@@ -2462,6 +2463,10 @@ export function DashboardPage() {
         {/* ── GLOBAL & GEOPOLITICAL ANALYTICS: where the National and International cards stood, replaced as asked.
             The world's figures, how its people are governed, and its blocs side by side - each published. ── */}
         <GlobalAnalytics />
+
+        {/* ── THE WORLD: one card the width of the page, the International Flag of Planet Earth on its face, opening a window
+            of every world figure the site holds, as a country's card opens its own - at the foot of the page, as asked. ── */}
+        <WorldCard />
 
         {/* ── FOOTER ────────────────────────────────────────────────────── */}
         <div className="text-center py-3 flex flex-col items-center gap-1">
