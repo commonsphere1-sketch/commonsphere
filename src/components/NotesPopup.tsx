@@ -13,6 +13,7 @@ import { usStatesData } from "../data/statesData";
 import { followedNow } from "../lib/followedCities";
 import { NOTE_KINDS, followedKind, sectionOf, type NoteKind } from "../lib/noteKinds";
 import { useFloatingButton } from "../lib/floatingButtons";
+import { StyledSelect } from "./StyledSelect";
 import {
   NotePencil,
   X,
@@ -384,18 +385,14 @@ export function NotesPopup() {
                 </>
               ) : (
                 <>
-                  <select
+                  {/* The site's own drop-down (its frosted list, as the calendar's), as asked, not the browser's. */}
+                  <StyledSelect
                     value={aboutKind}
-                    onChange={(e) => setAboutKind(e.target.value as NoteKind)}
-                    aria-label="What kind of thing the note is about"
-                    className="bg-transparent border-none px-0 py-0 text-[10px] font-sans text-muted-foreground focus:outline-none cursor-pointer"
-                  >
-                    {NOTE_KINDS.map((k) => (
-                      <option key={k} value={k}>
-                        {k}
-                      </option>
-                    ))}
-                  </select>
+                    onValueChange={(v) => setAboutKind(v as NoteKind)}
+                    options={NOTE_KINDS.map((k) => ({ value: k, label: k }))}
+                    ariaLabel="What kind of thing the note is about"
+                    triggerClassName="!text-[10px]"
+                  />
                   <span className="text-[10px] text-muted-foreground/60" aria-hidden>
                     ·
                   </span>
