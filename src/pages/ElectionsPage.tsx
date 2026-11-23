@@ -533,7 +533,8 @@ function Timeline({ data, today, regimeInk, turning, country }: { data: History;
   const lastElection = data.elections.length ? yearOf(data.elections[data.elections.length - 1].date) : year;
   const maxY = Math.max(year + 1, lastElection + 1);
   /* The period looked at: all of it, or from a year on - each offered only where the record reaches further back. */
-  // "All" is every record, back to the earliest turning point; the country's own records' first year where it is later; the last 25 years open it, as asked.
+  // "All" is every record, back to the earliest turning point; the country's own records' first year where it is later. "All"
+  // opens it now, as asked (the last 25 years did); it follows the turning points, which are read after the rest.
   const presets = (
     [
       ["All", minY],
@@ -544,8 +545,8 @@ function Timeline({ data, today, regimeInk, turning, country }: { data: History;
       ["Last 25 years", year - 25],
     ] as const
   ).filter(([, y], i, all) => i === 0 || (y > minY && all.findIndex(([, z]) => z === y) === i));
-  const [from, setFrom] = useState(year - 25);
-  useEffect(() => setFrom(year - 25), [coreY, year]);
+  const [from, setFrom] = useState(minY);
+  useEffect(() => setFrom(minY), [minY]);
   const y0 = from;
   const y1 = maxY;
   const [tip, setTip] = useState<Tip | null>(null);
