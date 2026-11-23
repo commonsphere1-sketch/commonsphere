@@ -9076,8 +9076,9 @@ export function CountriesPage() {
           ))}
         </div>
 
-        {/* ── COUNTRIES YOU FOLLOW ── */}
+        {/* ── COUNTRIES YOU FOLLOW: on a bar at the foot of the screen, as on the States page, folded until opened ── */}
         <FollowedPlaces
+          dock
           types={["country"]}
           title="Countries you follow"
           emptyText="Follow a country with the ☆ on its card or in its pop-up and it stays here, with its key figures and anything that changes in a data update since you last looked. The same list is in My Notes."

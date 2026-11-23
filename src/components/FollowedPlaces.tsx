@@ -1,6 +1,6 @@
-import type { ReactNode } from "react";
+import { useEffect, useRef, useState, type ReactNode } from "react";
 import { useNavigate } from "react-router-dom";
-import { Star } from "@phosphor-icons/react";
+import { CaretDown, CaretLeft, CaretRight, CaretUp, Star } from "@phosphor-icons/react";
 import { useWatchlist, type WatchItem } from "@/contexts/WatchlistContext";
 import { useAuth } from "@/contexts/AuthContext";
 import { lookup, type EntityType } from "@/lib/watchlist";
@@ -35,6 +35,15 @@ const PARTY: Record<USState["party"], { tone: string; short: string }> = {
 };
 
 const pct = (v: number, signed = false) => `${signed && v > 0 ? "+" : ""}${Number(v.toFixed(2))}%`;
+
+/** A followed place's flag: the country's, or the state's. */
+function flagFor(item: WatchItem): string | null {
+  const hit = lookup(item.type, item.id);
+  if (!hit) return null;
+  return item.type === "country"
+    ? `https://flagcdn.com/w40/${(hit.record as Country).code.toLowerCase()}.png`
+    : `https://flagcdn.com/w40/us-${item.id}.png`;
+}
 
 function countryFigures(c: Country): [string, string][] {
   const out: [string, string][] = [];
@@ -77,9 +86,7 @@ function FollowedCard({
   if (!hit) return null;
   const country = item.type === "country" ? (hit.record as Country) : null;
   const state = item.type === "state" ? (hit.record as USState) : null;
-  const flag = country
-    ? `https://flagcdn.com/w40/${country.code.toLowerCase()}.png`
-    : `https://flagcdn.com/w40/us-${item.id}.png`;
+  const flag = flagFor(item) ?? "";
   const figures = country ? countryFigures(country) : stateFigures(state!);
   const kind = country ? (country.territory ? "Territory" : "Country") : "US state";
   const where = country
@@ -180,12 +187,174 @@ function FollowedCard({
   );
 }
 
+const DOCK_KEY = "cs-followed-dock-open";
+
+/**
+ * The places followed, on a bar at the foot of the screen, as asked: folded to a small pill - the count, the flags,
+ * how many have changed - until the reader chooses to revisit them; opened, the cards stand in one row that scrolls
+ * sideways (the wheel, the arrows or a drag of the bar). It keeps clear of the side menu, whatever its width, and of
+ * the notes button in the corner. Open or folded is remembered in this browser.
+ */
+function FollowedDock({
+  headingId,
+  title,
+  items,
+  saved,
+  checked,
+  children,
+}: {
+  headingId: string;
+  title: string;
+  items: WatchItem[];
+  saved: ReactNode;
+  checked: string | null;
+  children: ReactNode;
+}) {
+  const [open, setOpen] = useState(() => {
+    try {
+      return localStorage.getItem(DOCK_KEY) === "1";
+    } catch {
+      return false;
+    }
+  });
+  const show = (v: boolean) => {
+    setOpen(v);
+    try {
+      localStorage.setItem(DOCK_KEY, v ? "1" : "0");
+    } catch {
+      /* not kept: the bar still opens and folds */
+    }
+  };
+  const row = useRef<HTMLDivElement>(null);
+  const [edge, setEdge] = useState({ left: false, right: false });
+
+  useEffect(() => {
+    const el = row.current;
+    if (!open || !el) return;
+    const measure = () =>
+      setEdge({ left: el.scrollLeft > 2, right: el.scrollLeft + el.clientWidth < el.scrollWidth - 2 });
+    // The wheel turned over the row scrolls it sideways, until it reaches an end.
+    const wheel = (e: WheelEvent) => {
+      if (Math.abs(e.deltaX) >= Math.abs(e.deltaY)) return;
+      const atStart = el.scrollLeft <= 0;
+      const atEnd = el.scrollLeft + el.clientWidth >= el.scrollWidth - 1;
+      if ((e.deltaY < 0 && atStart) || (e.deltaY > 0 && atEnd)) return;
+      e.preventDefault();
+      el.scrollLeft += e.deltaY;
+    };
+    measure();
+    el.addEventListener("scroll", measure, { passive: true });
+    el.addEventListener("wheel", wheel, { passive: false });
+    const ro = new ResizeObserver(measure);
+    ro.observe(el);
+    return () => {
+      el.removeEventListener("scroll", measure);
+      el.removeEventListener("wheel", wheel);
+      ro.disconnect();
+    };
+  }, [open, items.length]);
+
+  const step = (dir: 1 | -1) => {
+    const el = row.current;
+    if (el) el.scrollBy({ left: dir * Math.max(272, el.clientWidth * 0.8), behavior: "smooth" });
+  };
+  const updated = items.filter((i) => i.changes.length > 0).length;
+  // Within the page beside the side menu (its width is --side, set by the layout); clear of the notes button at right.
+  const place = "fixed bottom-0 left-0 right-0 md:left-[var(--side,3.5rem)] z-30 pointer-events-none transition-[left] duration-300";
+
+  if (!open)
+    return (
+      <div className={`${place} flex justify-center px-16 pb-4`}>
+        <button
+          type="button"
+          onClick={() => show(true)}
+          aria-expanded={false}
+          aria-label={`Show the ${title.toLowerCase()}: ${items.length}`}
+          className="pointer-events-auto modal-glass border rounded-full shadow-lg pl-3 pr-2.5 py-1.5 flex items-center gap-2 min-w-0 max-w-full hover:border-secondary/40 transition-colors cursor-pointer"
+        >
+          <Star size={12} weight="fill" className="text-amber-500 shrink-0" />
+          <span className="text-[10px] font-bold font-sans uppercase tracking-widest text-foreground truncate">{title}</span>
+          <span className="text-[10px] font-mono text-muted-foreground shrink-0">{items.length}</span>
+          <span className="hidden sm:flex items-center -space-x-1 shrink-0" aria-hidden>
+            {items.slice(0, 6).map((i) => {
+              const f = flagFor(i);
+              return f ? (
+                <img key={i.key} src={f} alt="" className="w-5 h-3.5 rounded-[2px] object-cover border border-border" />
+              ) : null;
+            })}
+          </span>
+          {updated > 0 && (
+            <span className="text-[10px] font-sans text-secondary shrink-0">{updated} updated</span>
+          )}
+          <CaretUp size={11} weight="bold" className="text-muted-foreground shrink-0" />
+        </button>
+      </div>
+    );
+
+  return (
+    <section aria-labelledby={headingId} className={`${place} pl-3 sm:pl-4 pr-16 pb-3`}>
+      <div className="pointer-events-auto modal-glass border rounded-2xl shadow-2xl p-3 animate-fade-in">
+        <div className="flex flex-wrap items-center gap-x-3 gap-y-1 mb-2.5">
+          <h2
+            id={headingId}
+            className="flex items-center gap-2 text-xs font-bold font-sans uppercase tracking-widest text-foreground"
+          >
+            <Star size={13} weight="fill" className="text-amber-500" />
+            {title}
+            <span className="text-[10px] font-mono font-normal normal-case tracking-normal text-muted-foreground">
+              {items.length}
+            </span>
+          </h2>
+          <p className="text-[10px] font-sans text-muted-foreground min-w-0">
+            {saved}
+            {checked && <> · figures checked against their sources twice a day, last {checked}</>}
+          </p>
+          <div className="ml-auto flex items-center gap-1">
+            <button
+              type="button"
+              onClick={() => step(-1)}
+              disabled={!edge.left}
+              aria-label="Scroll back"
+              className="p-1 rounded-full text-muted-foreground hover:text-foreground disabled:opacity-30 disabled:cursor-default cursor-pointer"
+            >
+              <CaretLeft size={13} weight="bold" />
+            </button>
+            <button
+              type="button"
+              onClick={() => step(1)}
+              disabled={!edge.right}
+              aria-label="Scroll on"
+              className="p-1 rounded-full text-muted-foreground hover:text-foreground disabled:opacity-30 disabled:cursor-default cursor-pointer"
+            >
+              <CaretRight size={13} weight="bold" />
+            </button>
+            <button
+              type="button"
+              onClick={() => show(false)}
+              aria-expanded
+              aria-label={`Fold the ${title.toLowerCase()} away`}
+              title="Fold away"
+              className="p-1 rounded-full text-muted-foreground hover:text-foreground cursor-pointer"
+            >
+              <CaretDown size={13} weight="bold" />
+            </button>
+          </div>
+        </div>
+        <div ref={row} className="flex gap-3 overflow-x-auto pb-1">
+          {children}
+        </div>
+      </div>
+    </section>
+  );
+}
+
 export function FollowedPlaces({
   types,
   title,
   emptyText,
   onOpen,
   match,
+  dock = false,
   className = "mb-6",
 }: {
   /** Which kinds of place to show. */
@@ -197,6 +366,8 @@ export function FollowedPlaces({
   onOpen?: (type: EntityType, id: string) => void;
   /** Optional name filter, for a page with its own search box. */
   match?: (name: string) => boolean;
+  /** On a bar at the foot of the screen, folded until opened, in place of a card in the page; nothing while none is followed. */
+  dock?: boolean;
   className?: string;
 }) {
   const watch = useWatchlist();
@@ -208,6 +379,41 @@ export function FollowedPlaces({
   const headingId = `followed-${types.join("-")}`;
   const open = (item: WatchItem) =>
     onOpen ? onOpen(item.type, item.id) : navigate(`${PAGE[item.type]}?open=${encodeURIComponent(item.id)}`);
+
+  if (dock) {
+    if (shown.length === 0) return null;
+    return (
+      <FollowedDock
+        headingId={headingId}
+        title={title}
+        items={shown}
+        saved={
+          watch.mode === "account" ? (
+            "Saved to your account"
+          ) : isConfigured ? (
+            <>
+              Saved in this browser ·{" "}
+              <button onClick={() => openAuth("signin")} className="underline hover:text-foreground">
+                sign in
+              </button>{" "}
+              to keep them on every device
+            </>
+          ) : (
+            "Saved in this browser"
+          )
+        }
+        checked={
+          lastChecked
+            ? lastChecked.toLocaleString("en-GB", { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" })
+            : null
+        }
+      >
+        {shown.map((item) => (
+          <FollowedCard key={item.key} item={item} showType={types.length > 1} onOpen={open} />
+        ))}
+      </FollowedDock>
+    );
+  }
 
   return (
     <section aria-labelledby={headingId} className={`bg-card border border-border rounded-2xl p-4 ${className}`}>

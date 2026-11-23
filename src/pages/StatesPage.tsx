@@ -7275,8 +7275,9 @@ export function StatesPage() {
         {/* US National Banner */}
         <USNationalBanner />
 
-        {/* States you follow */}
+        {/* States you follow: on a bar at the foot of the screen, as asked, folded until the reader opens it. */}
         <FollowedPlaces
+          dock
           types={["state"]}
           title="States you follow"
           emptyText="Follow a state with the ☆ on its card or in its pop-up and it stays here, with its key figures and anything that changes in a data update since you last looked - a new governor, a new minimum wage, a revised unemployment rate. The same list is in My Notes."

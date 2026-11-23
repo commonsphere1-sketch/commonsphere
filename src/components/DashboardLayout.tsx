@@ -37,7 +37,11 @@ export function DashboardLayout() {
   }, [pathname]); // eslint-disable-line react-hooks/exhaustive-deps
 
   return (
-    <div className="min-h-screen bg-background text-foreground flex flex-col">
+    <div
+      className="min-h-screen bg-background text-foreground flex flex-col"
+      // The side menu's width, for what is fixed to the screen beside it (the bar of followed places).
+      style={{ ["--side" as string]: sidebarOpen ? "11rem" : "3.5rem" } as React.CSSProperties}
+    >
       <HeaderNav
         onMenuToggle={() => setMobileSidebarOpen((v) => !v)}
         mobileSidebarOpen={mobileSidebarOpen}
