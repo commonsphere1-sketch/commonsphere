@@ -573,10 +573,6 @@ function CountryDetail({ t, c, all, onOpen }: { t: Tokens; c: Country; all: Coun
   const income = INCOME_GROUPS.find((g) => g.id === INCOME_OF[c.code]);
   const standing = ranks.gdp || ranks.population || ranks.gdpPerCapita || region || income;
 
-  const sectorYear = yr("keyIndustries");
-  const first = c.trends?.[0];
-  const last = c.trends?.[c.trends.length - 1];
-
   // The site's own composite, shown only when all four of its figures are published.
   const score =
     has(c.humanDevelopmentIndex) && has(c.gdpGrowth) && has(c.inflationRate) && has(c.unemploymentRate)
@@ -693,65 +689,8 @@ function CountryDetail({ t, c, all, onOpen }: { t: Tokens; c: Country; all: Coun
         </Block>
       )}
 
-      {c.trends && c.trends.length > 1 && first && last && (
-        <Block>
-          <Label t={t}>
-            GDP · current US$ · {first.year}–{last.year}
-          </Label>
-          <div role="img" aria-label={`GDP of ${c.name}, ${first.year} to ${last.year}: ${gdpShort(first.gdp)} to ${gdpShort(last.gdp)}.`}>
-            <ResponsiveContainer width="100%" height={84}>
-              <AreaChart data={c.trends} margin={{ top: 4, right: 2, left: -18, bottom: 0 }}>
-                <defs>
-                  <linearGradient id={`explorerCountry-${c.id}`} x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="0%" stopColor="#6366f1" stopOpacity={0.35} />
-                    <stop offset="100%" stopColor="#6366f1" stopOpacity={0} />
-                  </linearGradient>
-                </defs>
-                <CartesianGrid stroke={t.gridLine} vertical={false} />
-                <XAxis dataKey="year" tick={{ fontSize: 8, fill: t.mutedText, fontFamily: "monospace" }} axisLine={false} tickLine={false} />
-                <YAxis
-                  tick={{ fontSize: 8, fill: t.mutedText, fontFamily: "monospace" }}
-                  axisLine={false}
-                  tickLine={false}
-                  tickFormatter={(v: number) => (v === 0 ? "$0" : v >= 1000 ? `$${Number((v / 1000).toFixed(1))}T` : gdpShort(v))}
-                />
-                <Tooltip {...tooltipStyle(t)} formatter={(v: number) => [gdpShort(v), "GDP"]} />
-                <Area type="monotone" dataKey="gdp" stroke="#6366f1" fill={`url(#explorerCountry-${c.id})`} strokeWidth={1.5} dot={false} isAnimationActive={false} />
-              </AreaChart>
-            </ResponsiveContainer>
-          </div>
-          <div className="flex flex-wrap gap-1">
-            {[first, last].map((p, i) => (
-              <span key={p.year} className="rounded-md px-1.5 py-0.5 text-[10px] font-mono" style={{ background: t.tile, border: `1px solid ${t.gridLine}` }}>
-                <span style={{ color: t.mutedText }}>{i === 0 ? "Began" : "Latest"}</span> <span style={{ color: t.headText }}>{gdpShort(p.gdp)}</span> <span style={{ color: t.mutedText }}>· {p.year}</span>
-              </span>
-            ))}
-          </div>
-        </Block>
-      )}
-
-      {c.keyIndustries && c.keyIndustries.length > 0 && (
-        <Block>
-          <Label t={t}>What its economy is made of · share of GDP{sectorYear ? ` · ${sectorYear}` : ""}</Label>
-          <div className="flex flex-col gap-1.5">
-            {c.keyIndustries.slice(0, 5).map((ind) => (
-              <div key={ind.name} className="flex items-center gap-2">
-                <span className="w-1.5 h-1.5 rounded-full shrink-0" style={{ background: ind.color }} />
-                <span className="text-[10px] font-sans truncate flex-1" style={{ color: t.headText }}>
-                  {ind.name}
-                </span>
-                <span className="w-16 h-1.5 rounded-full overflow-hidden" style={{ background: SLIM_TRACK }}>
-                  <span className="block h-full rounded-full" style={{ width: `${ind.gdpShare}%`, background: slimFill(ind.color) }} />
-                </span>
-                <span className="text-[10px] font-mono w-9 text-right shrink-0" style={{ color: t.headText }}>
-                  {ind.gdpShare}%
-                </span>
-              </div>
-            ))}
-          </div>
-          <SourceLink sources={distinct([src("keyIndustries")])} />
-        </Block>
-      )}
+      {/* Its GDP year by year (a chart, with where it began and its latest) and what its economy is made of (each sector's
+          share of GDP) stood here; both were taken off, as asked. */}
 
       <Block>
       <div style={{ borderTop: `1px solid ${t.gridLine}` }} />
