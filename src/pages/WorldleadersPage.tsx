@@ -72,7 +72,7 @@ type Ideology =
   | "Monarchy";
 type Status = "In Office" | "Incumbent (Disputed)" | "Transitional" | "Former";
 
-interface Leader {
+export interface Leader {
   id: string;
   name: string;
   country: string;
@@ -102,7 +102,7 @@ interface Leader {
 }
 
 // ── Data ──────────────────────────────────────────────────────────────────────
-const LEADERS: Leader[] = [
+export const LEADERS: Leader[] = [
   {
     id: "trump",
     name: "Donald Trump",
@@ -16060,6 +16060,14 @@ function MonarchCard({
             {monarch.successionOrder}
           </p>
         </div>
+        {/* Followed with a star, as a leader is, as asked: kept in this browser, and on the bar of what is followed. */}
+        <FollowStar
+          id={`monarch:${monarch.id}`}
+          name={monarch.name}
+          to={`/dashboard/world-leaders?monarch=${monarch.id}`}
+          sub={`${monarch.title} · ${monarch.country}`}
+          flag={monarch.countryCode}
+        />
       </div>
     </button>
   );
@@ -16091,6 +16099,14 @@ function MonarchDetail({
         <div className="p-6">
           {/* Its name and the window's buttons: one bar across the top of the window, in sight as it is scrolled - the same in every window of the site. */}
           <WindowTitle title={monarch.name} where={monarch.country}>
+            <FollowStar
+              where="window"
+              id={`monarch:${monarch.id}`}
+              name={monarch.name}
+              to={`/dashboard/world-leaders?monarch=${monarch.id}`}
+              sub={`${monarch.title} · ${monarch.country}`}
+              flag={monarch.countryCode}
+            />
             <button
               onClick={() => setIsExpanded((v) => !v)}
               className="p-2 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted/60 transition-colors cursor-pointer"
@@ -17315,6 +17331,7 @@ function AllianceModal({
         <div className="p-6">
           {/* Its name and the window's buttons: one bar across the top of the window, in sight as it is scrolled - the same in every window of the site. */}
           <WindowTitle title={alliance.short}>
+            <FollowStar where="window" id={`alliance:${alliance.id}`} name={alliance.short} to={`/dashboard/world-leaders?alliance=${alliance.id}`} sub={alliance.name} />
             <button
               onClick={() => setIsExpanded((v) => !v)}
               className="p-2 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted/60 transition-colors cursor-pointer"
@@ -17460,11 +17477,17 @@ function AllianceModal({
 
 // ── AlliancesView ─────────────────────────────────────────────────────────────
 /** Alliances, blocs and international agencies (data/alliances.ts). */
-function AlliancesView() {
+function AlliancesView({ openAt }: { openAt?: { id: string; n: number } | null }) {
   const [kind, setKind] = useState<"All" | AllianceKind>("All");
   const [query, setQuery] = useState("");
   const [open, setOpen] = useState<string | null>(null);
   const [detail, setDetail] = useState<Alliance | null>(null);
+  // A link to one (?alliance=<id>, the bar of what is followed): its window opens. Matched against the list only.
+  React.useEffect(() => {
+    if (!openAt) return;
+    const found = ALLIANCES.find((a) => a.id === openAt.id);
+    if (found) setDetail(found);
+  }, [openAt]);
   const byCode = useMemo(() => new Map(countriesData.map((c) => [c.code, c])), []);
 
   const kinds: ("All" | AllianceKind)[] = ["All", "Security alliance", "Political & regional bloc", "Economic & trade bloc", "International agency", "Human rights body"];
@@ -17531,8 +17554,10 @@ function AlliancesView() {
                   <p className="text-sm font-bold font-sans text-foreground">{a.short}</p>
                   <p className="text-xs text-muted-foreground font-sans">{a.name}</p>
                 </div>
-                <span className="shrink-0 text-[10px] font-sans px-2 py-0.5 rounded-full border border-border text-muted-foreground">
-                  {a.kind}
+                <span className="shrink-0 flex items-center gap-2">
+                  <span className="text-[10px] font-sans px-2 py-0.5 rounded-full border border-border text-muted-foreground">{a.kind}</span>
+                  {/* Followed with a star, as a leader is, as asked: kept in this browser, and on the bar of what is followed. */}
+                  <FollowStar id={`alliance:${a.id}`} name={a.short} to={`/dashboard/world-leaders?alliance=${a.id}`} sub={a.name} />
                 </span>
               </div>
               <div className="flex flex-wrap gap-x-4 gap-y-1 text-[11px] font-sans text-muted-foreground mb-3">
@@ -17790,11 +17815,30 @@ export function WorldLeadersPage() {
      address is tidied through the router so the same link works a second time. */
   const location = useLocation();
   const goTo = useNavigate();
+  /* ?monarch=<id> and ?alliance=<id> open a monarch's and an alliance's window the same way, in their own view - the links
+     the bar of what is followed makes. Each value is only ever matched against its list. */
+  const [allianceAt, setAllianceAt] = useState<{ id: string; n: number } | null>(null);
   React.useEffect(() => {
-    const open = new URLSearchParams(location.search).get("open");
-    if (!open) return;
-    const found = LEADERS.find((l) => l.id === open);
-    if (found) setSelected(found);
+    const q = new URLSearchParams(location.search);
+    const open = q.get("open");
+    const monarch = q.get("monarch");
+    const alliance = q.get("alliance");
+    if (!open && !monarch && !alliance) return;
+    if (open) {
+      const found = LEADERS.find((l) => l.id === open);
+      if (found) setSelected(found);
+    }
+    if (monarch) {
+      const found = ROYAL_FAMILIES.find((m) => m.id === monarch);
+      if (found) {
+        setViewMode("monarchies");
+        setSelectedMonarch(found);
+      }
+    }
+    if (alliance && ALLIANCES.some((a) => a.id === alliance)) {
+      setViewMode("alliances");
+      setAllianceAt({ id: alliance, n: Date.now() });
+    }
     goTo(location.pathname, { replace: true });
   }, [location.search, location.pathname, goTo]);
   React.useEffect(() => {
@@ -17972,7 +18016,7 @@ export function WorldLeadersPage() {
         </div>
 
         {/* ── Alliances & International Agencies View ── */}
-        {viewMode === "alliances" && <AlliancesView />}
+        {viewMode === "alliances" && <AlliancesView openAt={allianceAt} />}
 
         {/* Monarchies View */}
         {viewMode === "monarchies" && (

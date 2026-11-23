@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState, type ReactNode } from "react";
 import { useNavigate } from "react-router-dom";
-import { Buildings, CaretDown, CaretLeft, CaretRight, CaretUp, City, CurrencyDollar, Star, User } from "@phosphor-icons/react";
+import { Buildings, CaretDown, CaretLeft, CaretRight, CaretUp, City, CurrencyDollar, Handshake, Star, User } from "@phosphor-icons/react";
 import { useWatchlist, type WatchItem } from "@/contexts/WatchlistContext";
 import { useAuth } from "@/contexts/AuthContext";
 import { lookup, type EntityType } from "@/lib/watchlist";
@@ -13,6 +13,7 @@ import { TONE } from "@/lib/chipTone";
 import { useLiveStatus } from "@/lib/liveFigures";
 import { useFollowedCities, type FollowedAbout } from "@/lib/followedCities";
 import { followedFallback, followedKind, followedLink } from "@/lib/noteKinds";
+import { useSavedFacts } from "@/lib/savedDetails";
 
 /**
  * The countries and states the reader follows, as cards: each with its key
@@ -192,8 +193,8 @@ export function FollowedCard({
 const DOCK_KEY = "cs-followed-dock-open";
 
 /** The kinds of thing the bar holds, in its order, each a filter of its own. */
-type Kind = "Countries" | "States" | "Cities & municipalities" | "Leaders" | "Economies";
-const KINDS: Kind[] = ["Countries", "States", "Cities & municipalities", "Leaders", "Economies"];
+type Kind = "Countries" | "States" | "Cities & municipalities" | "Leaders" | "Alliances" | "Economies";
+const KINDS: Kind[] = ["Countries", "States", "Cities & municipalities", "Leaders", "Alliances", "Economies"];
 
 /** One thing followed: a country or state of the watch list, or what a star keeps in this browser. */
 type Saved = {
@@ -207,14 +208,18 @@ type Saved = {
 
 function localKind(id: string): Kind {
   const k = followedKind(id);
-  return k === "Leader" ? "Leaders" : k === "Economy" ? "Economies" : "Cities & municipalities";
+  return k === "Leader" ? "Leaders" : k === "Alliance" ? "Alliances" : k === "Economy" ? "Economies" : "Cities & municipalities";
 }
 
-/** A thing a star keeps in this browser - a city, a municipality, a leader, an economy - as a card of the bar: its flag or
- *  its kind's mark, its name, the line kept with it (a leader's office and country), and its kind. The whole card opens it. */
+/** A thing a star keeps in this browser - a city, a municipality, a leader or monarch, an alliance, an economy - as a card of
+ *  the bar: its flag or its kind's mark, its name, the line kept with it (a leader's office and country), its details as the
+ *  site's data gives them now (lib/savedDetails - office, term, party; GDP, growth, inflation; members, founded), as asked,
+ *  and its kind. The whole card opens it. */
 function SavedCard({ s, onOpen, onUnfollow }: { s: Saved; onOpen: () => void; onUnfollow: () => void }) {
   const kind = followedKind(s.local!.id);
-  const Mark = kind === "Leader" ? User : kind === "Economy" ? CurrencyDollar : kind === "City" ? City : Buildings;
+  const Mark = kind === "Leader" ? User : kind === "Alliance" ? Handshake : kind === "Economy" ? CurrencyDollar : kind === "City" ? City : Buildings;
+  const facts = useSavedFacts(s.local!.id);
+  const monarch = s.local!.id.startsWith("monarch:");
   return (
     <div className="group relative modal-tile rounded-xl p-3 w-64 shrink-0 flex flex-col gap-2.5 transition-colors hover:bg-muted/40 hover:border-secondary/40 focus-within:ring-2 focus-within:ring-ring">
       {s.local!.to && (
@@ -249,8 +254,20 @@ function SavedCard({ s, onOpen, onUnfollow }: { s: Saved; onOpen: () => void; on
           <Star size={14} weight="fill" />
         </button>
       </div>
+      {facts && facts.length > 0 && (
+        <dl className="grid grid-cols-2 gap-x-3 gap-y-2">
+          {facts.slice(0, 6).map(([k, v]) => (
+            <div key={k} className="min-w-0">
+              <dt className="text-[10px] font-sans text-muted-foreground truncate">{k}</dt>
+              <dd className="text-xs font-mono font-semibold text-foreground truncate" title={v}>
+                {v}
+              </dd>
+            </div>
+          ))}
+        </dl>
+      )}
       <p className="mt-auto pt-2 border-t border-border/60 text-[10px] font-sans text-muted-foreground">
-        {kind} · kept in this browser{s.local!.to ? "" : " · open it from its country's page"}
+        {monarch ? "Monarch" : kind} · kept in this browser{s.local!.to ? "" : " · open it from its country's page"}
       </p>
     </div>
   );

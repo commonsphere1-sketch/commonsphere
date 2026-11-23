@@ -14,7 +14,8 @@
  * the Compare page or the Dashboard's Compare card, it names the places and
  * keeps a link that opens the same comparison again (comparisonNote).
  */
-export const NOTE_KINDS = ["Country", "State", "Municipality", "City", "Economy", "Leader", "Policy", "Comparison", "Page"] as const;
+/* "Alliance": an alliance, bloc or international agency, followed from the World Leaders page, as asked. */
+export const NOTE_KINDS = ["Country", "State", "Municipality", "City", "Economy", "Leader", "Alliance", "Policy", "Comparison", "Page"] as const;
 export type NoteKind = (typeof NOTE_KINDS)[number];
 
 /** A note's name holds at most this many characters, as the notes table allows. */
@@ -70,13 +71,16 @@ export function sectionOf(pathname: string) {
 
 /** What kind of place a followed id is, from the id's own form. */
 export function followedKind(id: string): NoteKind {
-  if (id.startsWith("leader:")) return "Leader";
+  if (id.startsWith("leader:") || id.startsWith("monarch:")) return "Leader";
+  if (id.startsWith("alliance:")) return "Alliance";
   if (id.startsWith("economy:")) return "Economy";
   return /^(division|county|district|place):/.test(id) ? "Municipality" : "City";
 }
 /** Where a followed place opens, where its id alone says: a town's needs its country too, which the star keeps with its name. */
 export function followedLink(id: string): string | null {
   if (id.startsWith("leader:")) return `/dashboard/world-leaders?open=${encodeURIComponent(id.slice(7))}`;
+  if (id.startsWith("monarch:")) return `/dashboard/world-leaders?monarch=${encodeURIComponent(id.slice(8))}`;
+  if (id.startsWith("alliance:")) return `/dashboard/world-leaders?alliance=${encodeURIComponent(id.slice(9))}`;
   if (id.startsWith("economy:")) return `/dashboard/economies?open=${encodeURIComponent(id.slice(8))}`;
   if (id.startsWith("division:")) return `/dashboard/subnations?open=${encodeURIComponent(id.slice(9))}`;
   if (id.startsWith("county:") || id.startsWith("district:")) return `/dashboard/subnations?open=${encodeURIComponent(id)}`;
@@ -85,5 +89,5 @@ export function followedLink(id: string): string | null {
 }
 /** What a followed place is called where its name was not kept: the kind its id shows. */
 export function followedFallback(id: string): string {
-  return id.startsWith("leader:") ? "A leader" : id.startsWith("economy:") ? "An economy" : id.startsWith("division:") ? "A division" : id.startsWith("county:") ? "A county" : id.startsWith("district:") ? "A district" : id.startsWith("place:") ? "A town or village" : "A city";
+  return id.startsWith("leader:") ? "A leader" : id.startsWith("monarch:") ? "A monarch" : id.startsWith("alliance:") ? "An alliance" : id.startsWith("economy:") ? "An economy" : id.startsWith("division:") ? "A division" : id.startsWith("county:") ? "A county" : id.startsWith("district:") ? "A district" : id.startsWith("place:") ? "A town or village" : "A city";
 }
