@@ -419,11 +419,13 @@ function GeographySection({ country }: { country: Country }) {
             </div>
           ))}
       </div>
-      <dl className="modal-tile rounded-xl p-4 space-y-2.5">
+      {/* A line between each row and the next, as asked - the site's border colour, in either theme (--figline, the
+          figure rows' line, is too faint to see in the light theme; the token takes no /opacity, being a plain var). */}
+      <dl className="modal-tile rounded-xl px-4 py-1.5 divide-y divide-border">
         {rows
           .filter(([, v]) => v)
           .map(([label, value]) => (
-            <div key={label} className="grid grid-cols-[7rem_1fr] gap-3">
+            <div key={label} className="grid grid-cols-[7rem_1fr] gap-3 py-2.5">
               <dt className="text-[10px] font-semibold font-sans text-muted-foreground uppercase tracking-wider pt-0.5">
                 {label}
               </dt>
