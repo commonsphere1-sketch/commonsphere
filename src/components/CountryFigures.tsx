@@ -38,7 +38,7 @@ import { COUNTRY_INDEXES, INDEX_DEFS } from "../data/countryIndexes";
 import { COUNTRY_UN, COUNTRY_UN_SOURCES, UN_GROUPS } from "../data/countryUn";
 import { LAND_USE, LAND_USE_SOURCE } from "../data/landUse";
 import { COUNTRY_TAX, COUNTRY_TAX_SOURCES } from "../data/countryTax";
-import { JUSTICE_PROCESS, JUSTICE_SOURCES, LEGAL_SYSTEMS } from "../data/justice";
+import { JUSTICE_SOURCES, LEGAL_SYSTEMS } from "../data/justice";
 import { COUNTRY_PEOPLE, COUNTRY_PEOPLE_SOURCES, type Shares as PeopleShares } from "../data/countryPeople";
 import { economyForCountry } from "../data/economiesData";
 import { COUNTRY_REFERENCE } from "../data/countryReference";
@@ -374,8 +374,6 @@ export default function CountryFigures({ code, name }: { code: string; name: str
   const crime = pick(COUNTRY_CRIME, code);
   const prison = pick(PRISON_RATES, code);
   const security = pick(PUBLIC_SECURITY, code);
-  const justiceKey = Object.keys(JUSTICE_PROCESS).find((k) => k === code.toLowerCase() || k.startsWith(`${code.toLowerCase()}_`));
-  const justice = justiceKey ? JUSTICE_PROCESS[justiceKey] : undefined;
   const legal = pick(LEGAL_SYSTEMS, code);
   const military = pick(MILITARY_MEASURED, code);
   // How its people work, as the ILO counts it: from the country's own surveys and records.
@@ -980,51 +978,8 @@ export default function CountryFigures({ code, name }: { code: string; name: str
             <None t={t}>No governance scores are held for {name}.</None>
           )}
         </Panel>
-        <Panel t={t} title="Through the courts" meta={justice ? `UNODC · ${justice.y}` : undefined} className="sm:!basis-full md:!basis-full xl:!basis-full">
-          {justice ? (
-            <>
-              <Bars
-                t={t}
-                wide
-                rows={(
-                  [
-                    ["suspected", "Suspected or arrested"],
-                    ["prosecuted", "Prosecuted"],
-                    ["courts", "Brought before the courts"],
-                    ["convicted", "Convicted"],
-                  ] as const
-                ).flatMap(([k, label]) => {
-                  const v = justice[k];
-                  const top = Math.max(justice.suspected ?? 0, justice.prosecuted ?? 0, justice.courts ?? 0, justice.convicted ?? 0) || 1;
-                  return v !== undefined ? [{ label, text: big(v), share: (v / top) * 100 }] : [];
-                })}
-              />
-              <Note t={t}>People counted at each stage in a year, as UNODC gathers them. The stages are counted apart and need not narrow.</Note>
-              <Foot sources={[JUSTICE_SOURCES.unodc]} />
-            </>
-          ) : (
-            <None t={t}>No counts of the courts are held for {name}.</None>
-          )}
-        </Panel>
-        <Panel t={t} title="Conflict and refuge" meta={security?.conflict ? `${security.conflict.y}` : undefined}>
-          {security?.conflict || security?.refugeesFrom || security?.refugeesHosted || security?.newDisplacements ? (
-            <>
-              <Tiles
-                t={t}
-                items={[
-                  ...(security.conflict ? [{ label: "Deaths in armed conflict", text: big(security.conflict.stateBased + security.conflict.nonState + security.conflict.oneSided), y: security.conflict.y }] : []),
-                  ...(security.refugeesFrom ? [{ label: "Refugees who have left", text: big(security.refugeesFrom.v), y: security.refugeesFrom.y }] : []),
-                  ...(security.refugeesHosted ? [{ label: "Refugees it hosts", text: big(security.refugeesHosted.v), y: security.refugeesHosted.y }] : []),
-                  ...(security.newDisplacements ? [{ label: "Newly displaced at home", text: big(security.newDisplacements.v), y: security.newDisplacements.y }] : []),
-                ]}
-              />
-              {security.conflict && <Note t={t}>Conflict deaths summed here from Uppsala's three kinds: between states and groups, between groups, and against civilians.</Note>}
-              <Foot sources={[security.conflict ? PUBLIC_SECURITY_SOURCES.ucdp : undefined, security.refugeesFrom || security.refugeesHosted ? PUBLIC_SECURITY_SOURCES.unhcr : undefined, security.newDisplacements ? PUBLIC_SECURITY_SOURCES.idmc : undefined]} />
-            </>
-          ) : (
-            <None t={t}>No figures of conflict or refuge are held for {name}.</None>
-          )}
-        </Panel>
+        {/* "Through the courts" (UNODC's counts at each stage of justice) and "Conflict and refuge" (Uppsala's conflict deaths,
+            UNHCR's refugees, IDMC's displacement) stood here and were taken off, as asked. */}
         <Panel t={t} title="Its law" meta="legal system, and what is illegal, restricted and legal" className="sm:!basis-full md:!basis-full xl:!basis-full">
           {/* The UK Foreign Office's "What's legal" list stood here under the longer one; it was taken off, as asked (AdviceLists, in LawAdvice). */}
           {legal ? (
