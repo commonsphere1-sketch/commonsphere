@@ -500,7 +500,10 @@ export function HeaderNav({ onMenuToggle, mobileSidebarOpen }: HeaderNavProps) {
         {watched.length > 0 && (
           <button
             onClick={() => navigate("/dashboard/settings#alert-subscriptions")}
-            className="header-action-icon relative p-2 text-primary-foreground hover:text-secondary transition-colors duration-150 rounded-md"
+            // Lit when pointed at as the theme button beside it is, as asked: ROW_GLOW in the theme's ink, a round button,
+            // the icon keeping its ink (.header-glow).
+            className={`header-action-icon header-glow relative p-2 rounded-full ${ROW_GLOW}`}
+            style={{ "--row": theme === "dark" ? "#ffffff" : "#0f172a" } as React.CSSProperties}
             aria-label={
               changeCount
                 ? `${changeCount} change${changeCount === 1 ? "" : "s"} in places you watch`
