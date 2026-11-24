@@ -47,6 +47,7 @@ import {
   WifiHigh,
 } from "@phosphor-icons/react";
 import { POPULATION_PROJECTION, WORLD, WORLDVIEW_RETRIEVED, type WorldIndicator, type WorldPoint } from "../data/worldview";
+import { WORLD_LAND_COVER, WORLD_LAND_COVER_LEFT_OUT, WORLD_LAND_SOURCES, WORLD_LAND_USE } from "../data/worldLand";
 import { WindowTitle } from "./WindowTitle";
 import { SourceLink } from "./SourceLink";
 import { ChartNote, ChartTitle, FigureRow, FigureTile, HdiScale, MeasureBars, PartsDonut } from "./ModalCharts";
@@ -110,7 +111,11 @@ type Block =
   /** Figures as a short table: each with its unit, year and change. */
   | { kind: "rows"; title?: string; ids: string[] }
   /** The people alive now, running: the UN's projection, as the Worldview page's counter has it. */
-  | { kind: "counter" };
+  | { kind: "counter" }
+  /** What the world's land is used for, FAO's land use statistics (data/worldLand.ts). */
+  | { kind: "landUse" }
+  /** What covers the world's surface, each satellite map FAO publishes (data/worldLand.ts). */
+  | { kind: "landCover" };
 type PanelDef = { title: string; sub: string; icon: ReactNode; blocks: Block[] };
 type TabDef = { id: string; label: string; icon: ReactNode; panels: PanelDef[] };
 
@@ -278,11 +283,12 @@ const TABS: TabDef[] = [
       },
       {
         title: "Land and water",
-        sub: "Forest, farmland and what is protected",
+        sub: "What the land is used for, what covers it, and what is protected",
         icon: <Plant {...I} />,
         blocks: [
-          { kind: "bars", title: "The world's land · %", ids: ["forest", "farmland", "protectedLand"], max: 100 },
-          { kind: "rows", ids: ["protectedSea", "waterWithdrawals", "cerealProduction", "cerealYield", "fertilizer"] },
+          { kind: "landUse" },
+          { kind: "landCover" },
+          { kind: "rows", title: "As the World Bank gives them", ids: ["forest", "farmland", "protectedLand", "protectedSea", "waterWithdrawals", "cerealProduction", "cerealYield", "fertilizer"] },
         ],
       },
       {
@@ -408,7 +414,8 @@ const TABS: TabDef[] = [
   },
 ];
 
-const idsOf = (b: Block): string[] => (b.kind === "ring" ? b.parts.map((p) => p[0]) : b.kind === "hdi" ? ["hdi"] : b.kind === "counter" ? [] : b.ids);
+const idsOf = (b: Block): string[] =>
+  b.kind === "ring" ? b.parts.map((p) => p[0]) : b.kind === "hdi" ? ["hdi"] : b.kind === "counter" || b.kind === "landUse" || b.kind === "landCover" ? [] : b.ids;
 /* Any world figure no panel names has a tab of its own, so none the site holds is left out. */
 const NAMED = new Set(TABS.flatMap((t) => t.panels.flatMap((p) => p.blocks.flatMap(idsOf))));
 const REST = Object.keys(WORLD).filter((id) => !NAMED.has(id) && held(id));
@@ -478,9 +485,124 @@ function PeopleCounter() {
   );
 }
 
+/** Square kilometres as the page writes large areas: "13.0 million km²". */
+const km = (v: number) => (v >= 1e6 ? `${Number((v / 1e6).toPrecision(3))} million km²` : `${Math.round(v).toLocaleString("en-US")} km²`);
+
+/**
+ * What the world's land is used for, as asked - the kinds of land beside forest and farmland: FAO's land use statistics,
+ * every part for the one year, as a ring of the land area, with cropland's two parts, the land area and inland waters
+ * under it. FAO's "other land" is all land that is neither farmland nor forest. Shares are FAO's areas over the land
+ * area, worked out here.
+ */
+function LandUse() {
+  const u = WORLD_LAND_USE;
+  return (
+    <div>
+      <ChartTitle>What the world's land is used for · % of land area · {u.year}</ChartTitle>
+      <PartsDonut label={`What the world's land is used for, ${u.year}`} parts={u.parts.map((p) => ({ label: p.label, value: p.km2, text: `${p.pct}%` }))} />
+      <div className="mt-3 flex flex-col">
+        {u.cropland.map((c) => (
+          <FigureRow key={c.label} label={`${c.label}, part of cropland`} value={`${c.pct}%`} sub={km(c.km2)} />
+        ))}
+        <FigureRow label="The world's land area" value={km(u.landKm2)} sub={String(u.year)} />
+        <FigureRow label="Inland waters, beside it" value={km(u.inlandWaterKm2)} sub={String(u.year)} />
+      </div>
+      <ChartNote className="mt-2">
+        FAO's land use statistics, as countries report them. Other land is all land that is neither farmland nor forest - ice,
+        bare ground, built-up land and the rest. Each share is FAO's area over the world's land area, worked out here.
+      </ChartNote>
+    </div>
+  );
+}
+
+/**
+ * What covers the world's surface, as satellites class it, as asked: each map FAO publishes, picked by a chip, as a ring
+ * of the area it maps, and every class it holds set beside the others' in a table, so that the maps' differences show -
+ * they class the ground in their own ways (Tree cover is any ground under trees, not FAO's forest above). A map FAO's
+ * world sum covers only part of is named and left out.
+ */
+function LandCover() {
+  const maps = WORLD_LAND_COVER;
+  const [at, setAt] = useState(0);
+  const m = maps[at] ?? maps[0];
+  if (!m) return null;
+  const classes = [...new Set(maps.flatMap((x) => x.classes.map((c) => c.label)))];
+  return (
+    <div>
+      <ChartTitle>
+        What covers the world's surface · % of the area mapped · {m.map}, {m.year}
+      </ChartTitle>
+      {maps.length > 1 && (
+        <div className="flex flex-wrap gap-1 mb-3" role="group" aria-label="Which map">
+          {maps.map((x, i) => (
+            <button
+              key={x.map}
+              type="button"
+              onClick={() => setAt(i)}
+              aria-pressed={i === at}
+              className={`px-2.5 py-0.5 rounded-full text-[10px] font-sans border transition-colors cursor-pointer ${
+                i === at ? "chip-selected" : "border-border text-muted-foreground hover:text-foreground hover:bg-muted/60"
+              }`}
+            >
+              {x.map} · {x.year}
+            </button>
+          ))}
+        </div>
+      )}
+      <PartsDonut label={`What covers the world's surface, ${m.map}, ${m.year}`} parts={m.classes.map((c) => ({ label: c.label, value: c.km2, text: `${c.pct}%` }))} />
+      {/* Every class beside the other maps', as a short table: what one map calls grassland, another calls shrubs. */}
+      <div className="mt-3 overflow-x-auto">
+        <table className="w-full text-[11px] font-sans">
+          <thead>
+            <tr className="text-muted-foreground">
+              <th className="text-left font-normal py-1 pr-3">Class · % of the area mapped</th>
+              {maps.map((x) => (
+                <th key={x.map} className={`text-right font-normal py-1 px-2 whitespace-nowrap ${x === m ? "text-foreground font-semibold" : ""}`}>
+                  {x.map.replace(" (NASA)", "")} {x.year}
+                </th>
+              ))}
+            </tr>
+          </thead>
+          <tbody>
+            {classes.map((label) => (
+              <tr key={label} className="border-t border-border">
+                <td className="py-1 pr-3 text-foreground">{label}</td>
+                {maps.map((x) => {
+                  const c = x.classes.find((k) => k.label === label);
+                  return (
+                    <td key={x.map} className={`py-1 px-2 text-right font-mono ${x === m ? "text-foreground font-semibold" : "text-muted-foreground"}`} title={c ? km(c.km2) : undefined}>
+                      {c ? `${c.pct}%` : "-"}
+                    </td>
+                  );
+                })}
+              </tr>
+            ))}
+            <tr className="border-t border-border">
+              <td className="py-1 pr-3 text-muted-foreground">Area mapped</td>
+              {maps.map((x) => (
+                <td key={x.map} className="py-1 px-2 text-right font-mono text-muted-foreground whitespace-nowrap">
+                  {km(x.totalKm2)}
+                </td>
+              ))}
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      <ChartNote className="mt-2">
+        As satellites see the ground, in FAO's land cover statistics: each map classes it in its own way, so the maps differ, and a dash
+        is a class a map does not use. Tree cover is any ground under trees, not FAO's forest above. Each share is a class's area over
+        the area the map covers, worked out here.
+        {WORLD_LAND_COVER_LEFT_OUT.map((x) => ` FAO's world sum for the ${x.map}'s ${x.year} map covers ${km(x.totalKm2)}, far less than the others, so it is not drawn.`).join("")}
+      </ChartNote>
+    </div>
+  );
+}
+
 /* ── Drawing a block, as the country window draws its own ─────────────── */
 function BlockView({ b }: { b: Block }) {
   if (b.kind === "counter") return <PeopleCounter />;
+  if (b.kind === "landUse") return <LandUse />;
+  if (b.kind === "landCover") return <LandCover />;
   if (b.kind === "tiles") {
     const inds = b.ids.flatMap((id) => (held(id) ? [WORLD[id]] : []));
     if (!inds.length) return null;
@@ -563,6 +685,8 @@ function Panel({ p }: { p: PanelDef }) {
   const sources = useMemo(() => {
     const seen = new Map<string, { label: string; url: string }>();
     if (p.blocks.some((b) => b.kind === "counter")) seen.set(POPULATION_PROJECTION.source.label, POPULATION_PROJECTION.source);
+    if (p.blocks.some((b) => b.kind === "landUse")) seen.set(WORLD_LAND_SOURCES.use.label, WORLD_LAND_SOURCES.use);
+    if (p.blocks.some((b) => b.kind === "landCover")) seen.set(WORLD_LAND_SOURCES.cover.label, WORLD_LAND_SOURCES.cover);
     for (const id of p.blocks.flatMap(idsOf)) {
       const ind = held(id);
       if (ind && !seen.has(ind.source.label)) seen.set(ind.source.label, ind.source);
