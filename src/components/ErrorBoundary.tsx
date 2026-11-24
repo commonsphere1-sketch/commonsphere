@@ -49,10 +49,11 @@ export class ErrorBoundary extends Component<Props, State> {
                   Reload the page
                 </button>
               )}
-              <a href="/dashboard" className={`${PILL} border border-border text-foreground hover:bg-muted/60`}>
-                Back to the Dashboard
-              </a>
             </div>
+            {/* The way back, under the other two, as asked. */}
+            <a href="/dashboard" className={`${PILL} border border-border text-foreground hover:bg-muted/60 mt-2.5`}>
+              Back to the Dashboard
+            </a>
           </div>
         </div>
       );
