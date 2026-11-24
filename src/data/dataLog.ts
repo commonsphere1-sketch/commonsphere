@@ -30,6 +30,14 @@ export const DATA_LOG: DataLogEntry[] = [
     "files": 1
   },
   {
+    "what": "The world's richest and poorest nations by output per person, and its largest manufacturers",
+    "from": "World Bank",
+    "page": "/dashboard",
+    "where": "Dashboard · The World",
+    "read": "2026-11-23",
+    "files": 1
+  },
+  {
     "what": "What the world's land is used for, and what covers it - grassland, shrubs, bare land, snow and ice, water, built-up land - as satellite maps class it",
     "from": "FAO",
     "page": "/dashboard",
@@ -720,4 +728,4 @@ export const DATA_LOG: DataLogEntry[] = [
 ];
 
 /** How many data files the log covers. */
-export const DATA_LOG_FILES = 108;
+export const DATA_LOG_FILES = 109;

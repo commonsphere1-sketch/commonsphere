@@ -42,6 +42,7 @@ const SETS = [
   { files: ["technology.ts", "trendDetails.ts"], what: "Technology and the trends, by region, country and name", from: "World Bank, ITU, Epoch AI, OpenAlex and others", page: "/dashboard/trends", where: "Trends" },
   { files: ["commodityPrices.ts"], what: "Commodity prices, month by month", from: "World Bank, IMF", page: "/dashboard/economies?view=resources", where: "Resources" },
   { files: ["fxRates.ts"], what: "Exchange rates for the currency converter", from: "European Central Bank, US Treasury", page: "/dashboard/economies", where: "Economies" },
+  { files: ["worldRankings.ts"], what: "The world's richest and poorest nations by output per person, and its largest manufacturers", from: "World Bank", page: "/dashboard", where: "Dashboard · The World" },
   { files: ["worldLand.ts"], what: "What the world's land is used for, and what covers it - grassland, shrubs, bare land, snow and ice, water, built-up land - as satellite maps class it", from: "FAO", page: "/dashboard", where: "Dashboard · The World" },
   { files: ["resourceProducers.ts", "energyProducers.ts", "otherProducers.ts", "criticalMinerals.ts"], what: "Who produces and holds each commodity", from: "USGS, U.S. EIA, OPEC, USDA and others", page: "/dashboard/economies?view=resources", where: "Resources" },
   { files: ["countryIndicators.ts", "gdpHistory.ts", "developmentStatus.ts"], what: "Each country's headline figures and GDP history", from: "World Bank, IMF, UN", page: "/dashboard/countries", where: "Countries" },

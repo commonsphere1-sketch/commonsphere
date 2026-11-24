@@ -46,8 +46,15 @@ import {
   Coins,
   WifiHigh,
 } from "@phosphor-icons/react";
-import { POPULATION_PROJECTION, WORLD, WORLDVIEW_RETRIEVED, type WorldIndicator, type WorldPoint } from "../data/worldview";
+import { DISPLACED_BY_KIND, INCOME_GROUPS, INCOME_SOURCE, POPULATION_PROJECTION, WORLD, WORLDVIEW_RETRIEVED, type WorldIndicator, type WorldPoint } from "../data/worldview";
 import { WORLD_LAND_COVER, WORLD_LAND_COVER_LEFT_OUT, WORLD_LAND_SOURCES, WORLD_LAND_USE } from "../data/worldLand";
+import { WORLD_RANKINGS, WORLD_RANKINGS_SOURCES, type NationFigure } from "../data/worldRankings";
+import { COUNTRY_CONFLICT } from "../data/newsCountryHistory";
+import { CONFLICT_HISTORY, NEWS_HISTORY_SOURCES } from "../data/newsHistory";
+import { CONFLICT_EVENTS_META, CONFLICT_KINDS, CONFLICT_SOURCES } from "../data/conflictEventsMeta";
+import { COUNTRY_UN, COUNTRY_UN_SOURCES, UN_OBSERVERS } from "../data/countryUn";
+import { CLIMATE_INDICATORS } from "../data/climateIndicators";
+import { countriesData } from "../data/countriesData";
 import { WindowTitle } from "./WindowTitle";
 import { SourceLink } from "./SourceLink";
 import { ChartNote, ChartTitle, FigureRow, FigureTile, HdiScale, MeasureBars, PartsDonut } from "./ModalCharts";
@@ -115,9 +122,224 @@ type Block =
   /** What the world's land is used for, FAO's land use statistics (data/worldLand.ts). */
   | { kind: "landUse" }
   /** What covers the world's surface, each satellite map FAO publishes (data/worldLand.ts). */
-  | { kind: "landCover" };
+  | { kind: "landCover" }
+  /** A panel's own chart, drawn from a data file beside the world's series, with the sources it names. */
+  | { kind: "custom"; draw: () => ReactNode; sources: () => { label: string; url: string }[] };
 type PanelDef = { title: string; sub: string; icon: ReactNode; blocks: Block[] };
 type TabDef = { id: string; label: string; icon: ReactNode; panels: PanelDef[] };
+
+/* ── Panels of figures beyond the world's own series, each from the site's data files ───────────────────── */
+type Src = { label: string; url: string };
+const NAME_OF = new Map(countriesData.map((c) => [c.code, c.name]));
+const usdShort = (v: number) => `${compact(v)}`;
+const peopleShort = (v: number) => compact(v);
+
+/**
+ * The nations at the top and foot of the world by output per person, as asked: the World Bank's GDP per person for each
+ * UN member and observer state, each its latest year in the last six, in US dollars or at purchasing power (a chip
+ * picks), the ten highest and the ten lowest; and the Bank's income groups, how many economies are in each.
+ */
+function RichPoor() {
+  const r = WORLD_RANKINGS;
+  const [ppp, setPpp] = useState(false);
+  const rich = ppp ? r.richestPpp : r.richest;
+  const poor = ppp ? r.poorestPpp : r.poorest;
+  const unit = ppp ? "international $, at purchasing power" : "US$";
+  const money = (v: number) => `${v.toLocaleString("en-US")}`;
+  const rows = (list: NationFigure[]) => list.map((n) => ({ key: n.cc, label: NAME_OF.get(n.cc) ?? n.name, value: n.value, text: money(n.value), sub: String(n.year) }));
+  return (
+    <div className="flex flex-col gap-4">
+      <div className="flex flex-wrap gap-1" role="group" aria-label="In which money">
+        {[
+          [false, "In US dollars"],
+          [true, "At purchasing power"],
+        ].map(([v, label]) => (
+          <button
+            key={String(v)}
+            type="button"
+            onClick={() => setPpp(v as boolean)}
+            aria-pressed={ppp === v}
+            className={`px-2.5 py-0.5 rounded-full text-[10px] font-sans border transition-colors cursor-pointer ${ppp === v ? "chip-selected" : "border-border text-muted-foreground hover:text-foreground hover:bg-muted/60"}`}
+          >
+            {label as string}
+          </button>
+        ))}
+      </div>
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-4">
+        <div>
+          <ChartTitle>The richest · GDP per person · {unit}</ChartTitle>
+          <MeasureBars label={`The ten richest nations by GDP per person, ${unit}`} rows={rows(rich)} />
+        </div>
+        <div>
+          <ChartTitle>The poorest · GDP per person · {unit}</ChartTitle>
+          <MeasureBars label={`The ten poorest nations by GDP per person, ${unit}`} rows={rows(poor)} />
+        </div>
+      </div>
+      <ChartNote>
+        Of the {ppp ? r.nations.gdpPerPersonPpp : r.nations.gdpPerPerson} of the {r.nations.of} UN member and observer states with a World Bank figure in the last six
+        years, each its latest year - a nation the Bank has no recent figure for is not ranked. Each list's bars are on its own scale.
+      </ChartNote>
+      <div>
+        <ChartTitle>The world's economies by income · as the World Bank groups them · economies</ChartTitle>
+        <PartsDonut label="The world's economies by the World Bank's income groups" parts={INCOME_GROUPS.map((g) => ({ label: g.label, value: g.economies, text: String(g.economies) }))} />
+        <ChartNote className="mt-2">The Bank's groups are by gross national income per person; it counts economies, territories among them.</ChartNote>
+      </div>
+    </div>
+  );
+}
+
+/**
+ * Industry, as asked: the world's industry and manufacturing as the World Bank gives them, and the ten nations that make
+ * the most - each its manufacturing value added in its latest year and its share of the world's for that year, worked out here.
+ */
+function Manufacturers() {
+  const r = WORLD_RANKINGS;
+  const old = r.manufacturers.filter((m) => m.year < r.worldManufacturing.year);
+  return (
+    <div className="flex flex-col gap-4">
+      <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+        <FigureTile label="Industry, with construction" value={usdShort(r.worldIndustry.value)} sub={`value added · ${r.worldIndustry.year}`} />
+        <FigureTile label="Industry's real growth" value={`${r.worldIndustryGrowth.value > 0 ? "+" : ""}${r.worldIndustryGrowth.value}%`} sub={`a year · ${r.worldIndustryGrowth.year}`} />
+        <FigureTile label="Manufacturing" value={usdShort(r.worldManufacturing.value)} sub={`value added · ${r.worldManufacturing.year}`} />
+      </div>
+      <div>
+        <ChartTitle>The largest manufacturers · value added, US$</ChartTitle>
+        <MeasureBars
+          label="The ten nations with the most manufacturing value added"
+          rows={r.manufacturers.map((m) => ({
+            key: m.cc,
+            label: NAME_OF.get(m.cc) ?? m.name,
+            value: m.value,
+            text: usdShort(m.value),
+            sub: `${m.share != null ? `${m.share}% of the world's · ` : ""}${m.year}`,
+          }))}
+        />
+        <ChartNote className="mt-2">
+          Each nation's latest year with a World Bank figure, and its share of the world's manufacturing that year, worked out here.
+          {old.length > 0 && ` ${old.map((m) => `${NAME_OF.get(m.cc) ?? m.name}'s latest is for ${m.year}`).join("; ")}.`}
+        </ChartNote>
+      </div>
+    </div>
+  );
+}
+
+/**
+ * War and armed conflict, as asked: where the killing was in the latest year UCDP has counted - the ten deadliest
+ * countries and each continent's share - the latest month of its event-by-event count, and what the world's forcibly
+ * displaced are, by kind. All of it from the site's own records of UCDP and UNHCR.
+ */
+function Wars() {
+  const years = Object.values(COUNTRY_CONFLICT).flatMap((s) => s.map((p) => p[0]));
+  const Y = Math.max(...years);
+  const deadliest = Object.entries(COUNTRY_CONFLICT)
+    .map(([cc, s]) => ({ cc, d: s.find((p) => p[0] === Y)?.[1] ?? 0 }))
+    .filter((x) => x.d > 0)
+    .sort((a, b) => b.d - a.d);
+  const total = deadliest.reduce((s, x) => s + x.d, 0);
+  const at = CONFLICT_HISTORY.years.indexOf(Y);
+  const continents = at >= 0 ? Object.entries(CONFLICT_HISTORY.byContinent).map(([k, v]) => ({ label: k, value: v[at] ?? 0 })).filter((x) => x.value > 0) : [];
+  const ev = CONFLICT_EVENTS_META;
+  const month = new Date(`${ev.month}-15T12:00:00Z`).toLocaleDateString("en-GB", { month: "long", year: "numeric", timeZone: "UTC" });
+  const disp = DISPLACED_BY_KIND[DISPLACED_BY_KIND.length - 1];
+  return (
+    <div className="flex flex-col gap-4">
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+        <FigureTile label="Killed in armed conflict" value={total.toLocaleString("en-US")} sub={`UCDP's best estimate · ${Y}`} />
+        <FigureTile label="Countries with deaths" value={String(deadliest.length)} sub={String(Y)} />
+        <FigureTile label="Fatal events" value={ev.events.toLocaleString("en-US")} sub={month} />
+        <FigureTile label="Killed in those events" value={ev.deaths.reduce((s, d) => s + d, 0).toLocaleString("en-US")} sub={month} />
+      </div>
+      <div>
+        <ChartTitle>The deadliest countries · deaths in armed conflict · {Y}</ChartTitle>
+        <MeasureBars
+          label={`The ten countries with the most deaths in armed conflict, ${Y}`}
+          rows={deadliest.slice(0, 10).map((x) => ({ key: x.cc, label: NAME_OF.get(x.cc) ?? x.cc, value: x.d, text: x.d.toLocaleString("en-US"), sub: `${((100 * x.d) / total).toFixed(1)}%` }))}
+        />
+        <ChartNote className="mt-2">
+          Where the fighting was, by country: UCDP's best estimates of deaths in fighting involving a state, between other armed groups and
+          against civilians, added up; each share is of the year's world total, worked out here.
+        </ChartNote>
+      </div>
+      {continents.length > 0 && (
+        <div>
+          <ChartTitle>Where the killing was · deaths in armed conflict by continent · {Y}</ChartTitle>
+          <PartsDonut label={`Deaths in armed conflict by continent, ${Y}`} parts={continents.map((c) => ({ label: c.label, value: c.value, text: c.value.toLocaleString("en-US") }))} />
+        </div>
+      )}
+      <div>
+        <ChartTitle>Killed in the latest month counted · by kind of violence · {month}</ChartTitle>
+        <PartsDonut label={`Killed in organised violence, ${month}, by kind`} parts={CONFLICT_KINDS.map((k, i) => ({ label: k, value: ev.deaths[i], text: ev.deaths[i].toLocaleString("en-US") }))} />
+        <ChartNote className="mt-2">
+          UCDP's candidate events for {month}: {ev.events.toLocaleString("en-US")} fatal events at {ev.places.toLocaleString("en-US")} places, released {ev.released} and
+          not yet checked as its yearly figures are.
+        </ChartNote>
+      </div>
+      {disp && (
+        <div>
+          <ChartTitle>The world's forcibly displaced, by kind · people · {disp.year}</ChartTitle>
+          <PartsDonut
+            label={`The world's forcibly displaced people by kind, ${disp.year}`}
+            parts={[
+              { label: "Displaced in their own country", value: disp.idps, text: peopleShort(disp.idps) },
+              { label: "Refugees", value: disp.refugees, text: peopleShort(disp.refugees) },
+              { label: "Asylum seekers", value: disp.asylumSeekers, text: peopleShort(disp.asylumSeekers) },
+              { label: "Others in need of protection", value: disp.others, text: peopleShort(disp.others) },
+              { label: "Palestine refugees under UNRWA", value: disp.unrwa, text: peopleShort(disp.unrwa) },
+            ]}
+          />
+        </div>
+      )}
+    </div>
+  );
+}
+const WARS_SOURCES: Src[] = [NEWS_HISTORY_SOURCES.ucdp, CONFLICT_SOURCES[0], WORLD.displaced.source];
+
+/**
+ * The planet and its people, as asked - general figures beside the headline ones: how many nations the United Nations
+ * counts, the world's land and how crowded it is, and the readings of the climate now (NOAA, NASA).
+ */
+function PlanetFacts() {
+  const members = Object.keys(COUNTRY_UN).length;
+  const observers = Object.keys(UN_OBSERVERS).length;
+  const pop = lastOf(WORLD.population);
+  const land = WORLD_LAND_USE;
+  const reading = (id: string) => CLIMATE_INDICATORS.find((c) => c.id === id);
+  const warming = reading("warming");
+  const co2 = reading("co2");
+  const ice = reading("sea-ice");
+  return (
+    <div className="flex flex-col gap-3">
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+        <FigureTile label="Nations in the United Nations" value={String(members)} sub={`members, and ${observers} observer states`} />
+        <FigureTile label="Land" value={`${(land.landKm2 / 1e6).toFixed(1)} million km²`} sub={`FAO · ${land.year}`} />
+        {pop && <FigureTile label="People to each km² of land" value={String(Math.round(pop[1] / land.landKm2))} sub={`${pop[0]} people over ${land.year} land, worked out here`} />}
+        {warming && <FigureTile label="Surface temperature" value={`+${warming.value} °C`} sub={`against 1951-1980 · ${warming.period}`} />}
+        {co2 && <FigureTile label="Carbon dioxide in the air" value={`${co2.value} ppm`} sub={`Mauna Loa · ${co2.period}`} />}
+        {ice && <FigureTile label="Arctic sea ice" value={`${ice.value} million km²`} sub={ice.period} />}
+        {(() => {
+          const urban = lastOf(WORLD.urban);
+          return urban ? <FigureTile label="Living in cities" value={`${urban[1]}%`} sub={`of people · ${urban[0]}`} /> : null;
+        })()}
+        {(() => {
+          const f = lastOf(WORLD.fertility);
+          return f ? <FigureTile label="Births per woman" value={String(f[1])} sub={String(f[0])} /> : null;
+        })()}
+      </div>
+      {warming?.note && <ChartNote>{warming.note}</ChartNote>}
+    </div>
+  );
+}
+const PLANET_SOURCES = (): Src[] =>
+  [
+    COUNTRY_UN_SOURCES.members,
+    COUNTRY_UN_SOURCES.observers,
+    WORLD_LAND_SOURCES.use,
+    WORLD.population.source,
+    ...["warming", "co2", "sea-ice"].flatMap((id) => {
+      const c = CLIMATE_INDICATORS.find((x) => x.id === id);
+      return c ? [{ label: c.source, url: c.url }] : [];
+    }),
+  ];
 
 const I = { size: 13, weight: "fill" as const };
 const REGIME_RING: Block = {
@@ -147,6 +369,12 @@ const TABS: TabDef[] = [
           { kind: "rows", title: "And", ids: ["co2", "conflicts", "displaced"] },
         ],
       },
+      {
+        title: "The planet and its people",
+        sub: "How many nations, how much land, and the climate now",
+        icon: <Globe {...I} />,
+        blocks: [{ kind: "custom", draw: () => <PlanetFacts />, sources: PLANET_SOURCES }],
+      },
     ],
   },
   {
@@ -163,6 +391,12 @@ const TABS: TabDef[] = [
           { kind: "bars", title: "What its output is made of · % of GDP", ids: ["agricultureVA", "industryVA", "manufacturingVA", "servicesVA"], max: 100, note: "Each as the World Bank publishes it: manufacturing is part of industry, and the sectors do not add up to 100." },
           { kind: "rows", ids: ["manufacturingUsd", "industryReal", "investment", "savings"] },
         ],
+      },
+      {
+        title: "The richest and poorest nations",
+        sub: "Output per person, at the top and the foot of the world",
+        icon: <Coins {...I} />,
+        blocks: [{ kind: "custom", draw: () => <RichPoor />, sources: () => [WORLD_RANKINGS_SOURCES.gdpPerPerson, WORLD_RANKINGS_SOURCES.gdpPerPersonPpp, INCOME_SOURCE] }],
       },
       {
         title: "Work",
@@ -359,6 +593,16 @@ const TABS: TabDef[] = [
     icon: <Cpu {...I} />,
     panels: [
       {
+        title: "Industry",
+        sub: "What the world makes, and the nations that make the most",
+        icon: <Factory {...I} />,
+        blocks: [
+          { kind: "custom", draw: () => <Manufacturers />, sources: () => [WORLD_RANKINGS_SOURCES.manufacturing, WORLD_RANKINGS_SOURCES.industry] },
+          { kind: "bars", title: "Industry's share · %", ids: ["industryVA", "manufacturingVA", "industryEmployment", "manufacturesExports"], max: 100 },
+          { kind: "rows", ids: ["industryReal", "manufacturingUsd"] },
+        ],
+      },
+      {
         title: "Connected",
         sub: "Who is online, and what the world trades in digital goods",
         icon: <WifiHigh {...I} />,
@@ -393,6 +637,12 @@ const TABS: TabDef[] = [
     icon: <ShieldWarning {...I} />,
     panels: [
       {
+        title: "Wars and armed conflict",
+        sub: "Where the killing is, and the people it drives from home",
+        icon: <Sword {...I} />,
+        blocks: [{ kind: "custom", draw: () => <Wars />, sources: () => WARS_SOURCES }],
+      },
+      {
         title: "Conflict and violence",
         sub: "Wars, the people they drive from home, and killings",
         icon: <ShieldWarning {...I} />,
@@ -415,7 +665,7 @@ const TABS: TabDef[] = [
 ];
 
 const idsOf = (b: Block): string[] =>
-  b.kind === "ring" ? b.parts.map((p) => p[0]) : b.kind === "hdi" ? ["hdi"] : b.kind === "counter" || b.kind === "landUse" || b.kind === "landCover" ? [] : b.ids;
+  b.kind === "ring" ? b.parts.map((p) => p[0]) : b.kind === "hdi" ? ["hdi"] : b.kind === "counter" || b.kind === "landUse" || b.kind === "landCover" || b.kind === "custom" ? [] : b.ids;
 /* Any world figure no panel names has a tab of its own, so none the site holds is left out. */
 const NAMED = new Set(TABS.flatMap((t) => t.panels.flatMap((p) => p.blocks.flatMap(idsOf))));
 const REST = Object.keys(WORLD).filter((id) => !NAMED.has(id) && held(id));
@@ -603,6 +853,7 @@ function BlockView({ b }: { b: Block }) {
   if (b.kind === "counter") return <PeopleCounter />;
   if (b.kind === "landUse") return <LandUse />;
   if (b.kind === "landCover") return <LandCover />;
+  if (b.kind === "custom") return <>{b.draw()}</>;
   if (b.kind === "tiles") {
     const inds = b.ids.flatMap((id) => (held(id) ? [WORLD[id]] : []));
     if (!inds.length) return null;
@@ -687,6 +938,7 @@ function Panel({ p }: { p: PanelDef }) {
     if (p.blocks.some((b) => b.kind === "counter")) seen.set(POPULATION_PROJECTION.source.label, POPULATION_PROJECTION.source);
     if (p.blocks.some((b) => b.kind === "landUse")) seen.set(WORLD_LAND_SOURCES.use.label, WORLD_LAND_SOURCES.use);
     if (p.blocks.some((b) => b.kind === "landCover")) seen.set(WORLD_LAND_SOURCES.cover.label, WORLD_LAND_SOURCES.cover);
+    for (const b of p.blocks) if (b.kind === "custom") for (const src of b.sources()) seen.set(src.label, src);
     for (const id of p.blocks.flatMap(idsOf)) {
       const ind = held(id);
       if (ind && !seen.has(ind.source.label)) seen.set(ind.source.label, ind.source);
