@@ -1657,8 +1657,9 @@ export default function WorldviewMap({ onPlace }: { onPlace?: (where: { cc: stri
         />
       </div>
     )}
-    {/* The world as one place, as asked: the Dashboard's World card - the same card and the same window - under the map. */}
-    <WorldCard />
+    {/* The world as one place, as asked: the Dashboard's World card - the same card and the same window - under the map, while
+        the whole world is shown only, as asked; a country picked has its own figures there instead. */}
+    {!picked && <WorldCard />}
     {/* While no country is picked - as the page opens, as asked - the world's own figures, every one the site holds, by subject:
         the World window's body, set out here. A country picked fills the panels under the map with its own instead. */}
     {!picked ? (
