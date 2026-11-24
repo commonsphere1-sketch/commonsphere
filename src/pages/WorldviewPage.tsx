@@ -57,6 +57,7 @@ import { LAND_USE, LAND_USE_SOURCE } from "@/data/landUse";
 import { useTheme } from "@/contexts/ThemeContext";
 import { HeadlinesBanner } from "@/components/HeadlinesBanner";
 import { SectionNav, type NavSection } from "@/components/SectionNav";
+import { WORLD_SECTIONS } from "@/components/WorldCard";
 import { StatCard, splitChange } from "@/components/StatCard";
 import { CategoryCharts, PILLAR_CHARTS } from "@/components/CategoryCharts";
 import { has } from "@/lib/na";
@@ -1611,6 +1612,8 @@ const PILLARS: Pillar[] = [
 const SECTIONS: NavSection[] = [
   { id: "world-map", label: "The map" },
   { id: "country-figures", label: "At a glance" },
+  // The world's subjects, while no country is picked on the map: only the sections on the page are offered.
+  ...WORLD_SECTIONS,
   { id: "place-economy", label: "Economy" },
   { id: "place-industry", label: "Industry" },
   { id: "place-people", label: "People" },
@@ -3221,6 +3224,8 @@ export function WorldviewPage() {
       <div className="w-full px-4 sm:px-5 py-4 flex flex-col gap-4">
         <Hero />
         <SectionNav label="Worldview sections" sections={SECTIONS} />
+
+        {/* The Dashboard's World card stood here, at the top of the page; it is under the map now, as asked. */}
 
         {/* ── The world, country by country, across the top: the page is set out after the reference design it was given -
             the map first, then a mosaic of panels - in the site's own colours, as asked. ── */}

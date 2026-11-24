@@ -34,6 +34,7 @@
  * under the map with its own figures (CountryDashboard), as asked; the page
  * opens on the United States.
  */
+import { WorldCard, WorldColumn, WorldFigures } from "./WorldCard";
 import { type ReactNode, lazy, Suspense, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { SiteLoading } from "./SiteLoading";
 import { ArrowCounterClockwise, MagnifyingGlassMinus, MagnifyingGlassPlus } from "@phosphor-icons/react";
@@ -648,11 +649,11 @@ function AreaMiniMap({ t, code, country, place, city }: { t: Tokens; code: strin
  * `onPlace` is told the place chosen on the map - its country, and the region and county or city pressed within it, the
  * nearest first - for the page's other sections to follow (the climate strip and the species, as asked).
  */
-export default function WorldviewMap({ onPlace }: { onPlace?: (where: { cc: string; country: string; divisions: string[] }) => void } = {}) {
+export default function WorldviewMap({ onPlace }: { onPlace?: (where: { cc: string; country: string; divisions: string[] } | undefined) => void } = {}) {
   const t = useTokens();
   const [hover, setHover] = useState<string | null>(null);
-  /** The country whose figures fill the panels under the map. */
-  const [picked, setPicked] = useState("US");
+  /** The country whose figures fill the panels under the map: "" is the whole world, picked when the page opens, as asked. */
+  const [picked, setPicked] = useState("");
   /* The small countries the coarse world leaves out - island nations of the Pacific and the Caribbean, Malta, Singapore and
      the like - as asked: from Natural Earth's finer 1:50m tracing, fetched once the map is drawn, each drawn, pointed at and
      pressed as every other country is. */
@@ -716,6 +717,10 @@ export default function WorldviewMap({ onPlace }: { onPlace?: (where: { cc: stri
     setPressed(null);
     setHoverRegion(null);
     let off = false;
+    if (!picked) {
+      setRegions(null);
+      return;
+    }
     fetch(`/geo/admin1/${picked}.json`)
       .then((r) => (r.ok ? r.json() : Promise.reject()))
       .then((topo: Topology) => {
@@ -748,7 +753,7 @@ export default function WorldviewMap({ onPlace }: { onPlace?: (where: { cc: stri
   const admin2 = useAdmin2Manifest();
   const wantCounties = view.k >= COUNTIES_PICK_FROM;
   useEffect(() => {
-    if (!wantCounties || counties?.code === picked) return;
+    if (!wantCounties || !picked || counties?.code === picked) return;
     let off = false;
     const shape = (f: { id?: string | number; geometry: unknown }, name: string, parent?: string, at?: number): County[] => {
       const d = PATH(f as never);
@@ -1098,7 +1103,7 @@ export default function WorldviewMap({ onPlace }: { onPlace?: (where: { cc: stri
     glideTo({ k: centred(need + 0.05, at.x, at.y), x: at.x, y: at.y });
   };
   /** What a press does now, said on the bar: led by the country picked, by its name as the map has it. */
-  const here = shapeOf(picked)?.name ?? picked;
+  const here = picked ? (shapeOf(picked)?.name ?? picked) : "Pick a country first";
   const pressHint =
     press === "country"
       ? "Point at a country and the column beside the map tells it; press it to pick it, and the panels under the map fill with its figures."
@@ -1236,7 +1241,7 @@ export default function WorldviewMap({ onPlace }: { onPlace?: (where: { cc: stri
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [toFind, picked, regions, counties, countiesShown]);
   const shown = hover ? shapeOf(hover) : null;
-  const pickedName = shapeOf(picked)?.name ?? picked;
+  const pickedName = picked ? (shapeOf(picked)?.name ?? picked) : "The world";
   /* What the pointer is on, as asked, for the column beside the map to tell: a country other than the one picked, or - where
      a press selects them - a state or province, a county or district, or a city of the country picked (named with it, so
      that one of the country picked before is never told as this one's). Settled a little after the pointer stops, so that
@@ -1294,7 +1299,7 @@ export default function WorldviewMap({ onPlace }: { onPlace?: (where: { cc: stri
           ? { code: picked, name: pickedName, region: null, pressed: pointedPlace, pointing: "place" as const }
           : { code: picked, name: pickedName, region, pressed, pointing: null };
   useEffect(() => {
-    onPlace?.({ cc: picked, country: pickedName, divisions: [pressed?.name, region].filter((n): n is string => Boolean(n)) });
+    onPlace?.(picked ? { cc: picked, country: pickedName, divisions: [pressed?.name, region].filter((n): n is string => Boolean(n)) } : undefined);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [picked, pickedName, region, pressed?.name]);
   return (
@@ -1305,6 +1310,20 @@ export default function WorldviewMap({ onPlace }: { onPlace?: (where: { cc: stri
         <p className="text-[10px] font-mono uppercase tracking-widest" style={{ color: t.mutedText }}>
           The world, country by country
         </p>
+        {/* The whole world, as the page opens on it, as asked: pressed, it lets the country go and draws the whole map again. */}
+        <button
+          type="button"
+          onClick={() => {
+            setPicked("");
+            setManualPress("country");
+            glideTo({ k: 1, x: W / 2, y: H / 2 });
+          }}
+          aria-pressed={!picked}
+          title="The whole world: its own figures beside the map and under it"
+          className={`px-3 py-1 rounded-full text-[11px] font-medium font-sans border transition-colors cursor-pointer ${!picked ? "chip-selected" : "bg-transparent border-border text-muted-foreground hover:text-foreground hover:bg-muted/60"}`}
+        >
+          The whole world
+        </button>
         {/* The conflicts and the disasters going on, as asked: each switched on and off here, in the layers' own chip. */}
         <div className="flex flex-wrap items-center gap-1.5">
           {(
@@ -1591,7 +1610,11 @@ export default function WorldviewMap({ onPlace }: { onPlace?: (where: { cc: stri
           </div>
         </div>
         {/* The place pointed at or picked, beside the map: what it is and who leads it, as asked. */}
-        <PickedColumn code={column.code} name={column.name} t={t} region={column.region} onClearRegion={() => setRegion(null)} pressed={column.pressed} onClearPressed={() => setPressed(null)} pointing={column.pointing} />
+        {column.code ? (
+          <PickedColumn code={column.code} name={column.name} t={t} region={column.region} onClearRegion={() => setRegion(null)} pressed={column.pressed} onClearPressed={() => setPressed(null)} pointing={column.pointing} />
+        ) : (
+          <WorldColumn />
+        )}
       </div>
       <div className="flex flex-wrap items-center gap-x-4 gap-y-2 px-4 py-3 border-t" style={{ borderColor: t.gridLine }}>
         <p className="text-[10px] font-sans flex-1 min-w-[12rem]" style={{ color: t.mutedText }}>
@@ -1634,6 +1657,14 @@ export default function WorldviewMap({ onPlace }: { onPlace?: (where: { cc: stri
         />
       </div>
     )}
+    {/* The world as one place, as asked: the Dashboard's World card - the same card and the same window - under the map. */}
+    <WorldCard />
+    {/* While no country is picked - as the page opens, as asked - the world's own figures, every one the site holds, by subject:
+        the World window's body, set out here. A country picked fills the panels under the map with its own instead. */}
+    {!picked ? (
+      <WorldFigures inline />
+    ) : (
+      <>
     {/* The country picked: its own figures, filled in under the map. */}
     {/* The state, county or city pressed on the map: its own figures, above its country's, as asked. */}
     {(() => {
@@ -1683,6 +1714,8 @@ export default function WorldviewMap({ onPlace }: { onPlace?: (where: { cc: stri
     </section>
     {/* The News page's historic accounts, for the country picked here, as asked: its unrest, revolutions, wars, terrorism, disasters and epidemics as the records hold them. */}
     <NewsHistory id="place-history" initial={picked} under='nav[aria-label="Worldview sections"]' />
+      </>
+    )}
     </>
   );
 }

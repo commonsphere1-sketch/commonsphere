@@ -241,6 +241,12 @@ export function OccurrencePanel({
         <CountryFind onPick={setFocus} />
       </div>
       {/* The country picked, as asked: what is going on inside its borders, what its government is a side to beyond them, and its disasters. */}
+      {/* With no country picked on the map - the whole world - nothing is said of a country: the reader is asked to pick one. */}
+      {!focus.code ? (
+        <p className="px-4 py-3 border-b text-[11px] font-sans" style={{ borderColor: t.gridLine, color: t.mutedText }}>
+          Pick a country on the map, or find one here, for what is going on inside its borders, what its government is a side to beyond them, and its disasters.
+        </p>
+      ) : (
       <div key={focus.code} className="px-2 py-3 border-b" style={{ borderColor: t.gridLine }}>
         <div className="flex flex-wrap items-center gap-2 px-2">
           <p className="text-[9px] font-mono uppercase tracking-widest" style={{ color: t.mutedText }}>
@@ -286,6 +292,7 @@ export function OccurrencePanel({
           )}
         </div>
       </div>
+      )}
       <div className="grid grid-cols-1 lg:grid-cols-[minmax(0,1fr)_20rem]">
         {/* The account of the one pressed. */}
         <div className="p-4 min-w-0" aria-live="polite">

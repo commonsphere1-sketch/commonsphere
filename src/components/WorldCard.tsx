@@ -965,8 +965,157 @@ function Panel({ p }: { p: PanelDef }) {
   );
 }
 
-function WorldModal({ onClose }: { onClose: () => void }) {
+/** The flag and what it is, as a country's window opens, and what it stands for: the Overview's head. */
+function FlagIntro() {
+  const pop = lastOf(WORLD.population);
+  const gdp = lastOf(WORLD.gdp);
+  return (
+    <>
+      {/* Its flag and what it is, as a country's window opens. */}
+      <div className="flex items-start gap-4 mb-4">
+        <div className="w-24 h-16 rounded-xl overflow-hidden shrink-0 border border-border shadow-md">
+          <img src={FLAG} alt="International Flag of Planet Earth" className="w-full h-full object-cover" />
+        </div>
+        <div className="min-w-0 flex flex-col gap-1.5">
+          <div className="flex items-center gap-2 flex-wrap">
+            <span className="text-xs border border-border px-2 py-0.5 rounded-full font-sans text-muted-foreground">World aggregates</span>
+            {pop && <span className="text-xs px-2 py-0.5 rounded-full font-mono font-semibold border border-border text-foreground">{compact(pop[1])} people · {pop[0]}</span>}
+            {gdp && <span className="text-xs px-2 py-0.5 rounded-full font-mono font-semibold border border-border text-foreground">GDP ${compact(gdp[1])} · {gdp[0]}</span>}
+          </div>
+          <p className="text-[11px] font-sans text-muted-foreground leading-snug">
+            {Object.keys(WORLD).length} figures for the world as a whole, each its publisher's latest, to {LATEST}; read from their sources on{" "}
+            {day(WORLDVIEW_RETRIEVED)}.
+          </p>
+        </div>
+      </div>
+
+      {/* The flag: what it is and what it stands for, as its makers describe it - in the site's words. */}
+      <div className="modal-tile rounded-lg p-4 mb-5">
+        <div className="flex items-center gap-2 min-w-0 mb-2">
+          <div className="p-1.5 rounded-md border border-border bg-muted text-muted-foreground shrink-0">
+            <Flag {...I} />
+          </div>
+          <div className="min-w-0">
+            <h3 className="text-xs font-bold font-sans text-foreground uppercase tracking-widest">The flag</h3>
+            <p className="text-[10px] text-muted-foreground font-sans mt-0.5">The International Flag of Planet Earth</p>
+          </div>
+        </div>
+        <p className="text-xs font-sans text-foreground leading-relaxed">
+          Designed by Oskar Pernefeldt as his graduation project at Beckmans College of Design in Stockholm, and first shown in 2015. At its
+          centre seven rings, linked together, make a flower: the flower stands for life on Earth, and the linking of the rings for how
+          everything on the planet is connected, directly or not. The blue field is water, which life depends on and which covers most of
+          the planet; the outer rings together form a circle that can be read as the Earth itself, with the blue around it as space.
+        </p>
+        {/* Its facts in words, as a country window's geography list has them: a line between each. */}
+        <dl className="mt-3 divide-y divide-border">
+          {[
+            ["Proportions", "2:3"],
+            ["Blazon", "Seven silver circles interlaced on a blue field - its makers' heraldic description"],
+            ["Use", "Free to use, personal or commercial, to represent the planet - not a business, a body or a person"],
+          ].map(([k, v]) => (
+            <div key={k} className="grid grid-cols-[7rem_1fr] gap-3 py-2">
+              <dt className="text-[10px] font-semibold font-sans text-muted-foreground uppercase tracking-wider pt-0.5">{k}</dt>
+              <dd className="text-xs font-sans text-foreground leading-relaxed">{v}</dd>
+            </div>
+          ))}
+        </dl>
+        <SourceLink sources={[FLAG_PAGE, FLAG_FILE]} className="mt-2" />
+      </div>
+    </>
+  );
+}
+
+const READING_NOTE =
+  "Each figure is its publisher's latest for the world, with its year. A change is the latest against the figure ten years before it (or within two years of that), worked out here. Bars on one chart share its scale: 100 for shares, 1 for V-Dem's indices.";
+
+/** What each subject holds, said beside its name when the subjects are set out down a page, as a country's sections are. */
+const KICKER: Record<string, string> = {
+  overview: "the world at a glance, and the planet and its people",
+  economy: "output and growth, the richest and poorest, work, trade, government, resources",
+  people: "how many, health, living standards, schooling, faith",
+  planet: "emissions, energy, land and water, disasters",
+  rights: "how it is governed, democracy and the rule of law, liberties, women",
+  technology: "industry, connection, research, AI and robots",
+  security: "wars and armed conflict, violence, armed forces",
+  more: "the rest the site holds for the world",
+};
+/** Where the Worldview page's bar of sections goes for each subject: its Overview is the page's "At a glance", as a country's is. */
+export const WORLD_SECTION_ID = (tab: string) => (tab === "overview" ? "country-figures" : `world-${tab}`);
+/** The subjects, for the Worldview page's bar of sections. */
+export const WORLD_SECTIONS: { id: string; label: string }[] = ALL_TABS.filter((t) => t.id !== "overview").map((t) => ({ id: WORLD_SECTION_ID(t.id), label: t.label }));
+
+/**
+ * Every world figure the site holds, by subject. In the World window: a tab bar, the flag and what it stands for on the
+ * Overview, the tab's panels and the note on reading them. On the Worldview page (`inline`), while no country is picked
+ * on its map, as asked: every subject at once, down the page, each a section headed as a country's sections are - so the
+ * page shows all of it, as it shows a country's - with the page's bar of sections going to each.
+ */
+export function WorldFigures({ inline = false }: { inline?: boolean }) {
   const [tab, setTab] = useState(ALL_TABS[0].id);
+  const current = ALL_TABS.find((t) => t.id === tab) ?? ALL_TABS[0];
+  if (inline)
+    return (
+      <div className="flex flex-col gap-6">
+        {ALL_TABS.map((t) => (
+          <section key={t.id} id={WORLD_SECTION_ID(t.id)} className="flex flex-col gap-3 scroll-mt-36" aria-label={`The world · ${t.label}`}>
+            {/* Headed as a country's sections are: its name, what it holds, and a rule. */}
+            <div className="flex items-baseline gap-3 px-1 pt-3">
+              <h3 className="text-sm font-bold font-sans text-foreground flex items-center gap-1.5">
+                <span className="text-muted-foreground" aria-hidden>
+                  {t.icon}
+                </span>
+                {t.id === "overview" ? "The world at a glance" : t.label}
+              </h3>
+              <span className="text-[10px] font-sans text-muted-foreground">{KICKER[t.id] ?? ""}</span>
+              <span className="flex-1 h-px bg-border" aria-hidden />
+            </div>
+            {t.id === "overview" && <FlagIntro />}
+            <div className="flex flex-col">
+              {t.panels.map((p) => (
+                <Panel key={p.title} p={p} />
+              ))}
+            </div>
+          </section>
+        ))}
+        <ChartNote>{READING_NOTE}</ChartNote>
+      </div>
+    );
+  return (
+    <>
+      {/* Tab bar, at the top of the window under its title, as asked - and with no scrollbar drawn under it: on a narrow window
+          it still scrolls sideways, by touch or the wheel with shift. */}
+      <div className="flex items-center gap-1 mb-5 bg-muted/60 rounded-xl p-1 border border-border/60 overflow-x-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden modal-tabs" role="tablist" aria-label="The world's figures by subject">
+        {ALL_TABS.map((t) => (
+          <button
+            key={t.id}
+            role="tab"
+            aria-selected={tab === t.id}
+            onClick={() => setTab(t.id)}
+            className={`flex-1 flex items-center justify-center gap-1.5 px-2 py-1.5 rounded-lg text-xs font-medium font-sans whitespace-nowrap transition-all duration-150 cursor-pointer ${
+              tab === t.id ? "bg-card text-foreground shadow-sm border border-border/60" : "text-muted-foreground hover:text-foreground"
+            }`}
+          >
+            {t.icon}
+            {t.label}
+            <span className="text-[10px] font-mono opacity-60">{countOf(t)}</span>
+          </button>
+        ))}
+      </div>
+
+      {/* The flag, and what it is and stands for, on the Overview alone, as asked. */}
+      {tab === "overview" && <FlagIntro />}
+
+      <div className="flex flex-col">
+        {current.panels.map((p) => (
+          <Panel key={p.title} p={p} />
+        ))}
+      </div>
+      <ChartNote className="mt-3">{READING_NOTE}</ChartNote>
+    </>
+  );
+}
+
+export function WorldModal({ onClose }: { onClose: () => void }) {
   const [isExpanded, setIsExpanded] = useState(false);
   useEffect(() => {
     const unlock = lockScroll();
@@ -977,10 +1126,6 @@ function WorldModal({ onClose }: { onClose: () => void }) {
       window.removeEventListener("keydown", key);
     };
   }, [onClose]);
-  const current = ALL_TABS.find((t) => t.id === tab) ?? ALL_TABS[0];
-  const pop = lastOf(WORLD.population);
-  const gdp = lastOf(WORLD.gdp);
-
   return (
     <div
       className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6 bg-black/60 backdrop-blur-sm animate-fade-in"
@@ -1009,92 +1154,7 @@ function WorldModal({ onClose }: { onClose: () => void }) {
             </button>
           </WindowTitle>
 
-          {/* Tab bar, at the top of the window under its title, as asked - and with no scrollbar drawn under it: on a narrow window
-              it still scrolls sideways, by touch or the wheel with shift. */}
-          <div className="flex items-center gap-1 mb-5 bg-muted/60 rounded-xl p-1 border border-border/60 overflow-x-auto modal-tabs [scrollbar-width:none] [&::-webkit-scrollbar]:hidden" role="tablist" aria-label="The world's figures by subject">
-            {ALL_TABS.map((t) => (
-              <button
-                key={t.id}
-                role="tab"
-                aria-selected={tab === t.id}
-                onClick={() => setTab(t.id)}
-                className={`flex-1 flex items-center justify-center gap-1.5 px-2 py-1.5 rounded-lg text-xs font-medium font-sans whitespace-nowrap transition-all duration-150 cursor-pointer ${
-                  tab === t.id ? "bg-card text-foreground shadow-sm border border-border/60" : "text-muted-foreground hover:text-foreground"
-                }`}
-              >
-                {t.icon}
-                {t.label}
-                <span className="text-[10px] font-mono opacity-60">{countOf(t)}</span>
-              </button>
-            ))}
-          </div>
-
-          {/* The flag, and what it is and stands for, on the Overview alone, as asked. */}
-          {tab === "overview" && (
-            <>
-              {/* Its flag and what it is, as a country's window opens. */}
-              <div className="flex items-start gap-4 mb-4">
-                <div className="w-24 h-16 rounded-xl overflow-hidden shrink-0 border border-border shadow-md">
-                  <img src={FLAG} alt="International Flag of Planet Earth" className="w-full h-full object-cover" />
-                </div>
-                <div className="min-w-0 flex flex-col gap-1.5">
-                  <div className="flex items-center gap-2 flex-wrap">
-                    <span className="text-xs border border-border px-2 py-0.5 rounded-full font-sans text-muted-foreground">World aggregates</span>
-                    {pop && <span className="text-xs px-2 py-0.5 rounded-full font-mono font-semibold border border-border text-foreground">{compact(pop[1])} people · {pop[0]}</span>}
-                    {gdp && <span className="text-xs px-2 py-0.5 rounded-full font-mono font-semibold border border-border text-foreground">GDP ${compact(gdp[1])} · {gdp[0]}</span>}
-                  </div>
-                  <p className="text-[11px] font-sans text-muted-foreground leading-snug">
-                    {Object.keys(WORLD).length} figures for the world as a whole, each its publisher's latest, to {LATEST}; read from their sources on{" "}
-                    {day(WORLDVIEW_RETRIEVED)}.
-                  </p>
-                </div>
-              </div>
-
-              {/* The flag: what it is and what it stands for, as its makers describe it - in the site's words. */}
-              <div className="modal-tile rounded-lg p-4 mb-5">
-                <div className="flex items-center gap-2 min-w-0 mb-2">
-                  <div className="p-1.5 rounded-md border border-border bg-muted text-muted-foreground shrink-0">
-                    <Flag {...I} />
-                  </div>
-                  <div className="min-w-0">
-                    <h3 className="text-xs font-bold font-sans text-foreground uppercase tracking-widest">The flag</h3>
-                    <p className="text-[10px] text-muted-foreground font-sans mt-0.5">The International Flag of Planet Earth</p>
-                  </div>
-                </div>
-                <p className="text-xs font-sans text-foreground leading-relaxed">
-                  Designed by Oskar Pernefeldt as his graduation project at Beckmans College of Design in Stockholm, and first shown in 2015. At its
-                  centre seven rings, linked together, make a flower: the flower stands for life on Earth, and the linking of the rings for how
-                  everything on the planet is connected, directly or not. The blue field is water, which life depends on and which covers most of
-                  the planet; the outer rings together form a circle that can be read as the Earth itself, with the blue around it as space.
-                </p>
-                {/* Its facts in words, as a country window's geography list has them: a line between each. */}
-                <dl className="mt-3 divide-y divide-border">
-                  {[
-                    ["Proportions", "2:3"],
-                    ["Blazon", "Seven silver circles interlaced on a blue field - its makers' heraldic description"],
-                    ["Use", "Free to use, personal or commercial, to represent the planet - not a business, a body or a person"],
-                  ].map(([k, v]) => (
-                    <div key={k} className="grid grid-cols-[7rem_1fr] gap-3 py-2">
-                      <dt className="text-[10px] font-semibold font-sans text-muted-foreground uppercase tracking-wider pt-0.5">{k}</dt>
-                      <dd className="text-xs font-sans text-foreground leading-relaxed">{v}</dd>
-                    </div>
-                  ))}
-                </dl>
-                <SourceLink sources={[FLAG_PAGE, FLAG_FILE]} className="mt-2" />
-              </div>
-            </>
-          )}
-
-
-          <div className="flex flex-col">
-            {current.panels.map((p) => (
-              <Panel key={p.title} p={p} />
-            ))}
-          </div>
-          <ChartNote className="mt-3">
-            Each figure is its publisher's latest for the world, with its year. A change is the latest against the figure ten years before
-            it (or within two years of that), worked out here. Bars on one chart share its scale: 100 for shares, 1 for V-Dem's indices.
-          </ChartNote>
+          <WorldFigures />
         </div>
       </div>
     </div>
@@ -1152,5 +1212,66 @@ export function WorldCard() {
       </article>
       {open && <WorldModal onClose={close} />}
     </>
+  );
+}
+
+
+/**
+ * The world beside the Worldview map, as asked, in the place a picked country's column takes: its flag and name, its
+ * headline figures, each its publisher's latest with its year - the World Bank's people, output, growth, life
+ * expectancy and inflation, UNDP's Human Development Index - how many nations the United Nations counts, and a way into
+ * every world figure the site holds. The column's look is the country column's.
+ */
+export function WorldColumn() {
+  const [open, setOpen] = useState(false);
+  const close = useCallback(() => setOpen(false), []);
+  const rows = (["population", "gdp", "gdpGrowth", "lifeExpectancy", "inflation", "hdi"] as const).flatMap((id) => {
+    const ind = WORLD[id];
+    const last = lastOf(ind);
+    return ind && last ? [{ ind, last }] : [];
+  });
+  const members = Object.keys(COUNTRY_UN).length;
+  const observers = Object.keys(UN_OBSERVERS).length;
+  const sources = [...rows.map((r) => r.ind.source), COUNTRY_UN_SOURCES.members, COUNTRY_UN_SOURCES.observers].filter(
+    (x, i, all) => all.findIndex((y) => y.label === x.label) === i,
+  );
+  const label = "text-[9px] font-mono uppercase tracking-widest text-muted-foreground";
+  return (
+    <div className="flex flex-col gap-2 p-4 border-t lg:border-t-0 lg:border-l border-border">
+      <div className="flex items-center gap-2.5">
+        <img src={FLAG} alt="" className="w-9 h-6 rounded object-cover shrink-0 border border-border" />
+        <div className="min-w-0">
+          <p className="text-sm font-bold font-sans leading-tight truncate text-foreground">The World</p>
+          <p className="text-[10px] font-sans text-muted-foreground">every country together · press one on the map for its own</p>
+        </div>
+      </div>
+      <div className="flex flex-col gap-1 py-2 border-b border-border">
+        <p className={label}>Its figures</p>
+        {rows.map(({ ind, last }) => (
+          <div key={ind.id} className="flex items-baseline justify-between gap-3">
+            <span className="text-[11px] font-sans text-foreground">{ind.label}</span>
+            <span className="text-[11px] font-mono font-semibold text-foreground text-right">
+              {fmt(ind, last[1])}
+              <span className="font-sans font-normal text-muted-foreground"> · {last[0]}</span>
+            </span>
+          </div>
+        ))}
+      </div>
+      <div className="flex flex-col gap-1 py-2 border-b border-border">
+        <p className={label}>Its nations</p>
+        <p className="text-[11px] font-sans text-foreground">
+          <span className="font-mono font-semibold">{members}</span> members of the United Nations, and {observers} observer states
+        </p>
+      </div>
+      <button
+        type="button"
+        onClick={() => setOpen(true)}
+        className="self-start mt-1 px-3 py-1 rounded-full text-[11px] font-medium font-sans border border-border text-foreground hover:bg-muted/60 transition-colors cursor-pointer"
+      >
+        Every world figure · {Object.keys(WORLD).length}
+      </button>
+      <SourceLink sources={sources} className="mt-1" />
+      {open && <WorldModal onClose={close} />}
+    </div>
   );
 }

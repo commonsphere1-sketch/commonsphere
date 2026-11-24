@@ -27,6 +27,10 @@ export function SectionNav({
   onPick?: (id: string) => void;
 }) {
   const [seen, setActive] = useState(sections[0]?.id ?? "");
+  /* The sections not on the page now - a country's, while the Worldview page shows the whole world - whose chips are not
+     drawn, so that no chip is pressed for nothing. Checked as the page scrolls, and every second and a half, since what a
+     page shows can change without a scroll. */
+  const [absent, setAbsent] = useState<string>("");
   const tabs = !!onPick;
   const active = tabs ? (picked ?? "") : seen;
   const rowRef = useRef<HTMLDivElement | null>(null);
@@ -40,15 +44,23 @@ export function SectionNav({
       const line = Math.max(180, window.innerHeight / 3);
       const atFoot = window.innerHeight + window.scrollY >= document.documentElement.scrollHeight - 4;
       let current = sections[0]?.id ?? "";
+      const missing: string[] = [];
       for (const s of sections) {
         const el = document.getElementById(s.id);
+        if (!el) missing.push(s.id);
         if (el && (el.getBoundingClientRect().top <= line || atFoot)) current = s.id;
       }
       setActive(current);
+      // A string, so that the same sections absent again does not re-render.
+      setAbsent(missing.join(" "));
     };
     window.addEventListener("scroll", check, { passive: true, capture: true });
+    const every = window.setInterval(check, 1500);
     check();
-    return () => window.removeEventListener("scroll", check, { capture: true } as EventListenerOptions);
+    return () => {
+      window.removeEventListener("scroll", check, { capture: true } as EventListenerOptions);
+      window.clearInterval(every);
+    };
   }, [sections, tabs]);
   useEffect(() => {
     // On a narrow screen the marked chip can be scrolled out of the row:
@@ -64,7 +76,7 @@ export function SectionNav({
   return (
     <nav aria-label={label} className="search-sticky sticky top-16 z-30 border border-border/60 rounded-2xl px-3 py-2">
       <ChipRow rowRef={rowRef}>
-        {sections.map((s) => (
+        {sections.filter((s) => tabs || !absent.split(" ").includes(s.id)).map((s) => (
           <button
             key={s.id}
             type="button"
