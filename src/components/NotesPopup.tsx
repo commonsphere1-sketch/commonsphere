@@ -503,11 +503,11 @@ export function NotesPopup() {
             </p>
           )}
 
-          {/* Links and images, as asked: one section - the link's box with its + and an image button beside it, the links
-              listed under it and the images small under them. Images are kept in this browser only. */}
+          {/* Links, images and voice, as asked: one section - the link's box with its +, an image button and a microphone
+              beside it; the links, the images and the recording under it; one line saying where each is kept. */}
           <div>
             <p className="text-xs font-semibold font-sans text-muted-foreground uppercase tracking-wider mb-1 flex items-center gap-1">
-              <Link size={11} weight="bold" /> Links and images
+              <Link size={11} weight="bold" /> Links, images and voice
               {images.length > 0 && <span className="font-mono font-normal normal-case">· {images.length}/{NOTE_IMAGES_MAX} images</span>}
             </p>
             <div className="flex gap-1.5 mb-1.5">
@@ -551,6 +551,29 @@ export function NotesPopup() {
               >
                 <ImageSquare size={12} weight="bold" />
               </button>
+              {/* Record, or stop: an account keeps a recording; signed out, a press asks to sign in. */}
+              <button
+                type="button"
+                onClick={() => (isRecording ? stopRecording() : canRecord ? void startRecording() : isConfigured ? openAuth("signin") : undefined)}
+                disabled={!!editing || !!audioUrl || (!canRecord && !isConfigured)}
+                aria-label={isRecording ? "Stop recording" : "Record a voice note"}
+                title={
+                  editing
+                    ? "A recording is added to a new note, not to one being edited"
+                    : audioUrl
+                      ? "One recording to a note: take it off to record again"
+                      : canRecord
+                        ? isRecording
+                          ? "Stop recording"
+                          : "Record a voice note"
+                        : isConfigured
+                          ? "Sign in to keep voice recordings with your notes"
+                          : "Voice recordings need an account"
+                }
+                className={`px-2 py-1 rounded transition-colors disabled:opacity-40 ${isRecording ? "bg-destructive/20 text-destructive hover:bg-destructive/30" : "bg-secondary/20 text-secondary hover:bg-secondary/30"}`}
+              >
+                {isRecording ? <StopCircle size={12} weight="fill" /> : <Microphone size={12} weight="bold" />}
+              </button>
             </div>
             {links.length > 0 && (
               <ul className="flex flex-col gap-0.5 mb-1.5">
@@ -578,6 +601,23 @@ export function NotesPopup() {
                 ))}
               </ul>
             )}
+            {isRecording && (
+              <p className="text-xs font-mono text-destructive animate-pulse mb-1.5">{formatSecs(recordingSeconds)} recording… press the square to stop</p>
+            )}
+            {audioUrl && (
+              <div className="flex items-center gap-1.5 bg-muted rounded px-2.5 py-1.5 mb-1.5">
+                <audio ref={audioRef} src={audioUrl} onEnded={() => setIsPlaying(false)} />
+                <button onClick={togglePlay} className="text-secondary hover:text-secondary/80 transition-colors" aria-label={isPlaying ? "Pause" : "Play"}>
+                  {isPlaying ? <Pause size={14} weight="fill" /> : <Play size={14} weight="fill" />}
+                </button>
+                <span className="text-xs font-mono text-muted-foreground flex-1 flex items-center gap-1">
+                  <Microphone size={11} weight="fill" aria-hidden /> Voice note
+                </span>
+                <button onClick={clearRecording} className="text-muted-foreground hover:text-destructive transition-colors" aria-label="Take the recording off">
+                  <Trash size={11} weight="bold" />
+                </button>
+              </div>
+            )}
             {previews.length > 0 && (
               <ul className="grid grid-cols-3 gap-1.5 mb-1.5">
                 {previews.map((p) => (
@@ -595,87 +635,23 @@ export function NotesPopup() {
                 ))}
               </ul>
             )}
-            <p className="text-[10px] font-sans text-muted-foreground leading-snug">Images: JPEG, PNG, WebP or GIF, up to {NOTE_IMAGES_MAX}; kept in this browser only.</p>
-          </div>
-
-          {/* Voice recording section */}
-          <div>
-            <p className="text-xs font-semibold font-sans text-muted-foreground uppercase tracking-wider mb-1 flex items-center gap-1">
-              <Microphone size={11} weight="bold" /> Voice Recording
+            <p className="text-[10px] font-sans text-muted-foreground leading-snug">
+              Images: JPEG, PNG, WebP or GIF, up to {NOTE_IMAGES_MAX}; kept in this browser only. Voice:{" "}
+              {editing ? (
+                editing.voicePath ? "its recording is kept as it is; an edit does not change it." : "added to a new note, not to one being edited."
+              ) : canRecord ? (
+                "one recording, up to 10 MB, kept with your account."
+              ) : isConfigured ? (
+                <>
+                  <button onClick={() => openAuth("signin")} className="text-secondary font-semibold hover:underline">
+                    sign in
+                  </button>{" "}
+                  to keep recordings with your notes.
+                </>
+              ) : (
+                "recordings need an account, which this site does not offer yet."
+              )}
             </p>
-            {editing ? (
-              <p className="text-[10px] font-sans text-muted-foreground leading-snug">
-                {editing.voicePath ? "Its recording is kept as it is; an edit does not change it." : "A recording is added to a new note, not to one being edited."}
-              </p>
-            ) : !canRecord ? (
-              <p className="text-[10px] font-sans text-muted-foreground leading-snug">
-                {isConfigured ? (
-                  <>
-                    <button
-                      onClick={() => openAuth("signin")}
-                      className="text-secondary font-semibold hover:underline"
-                    >
-                      Sign in
-                    </button>{" "}
-                    to keep voice recordings with your notes.
-                  </>
-                ) : (
-                  "Voice recordings need an account, which this site does not offer yet."
-                )}
-              </p>
-            ) : !audioUrl ? (
-              <div className="flex items-center gap-1.5">
-                {isRecording ? (
-                  <>
-                    <button
-                      onClick={stopRecording}
-                      className="flex items-center gap-1 px-2.5 py-1 bg-destructive/20 text-destructive rounded text-xs font-sans hover:bg-destructive/30 transition-colors"
-                    >
-                      <StopCircle size={12} weight="fill" />
-                      Stop
-                    </button>
-                    <span className="text-xs font-mono text-destructive animate-pulse">
-                      {formatSecs(recordingSeconds)} recording…
-                    </span>
-                  </>
-                ) : (
-                  <button
-                    onClick={startRecording}
-                    className="flex items-center gap-1 px-2.5 py-1 bg-secondary/20 text-secondary rounded text-xs font-sans hover:bg-secondary/30 transition-colors"
-                  >
-                    <Microphone size={12} weight="fill" />
-                    Record
-                  </button>
-                )}
-              </div>
-            ) : (
-              <div className="flex items-center gap-1.5 bg-muted rounded px-2.5 py-1.5">
-                <audio
-                  ref={audioRef}
-                  src={audioUrl}
-                  onEnded={() => setIsPlaying(false)}
-                />
-                <button
-                  onClick={togglePlay}
-                  className="text-secondary hover:text-secondary/80 transition-colors"
-                >
-                  {isPlaying ? (
-                    <Pause size={14} weight="fill" />
-                  ) : (
-                    <Play size={14} weight="fill" />
-                  )}
-                </button>
-                <span className="text-xs font-mono text-muted-foreground flex-1">
-                  voice-note.webm
-                </span>
-                <button
-                  onClick={clearRecording}
-                  className="text-muted-foreground hover:text-destructive transition-colors"
-                >
-                  <Trash size={11} weight="bold" />
-                </button>
-              </div>
-            )}
           </div>
 
           {/* Validation error */}
