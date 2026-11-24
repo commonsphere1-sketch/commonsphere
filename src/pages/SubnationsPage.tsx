@@ -145,7 +145,7 @@ type Part = { title: string; note?: string; fields: Field[]; extra?: ReactNode }
  * and its politics together, and the reference detail, its land and its codes, last. A part not named here keeps its
  * place after them. The site holds no count of what is searched for: the order is a judgement, not a measurement.
  */
-const PART_ORDER = ["Identity", "Demographics", "Society", "Historical trends", "Economy", "Government", "Political data", "Geography", "Its boundary", "Codes"];
+const PART_ORDER = ["Identity", "Demographics", "Society", "Historical trends", "Economy", "Government", "Political data", "Geography", "Codes"];
 const partRank = (title: string) => {
   const i = PART_ORDER.findIndex((o) => title.startsWith(o));
   return i < 0 ? PART_ORDER.length : i;
@@ -1549,16 +1549,8 @@ function DistrictWindow({
         { label: "Continent", value: c?.continent || null },
       ],
     },
-    {
-      title: "Its boundary",
-      note: "The outline drawn for it, and the one its places are found by. It has been simplified for the map.",
-      fields: [
-        { label: "Publisher", value: info?.by ?? null },
-        { label: "The year it shows", value: info?.year ?? null },
-        { label: "Licence", value: info?.licence ?? null },
-        { label: "Gathered by", value: "geoBoundaries", sub: "its gbOpen release, second order" },
-      ],
-    },
+    // Its boundary - its publisher, the year it shows, its licence, geoBoundaries' release - was a section here and was
+    // taken off, as asked; the publisher, year and licence are credited in the window's sources at its foot instead.
     ...(parent
       ? [
           {
@@ -1693,6 +1685,8 @@ function DistrictWindow({
       <SourceLink
         sources={[
           ADMIN2_SOURCE,
+          // Its own boundary's publisher, year and licence, as its licence asks: geoBoundaries gathered it (gbOpen, second order).
+          ...(info?.by ? [{ label: `Its boundary: ${info.by}${info.year ? `, ${info.year}` : ""}${info.licence ? ` - ${info.licence}` : ""}; gathered by geoBoundaries (gbOpen, second order), simplified for the map`, url: ADMIN2_SOURCE.url }] : []),
           { label: PLACES_SOURCE.geonames.label, url: PLACES_SOURCE.geonames.url },
           SUBNATIONS_SOURCES.naturalEarth,
           SUBNATIONS_SOURCES.wikidata,
