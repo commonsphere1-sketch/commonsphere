@@ -28,6 +28,9 @@ export interface CalendarEntry {
   org: string;
   what?: string;
   sources: CivicSource[];
+  /** Where directions to it lead, as a maps search: a street address where the listing gives one, else its city. None for
+   *  what is held across a whole country or state (an election), or online. */
+  directions?: string;
   /** The country it is in (ISO2) and, for a state's or a region's, its ISO 3166-2 code. */
   cc: string;
   region?: string;
@@ -41,6 +44,19 @@ const codeOf = (country: string) => ALIAS[country] ?? NAME_TO_CODE.get(country) 
 const COUNTRY_NAME = new Map(countriesData.map((c) => [c.code, c.name]));
 const STATE_NAME = new Map(usStatesData.map((s) => [`US-${s.abbreviation}`, s.name]));
 
+/** A meeting held online, which no directions lead to. */
+const ONLINE = /\b(zoom|virtual|online|teleconference|webex|teams meeting)\b/i;
+/** A street address in a meeting's place, as the city's calendar writes it: a number, then a street name - beginning with a
+ *  letter or an ordinal ("4th"), so a room's number before it ("Room 1 1818 Parkside Dr.") is not taken for the house's -
+ *  and its kind. */
+const STREET = /\b\d{1,6}\s+(?:[NSEW]\.?\s+)?(?:\d+(?:st|nd|rd|th)\b|[A-Za-z])[A-Za-z0-9.'’ -]{0,40}?\s(?:Street|St|Avenue|Ave|Boulevard|Blvd|Road|Rd|Drive|Dr|Lane|Ln|Way|Place|Pl|Court|Ct|Parkway|Pkwy|Highway|Hwy|Plaza|Square|Sq)\b\.?/i;
+/** Where directions to a council meeting lead: its street address where the listing gives one, else its city. */
+function councilDirections(location: string, city: string, state: string): string | undefined {
+  if (ONLINE.test(location)) return undefined;
+  const street = STREET.exec(location.replace(/https?:\/\/\S+|bit\.ly\/\S+/gi, ""));
+  return street ? `${street[0].trim()}, ${city}, ${state}` : `${city}, ${state}`;
+}
+
 export const CALENDAR_ENTRIES: CalendarEntry[] = [
   ...CALENDAR_2026.map((e) => ({
     id: e.id,
@@ -50,6 +66,8 @@ export const CALENDAR_ENTRIES: CalendarEntry[] = [
     monthOnly: e.monthOnly,
     kind: e.theme,
     place: `${e.city}, ${e.country}`,
+    // To the city it is held in: none where it is held across a country.
+    directions: /^(nationwide|various|online|virtual)$/i.test(e.city) ? undefined : `${e.city}, ${e.country}`,
     org: `${e.org} · ${e.scope.toLowerCase()}, ${e.theme.toLowerCase()}`,
     what: e.what,
     sources: [e.source],
@@ -74,6 +92,7 @@ export const CALENDAR_ENTRIES: CalendarEntry[] = [
     start: m.date,
     kind: "Council" as const,
     place: `${m.city}, ${STATE_NAME.get(m.region) ?? m.region}`,
+    directions: councilDirections(m.location, m.city, STATE_NAME.get(m.region) ?? m.region),
     org: `city council meeting${m.time ? ` · ${m.time}` : ""}`,
     what: m.location || undefined,
     sources: [{ label: `${m.city} - the meeting on the city's own calendar (Legistar)`, url: m.url }],

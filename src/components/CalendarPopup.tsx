@@ -12,7 +12,7 @@
  * meetings too (calendarArea.ts); the default area is chosen in Settings.
  */
 import { useEffect, useMemo, useRef, useState } from "react";
-import { CalendarBlank, CaretDown, CaretLeft, CaretRight, X } from "@phosphor-icons/react";
+import { CalendarBlank, CaretDown, CaretLeft, CaretRight, NavigationArrow, X } from "@phosphor-icons/react";
 import { CALENDAR_CHECKED } from "../data/calendar2026";
 import { CIVIC_RETRIEVED, COUNCIL_CITIES } from "../data/civicCalendar";
 import { AREA_OPTIONS, CALENDAR_ENTRIES, areaLabel, inArea, useCalendarArea, type CalendarEntry, type EntryKind } from "../lib/calendarArea";
@@ -226,6 +226,19 @@ function MonthCalendar({ wide = false }: { wide?: boolean } = {}) {
                     <p className="text-[11px] font-sans leading-snug mt-0.5" style={{ color: t.bodyText }}>
                       {e.what}
                     </p>
+                  )}
+                  {/* Directions to where it is held, as asked: a maps search for its street address or its city, opened in a new tab. */}
+                  {e.directions && (
+                    <a
+                      href={`https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(e.directions)}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      title={`Directions to ${e.directions}, on Google Maps`}
+                      className="inline-flex items-center gap-1 mt-1.5 mr-1.5 px-2 h-5 rounded-full border border-border/70 bg-background/40 text-[9px] font-mono uppercase tracking-wider text-muted-foreground/80 hover:text-foreground transition-colors align-top"
+                    >
+                      <NavigationArrow size={9} weight="fill" aria-hidden />
+                      Directions
+                    </a>
                   )}
                   {e.sources.length > 0 && <SourceLink sources={e.sources} className="mt-1" />}
                 </div>
