@@ -152,6 +152,51 @@ export function NotesPage() {
           ))}
         </FilterBar>
 
+        {/* Your notes, right under the bar of kinds, as asked - above the places followed and the pages of the site. */}
+        <div className="mb-6">
+          {isPending && (
+            <div className="flex items-center justify-center py-10 text-muted-foreground gap-2">
+              <Spinner size={22} className="animate-spin" />
+              <span className="text-sm font-sans">Loading notes…</span>
+            </div>
+          )}
+
+          {error && (
+            <div className="text-center py-10 text-destructive text-sm font-sans">
+              Your notes could not be loaded: {error}
+            </div>
+          )}
+
+          {!isPending && !error && (
+            <>
+              {filtered.length === 0 ? (
+                <div className="text-center py-10 text-muted-foreground font-sans">
+                  <NotePencil size={48} weight="thin" className="mx-auto mb-3 text-muted-foreground" />
+                  <p className="text-sm">
+                    {filterType === "Comparison" && !notes.some((n: Note) => n.entityType === "Comparison")
+                      ? "No comparison noted yet. Pin two places or more on the Compare page, or on the Dashboard's Compare card, and press Note: the comparison is kept here with its places and a link that opens it again."
+                      : notes.length === 0
+                        ? "No notes yet. Use the popup button in the corner of any page, or a + below, to write your first."
+                        : "No note matches."}
+                  </p>
+                </div>
+              ) : (
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 items-start">
+                  {filtered.map((note: Note) => (
+                    <NoteCard
+                      key={note.id}
+                      note={note}
+                      formatDate={formatDate}
+                      onDelete={handleDelete}
+                      isMutating={isMutating}
+                    />
+                  ))}
+                </div>
+              )}
+            </>
+          )}
+        </div>
+
         {/* The countries and states you follow, kept here beside your notes.
             The type buttons and the search narrow these too; a city or an
             economy cannot be followed, so those filters hide this. The cities
@@ -239,47 +284,6 @@ export function NotesPage() {
           </section>
         )}
 
-        {isPending && (
-          <div className="flex items-center justify-center py-20 text-muted-foreground gap-2">
-            <Spinner size={22} className="animate-spin" />
-            <span className="text-sm font-sans">Loading notes…</span>
-          </div>
-        )}
-
-        {error && (
-          <div className="text-center py-20 text-destructive text-sm font-sans">
-            Your notes could not be loaded: {error}
-          </div>
-        )}
-
-        {!isPending && !error && (
-          <>
-            {filtered.length === 0 ? (
-              <div className="text-center py-20 text-muted-foreground font-sans">
-                <NotePencil size={48} weight="thin" className="mx-auto mb-3 text-muted-foreground" />
-                <p className="text-sm">
-                  {filterType === "Comparison" && !notes.some((n: Note) => n.entityType === "Comparison")
-                    ? "No comparison noted yet. Pin two places or more on the Compare page, or on the Dashboard's Compare card, and press Note: the comparison is kept here with its places and a link that opens it again."
-                    : notes.length === 0
-                      ? "No notes yet. Use the popup button in the corner of any page, or a + above, to write your first."
-                      : "No note matches."}
-                </p>
-              </div>
-            ) : (
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 items-start">
-                {filtered.map((note: Note) => (
-                  <NoteCard
-                    key={note.id}
-                    note={note}
-                    formatDate={formatDate}
-                    onDelete={handleDelete}
-                    isMutating={isMutating}
-                  />
-                ))}
-              </div>
-            )}
-          </>
-        )}
       </div>
     </div>
   );
