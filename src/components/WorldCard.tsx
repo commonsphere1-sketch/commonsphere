@@ -757,59 +757,9 @@ function WorldModal({ onClose }: { onClose: () => void }) {
             </button>
           </WindowTitle>
 
-          {/* Its flag and what it is, as a country's window opens. */}
-          <div className="flex items-start gap-4 mb-4">
-            <div className="w-24 h-16 rounded-xl overflow-hidden shrink-0 border border-border shadow-md">
-              <img src={FLAG} alt="International Flag of Planet Earth" className="w-full h-full object-cover" />
-            </div>
-            <div className="min-w-0 flex flex-col gap-1.5">
-              <div className="flex items-center gap-2 flex-wrap">
-                <span className="text-xs border border-border px-2 py-0.5 rounded-full font-sans text-muted-foreground">World aggregates</span>
-                {pop && <span className="text-xs px-2 py-0.5 rounded-full font-mono font-semibold border border-border text-foreground">{compact(pop[1])} people · {pop[0]}</span>}
-                {gdp && <span className="text-xs px-2 py-0.5 rounded-full font-mono font-semibold border border-border text-foreground">GDP ${compact(gdp[1])} · {gdp[0]}</span>}
-              </div>
-              <p className="text-[11px] font-sans text-muted-foreground leading-snug">
-                {Object.keys(WORLD).length} figures for the world as a whole, each its publisher's latest, to {LATEST}; read from their sources on{" "}
-                {day(WORLDVIEW_RETRIEVED)}.
-              </p>
-            </div>
-          </div>
-
-          {/* The flag: what it is and what it stands for, as its makers describe it - in the site's words. */}
-          <div className="modal-tile rounded-lg p-4 mb-5">
-            <div className="flex items-center gap-2 min-w-0 mb-2">
-              <div className="p-1.5 rounded-md border border-border bg-muted text-muted-foreground shrink-0">
-                <Flag {...I} />
-              </div>
-              <div className="min-w-0">
-                <h3 className="text-xs font-bold font-sans text-foreground uppercase tracking-widest">The flag</h3>
-                <p className="text-[10px] text-muted-foreground font-sans mt-0.5">The International Flag of Planet Earth</p>
-              </div>
-            </div>
-            <p className="text-xs font-sans text-foreground leading-relaxed">
-              Designed by Oskar Pernefeldt as his graduation project at Beckmans College of Design in Stockholm, and first shown in 2015. At its
-              centre seven rings, linked together, make a flower: the flower stands for life on Earth, and the linking of the rings for how
-              everything on the planet is connected, directly or not. The blue field is water, which life depends on and which covers most of
-              the planet; the outer rings together form a circle that can be read as the Earth itself, with the blue around it as space.
-            </p>
-            {/* Its facts in words, as a country window's geography list has them: a line between each. */}
-            <dl className="mt-3 divide-y divide-border">
-              {[
-                ["Proportions", "2:3"],
-                ["Blazon", "Seven silver circles interlaced on a blue field - its makers' heraldic description"],
-                ["Use", "Free to use, personal or commercial, to represent the planet - not a business, a body or a person"],
-              ].map(([k, v]) => (
-                <div key={k} className="grid grid-cols-[7rem_1fr] gap-3 py-2">
-                  <dt className="text-[10px] font-semibold font-sans text-muted-foreground uppercase tracking-wider pt-0.5">{k}</dt>
-                  <dd className="text-xs font-sans text-foreground leading-relaxed">{v}</dd>
-                </div>
-              ))}
-            </dl>
-            <SourceLink sources={[FLAG_PAGE, FLAG_FILE]} className="mt-2" />
-          </div>
-
-          {/* Tab bar, as a country's window has it. */}
-          <div className="flex items-center gap-1 mb-5 bg-muted/60 rounded-xl p-1 border border-border/60 overflow-x-auto modal-tabs" role="tablist" aria-label="The world's figures by subject">
+          {/* Tab bar, at the top of the window under its title, as asked - and with no scrollbar drawn under it: on a narrow window
+              it still scrolls sideways, by touch or the wheel with shift. */}
+          <div className="flex items-center gap-1 mb-5 bg-muted/60 rounded-xl p-1 border border-border/60 overflow-x-auto modal-tabs [scrollbar-width:none] [&::-webkit-scrollbar]:hidden" role="tablist" aria-label="The world's figures by subject">
             {ALL_TABS.map((t) => (
               <button
                 key={t.id}
@@ -826,6 +776,63 @@ function WorldModal({ onClose }: { onClose: () => void }) {
               </button>
             ))}
           </div>
+
+          {/* The flag, and what it is and stands for, on the Overview alone, as asked. */}
+          {tab === "overview" && (
+            <>
+              {/* Its flag and what it is, as a country's window opens. */}
+              <div className="flex items-start gap-4 mb-4">
+                <div className="w-24 h-16 rounded-xl overflow-hidden shrink-0 border border-border shadow-md">
+                  <img src={FLAG} alt="International Flag of Planet Earth" className="w-full h-full object-cover" />
+                </div>
+                <div className="min-w-0 flex flex-col gap-1.5">
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <span className="text-xs border border-border px-2 py-0.5 rounded-full font-sans text-muted-foreground">World aggregates</span>
+                    {pop && <span className="text-xs px-2 py-0.5 rounded-full font-mono font-semibold border border-border text-foreground">{compact(pop[1])} people · {pop[0]}</span>}
+                    {gdp && <span className="text-xs px-2 py-0.5 rounded-full font-mono font-semibold border border-border text-foreground">GDP ${compact(gdp[1])} · {gdp[0]}</span>}
+                  </div>
+                  <p className="text-[11px] font-sans text-muted-foreground leading-snug">
+                    {Object.keys(WORLD).length} figures for the world as a whole, each its publisher's latest, to {LATEST}; read from their sources on{" "}
+                    {day(WORLDVIEW_RETRIEVED)}.
+                  </p>
+                </div>
+              </div>
+
+              {/* The flag: what it is and what it stands for, as its makers describe it - in the site's words. */}
+              <div className="modal-tile rounded-lg p-4 mb-5">
+                <div className="flex items-center gap-2 min-w-0 mb-2">
+                  <div className="p-1.5 rounded-md border border-border bg-muted text-muted-foreground shrink-0">
+                    <Flag {...I} />
+                  </div>
+                  <div className="min-w-0">
+                    <h3 className="text-xs font-bold font-sans text-foreground uppercase tracking-widest">The flag</h3>
+                    <p className="text-[10px] text-muted-foreground font-sans mt-0.5">The International Flag of Planet Earth</p>
+                  </div>
+                </div>
+                <p className="text-xs font-sans text-foreground leading-relaxed">
+                  Designed by Oskar Pernefeldt as his graduation project at Beckmans College of Design in Stockholm, and first shown in 2015. At its
+                  centre seven rings, linked together, make a flower: the flower stands for life on Earth, and the linking of the rings for how
+                  everything on the planet is connected, directly or not. The blue field is water, which life depends on and which covers most of
+                  the planet; the outer rings together form a circle that can be read as the Earth itself, with the blue around it as space.
+                </p>
+                {/* Its facts in words, as a country window's geography list has them: a line between each. */}
+                <dl className="mt-3 divide-y divide-border">
+                  {[
+                    ["Proportions", "2:3"],
+                    ["Blazon", "Seven silver circles interlaced on a blue field - its makers' heraldic description"],
+                    ["Use", "Free to use, personal or commercial, to represent the planet - not a business, a body or a person"],
+                  ].map(([k, v]) => (
+                    <div key={k} className="grid grid-cols-[7rem_1fr] gap-3 py-2">
+                      <dt className="text-[10px] font-semibold font-sans text-muted-foreground uppercase tracking-wider pt-0.5">{k}</dt>
+                      <dd className="text-xs font-sans text-foreground leading-relaxed">{v}</dd>
+                    </div>
+                  ))}
+                </dl>
+                <SourceLink sources={[FLAG_PAGE, FLAG_FILE]} className="mt-2" />
+              </div>
+            </>
+          )}
+
 
           <div className="flex flex-col">
             {current.panels.map((p) => (
