@@ -503,10 +503,12 @@ export function NotesPopup() {
             </p>
           )}
 
-          {/* Links section */}
+          {/* Links and images, as asked: one section - the link's box with its + and an image button beside it, the links
+              listed under it and the images small under them. Images are kept in this browser only. */}
           <div>
             <p className="text-xs font-semibold font-sans text-muted-foreground uppercase tracking-wider mb-1 flex items-center gap-1">
-              <Link size={11} weight="bold" /> Links
+              <Link size={11} weight="bold" /> Links and images
+              {images.length > 0 && <span className="font-mono font-normal normal-case">· {images.length}/{NOTE_IMAGES_MAX} images</span>}
             </p>
             <div className="flex gap-1.5 mb-1.5">
               <input
@@ -515,19 +517,43 @@ export function NotesPopup() {
                 onChange={(e) => setLinkInput(e.target.value)}
                 onKeyDown={(e) => e.key === "Enter" && addLink()}
                 placeholder="https://…"
+                aria-label="A link to add"
                 maxLength={LIMITS.NOTE_LINK_URL}
-                className="flex-1 modal-tile border border-border/60 rounded px-2 py-1 text-xs font-mono text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-secondary/50"
+                className="flex-1 min-w-0 modal-tile border border-border/60 rounded px-2 py-1 text-xs font-mono text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-secondary/50"
               />
               <button
                 onClick={addLink}
                 disabled={!linkInput.trim()}
+                aria-label="Add the link"
+                title="Add the link"
                 className="px-2 py-1 bg-secondary/20 rounded text-secondary hover:bg-secondary/30 transition-colors disabled:opacity-40"
               >
                 <Plus size={12} weight="bold" />
               </button>
+              <input
+                ref={imageInput}
+                type="file"
+                accept="image/jpeg,image/png,image/webp,image/gif"
+                multiple
+                className="hidden"
+                onChange={(e) => {
+                  void addImages(e.target.files);
+                  e.target.value = "";
+                }}
+              />
+              <button
+                type="button"
+                onClick={() => imageInput.current?.click()}
+                disabled={images.length >= NOTE_IMAGES_MAX}
+                aria-label="Add images"
+                title={images.length >= NOTE_IMAGES_MAX ? `A note holds up to ${NOTE_IMAGES_MAX} images` : "Add images: JPEG, PNG, WebP or GIF, kept in this browser"}
+                className="px-2 py-1 bg-secondary/20 rounded text-secondary hover:bg-secondary/30 transition-colors disabled:opacity-40"
+              >
+                <ImageSquare size={12} weight="bold" />
+              </button>
             </div>
             {links.length > 0 && (
-              <ul className="flex flex-col gap-0.5">
+              <ul className="flex flex-col gap-0.5 mb-1.5">
                 {links.map((url, i) => (
                   <li
                     key={i}
@@ -543,6 +569,7 @@ export function NotesPopup() {
                     </a>
                     <button
                       onClick={() => removeLink(i)}
+                      aria-label="Take the link off"
                       className="shrink-0 text-muted-foreground hover:text-destructive transition-colors"
                     >
                       <Trash size={11} weight="bold" />
@@ -551,14 +578,6 @@ export function NotesPopup() {
                 ))}
               </ul>
             )}
-          </div>
-
-          {/* Images, as asked: added to the note, new or edited, and kept in this browser. */}
-          <div>
-            <p className="text-xs font-semibold font-sans text-muted-foreground uppercase tracking-wider mb-1 flex items-center gap-1">
-              <ImageSquare size={11} weight="bold" /> Images
-              {images.length > 0 && <span className="font-mono font-normal normal-case">· {images.length}/{NOTE_IMAGES_MAX}</span>}
-            </p>
             {previews.length > 0 && (
               <ul className="grid grid-cols-3 gap-1.5 mb-1.5">
                 {previews.map((p) => (
@@ -576,28 +595,7 @@ export function NotesPopup() {
                 ))}
               </ul>
             )}
-            <input
-              ref={imageInput}
-              type="file"
-              accept="image/jpeg,image/png,image/webp,image/gif"
-              multiple
-              className="hidden"
-              onChange={(e) => {
-                void addImages(e.target.files);
-                e.target.value = "";
-              }}
-            />
-            {images.length < NOTE_IMAGES_MAX && (
-              <button
-                type="button"
-                onClick={() => imageInput.current?.click()}
-                className="flex items-center gap-1 px-2.5 py-1 bg-secondary/20 text-secondary rounded text-xs font-sans hover:bg-secondary/30 transition-colors"
-              >
-                <Plus size={12} weight="bold" />
-                Add images
-              </button>
-            )}
-            <p className="text-[10px] font-sans text-muted-foreground leading-snug mt-1">JPEG, PNG, WebP or GIF, up to {NOTE_IMAGES_MAX}; kept in this browser only.</p>
+            <p className="text-[10px] font-sans text-muted-foreground leading-snug">Images: JPEG, PNG, WebP or GIF, up to {NOTE_IMAGES_MAX}; kept in this browser only.</p>
           </div>
 
           {/* Voice recording section */}
