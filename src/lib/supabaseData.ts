@@ -225,6 +225,41 @@ export async function createNote(
   return { ok: true, id: data.id };
 }
 
+/**
+ * A note in the account edited, as asked: its title, its words, what it is about and its links, each checked as a new
+ * note's are. The database lets an account update and delete its own notes and links only (its row-level policies);
+ * the links are replaced whole. A recording is left as it is.
+ */
+export async function updateNote(
+  uid: string,
+  id: string,
+  input: { title: string; content: string; links?: string[]; entityName?: string; entityType?: string },
+): Promise<Result> {
+  if (!supabase) return NOT_CONFIGURED;
+  const { error } = await supabase
+    .from("notes")
+    .update({
+      title: sanitizeText(input.title).slice(0, LIMITS.NOTE_TITLE),
+      content: sanitizeText(input.content).slice(0, LIMITS.NOTE_CONTENT),
+      entity_name: input.entityName ? sanitizeText(input.entityName).slice(0, 120) : null,
+      entity_type: input.entityType ? sanitizeText(input.entityType).slice(0, 40) : null,
+    })
+    .eq("id", id)
+    .eq("user_id", uid);
+  if (error) return { ok: false, message: error.message };
+  const links = (input.links ?? [])
+    .map((u) => sanitizeUrl(u))
+    .filter((u): u is string => u !== null)
+    .slice(0, LIMITS.NOTE_MAX_LINKS);
+  const { error: clearError } = await supabase.from("note_links").delete().eq("note_id", id).eq("user_id", uid);
+  if (clearError) return { ok: false, message: `The note was saved, but its links were not: ${clearError.message}` };
+  if (links.length) {
+    const { error: linkError } = await supabase.from("note_links").insert(links.map((url) => ({ note_id: id, user_id: uid, url })));
+    if (linkError) return { ok: false, message: `The note was saved, but its links were not: ${linkError.message}` };
+  }
+  return { ok: true };
+}
+
 export async function deleteNote(note: { id: string; voicePath: string | null }): Promise<Result> {
   if (!supabase) return NOT_CONFIGURED;
   // note_links rows go with it through ON DELETE CASCADE; the recording does

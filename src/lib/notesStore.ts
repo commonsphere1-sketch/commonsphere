@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useState } from "react";
 import { useAuth } from "@/contexts/AuthContext";
-import { createNote, deleteNote, fetchNotes, type AccountNote } from "./supabaseData";
+import { createNote, deleteNote, fetchNotes, updateNote, type AccountNote } from "./supabaseData";
+import { deleteImages, moveImages } from "./noteImages";
 import { sanitizeText, sanitizeUrl, LIMITS } from "./security";
 
 /**
@@ -82,11 +83,11 @@ function writeDevice(notes: Note[]): boolean {
 
 const changed = () => window.dispatchEvent(new Event(NOTES_CHANGED));
 
-async function saveNote(uid: string | null, input: NoteInput): Promise<{ ok: boolean; message?: string }> {
+async function saveNote(uid: string | null, input: NoteInput): Promise<{ ok: boolean; message?: string; id?: string }> {
   if (uid) {
     const r = await createNote(uid, input);
     if (r.ok || r.id) changed();
-    return r.ok ? { ok: true } : { ok: false, message: r.message };
+    return r.ok ? { ok: true, id: r.id } : { ok: false, message: r.message, id: r.id };
   }
   if (input.voice) return { ok: false, message: "Sign in to keep voice recordings." };
   const device = readDevice();
@@ -109,6 +110,36 @@ async function saveNote(uid: string | null, input: NoteInput): Promise<{ ok: boo
   if (!writeDevice([note, ...device]))
     return { ok: false, message: "Could not save — this browser's storage is full." };
   changed();
+  return { ok: true, id: note.id };
+}
+
+/**
+ * A note edited, as asked: where it lives - the account (its row and links, through the database's own rules) or this
+ * browser (its entry rewritten in place, its date kept). Its recording, if it has one, is left as it is.
+ */
+async function editNote(uid: string | null, note: Pick<Note, "id" | "source">, input: Omit<NoteInput, "voice">): Promise<{ ok: boolean; message?: string }> {
+  if (note.source === "account") {
+    if (!uid) return { ok: false, message: "Sign in to edit a note kept in your account." };
+    const r = await updateNote(uid, note.id, input);
+    changed();
+    return r.ok ? { ok: true } : { ok: false, message: r.message };
+  }
+  const device = readDevice();
+  const at = device.findIndex((n) => n.id === note.id);
+  if (at < 0) return { ok: false, message: "That note is no longer in this browser." };
+  device[at] = {
+    ...device[at],
+    title: sanitizeText(input.title).slice(0, LIMITS.NOTE_TITLE),
+    content: sanitizeText(input.content).slice(0, LIMITS.NOTE_CONTENT),
+    entityName: input.entityName || null,
+    entityType: input.entityType || null,
+    links: input.links
+      .map((u) => sanitizeUrl(u))
+      .filter((u): u is string => u !== null)
+      .slice(0, LIMITS.NOTE_MAX_LINKS),
+  };
+  if (!writeDevice(device)) return { ok: false, message: "Could not save — this browser's storage is full." };
+  changed();
   return { ok: true };
 }
 
@@ -120,7 +151,8 @@ export function useNoteActions() {
   const { user, isConfigured } = useAuth();
   const uid = isConfigured && user ? user.id : null;
   const create = useCallback((input: NoteInput) => saveNote(uid, input), [uid]);
-  return { create, mode: uid ? ("account" as const) : ("device" as const) };
+  const update = useCallback((note: Pick<Note, "id" | "source">, input: Omit<NoteInput, "voice">) => editNote(uid, note, input), [uid]);
+  return { create, update, mode: uid ? ("account" as const) : ("device" as const) };
 }
 
 export function useNotesStore() {
@@ -164,10 +196,14 @@ export function useNotesStore() {
   const remove = useCallback(async (note: Note): Promise<{ ok: boolean; message?: string }> => {
     if (note.source === "account") {
       const r = await deleteNote(note);
-      if (r.ok) changed();
+      if (r.ok) {
+        await deleteImages(note.id);
+        changed();
+      }
       return r.ok ? { ok: true } : { ok: false, message: r.message };
     }
     writeDevice(readDevice().filter((n) => n.id !== note.id));
+    await deleteImages(note.id);
     changed();
     return { ok: true };
   }, []);
@@ -190,6 +226,7 @@ export function useNotesStore() {
       // in the account either way, and importing it again would duplicate it.
       if (r.ok || r.id) {
         moved++;
+        if (r.id) await moveImages(n.id, r.id);
         writeDevice(readDevice().filter((d) => d.id !== n.id));
       } else {
         failed++;

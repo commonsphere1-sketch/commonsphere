@@ -1,4 +1,5 @@
-import { useState, useRef, useLayoutEffect } from "react";
+import { useState, useRef, useLayoutEffect, useEffect } from "react";
+import { useNoteImages } from "@/lib/noteImages";
 import { SiteMark } from "../components/SiteMark";
 import { useAuth } from "@/contexts/AuthContext";
 import { useNotesStore, type Note } from "@/lib/notesStore";
@@ -17,7 +18,7 @@ import {
 import { FollowedPlaces } from "@/components/FollowedPlaces";
 import type { EntityType } from "@/lib/watchlist";
 import { useNavigate } from "react-router-dom";
-import { ArrowRight, Plus, Star } from "@phosphor-icons/react";
+import { ArrowRight, PencilSimple, Plus, Star, X } from "@phosphor-icons/react";
 import { FilterBar } from "@/components/FilterBar";
 import { useNotes } from "@/contexts/NotesContext";
 import { useFollowedCities } from "@/lib/followedCities";
@@ -307,6 +308,14 @@ function NoteCard({ note, formatDate, onDelete, isMutating }: {
   const comparisonAt = isComparison ? onSite.find((l) => l.path.startsWith("/dashboard/rankings")) : undefined;
   const sitePages = onSite.filter((l) => l !== comparisonAt);
   const noteLinks = note.links.filter((url) => !sitePath(url));
+  const images = useNoteImages(note.id);
+  const [large, setLarge] = useState<{ id: string; name: string; url: string } | null>(null);
+  useEffect(() => {
+    if (!large) return;
+    const key = (e: KeyboardEvent) => e.key === "Escape" && setLarge(null);
+    window.addEventListener("keydown", key);
+    return () => window.removeEventListener("keydown", key);
+  }, [large]);
   const [isPlaying, setIsPlaying] = useState(false);
   const [audioSrc, setAudioSrc] = useState<string | null>(null);
   const [audioError, setAudioError] = useState(false);
@@ -378,14 +387,26 @@ function NoteCard({ note, formatDate, onDelete, isMutating }: {
             {note.title || "Untitled Note"}
           </h3>
         </div>
-        <button
-          onClick={() => onDelete(note)}
-          disabled={isMutating}
-          className="shrink-0 p-1 text-muted-foreground hover:text-destructive transition-colors duration-150 disabled:opacity-40"
-          aria-label={`Delete note: ${note.title || "Untitled"}`}
-        >
-          <Trash size={15} weight="bold" />
-        </button>
+        {/* Edit, as asked: the note opened in the Quick Note popup, its fields filled in, to change or add to - images too. */}
+        <div className="flex items-center gap-0.5 shrink-0">
+          <button
+            onClick={() => window.dispatchEvent(new CustomEvent("open-notes-popup", { detail: { edit: note } }))}
+            disabled={isMutating}
+            className="p-1 text-muted-foreground hover:text-foreground transition-colors duration-150 disabled:opacity-40"
+            aria-label={`Edit note: ${note.title || "Untitled"}`}
+            title="Edit, or add to it"
+          >
+            <PencilSimple size={15} weight="bold" />
+          </button>
+          <button
+            onClick={() => onDelete(note)}
+            disabled={isMutating}
+            className="p-1 text-muted-foreground hover:text-destructive transition-colors duration-150 disabled:opacity-40"
+            aria-label={`Delete note: ${note.title || "Untitled"}`}
+          >
+            <Trash size={15} weight="bold" />
+          </button>
+        </div>
       </div>
 
       {/* Content */}
@@ -407,6 +428,38 @@ function NoteCard({ note, formatDate, onDelete, isMutating }: {
           </button>
         )}
       </div>
+
+      {/* Its images, as asked: small, three across, each opening large over the page; kept in this browser. */}
+      {images.length > 0 && (
+        <ul className="grid grid-cols-3 gap-1.5">
+          {images.map((img) => (
+            <li key={img.id}>
+              <button type="button" onClick={() => setLarge(img)} className="block w-full cursor-zoom-in" aria-label={`Open ${img.name} larger`}>
+                <img src={img.url} alt={img.name} className="w-full h-20 object-cover rounded-md border border-border" />
+              </button>
+            </li>
+          ))}
+        </ul>
+      )}
+      {large && (
+        <div
+          className="fixed inset-0 z-[200] flex items-center justify-center p-6 bg-black/80 backdrop-blur-sm animate-fade-in"
+          onClick={() => setLarge(null)}
+          role="dialog"
+          aria-modal="true"
+          aria-label={large.name}
+        >
+          <img src={large.url} alt={large.name} className="max-w-full max-h-full rounded-lg shadow-2xl" />
+          <button
+            type="button"
+            onClick={() => setLarge(null)}
+            className="absolute top-4 right-4 p-2 rounded-full bg-background/80 text-foreground hover:bg-background transition-colors"
+            aria-label="Close the image"
+          >
+            <X size={16} weight="bold" />
+          </button>
+        </div>
+      )}
 
       {/* The comparison itself, opened again on the Compare page; and any other page of the site the note links to. */}
       {(comparisonAt || sitePages.length > 0) && (

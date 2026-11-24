@@ -1,6 +1,7 @@
 import { useState, useRef, useEffect, useMemo } from "react";
 import { useAuth } from "../contexts/AuthContext";
-import { useNoteActions } from "../lib/notesStore";
+import { useNoteActions, type Note } from "../lib/notesStore";
+import { NOTE_IMAGES_MAX, prepareImage, readImages, writeImages, type NoteImage } from "../lib/noteImages";
 import { VOICE_MAX_BYTES } from "../lib/supabaseData";
 import {
   sanitizeText,
@@ -28,6 +29,7 @@ import {
   StopCircle,
   Play,
   Pause,
+  ImageSquare,
 } from "@phosphor-icons/react";
 
 export function NotesPopup() {
@@ -89,6 +91,31 @@ export function NotesPopup() {
   };
   const [linkInput, setLinkInput] = useState("");
   const [links, setLinks] = useState<string[]>([]);
+  /* The note being edited, as asked: opened from its card on My Notes, its fields filled in; saved where it lives. */
+  const [editing, setEditing] = useState<Pick<Note, "id" | "source" | "voicePath"> | null>(null);
+  /* Its images, as asked: added here, kept in this browser (lib/noteImages), shown small with a way to take one off. */
+  const [images, setImages] = useState<NoteImage[]>([]);
+  const imageInput = useRef<HTMLInputElement | null>(null);
+  const previews = useMemo(() => images.map((i) => ({ id: i.id, name: i.name, url: URL.createObjectURL(i.blob) })), [images]);
+  useEffect(() => () => previews.forEach((p) => URL.revokeObjectURL(p.url)), [previews]);
+  const addImages = async (files: FileList | null) => {
+    if (!files) return;
+    const room = NOTE_IMAGES_MAX - images.length;
+    if (room <= 0) {
+      setInputError(`A note holds up to ${NOTE_IMAGES_MAX} images.`);
+      return;
+    }
+    const ready: NoteImage[] = [];
+    const problems: string[] = [];
+    for (const file of Array.from(files).slice(0, room)) {
+      const r = await prepareImage(file);
+      if ("error" in r) problems.push(r.error);
+      else ready.push(r);
+    }
+    if (files.length > room) problems.push(`Only ${room} more could be added: a note holds up to ${NOTE_IMAGES_MAX} images.`);
+    setInputError(problems.join(" "));
+    setImages((prev) => [...prev, ...ready].slice(0, NOTE_IMAGES_MAX));
+  };
   const [saving, setSaving] = useState(false);
   const [savedMsg, setSavedMsg] = useState(false);
 
@@ -106,7 +133,7 @@ export function NotesPopup() {
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   const { isConfigured, openAuth } = useAuth();
-  const { create, mode } = useNoteActions();
+  const { create, update, mode } = useNoteActions();
   const canRecord = mode === "account";
   const [inputError, setInputError] = useState("");
 
@@ -117,7 +144,26 @@ export function NotesPopup() {
         entityName?: string;
         entityType?: string;
         links?: string[];
+        /** A note to edit, from its card on My Notes: its fields are filled in, and Save keeps it where it lives. */
+        edit?: Note;
       };
+      if (detail.edit) {
+        const n = detail.edit;
+        setEditing({ id: n.id, source: n.source, voicePath: n.voicePath });
+        setTitle(n.title);
+        setContent(n.content);
+        setEntityName(n.entityName ?? "");
+        setEntityType(n.entityType ?? "");
+        setLinks(n.links.map((u) => sanitizeUrl(String(u))).filter((u): u is string => u !== null).slice(0, LIMITS.NOTE_MAX_LINKS));
+        setLinkInput("");
+        setInputError("");
+        setImages([]);
+        void readImages(n.id).then(setImages);
+        setOpen(true);
+        setMinimized(false);
+        return;
+      }
+      setEditing(null);
       setEntityName(detail.entityName ?? "");
       setEntityType(detail.entityType ?? "");
       // Links it is opened with - a comparison's link back to itself - checked as a link typed in is.
@@ -231,18 +277,29 @@ export function NotesPopup() {
     setInputError("");
     setSaving(true);
     try {
-      const result = await create({
+      const fields = {
         title: cleanTitle,
         content: cleanContent,
         links,
-        voice: audioBlobRef.current,
         entityName: entityName || undefined,
         entityType: entityType || undefined,
-      });
+      };
+      const result = editing ? await update(editing, fields) : await create({ ...fields, voice: audioBlobRef.current });
+      const id = editing ? editing.id : (result as { id?: string }).id;
       if (!result.ok) {
         setInputError(result.message ?? "The note could not be saved.");
         return;
       }
+      // Its images, kept in this browser by the note's id: set whole, so one taken off goes.
+      if (id && (images.length || editing)) {
+        const kept = await writeImages(id, images);
+        if (!kept && images.length) {
+          setInputError("The note was saved, but this browser would not keep its images.");
+          return;
+        }
+      }
+      setEditing(null);
+      setImages([]);
       setTitle("");
       setContent("");
       setLinks([]);
@@ -293,7 +350,7 @@ export function NotesPopup() {
         <div className="flex items-center gap-2">
           <NotePencil size={18} weight="fill" className="text-secondary" />
           <span className="text-sm font-semibold font-sans text-foreground">
-            Quick Note
+            {editing ? "Edit note" : "Quick Note"}
           </span>
         </div>
         <div className="flex items-center gap-1">
@@ -312,6 +369,17 @@ export function NotesPopup() {
             onClick={() => {
               setOpen(false);
               setMinimized(false);
+              if (editing) {
+                setEditing(null);
+                setTitle("");
+                setContent("");
+                setLinks([]);
+                setLinkInput("");
+                setEntityName("");
+                setEntityType("");
+                setImages([]);
+                setInputError("");
+              }
             }}
             className="p-1 rounded text-muted-foreground hover:text-destructive transition-colors duration-150"
             aria-label="Close notes popup"
@@ -485,12 +553,63 @@ export function NotesPopup() {
             )}
           </div>
 
+          {/* Images, as asked: added to the note, new or edited, and kept in this browser. */}
+          <div>
+            <p className="text-xs font-semibold font-sans text-muted-foreground uppercase tracking-wider mb-1 flex items-center gap-1">
+              <ImageSquare size={11} weight="bold" /> Images
+              {images.length > 0 && <span className="font-mono font-normal normal-case">· {images.length}/{NOTE_IMAGES_MAX}</span>}
+            </p>
+            {previews.length > 0 && (
+              <ul className="grid grid-cols-3 gap-1.5 mb-1.5">
+                {previews.map((p) => (
+                  <li key={p.id} className="relative group/img">
+                    <img src={p.url} alt={p.name} className="w-full h-16 object-cover rounded border border-border/60" />
+                    <button
+                      type="button"
+                      onClick={() => setImages((prev) => prev.filter((i) => i.id !== p.id))}
+                      className="absolute top-1 right-1 p-0.5 rounded-full bg-background/80 text-muted-foreground hover:text-destructive transition-colors"
+                      aria-label={`Take ${p.name} off the note`}
+                    >
+                      <X size={9} weight="bold" />
+                    </button>
+                  </li>
+                ))}
+              </ul>
+            )}
+            <input
+              ref={imageInput}
+              type="file"
+              accept="image/jpeg,image/png,image/webp,image/gif"
+              multiple
+              className="hidden"
+              onChange={(e) => {
+                void addImages(e.target.files);
+                e.target.value = "";
+              }}
+            />
+            {images.length < NOTE_IMAGES_MAX && (
+              <button
+                type="button"
+                onClick={() => imageInput.current?.click()}
+                className="flex items-center gap-1 px-2.5 py-1 bg-secondary/20 text-secondary rounded text-xs font-sans hover:bg-secondary/30 transition-colors"
+              >
+                <Plus size={12} weight="bold" />
+                Add images
+              </button>
+            )}
+            <p className="text-[10px] font-sans text-muted-foreground leading-snug mt-1">JPEG, PNG, WebP or GIF, up to {NOTE_IMAGES_MAX}; kept in this browser only.</p>
+          </div>
+
           {/* Voice recording section */}
           <div>
             <p className="text-xs font-semibold font-sans text-muted-foreground uppercase tracking-wider mb-1 flex items-center gap-1">
               <Microphone size={11} weight="bold" /> Voice Recording
             </p>
-            {!canRecord ? (
+            {editing ? (
+              <p className="text-[10px] font-sans text-muted-foreground leading-snug">
+                {editing.voicePath ? "Its recording is kept as it is; an edit does not change it." : "A recording is added to a new note, not to one being edited."}
+              </p>
+            ) : !canRecord ? (
               <p className="text-[10px] font-sans text-muted-foreground leading-snug">
                 {isConfigured ? (
                   <>
@@ -572,11 +691,11 @@ export function NotesPopup() {
           <div className="flex items-center justify-between gap-2 pt-0.5">
             {savedMsg ? (
               <span className="text-xs text-success font-sans">
-                Note saved!
+                {editing ? "Changes saved!" : "Note saved!"}
               </span>
             ) : (
               <span className="text-xs text-muted-foreground font-sans">
-                {mode === "account" ? "Saves to your account" : "Saves in this browser"}
+                {(editing ? editing.source === "account" : mode === "account") ? "Saves to your account" : "Saves in this browser"}
               </span>
             )}
             <button
@@ -589,7 +708,7 @@ export function NotesPopup() {
               ) : (
                 <FloppyDisk size={13} weight="fill" />
               )}
-              Save Note
+              {editing ? "Save changes" : "Save Note"}
             </button>
           </div>
         </div>
