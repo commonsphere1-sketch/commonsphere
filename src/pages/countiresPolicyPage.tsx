@@ -10927,7 +10927,8 @@ function EntityRow({ group }: { group: EntityGroup }) {
         createPortal(
           <div
             role="tooltip"
-            className="fixed z-[60] pointer-events-none max-w-[16rem] rounded-lg border border-border bg-card shadow-lg px-2.5 py-1.5"
+            // Frosted, as asked: the site's drop-down glass (.dropdown-glass), as the Rankings' bars have it too.
+            className="fixed z-[60] pointer-events-none max-w-[16rem] rounded-lg border dropdown-glass px-2.5 py-1.5"
             style={{ left: Math.min(window.innerWidth - 140, Math.max(140, tip.x)), top: tip.y - 8, transform: "translate(-50%, -100%)" }}
           >
             <p className="flex items-center gap-1.5 text-[11px] font-semibold text-foreground">
