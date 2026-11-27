@@ -2,6 +2,7 @@ import { ChipRow } from "../components/ChipRow";
 import { SLIM_TRACK, slimFill } from "../components/SlimBars";
 import { SiteMark } from "../components/SiteMark";
 import React, { useState, useMemo, useCallback, useEffect, useRef, lazy, Suspense } from "react";
+import { createPortal } from "react-dom";
 import { COUNTRY_LAW_HELD } from "../data/countryLaw";
 
 /** How the pinned countries are governed, side by side: the Compare card's second view. Fetched country by country. */
@@ -937,6 +938,25 @@ function placingOf(value: number, allValues: number[], higherIsBetter: boolean) 
   };
 }
 
+/** The card above a bar pointed at, as the Public Policy page's bars have it: its colour, its measure, its figure and rank. */
+function BarTip({ x, y, dot, title, says }: { x: number; y: number; dot: string; title: string; says: string }) {
+  return createPortal(
+    <div
+      role="tooltip"
+      // Frosted, as asked: the site's drop-down glass (.dropdown-glass).
+      className="fixed z-[60] pointer-events-none max-w-[16rem] rounded-lg border dropdown-glass px-2.5 py-1.5"
+      style={{ left: Math.min(window.innerWidth - 140, Math.max(140, x)), top: y - 8, transform: "translate(-50%, -100%)" }}
+    >
+      <p className="flex items-center gap-1.5 text-[11px] font-semibold text-foreground">
+        <span className={`w-2 h-2 rounded-full shrink-0 ${dot}`} aria-hidden />
+        {title}
+      </p>
+      <p className="text-[10px] text-muted-foreground leading-snug mt-0.5">{says}</p>
+    </div>,
+    document.body,
+  );
+}
+
 function ProfileStrip({
   row,
   allValuesMap,
@@ -955,6 +975,17 @@ function ProfileStrip({
   /* The bar whose details are open under the strip: the one pointed at, or the one last selected. */
   const [picked, setPicked] = useState<string | null>(null);
   const [hovered, setHovered] = useState<string | null>(null);
+  const [tip, setTip] = useState<{ id: string; x: number; y: number } | null>(null);
+  useEffect(() => {
+    if (!tip) return;
+    const off = () => setTip(null);
+    window.addEventListener("scroll", off, { passive: true, capture: true });
+    return () => window.removeEventListener("scroll", off, { capture: true } as EventListenerOptions);
+  }, [tip]);
+  const tipAt = (id: string, el: HTMLElement) => {
+    const r = el.getBoundingClientRect();
+    setTip({ id, x: r.left + r.width / 2, y: r.top });
+  };
   // Every measure the Compare table carries, for whichever this entity
   // publishes — in the list rows and the detail panel alike.
   const shown: { id: string; label: string; shortLabel: string; description?: string; higherIsBetter: boolean; neutral?: boolean; format: (v: number) => string }[] =
@@ -980,17 +1011,29 @@ function ProfileStrip({
     // full-height track, one colour per measure. Height is the placing; the
     // tooltip gives the figure and its rank.
     return (
-      <div className="flex items-end gap-1 h-9">
+      // The Public Policy page's hover, as asked: each bar answers the pointer over a strip wider than itself, is ringed
+      // while pointed at, and a card above it gives its measure, its figure and its rank.
+      <div className="flex items-end h-9" onMouseLeave={() => setTip(null)}>
         {placed.map(({ m, val, p }) => (
           <div
             key={m.id}
-            title={`${m.label} — ${fmtMetric(m, val)}, ${ordinal(p.rank)} of ${p.of}`}
-            className="rounded-full bg-muted overflow-hidden flex items-end h-full"
-            style={{ width: "4px" }}
+            role="img"
+            aria-label={`${m.label}: ${fmtMetric(m, val)}, ${ordinal(p.rank)} of ${p.of}`}
+            className="flex flex-col items-center justify-end h-full px-[2px]"
+            onMouseEnter={(e) => tipAt(m.id, e.currentTarget)}
           >
-            <div className={`w-full rounded-full ${colorOf(m)}`} style={{ height: `${Math.max(8, p.ahead)}%` }} />
+            <div
+              className={`rounded-full bg-muted overflow-hidden flex items-end h-full transition-all ${tip?.id === m.id ? "ring-1 ring-foreground" : ""}`}
+              style={{ width: "4px" }}
+            >
+              <div className={`w-full rounded-full ${colorOf(m)}`} style={{ height: `${Math.max(8, p.ahead)}%` }} />
+            </div>
           </div>
         ))}
+        {(() => {
+          const at = tip && placed.find((x) => x.m.id === tip.id);
+          return at && tip ? <BarTip x={tip.x} y={tip.y} dot={colorOf(at.m)} title={at.m.label} says={`${fmtMetric(at.m, at.val)} · ${ordinal(at.p.rank)} of ${at.p.of}`} /> : null;
+        })()}
       </div>
     );
   }
@@ -1019,13 +1062,18 @@ function ProfileStrip({
                 e.stopPropagation();
                 setPicked((cur) => (cur === m.id ? null : m.id));
               }}
-              onMouseEnter={() => setHovered(m.id)}
-              onMouseLeave={() => setHovered(null)}
+              onMouseEnter={(e) => {
+                setHovered(m.id);
+                tipAt(m.id, e.currentTarget);
+              }}
+              onMouseLeave={() => {
+                setHovered(null);
+                setTip(null);
+              }}
               onFocus={() => setHovered(m.id)}
               onBlur={() => setHovered(null)}
               aria-pressed={picked === m.id}
               aria-label={`${m.label}: ${fmtMetric(m, val)}, ${ordinal(p.rank)} of ${p.of}. Select for details.`}
-              title={`${m.label} — ${fmtMetric(m, val)}, ${ordinal(p.rank)} of ${p.of}`}
               // The bar alone, as the row's Profile draws it, as asked - its figure, name and rank are in the box under
               // the line when it is pointed at or pressed. A column each, no wider than 2.5rem, so a place with few
               // measures does not stretch them across the panel; the one open stands at full strength, the rest dim.
@@ -1033,7 +1081,7 @@ function ProfileStrip({
             >
               <span
                 className={`h-full bg-muted rounded-full overflow-hidden flex items-end transition-opacity ${open && !isOpen ? "opacity-40" : ""} ${
-                  picked === m.id ? "ring-1 ring-foreground/50 ring-offset-1 ring-offset-background" : ""
+                  picked === m.id ? "ring-1 ring-foreground/50 ring-offset-1 ring-offset-background" : tip?.id === m.id ? "ring-1 ring-foreground" : ""
                 }`}
                 style={{ width: "5px" }}
               >
@@ -1042,6 +1090,10 @@ function ProfileStrip({
             </button>
           );
         })}
+        {(() => {
+          const at = tip && placed.find((x) => x.m.id === tip.id);
+          return at && tip ? <BarTip x={tip.x} y={tip.y} dot={colorOf(at.m)} title={at.m.label} says={`${fmtMetric(at.m, at.val)} · ${ordinal(at.p.rank)} of ${at.p.of}`} /> : null;
+        })()}
       </div>
 
       {/* The details of the bar pointed at or selected: what it measures, the figure, its rank, and the range it sits in. */}
