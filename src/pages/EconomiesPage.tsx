@@ -2240,13 +2240,15 @@ export function EconomiesPage() {
             },
             {
               label: "Fastest Growing",
-              value: `${summary.fastest.name} ${summary.fastest.gdpGrowthRate >= 0 ? "+" : ""}${summary.fastest.gdpGrowthRate}%`,
+              name: summary.fastest.name,
+              value: `${summary.fastest.gdpGrowthRate >= 0 ? "+" : ""}${summary.fastest.gdpGrowthRate}%`,
               sub: "real GDP growth · economies over $10B",
               color: summary.fastest.gdpGrowthRate >= 0 ? "text-success" : "text-destructive",
             },
             {
               label: "Largest Market",
-              value: `${summary.largest.name} ${fmtUsdT(summary.largest.gdpTrillions)}`,
+              name: summary.largest.name,
+              value: fmtUsdT(summary.largest.gdpTrillions),
               sub: "by nominal GDP",
               color: "text-foreground",
             },
@@ -2256,7 +2258,7 @@ export function EconomiesPage() {
               sub: `across ${summary.count} economies`,
               color: "text-foreground",
             },
-          ].map((s) => (
+          ].map((s: { label: string; name?: string; value: string; sub: string; color: string }) => (
             <div
               key={s.label}
               className="bg-card border border-border rounded-lg p-4"
@@ -2264,8 +2266,11 @@ export function EconomiesPage() {
               <p className="text-xs text-muted-foreground font-sans">
                 {s.label}
               </p>
-              <p className={`text-lg font-bold font-mono ${s.color}`}>
-                {s.value}
+              {/* A place's name in the site's reading face, its figure in the figures' face, as the site sets them, as asked:
+                  the name was set in the figures' face with its number. */}
+              <p className="text-lg font-bold leading-snug">
+                {s.name && <span className="font-sans text-foreground">{s.name} </span>}
+                <span className={`font-mono ${s.color}`}>{s.value}</span>
               </p>
               <p className="text-xs text-muted-foreground font-sans mt-0.5">
                 {s.sub}
