@@ -384,7 +384,8 @@ function CurrencyConverter() {
     label: `${c} — ${FX_RATES[c].name}`,
   }));
 
-  // The site's clear glass, as asked, with no colour of its own: it was teal, green and teal before.
+  // The site's clear glass, as asked, with no colour of its own: it was teal, green and teal before. Its words in the site's
+  // reading face and its figures in the figures' face, as asked: its labels and its pairs' chips were in the figures' face.
   return (
     <div className="modal-tile border rounded-2xl p-5 mb-6">
       <div className="flex items-center gap-2 mb-4">
@@ -407,7 +408,7 @@ function CurrencyConverter() {
                 setFromCur(p.from);
                 setToCur(p.to);
               }}
-              className={`text-[10px] font-mono px-2 py-0.5 rounded-full border transition-colors cursor-pointer ${fromCur === p.from && toCur === p.to ? "chip-selected" : "border-border text-muted-foreground hover:text-foreground hover:bg-muted/60"}`}
+              className={`px-3 py-1 rounded-full text-[11px] font-medium font-sans border transition-colors cursor-pointer ${fromCur === p.from && toCur === p.to ? "chip-selected" : "bg-transparent border-border text-muted-foreground hover:text-foreground hover:bg-muted/60"}`}
             >
               {p.from}/{p.to}
             </button>
@@ -418,7 +419,7 @@ function CurrencyConverter() {
       <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
         {/* FROM */}
         <div className="flex-1 min-w-0 flex flex-col gap-1.5">
-          <label className="text-[10px] font-mono uppercase tracking-widest text-muted-foreground">
+          <label className="text-xs font-sans text-muted-foreground">
             Amount
           </label>
           <div className="flex items-center gap-2 bg-background/60 border border-border rounded-xl px-3 py-2.5">
@@ -453,7 +454,7 @@ function CurrencyConverter() {
 
         {/* TO */}
         <div className="flex-1 min-w-0 flex flex-col gap-1.5">
-          <label className="text-[10px] font-mono uppercase tracking-widest text-muted-foreground">
+          <label className="text-xs font-sans text-muted-foreground">
             Result
           </label>
           <div className="flex items-center gap-2 border border-border rounded-xl px-3 py-2.5">
@@ -477,7 +478,7 @@ function CurrencyConverter() {
       <div className="flex items-center justify-between mt-3 pt-3 border-t border-border/40">
         <div className="flex items-center gap-4">
           <div>
-            <p className="text-[9px] text-muted-foreground font-mono uppercase tracking-wide">
+            <p className="text-[11px] text-muted-foreground font-sans">
               1 {fromCur}
             </p>
             <p className="text-sm font-bold font-mono text-foreground">
@@ -486,7 +487,7 @@ function CurrencyConverter() {
           </div>
           <div className="w-px h-8 bg-border" />
           <div>
-            <p className="text-[9px] text-muted-foreground font-mono uppercase tracking-wide">
+            <p className="text-[11px] text-muted-foreground font-sans">
               1 {toCur}
             </p>
             <p className="text-sm font-bold font-mono text-foreground">
