@@ -34,8 +34,12 @@ const COUNTRIES = Object.keys(COUNTRY_BUDGET)
 const AREAS = BUDGET_DIVISIONS.map((d) => ({ value: d.id as string, label: d.label }));
 const pct = (v: number) => `${Number(v.toFixed(1))}%`;
 const money = (v: number) => (v >= 1e12 ? `$${(v / 1e12).toFixed(2)} trillion` : v >= 1e9 ? `$${(v / 1e9).toFixed(1)} billion` : v >= 1e6 ? `$${(v / 1e6).toFixed(1)} million` : `$${Math.round(v).toLocaleString("en-US")}`);
-const pill = "rounded-full border border-border px-3 py-1.5";
-const trigger = "!text-[12px] font-semibold !text-foreground";
+/* Black and white, as asked, as the site's chosen chips and its Sign in button are: each control a pill in the page's ink
+   with its writing in the page's ground (white on the dark theme, black on the light), its − and + small circles the
+   other way round. */
+const pill = "rounded-full border chip-selected px-3 py-1.5";
+const trigger = "!text-[12px] font-semibold !text-background";
+const step = "w-5 h-5 rounded-full bg-background text-foreground hover:opacity-80 transition-opacity cursor-pointer leading-none";
 
 export default function PolicyCalculator({ className = "" }: { className?: string }) {
   const [code, setCode] = useState(COUNTRY_BUDGET.US ? "US" : (COUNTRIES[0]?.value ?? ""));
@@ -81,11 +85,11 @@ export default function PolicyCalculator({ className = "" }: { className?: strin
           </div>
           <span>move</span>
           <div className={`${pill} flex items-center gap-2`}>
-            <button type="button" onClick={() => setPoints((v) => Math.max(0.5, v - 0.5))} className="w-5 h-5 rounded-full border border-border text-muted-foreground hover:text-foreground cursor-pointer leading-none" aria-label="Move less">
+            <button type="button" onClick={() => setPoints((v) => Math.max(0.5, v - 0.5))} className={step} aria-label="Move less">
               −
             </button>
             <span className="font-mono font-bold tabular-nums w-10 text-center">{pct(moved)}</span>
-            <button type="button" onClick={() => setPoints((v) => Math.min(Math.max(most, 0.5), v + 0.5))} className="w-5 h-5 rounded-full border border-border text-muted-foreground hover:text-foreground cursor-pointer leading-none" aria-label="Move more">
+            <button type="button" onClick={() => setPoints((v) => Math.min(Math.max(most, 0.5), v + 0.5))} className={step} aria-label="Move more">
               +
             </button>
           </div>
