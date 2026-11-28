@@ -46,6 +46,7 @@ import { LIMITS } from "@/lib/security";
 import { useAuth } from "@/contexts/AuthContext";
 import { ROW_GLOW } from "@/lib/rowGlow";
 import { useWatchlist } from "@/contexts/WatchlistContext";
+import { LogoImages } from "./SiteMark";
 
 interface HeaderNavProps {
   onMenuToggle: () => void;
@@ -358,28 +359,10 @@ export function HeaderNav({ onMenuToggle, mobileSidebarOpen }: HeaderNavProps) {
         className="flex items-center gap-2 shrink-0 hover:opacity-90 transition-opacity duration-150"
         aria-label="CommonSphere Home"
       >
-        {/* Logo mark — switches between light/dark globe.
-            The box is already 32px, the same as the avatar on the right, but
-            the source JPEGs carry their own padding: the globe measures
-            450x451 inside a 614x610 frame, so it filled only 73.5% of the box
-            and read as the smaller of the two.
-
-            The artwork is also off-centre, so the largest scale that clips
-            nothing is set by the tightest margin: 1.332 for the light file and
-            1.304 for the dark one. 1.28 sits just under both. */}
+        {/* Logo mark: the site's globe, black on the light theme and white on the dark, in a 32px box - the size of the
+            avatar on the right. The files are cropped about the globe, so it fills the box without being scaled. */}
         <div className="w-8 h-8 shrink-0 relative overflow-hidden">
-          {/* Light mode: black-on-white globe */}
-          <img
-            src="https://c.animaapp.com/mnv7exnwOzX3vX/img/uploaded-asset-1776467236633-0.jpeg"
-            alt="CommonSphere logo"
-            className="logo-light absolute inset-0 w-full h-full object-contain scale-[1.28]"
-          />
-          {/* Dark mode: white-on-black globe */}
-          <img
-            src="https://c.animaapp.com/mnv7exnwOzX3vX/img/uploaded-asset-1776467236635-1.jpeg"
-            alt="CommonSphere logo"
-            className="logo-dark absolute inset-0 w-full h-full object-contain scale-[1.28]"
-          />
+          <LogoImages alt="CommonSphere logo" />
         </div>
         {/* Wordmark */}
         <span

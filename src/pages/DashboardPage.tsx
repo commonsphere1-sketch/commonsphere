@@ -29,6 +29,7 @@ import { hdiHex } from "../lib/hdiTier";
 import { CommodityMovers } from "../components/CommodityMovers";
 import { GlobalAnalytics } from "../components/DashboardGlobal";
 import { WorldCard } from "../components/WorldCard";
+import { LogoImages } from "../components/SiteMark";
 import { SectorOutlook } from "../components/DashboardCitiesSectors";
 import { CountryLeaders, PlanetNow, WorldLiving } from "../components/DashboardSignals";
 
@@ -2348,8 +2349,7 @@ export function DashboardPage() {
           {/* The logo, centred, where the welcome heading and its line stood, as asked: the header's globe alone, larger, in the theme's own version - without the name. */}
           <h1 className="flex items-center justify-center pt-2" aria-label="CommonSphere">
             <span className="w-20 h-20 sm:w-24 sm:h-24 shrink-0 relative overflow-hidden" aria-hidden>
-              <img src="https://c.animaapp.com/mnv7exnwOzX3vX/img/uploaded-asset-1776467236633-0.jpeg" alt="" className="logo-light absolute inset-0 w-full h-full object-contain scale-[1.28]" />
-              <img src="https://c.animaapp.com/mnv7exnwOzX3vX/img/uploaded-asset-1776467236635-1.jpeg" alt="" className="logo-dark absolute inset-0 w-full h-full object-contain scale-[1.28]" />
+              <LogoImages />
             </span>
           </h1>
           <div className="w-full flex justify-center">
