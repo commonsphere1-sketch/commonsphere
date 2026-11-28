@@ -20,6 +20,7 @@ import { STATE_FINANCE, STATE_FINANCE_SOURCE, STATE_FINANCE_YEAR } from "../data
 import { inSentence } from "./CountryQuality";
 import { ChartNote, ChartTitle, PartsDonut } from "./ModalCharts";
 import { SourceLink } from "./SourceLink";
+import { figureText } from "./FigureText";
 
 type Source = { label: string; url: string };
 type Tile = { label: string; value: string; sub: string };
@@ -43,7 +44,7 @@ function Tiles({ tiles }: { tiles: Tile[] }) {
       {tiles.map((t) => (
         <div key={t.label} className="modal-tile rounded-lg p-3">
           <p className="text-xs text-muted-foreground font-sans">{t.label}</p>
-          <p className="text-lg font-bold font-mono text-foreground">{t.value}</p>
+          <p className="text-lg font-bold font-mono text-foreground">{figureText(t.value)}</p>
           <p className="text-xs text-muted-foreground font-sans leading-snug">{t.sub}</p>
         </div>
       ))}

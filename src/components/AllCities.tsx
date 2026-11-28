@@ -73,6 +73,7 @@ import TaxPanel from "./TaxPanel";
 import { cityPostal, usePlacePostal } from "../lib/placePostal";
 import { CountryOutline } from "./PlaceOutlines";
 import { SeeAlso } from "./SeeAlso";
+import { figureText } from "./FigureText";
 
 /** The city's country's quality of life, as a profiled city's window gives it: loaded when a window opens. */
 const CountryQuality = lazy(() => import("./CountryQuality"));
@@ -144,7 +145,7 @@ const nth = (n: number) => `${n.toLocaleString("en-US")}${n % 100 >= 11 && n % 1
 const Tile = ({ label, value, sub }: { label: string; value: string; sub?: string }) => (
   <div className="modal-tile rounded-lg p-3 min-w-0">
     <p className="text-xs text-muted-foreground font-sans">{label}</p>
-    <p className="text-base font-bold font-mono text-foreground">{value}</p>
+    <p className="text-base font-bold font-mono text-foreground">{figureText(value)}</p>
     {sub && <p className="text-[10px] text-muted-foreground font-sans mt-0.5 leading-snug">{sub}</p>}
   </div>
 );
@@ -419,7 +420,7 @@ function CityWindow({ c, onBack, onClose }: { c: UnCity; /** Back to its country
                 ].map((f) => (
                   <div key={f.label} className="modal-tile rounded-lg p-3 text-center min-w-0">
                     <p className="text-xs text-muted-foreground font-sans">{f.label}</p>
-                    <p className="text-sm font-bold font-mono text-foreground mt-0.5 break-words">{f.value}</p>
+                    <p className="text-sm font-bold font-mono text-foreground mt-0.5 break-words">{figureText(f.value)}</p>
                   </div>
                 ))}
               </div>

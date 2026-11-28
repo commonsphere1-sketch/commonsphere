@@ -9,6 +9,7 @@
  * figure is made, and the panel says that a figure here and the average may not be measured in the same way.
  */
 import { SLIM_TRACK, slimFill } from "./SlimBars";
+import { figureText } from "./FigureText";
 
 export type AvgRow = {
   key: string;
@@ -47,11 +48,11 @@ export function AgainstAverage({ rows, peers, note, color = "#6366f1" }: { rows:
               <div className="grid grid-cols-[minmax(0,1fr)_auto_auto] items-baseline gap-x-4">
                 <span className="text-[12px] font-sans font-semibold text-foreground leading-snug">{r.label}</span>
                 <span className="text-right">
-                  <span className="block text-[13px] font-mono font-bold text-foreground">{r.fmt(v)}</span>
+                  <span className="block text-[13px] font-mono font-bold text-foreground">{figureText(r.fmt(v))}</span>
                   {r.here && <span className="block text-[9px] font-sans text-muted-foreground">{r.here}</span>}
                 </span>
                 <span className="text-right min-w-[5.5rem]">
-                  <span className="block text-[13px] font-mono text-muted-foreground">{r.fmt(a)}</span>
+                  <span className="block text-[13px] font-mono text-muted-foreground">{figureText(r.fmt(a))}</span>
                   <span className="block text-[9px] font-sans text-muted-foreground">
                     average of {r.n.toLocaleString("en-US")}
                     {r.median !== undefined ? ` · median ${r.fmt(r.median)}` : ""}

@@ -23,6 +23,7 @@ import { semanticColor } from "../lib/semanticColors";
 import { inSentence, qualityHeadlines } from "./CountryQuality";
 import type { Tokens } from "./DataExplorer";
 import { SourceLink } from "./SourceLink";
+import { figureText } from "./FigureText";
 
 export type QualityPlace = { /** The country's ISO code. */ code: string; country: string; /** The city's id on the Cities page. */ city: string; name: string };
 
@@ -56,7 +57,7 @@ export default function CityQualityBars({ t, code, country, city, name }: Qualit
                   </span>
                 )}
                 <span className="text-[10px] font-mono font-semibold text-right shrink-0 min-w-[4.5rem]" style={{ color: t.headText }}>
-                  {r.value}
+                  {figureText(r.value)}
                 </span>
               </div>
               <p className="text-[9px] font-mono leading-snug truncate" style={{ color: t.mutedText }}>

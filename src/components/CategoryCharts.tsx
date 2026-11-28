@@ -28,6 +28,7 @@ import { useTheme } from "../contexts/ThemeContext";
 import { DISPLACED_BY_KIND, WORLD, type WorldIndicator, type WorldPoint } from "../data/worldview";
 import { REGION_SERIES } from "../data/regionSeries";
 import { SourceLink } from "./SourceLink";
+import { figureText } from "./FigureText";
 
 type Source = { label: string; url: string };
 
@@ -140,7 +141,7 @@ function Legend({ look, items }: { look: Look; items: { color: string; label: st
             {l.label}
           </span>
           <span className="text-[10px] font-mono font-bold" style={{ color: look.head }}>
-            {l.value}
+            {figureText(l.value)}
           </span>
         </span>
       ))}

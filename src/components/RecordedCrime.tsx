@@ -17,6 +17,7 @@ import {
   type OffenceKey,
   type SmallCount,
 } from "../data/crimeOffences";
+import { figureText } from "./FigureText";
 
 /**
  * Crime beyond homicide, on the Crime page: what each country's police,
@@ -393,7 +394,7 @@ function CountryRecord({ look }: { look: Look }) {
           {others.map((o) => (
             <li key={o.label} className="rounded-xl px-3 py-2" style={{ background: SLIM_TRACK }}>
               <span className="block text-sm font-bold font-mono" style={{ color: look.head }}>
-                {o.value}
+                {figureText(o.value)}
               </span>
               <span className="block text-[10px] font-sans leading-snug" style={{ color: look.muted }}>
                 {o.label} · {o.when}
@@ -649,7 +650,7 @@ export function RecordedCrime({ isLight }: { isLight: boolean }) {
               style={{ background: isLight ? "rgba(255,255,255,0.75)" : "rgba(255,255,255,0.07)", border: isLight ? "1px solid rgba(239,68,68,0.15)" : "1px solid rgba(255,255,255,0.14)" }}
             >
               <p className="text-sm font-bold font-mono" style={{ color: look.head }}>
-                {s.v}
+                {figureText(s.v)}
               </p>
               <p className="text-[10px] font-sans" style={{ color: look.muted }}>
                 {s.l}

@@ -32,6 +32,7 @@ import {
 } from "@phosphor-icons/react";
 import { FilterBar } from "../components/FilterBar";
 import { HeadlinesBanner } from "../components/HeadlinesBanner";
+import { figureText } from "../components/FigureText";
 
 // ─── Icon map ─────────────────────────────────────────────────────────────────
 
@@ -508,7 +509,7 @@ export function GlobalIndexesPage() {
                 {card.lbl}
               </p>
               <p className="text-sm font-bold text-foreground font-mono">
-                {card.val}
+                {figureText(card.val)}
               </p>
               <p className="text-[10px] text-muted-foreground truncate">
                 {card.sub}

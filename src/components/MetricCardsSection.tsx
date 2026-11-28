@@ -8,6 +8,7 @@ import {
   Scales,
 } from "@phosphor-icons/react";
 import { useNavigate } from "react-router-dom";
+import { figureText } from "./FigureText";
 
 interface MetricCardProps {
   title: string;
@@ -54,7 +55,7 @@ function MetricCard({
         </span>
       </div>
       <p className="text-muted-foreground text-xs font-sans mb-1">{title}</p>
-      <p className="text-2xl font-bold font-mono text-foreground">{value}</p>
+      <p className="text-2xl font-bold font-mono text-foreground">{figureText(value)}</p>
       <p className="text-muted-foreground text-xs font-sans mt-1">{subtitle}</p>
     </article>
   );

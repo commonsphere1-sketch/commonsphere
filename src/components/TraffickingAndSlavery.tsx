@@ -26,6 +26,7 @@ import { MODERN_SLAVERY, MODERN_SLAVERY_SOURCES } from "../data/modernSlavery";
 import { ChartNote, ChartTitle, FigureRow, MeasureBars, PartsBar, PartsDonut } from "./ModalCharts";
 import { TraffickingByPlace } from "./RecordedCrime";
 import { SourceLink } from "./SourceLink";
+import { figureText } from "./FigureText";
 
 const ACCENT = "#ef4444";
 const whole = (n: number) => Math.round(n).toLocaleString("en-US");
@@ -133,7 +134,7 @@ export function TraffickingAndSlavery({ isLight }: { isLight: boolean }) {
         {label}
       </p>
       <p className="text-lg font-bold font-mono leading-tight mt-1" style={{ color: head }}>
-        {value}
+        {figureText(value)}
       </p>
       <p className="text-[10px] font-sans leading-snug mt-0.5" style={{ color: muted }}>
         {sub}

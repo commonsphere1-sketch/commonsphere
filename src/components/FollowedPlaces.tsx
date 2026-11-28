@@ -14,6 +14,7 @@ import { useLiveStatus } from "@/lib/liveFigures";
 import { useFollowedCities, type FollowedAbout } from "@/lib/followedCities";
 import { followedFallback, followedKind, followedLink } from "@/lib/noteKinds";
 import { useSavedFacts } from "@/lib/savedDetails";
+import { figureText } from "./FigureText";
 
 /**
  * The countries and states the reader follows, as cards: each with its key
@@ -145,7 +146,7 @@ export function FollowedCard({
           {figures.map(([k, v]) => (
             <div key={k} className="min-w-0">
               <dt className="text-[10px] font-sans text-muted-foreground truncate">{k}</dt>
-              <dd className="text-xs font-mono font-semibold text-foreground truncate">{v}</dd>
+              <dd className="text-xs font-mono font-semibold text-foreground truncate">{figureText(v)}</dd>
             </div>
           ))}
         </dl>
@@ -260,7 +261,7 @@ function SavedCard({ s, onOpen, onUnfollow }: { s: Saved; onOpen: () => void; on
             <div key={k} className="min-w-0">
               <dt className="text-[10px] font-sans text-muted-foreground truncate">{k}</dt>
               <dd className="text-xs font-mono font-semibold text-foreground truncate" title={v}>
-                {v}
+                {figureText(v)}
               </dd>
             </div>
           ))}

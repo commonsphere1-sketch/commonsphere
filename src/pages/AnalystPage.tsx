@@ -27,6 +27,7 @@ import {
   ArrowUp,
   X,
 } from "@phosphor-icons/react";
+import { figureText } from "../components/FigureText";
 
 /* ─── Static Data ───────────────────────────────────────────────────────── */
 
@@ -1007,7 +1008,7 @@ export function AnalystPage() {
                     className="text-base font-bold font-mono"
                     style={{ color: headText }}
                   >
-                    {s.value}
+                    {figureText(s.value)}
                   </p>
                   <p
                     className="text-[9px] font-sans"

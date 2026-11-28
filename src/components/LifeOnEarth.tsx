@@ -9,6 +9,7 @@ import { EndangeredSpeciesList, NewSpeciesList, type SpeciesWhere } from "./Spec
 import { useTheme } from "../contexts/ThemeContext";
 import type { FigureCard } from "../data/climateFigures";
 import { LIFE_CARDS, LIFE_CHECKED } from "../data/lifeOnEarth";
+import { figureText } from "./FigureText";
 
 /* ─── Figure card ───────────────────────────────────────────────────────── */
 function FigureCardView({
@@ -43,7 +44,7 @@ function FigureCardView({
           {card.figures.map((f) => (
             <div key={f.label} className="rounded-xl px-3 py-2.5" style={{ background: tile, border: `1px solid ${gridLine}` }}>
               <p className="text-[15px] font-bold font-mono leading-tight" style={{ color: headText }}>
-                {f.value}
+                {figureText(f.value)}
               </p>
               <p className="text-[9px] font-sans leading-tight mt-0.5" style={{ color: mutedText }}>
                 {f.label}

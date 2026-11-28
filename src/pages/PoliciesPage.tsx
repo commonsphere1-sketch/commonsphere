@@ -37,6 +37,7 @@ import {
   Tooltip,
   ResponsiveContainer,} from "recharts";
 import { TONE } from "@/lib/chipTone";
+import { figureText } from "../components/FigureText";
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 
@@ -884,7 +885,7 @@ function PolicyModal({
                   {s.label}
                 </p>
                 <p className="text-lg font-bold font-mono text-foreground mt-0.5">
-                  {s.value}
+                  {figureText(s.value)}
                 </p>
               </div>
             ))}
@@ -1081,7 +1082,7 @@ function InitiativesTab({ data }: { data: Policy[] }) {
               </div>
               <div className="text-right shrink-0">
                 <p className="text-base font-bold text-foreground font-mono">
-                  {fmt(p.budgetUSD)}
+                  {figureText(fmt(p.budgetUSD))}
                 </p>
                 <p className="text-[10px] text-foreground/60">budget</p>
               </div>
@@ -1296,7 +1297,7 @@ function ImpactTab({ data }: { data: Policy[] }) {
                     <p className="text-muted-foreground">
                       Budget:{" "}
                       <span className="text-foreground font-mono">
-                        {fmt(d.x)}
+                        {figureText(fmt(d.x))}
                       </span>
                     </p>
                     <p className="text-muted-foreground">

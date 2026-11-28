@@ -41,6 +41,7 @@ import {
   PieChart,
   Pie,
 } from "recharts";
+import { figureText } from "../components/FigureText";
 
 /* ─── Data ────────────────────────────────────────────────────────────── */
 
@@ -781,7 +782,7 @@ export function CrimeStatsPage() {
                   className="text-2xl font-bold font-mono"
                   style={{ color: headText }}
                 >
-                  {k.value}
+                  {figureText(k.value)}
                   <span
                     className="text-sm font-normal ml-1"
                     style={{ color: mutedText }}
@@ -1212,7 +1213,7 @@ export function CrimeStatsPage() {
                                   className="text-[10px] font-mono font-semibold leading-none"
                                   style={{ color: headText }}
                                 >
-                                  {val}
+                                  {figureText(val)}
                                 </span>
                                 <div
                                   className="w-2 rounded-full relative overflow-hidden"
@@ -1489,7 +1490,7 @@ export function CrimeStatsPage() {
                   className="text-sm font-bold font-mono"
                   style={{ color: headText }}
                 >
-                  {s.v}
+                  {figureText(s.v)}
                 </p>
                 <p
                   className="text-[10px] font-sans"
@@ -2001,7 +2002,7 @@ export function CrimeStatsPage() {
                   className="text-sm font-bold font-mono"
                   style={{ color: headText }}
                 >
-                  {s.v}
+                  {figureText(s.v)}
                 </p>
                 <p
                   className="text-[10px] font-sans"
@@ -2083,7 +2084,7 @@ export function CrimeStatsPage() {
                   className="text-2xl font-bold font-mono"
                   style={{ color: headText }}
                 >
-                  {k.value}
+                  {figureText(k.value)}
                   <span
                     className="text-sm font-normal ml-1"
                     style={{ color: mutedText }}

@@ -12,6 +12,7 @@
  */
 import { useId, type ReactNode } from "react";
 import { Bar, BarChart, Cell, LabelList, ReferenceLine, ResponsiveContainer, XAxis, YAxis } from "recharts";
+import { figureText } from "./FigureText";
 
 export type SlimRow = {
   /** Unique among the rows. */
@@ -85,7 +86,7 @@ export default function SlimBars({
                   }}
                 />
                 <span className="absolute top-1/2 -translate-y-1/2 pl-1.5 text-[11px] font-mono font-semibold tabular-nums whitespace-nowrap" style={{ left: `${w}%` }}>
-                  {fmt(r.v)}
+                  {figureText(fmt(r.v))}
                 </span>
               </span>
             </span>

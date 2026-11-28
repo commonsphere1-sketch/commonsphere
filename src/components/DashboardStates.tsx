@@ -22,6 +22,7 @@ import { Card, Caret, Go, Head, Kicker } from "./DashboardCitiesSectors";
 import { useTokens } from "./DataExplorer";
 import { SourceLink } from "./SourceLink";
 import SlimBars, { SLIM_TRACK, slimFill } from "./SlimBars";
+import { figureText } from "./FigureText";
 
 const COLOR = "#3b82f6";
 const SHOWN = 10;
@@ -130,7 +131,7 @@ export function StatesContainer() {
                             <span className="block h-full rounded-full" style={{ width: `${Math.max(1.5, f.bar)}%`, background: slimFill(COLOR) }} />
                           </span>
                           <span className="text-[10px] font-mono font-semibold text-right shrink-0 min-w-[4.5rem]" style={{ color: t.headText }}>
-                            {f.value}
+                            {figureText(f.value)}
                           </span>
                         </div>
                         <p className="text-[9px] font-mono leading-snug truncate" style={{ color: t.mutedText }}>
@@ -160,7 +161,7 @@ export function StatesContainer() {
         ].map((m) => (
           <div key={m.label} className="rounded-xl px-2 py-2 text-center" style={{ background: m.color + "10", border: `1px solid ${m.color}20` }}>
             <p className="text-sm font-bold font-mono" style={{ color: t.headText }}>
-              {m.value}
+              {figureText(m.value)}
             </p>
             <p className="text-[9px] font-sans leading-snug" style={{ color: t.mutedText }}>
               {m.label}

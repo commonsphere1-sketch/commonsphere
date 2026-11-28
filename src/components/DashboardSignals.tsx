@@ -39,6 +39,7 @@ import { SLIM_TRACK, slimFill } from "./SlimBars";
 import { useTokens, type Tokens } from "./DataExplorer";
 import { SourceLink } from "./SourceLink";
 import { PlanetaryBoundariesRadialChart } from "./PlanetaryBoundariesWheel";
+import { figureText } from "./FigureText";
 
 type Source = { label: string; url: string };
 const GREEN = "#10b981";
@@ -222,7 +223,7 @@ export function PlanetNow() {
               </span>
               <span className="text-right shrink-0">
                 <span className="block text-[11px] font-mono font-bold" style={{ color: t.headText }}>
-                  {c.value} {c.unit}
+                  {figureText(c.value)} {c.unit}
                 </span>
                 <span className="flex items-center justify-end gap-0.5 text-[9px] font-mono" style={{ color: t.mutedText }}>
                   {change === null || c.decadeAgo === null ? (

@@ -21,6 +21,7 @@ import type { ReactNode } from "react";
 import { FirstAid, GraduationCap, HandCoins, Wallet } from "@phosphor-icons/react";
 import { PUBLIC_SERVICES, PUBLIC_SERVICE_SOURCES, UNIVERSAL_BASIC_INCOME, type PublicServices } from "../data/publicServices";
 import { SourceLink } from "./SourceLink";
+import { figureText } from "./FigureText";
 
 /** Public health cover counts as universal for a badge at this share of the population or more. */
 const UNIVERSAL = 99;
@@ -61,7 +62,7 @@ function Tile({ icon, label, value, lines, on }: { icon: ReactNode; label: strin
         {icon}
         {label}
       </p>
-      <p className={`text-base font-bold font-mono leading-tight mt-1 ${on ? "text-success" : "text-foreground"}`}>{value}</p>
+      <p className={`text-base font-bold font-mono leading-tight mt-1 ${on ? "text-success" : "text-foreground"}`}>{figureText(value)}</p>
       {lines.map((l) => (
         <p key={l} className="text-[10px] font-sans text-muted-foreground leading-snug mt-0.5">
           {l}

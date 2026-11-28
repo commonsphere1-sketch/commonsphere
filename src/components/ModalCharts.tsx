@@ -36,6 +36,7 @@ import { useId, useState, type ReactNode } from "react";
 import { WORLD } from "../data/worldview";
 import { semanticColor } from "../lib/semanticColors";
 import { downloadCsv, numberOf, type CsvCell } from "../lib/csv";
+import { figureText } from "./FigureText";
 
 /** The control under a chart that downloads its figures as a CSV: small, in the site's mono capitals, at the chart's right. */
 export function CsvButton({ name, header, rows, className = "" }: { /** What the chart shows: the file's name. */ name: string; header: string[]; rows: CsvCell[][]; className?: string }) {
@@ -87,7 +88,7 @@ export function FigureTile({ label, value, sub, world }: { label: string; value:
   return (
     <div className="rounded-lg border border-border bg-background/40 px-3 py-2.5 min-w-0">
       <p className="text-[10px] font-sans text-muted-foreground leading-snug">{label}</p>
-      <p className="text-base font-bold font-mono text-foreground leading-tight mt-0.5">{value}</p>
+      <p className="text-base font-bold font-mono text-foreground leading-tight mt-0.5">{figureText(value)}</p>
       {(sub || world) && (
         <p className="text-[9px] font-mono text-muted-foreground leading-snug mt-0.5">
           {sub}
@@ -337,7 +338,7 @@ export function FigureRow({ label, value, sub }: { label: ReactNode; value: Reac
     <div className="flex items-baseline justify-between gap-3 py-1.5 border-b border-border last:border-b-0">
       <span className="text-[11px] font-sans text-foreground flex-1 min-w-[40%]">{label}</span>
       <span className="text-[11px] font-mono font-semibold text-foreground text-right min-w-0 leading-snug">
-        {value}
+        {figureText(value)}
         {/* What the figure is of, in the page's reading face, as asked: the figure itself keeps the figures' own. */}
         {sub && <span className="font-sans font-normal text-muted-foreground"> · {sub}</span>}
       </span>

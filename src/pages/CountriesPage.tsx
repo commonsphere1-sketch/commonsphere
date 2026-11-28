@@ -15,6 +15,7 @@ import { BASES_ABROAD, BASES_DISPUTED, BASES_HOSTED, BASES_IN_DISPUTED, MILITARY
 import { JUSTICE_OUTCOMES, JUSTICE_SOURCES, type OffenceKind } from "../data/justice";
 import { semanticColor } from "../lib/semanticColors";
 import { PlaceTopics } from "../components/PlaceTopics";
+import { figureText } from "../components/FigureText";
 
 /* Every country's parties and chambers: loaded when a Politics tab opens, not with the page. */
 const PoliticalParties = lazy(() => import("../components/PoliticalParties"));
@@ -414,7 +415,7 @@ function GeographySection({ country }: { country: Country }) {
           .map(([label, value]) => (
             <div key={label} className="modal-tile rounded-lg px-3 py-2.5">
               <p className="text-[9px] text-muted-foreground font-sans uppercase tracking-wider mb-0.5">{label}</p>
-              <p className="text-xs font-bold font-mono text-foreground leading-snug">{value}</p>
+              <p className="text-xs font-bold font-mono text-foreground leading-snug">{figureText(value)}</p>
             </div>
           ))}
       </div>
@@ -915,7 +916,7 @@ function CountryModal({
                         {s.label}
                       </p>
                       <p className="text-sm font-bold font-mono text-foreground truncate">
-                        {s.value}
+                        {figureText(s.value)}
                       </p>
                     </div>
                   ))}
@@ -1107,7 +1108,7 @@ function CountryModal({
                           <p
                             className={`text-lg font-bold font-mono ${s.color}`}
                           >
-                            {s.value}
+                            {figureText(s.value)}
                           </p>
                           <p className="text-xs text-muted-foreground font-sans">
                             {s.sub}
@@ -8943,7 +8944,7 @@ function InternationalSnapshot({ countries }: { countries: Country[] }) {
                   {country.name}
                 </span>
                 <span className="text-xs font-bold font-mono shrink-0" style={{ color: ink }}>
-                  {spec.fmt(spec.get(country))}
+                  {figureText(spec.fmt(spec.get(country)))}
                 </span>
               </div>
             </div>
@@ -9073,7 +9074,7 @@ export function CountriesPage() {
                 {s.label}
               </p>
               <p className="text-base font-bold font-mono text-foreground">
-                {s.value}
+                {figureText(s.value)}
               </p>
             </div>
           ))}

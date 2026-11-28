@@ -56,6 +56,7 @@ import { useTokens, type Tokens } from "./DataExplorer";
 import { SourceLink } from "./SourceLink";
 import SlimBars, { SlimColumns, gradId } from "./SlimBars";
 import { LegalStatusList } from "./LegalStatusList";
+import { figureText } from "./FigureText";
 
 /** The site's colours for the panels, in turn. */
 export const INK = ["#2a78d6", "#10b981", "#f59e0b", "#8b5cf6", "#ef4444", "#06b6d4", "#ec4899", "#84cc16", "#f97316", "#6366f1"];
@@ -1016,7 +1017,7 @@ export default function CountryFigures({ code, name }: { code: string; name: str
                 {prison && (
                   <div className="rounded-lg px-3 py-2 min-w-[9rem]" style={{ background: t.tile, border: `1px solid ${t.gridLine}` }}>
                     <p className="text-[9px] font-mono uppercase tracking-wider" style={{ color: t.mutedText }}>In prison, per 100,000</p>
-                    <p className="text-sm font-bold font-mono" style={{ color: t.headText }}>{prison.v}</p>
+                    <p className="text-sm font-bold font-mono" style={{ color: t.headText }}>{figureText(prison.v)}</p>
                     <p className="text-[9px] font-mono" style={{ color: t.mutedText }}>{prison.y}</p>
                   </div>
                 )}

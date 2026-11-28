@@ -6,6 +6,7 @@ import { ArrowRight, ArrowsIn, ArrowsOut, Minus, TrendDown, TrendUp, X } from "@
 import { useTheme } from "../contexts/ThemeContext";
 import { SourceLink } from "./SourceLink";
 import { SLIM_TRACK, slimFill } from "./SlimBars";
+import { figureText } from "./FigureText";
 
 /**
  * A figure as a card, the way the Economies page shows a commodity: what it
@@ -229,7 +230,7 @@ function FactRow({ f }: { f: StatFact }) {
     <span className="flex justify-between items-baseline gap-2">
       <span className="text-[10px] text-muted-foreground font-sans shrink-0">{f.label}</span>
       <span className="text-[10px] font-semibold font-mono text-foreground text-right truncate">
-        {f.value}
+        {figureText(f.value)}
         {f.sub && <span className="font-normal text-muted-foreground"> · {f.sub}</span>}
       </span>
     </span>
@@ -256,7 +257,7 @@ export function StatCard({ s, onOpen, more }: { s: StatCardData; onOpen?: () => 
         </span>
         {s.change && <ChangeChip c={s.change} />}
       </span>
-      <span className="block text-xl font-bold font-mono leading-tight text-foreground mt-1">{s.value}</span>
+      <span className="block text-xl font-bold font-mono leading-tight text-foreground mt-1">{figureText(s.value)}</span>
       <span className="block text-[10px] font-mono leading-snug text-muted-foreground">{s.sub}</span>
       {(s.about || s.story) && (
         <span className="block text-[11px] font-sans leading-snug mt-1.5 line-clamp-4">
@@ -378,7 +379,7 @@ export function StatWindow({ s, onClose }: { s: StatCardData; onClose: () => voi
             <div className="absolute inset-0 pointer-events-none" style={{ background: `linear-gradient(90deg, ${color}33, ${color}14, ${color}26)` }} />
             <div className="relative min-w-0">
               <div className="flex items-center gap-2 mt-1.5 flex-wrap">
-                <span className="text-2xl font-bold font-mono text-foreground leading-none">{s.value}</span>
+                <span className="text-2xl font-bold font-mono text-foreground leading-none">{figureText(s.value)}</span>
                 {s.change && <ChangeChip c={s.change} />}
               </div>
               <p className="text-[11px] font-sans text-muted-foreground mt-1.5">{s.sub}</p>
@@ -448,7 +449,7 @@ export function StatWindow({ s, onClose }: { s: StatCardData; onClose: () => voi
                 {facts.map((f) => (
                   <div key={f.label} className="modal-tile rounded-xl p-3 min-w-0">
                     <p className="text-[9px] font-mono uppercase tracking-widest text-muted-foreground mb-1">{f.label}</p>
-                    <p className="text-sm font-bold font-mono text-foreground leading-tight break-words">{f.value}</p>
+                    <p className="text-sm font-bold font-mono text-foreground leading-tight break-words">{figureText(f.value)}</p>
                     {f.sub && <p className="text-[10px] font-mono text-muted-foreground mt-0.5">{f.sub}</p>}
                   </div>
                 ))}
@@ -579,7 +580,7 @@ export function StatCategoryCard({ c, wide = false, lead }: { c: StatCategoryDat
               </span>
               <span className="flex items-baseline gap-2 shrink-0">
                 {s.change && <MoveMark c={s.change} />}
-                <span className="text-[12px] font-mono font-bold text-foreground">{s.value}</span>
+                <span className="text-[12px] font-mono font-bold text-foreground">{figureText(s.value)}</span>
               </span>
             </span>
           ))}
@@ -672,7 +673,7 @@ export function StatCategoryWindow({ c, onClose }: { c: StatCategoryData; onClos
                         <span className="w-2 h-2 rounded-full shrink-0" style={{ background: color }} aria-hidden />
                         {s.label}
                       </h3>
-                      <p className="text-2xl font-bold font-mono text-foreground leading-tight mt-1">{s.value}</p>
+                      <p className="text-2xl font-bold font-mono text-foreground leading-tight mt-1">{figureText(s.value)}</p>
                       <p className="text-[10px] font-mono text-muted-foreground leading-snug">{s.sub}</p>
                     </div>
                     {s.change && <ChangeChip c={s.change} />}

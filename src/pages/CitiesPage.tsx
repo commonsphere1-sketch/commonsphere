@@ -59,6 +59,7 @@ import { useFollowedCities } from "../lib/followedCities";
 import { FilterBar } from "../components/FilterBar";
 import { TONE, CHIP_TEXT } from "@/lib/chipTone";
 import { SLIM_TRACK, slimFill } from "../components/SlimBars";
+import { figureText } from "../components/FigureText";
 
 /* Water, energy, transport, safety, business and the economy for the city's country. Loaded when a window opens:
    the figures it reads are the Countries page's, and large. */
@@ -287,7 +288,7 @@ function Legend({ items }: { items: { color: string; label: string; value: strin
         <span key={l.label} className="flex items-center gap-1.5">
           <span className="w-3 h-0.5 rounded-full" style={{ background: l.color }} aria-hidden />
           <span className="text-[10px] font-sans text-muted-foreground">{l.label}</span>
-          <span className="text-[10px] font-mono font-bold text-foreground">{l.value}</span>
+          <span className="text-[10px] font-mono font-bold text-foreground">{figureText(l.value)}</span>
         </span>
       ))}
     </div>
@@ -316,7 +317,7 @@ function CityTile({ label, value, sub }: { label: string; value: string; sub?: s
   return (
     <div className="modal-tile rounded-lg p-3 min-w-0">
       <p className="text-xs text-muted-foreground font-sans">{label}</p>
-      <p className="text-base font-bold font-mono text-foreground">{value}</p>
+      <p className="text-base font-bold font-mono text-foreground">{figureText(value)}</p>
       {sub && <p className="text-[10px] text-muted-foreground font-sans mt-0.5 leading-snug">{sub}</p>}
     </div>
   );
@@ -381,7 +382,7 @@ function CityStandings({ row }: { row: Row }) {
                 {nth(s.rank)} of {s.of}
               </span>
             </div>
-            <p className="text-lg font-bold font-mono text-foreground leading-tight mt-0.5">{m.fmt(s.v)}</p>
+            <p className="text-lg font-bold font-mono text-foreground leading-tight mt-0.5">{figureText(m.fmt(s.v))}</p>
             <p className="text-[11px] font-sans text-muted-foreground">
               {m.what} · the middle of the {s.of} is {m.fmt(s.median)}
             </p>
@@ -403,7 +404,7 @@ function CityStandings({ row }: { row: Row }) {
               </>
             )}
             <p className="text-[11px] font-sans text-muted-foreground mt-2 pt-2 border-t border-border/50">
-              The {s.of} cities run from <span className="font-mono text-foreground">{m.fmt(s.min)}</span> to <span className="font-mono text-foreground">{m.fmt(s.max)}</span>.
+              The {s.of} cities run from <span className="font-mono text-foreground">{figureText(m.fmt(s.min))}</span> to <span className="font-mono text-foreground">{figureText(m.fmt(s.max))}</span>.
             </p>
           </li>
         );
@@ -711,7 +712,7 @@ function CityModal({ city, onClose }: { city: City; onClose: () => void }) {
                     ].map((f) => (
                       <div key={f.label} className="modal-tile rounded-lg p-3 text-center">
                         <p className="text-xs text-muted-foreground font-sans">{f.label}</p>
-                        <p className="text-sm font-bold font-mono text-foreground mt-0.5">{f.value}</p>
+                        <p className="text-sm font-bold font-mono text-foreground mt-0.5">{figureText(f.value)}</p>
                       </div>
                     ))}
                   </div>
@@ -885,12 +886,13 @@ export function CitiesPage() {
     const largest = topOf("population");
     const densest = topOf("density");
     const fastest = topOf("growth");
-    return [
+    const tiles: { label: string; name?: string; value: string; sub: string }[] = [
       { label: "Cities profiled", value: String(ROWS.length), sub: `of the ${SRC.cities.toLocaleString("en-US")} the UN counts` },
-      ...(largest ? [{ label: "Largest", value: `${largest.row.city.name} · ${fmtPeople(largest.v)}`, sub: `people, ${BASE}` }] : []),
-      ...(densest ? [{ label: "Densest", value: `${densest.row.city.name} · ${perKm2(densest.v)}`, sub: `people per km² of land, ${BASE}` }] : []),
-      ...(fastest ? [{ label: `Grown most since ${SINCE}`, value: `${fastest.row.city.name} · ${signed(fastest.v)}`, sub: `population, ${SINCE} to ${BASE}` }] : []),
+      ...(largest ? [{ label: "Largest", name: largest.row.city.name, value: fmtPeople(largest.v), sub: `people, ${BASE}` }] : []),
+      ...(densest ? [{ label: "Densest", name: densest.row.city.name, value: perKm2(densest.v), sub: `people per km² of land, ${BASE}` }] : []),
+      ...(fastest ? [{ label: `Grown most since ${SINCE}`, name: fastest.row.city.name, value: signed(fastest.v), sub: `population, ${SINCE} to ${BASE}` }] : []),
     ];
+    return tiles;
   }, []);
 
   return (
@@ -909,8 +911,13 @@ export function CitiesPage() {
           {summary.map((s) => (
             <div key={s.label} className="bg-card border border-border rounded-lg p-4">
               <p className="text-xs text-muted-foreground font-sans">{s.label}</p>
-              <p className="text-base font-bold font-mono text-foreground">{s.value}</p>
-              <p className="text-[10px] text-muted-foreground font-mono mt-0.5">{s.sub}</p>
+              {/* A city's name in the site's reading face, its figure in the figures' face, as the Economies page's tiles are, as
+                  asked: the name was set in the figures' face with its number, and the line under it too. */}
+              <p className="text-base font-bold leading-snug text-foreground">
+                {s.name && <span className="font-sans">{s.name} </span>}
+                <span className="font-mono">{figureText(s.value)}</span>
+              </p>
+              <p className="text-xs text-muted-foreground font-sans mt-0.5">{s.sub}</p>
             </div>
           ))}
         </div>

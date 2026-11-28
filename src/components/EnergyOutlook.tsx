@@ -18,6 +18,7 @@ import { ArrowDown, ArrowRight, ArrowUp, Lightning } from "@phosphor-icons/react
 import { RENEWABLE_OUTLOOK, type OutlookRow } from "../data/renewables";
 import { useTokens, type Tokens } from "./DataExplorer";
 import { SourceLink } from "./SourceLink";
+import { figureText } from "./FigureText";
 
 const EIA = RENEWABLE_OUTLOOK;
 const ACCENT = "#6366f1";
@@ -56,7 +57,7 @@ function Figure({ t, label, value, sub, change }: { t: Tokens; label: string; va
         {label}
       </span>
       <span className="block text-lg font-bold font-mono leading-tight mt-1" style={{ color: t.headText }}>
-        {value}
+        {figureText(value)}
       </span>
       {sub && (
         <span className="block text-[9px] font-mono leading-snug mt-0.5" style={{ color: t.mutedText }}>

@@ -26,6 +26,7 @@ import {
 // Bookmark feature removed
 import { STATE_OFFICES, STATE_OFFICES_SOURCES } from "../data/stateOffices";
 import { partyInk, samePerson, senateSeatUp, useCalls, type Call } from "../lib/elections2026";
+import { figureText } from "../components/FigureText";
 
 /**
  * Who the 2026 elections chose for a seat, under its holder's name: re-elected, or the person elected and when they take
@@ -82,7 +83,7 @@ function MiniStat({ label, value, sub }: { label: string; value: string; sub?: s
   return (
     <div className="rounded-lg border border-border bg-background/40 p-2.5 text-center">
       <p className="text-[10px] text-muted-foreground font-sans mb-0.5 leading-tight">{label}</p>
-      <p className="text-base font-bold font-mono text-foreground">{value}</p>
+      <p className="text-base font-bold font-mono text-foreground">{figureText(value)}</p>
       {sub && <p className="text-[9px] text-muted-foreground font-sans mt-0.5">{sub}</p>}
     </div>
   );
@@ -187,7 +188,7 @@ function StatCard({
   return (
     <div className="modal-tile rounded-lg p-4 flex flex-col gap-1">
       <p className="text-xs text-muted-foreground font-sans">{label}</p>
-      <p className="text-xl font-bold font-mono text-foreground">{value}</p>
+      <p className="text-xl font-bold font-mono text-foreground">{figureText(value)}</p>
       {sub && <p className="text-xs text-muted-foreground font-sans">{sub}</p>}
     </div>
   );
@@ -7009,7 +7010,7 @@ function StateSnapshot() {
                   : winners.map((w) => w.s.name).join(" & ")}
               </span>
               <span className="text-xs font-bold font-mono shrink-0" style={{ color: ink }}>
-                {spec.fmt(value)}
+                {figureText(spec.fmt(value))}
               </span>
             </div>
           </div>
@@ -7267,7 +7268,7 @@ export function StatesPage() {
                 {s.label}
               </p>
               <p className="text-base font-bold font-mono text-foreground">
-                {s.value}
+                {figureText(s.value)}
               </p>
             </div>
           ))}

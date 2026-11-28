@@ -54,6 +54,7 @@ import { LEADERS_BY_COUNTRY } from "../data/leaderIndex";
 import { TONE, CHIP_TEXT } from "@/lib/chipTone";
 import { flagColor } from "../lib/flagColor";
 import { Block, Empty, GoButton, Kpi, Label, Row, useTokens, type Tokens } from "../components/DataExplorer";
+import { figureText } from "../components/FigureText";
 // Globe is used in LeaderDetail tabs — do not remove
 
 // ── Types ──────────────────────────────────────────────────────────────────── v3
@@ -15358,7 +15359,7 @@ function LeaderDetail({
                   {s.label}
                 </p>
                 <p className="text-base font-bold font-mono text-foreground">
-                  {s.value}
+                  {figureText(s.value)}
                 </p>
                 <p
                   className="text-[10px] text-muted-foreground font-sans truncate"
@@ -16198,7 +16199,7 @@ function MonarchDetail({
                   className={`${/^[\d–]+$/.test(s.value) ? "text-sm" : "text-[13px]"} font-bold font-mono text-foreground leading-tight break-words`}
                   title={s.value}
                 >
-                  {s.value}
+                  {figureText(s.value)}
                 </p>
                 <p
                   className="text-[10px] text-muted-foreground font-sans truncate"
@@ -17035,7 +17036,7 @@ export function RichestFamiliesView() {
           >
             <p className="text-xs text-muted-foreground">{s.label}</p>
             <p className="text-xl font-bold font-mono text-foreground">
-              {s.value}
+              {figureText(s.value)}
             </p>
           </div>
         ))}
@@ -17229,7 +17230,7 @@ export function RichestFamiliesView() {
                       {s.label}
                     </p>
                     <p className={`text-sm font-bold font-mono ${s.color}`}>
-                      {s.value}
+                      {figureText(s.value)}
                     </p>
                   </div>
                 ))}
@@ -17381,7 +17382,7 @@ function AllianceModal({
             ].map((f) => (
               <div key={f.label} className="modal-tile rounded-lg p-3">
                 <p className="text-xs text-muted-foreground font-sans">{f.label}</p>
-                <p className="text-lg font-bold font-mono text-foreground">{f.value}</p>
+                <p className="text-lg font-bold font-mono text-foreground">{figureText(f.value)}</p>
                 <p className="text-xs text-muted-foreground font-sans">{f.sub}</p>
               </div>
             ))}
@@ -17928,7 +17929,7 @@ export function WorldLeadersPage() {
                 {s.label}
               </p>
               <p className="text-xl font-bold font-mono text-foreground">
-                {s.value}
+                {figureText(s.value)}
               </p>
             </div>
           ))}
@@ -18058,7 +18059,7 @@ export function WorldLeadersPage() {
                 >
                   <p className="text-xs text-muted-foreground">{s.label}</p>
                   <p className="text-xl font-bold font-mono text-foreground">
-                    {s.value}
+                    {figureText(s.value)}
                   </p>
                 </div>
               ))}

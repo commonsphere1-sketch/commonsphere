@@ -6,6 +6,7 @@ import {
 } from "@phosphor-icons/react";
 import { useNavigate } from "react-router-dom";
 import { SITE_DESCRIPTION, SITE_PAGES, SITE_PRINCIPLES, SITE_SOURCES, SITE_STATS } from "../lib/siteAbout";
+import { figureText } from "../components/FigureText";
 
 export function AboutPage() {
   const navigate = useNavigate();
@@ -52,7 +53,7 @@ export function AboutPage() {
                 className="bg-card border border-border rounded-2xl p-6 text-center"
               >
                 <p className="text-4xl font-bold font-mono text-secondary mb-2">
-                  {s.val}
+                  {figureText(s.val)}
                 </p>
                 <p className="text-sm text-muted-foreground font-sans">
                   {s.lbl}

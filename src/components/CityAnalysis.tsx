@@ -29,6 +29,7 @@ import { countriesData } from "../data/countriesData";
 import { UN_CITIES, UN_CITIES_SOURCE, type UnCity } from "../data/unCities";
 import { ChartNote, ChartTitle, FigureRow, MeasureBars, PartsDonut } from "./ModalCharts";
 import { SourceLink } from "./SourceLink";
+import { figureText } from "./FigureText";
 
 type Series = { p: (number | null)[]; a: (number | null)[]; b: (number | null)[]; q: (0 | 1 | 2 | null)[] };
 type SeriesFile = { years: number[]; base: number; cities: Record<string, Series> };
@@ -74,7 +75,7 @@ const Section = ({ title, note, children }: { title: string; note?: string; chil
 const Tile = ({ label, value, sub }: { label: string; value: string; sub?: string }) => (
   <div className="modal-tile rounded-lg p-3 min-w-0">
     <p className="text-xs text-muted-foreground font-sans">{label}</p>
-    <p className="text-base font-bold font-mono text-foreground">{value}</p>
+    <p className="text-base font-bold font-mono text-foreground">{figureText(value)}</p>
     {sub && <p className="text-[10px] text-muted-foreground font-sans mt-0.5 leading-snug">{sub}</p>}
   </div>
 );

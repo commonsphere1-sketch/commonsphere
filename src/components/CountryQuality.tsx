@@ -54,6 +54,7 @@ import { ChartTitle, PartsDonut, worldFor } from "./ModalCharts";
 import { semanticColor } from "../lib/semanticColors";
 import { SourceLink } from "./SourceLink";
 import { SLIM_TRACK, slimFill } from "./SlimBars";
+import { figureText } from "./FigureText";
 
 /** Where a bar ends and where the world's tick sits, each as a percentage of the measure's scale. */
 type Bar = { at: number; world?: number; scale: string };
@@ -98,7 +99,7 @@ function QualityTile({ r, color }: { r: Row; /** The subject's colour: its bars 
   return (
     <div className="rounded-lg border border-border/60 bg-background/40 px-3 py-2.5 min-w-0 flex flex-col">
       <p className="text-[11px] font-sans text-muted-foreground leading-snug">{r.label}</p>
-      <p className="text-lg font-bold font-mono text-foreground leading-tight mt-0.5">{r.value}</p>
+      <p className="text-lg font-bold font-mono text-foreground leading-tight mt-0.5">{figureText(r.value)}</p>
       {r.bar && (
         <span
           className="relative block h-1.5 rounded-full mt-1.5"
@@ -474,7 +475,7 @@ export default function CountryQuality({
               </span>
               {lead ? (
                 <>
-                  <span className="block text-base font-bold font-mono text-foreground leading-tight mt-1.5 truncate">{lead.value}</span>
+                  <span className="block text-base font-bold font-mono text-foreground leading-tight mt-1.5 truncate">{figureText(lead.value)}</span>
                   <span className="block text-[10px] font-sans text-muted-foreground leading-snug truncate" title={lead.label}>
                     {lead.label}
                   </span>

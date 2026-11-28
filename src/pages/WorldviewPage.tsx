@@ -2,6 +2,7 @@ import { PageHeader } from "../components/PageHeader";
 import { WindowTitle } from "../components/WindowTitle";
 import { ChipRow } from "../components/ChipRow";
 import { createContext, lazy, Suspense, useCallback, useContext, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
+import { figureText } from "../components/FigureText";
 /** The world map across the top of the page, with its outlines: loaded after the page. */
 const WorldviewMap = lazy(() => import("../components/WorldviewMap"));
 import { PlaceStripes } from "../components/PlaceHistory";
@@ -890,7 +891,7 @@ function Pill({ label, value, sub, d }: { label: string; value: string; sub: str
         {label}
       </p>
       <p className="text-2xl font-bold font-mono" style={{ color: head }}>
-        {value}
+        {figureText(value)}
       </p>
       <p className="text-[10px] font-sans" style={{ color: muted }}>
         {sub}
@@ -2331,7 +2332,7 @@ function FigureView({ f }: { f: Figure }) {
         {factsOf(f).map((x) => (
           <div key={x.label} className="modal-tile rounded-xl p-3">
             <p className="text-[9px] font-mono uppercase tracking-widest text-muted-foreground mb-1">{x.label}</p>
-            <p className="text-sm font-bold font-mono text-foreground leading-tight">{x.value}</p>
+            <p className="text-sm font-bold font-mono text-foreground leading-tight">{figureText(x.value)}</p>
             {x.sub && <p className="text-[10px] font-sans text-muted-foreground mt-0.5">{x.sub}</p>}
           </div>
         ))}

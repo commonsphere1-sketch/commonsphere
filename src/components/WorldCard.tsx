@@ -59,6 +59,7 @@ import { WindowTitle } from "./WindowTitle";
 import { SourceLink } from "./SourceLink";
 import { ChartNote, ChartTitle, FigureRow, FigureTile, HdiScale, MeasureBars, PartsDonut } from "./ModalCharts";
 import { lockScroll } from "../lib/scrollLock";
+import { figureText } from "./FigureText";
 
 const FLAG = "/flags/planet-earth.svg";
 /** The flag's own blue, for the card's glow. */
@@ -722,7 +723,7 @@ function PeopleCounter() {
         ].map(([k, v]) => (
           <div key={k} className="min-w-0">
             <p className="text-[10px] font-sans text-muted-foreground">{k}</p>
-            <p className="text-sm font-bold font-mono text-foreground tabular-nums">{v}</p>
+            <p className="text-sm font-bold font-mono text-foreground tabular-nums">{figureText(v)}</p>
           </div>
         ))}
       </div>
@@ -1201,7 +1202,7 @@ export function WorldCard() {
             {head.map(({ ind, last }) => (
               <div key={ind.id} className="min-w-0">
                 <p className="text-[11px] font-sans text-muted-foreground truncate">{ind.label}</p>
-                <p className="text-base font-bold font-mono text-foreground leading-tight">{fmt(ind, last[1])}</p>
+                <p className="text-base font-bold font-mono text-foreground leading-tight">{figureText(fmt(ind, last[1]))}</p>
                 <p className="text-[10px] font-sans text-muted-foreground truncate">
                   {ind.unit} · {last[0]}
                 </p>
@@ -1251,7 +1252,7 @@ export function WorldColumn() {
           <div key={ind.id} className="flex items-baseline justify-between gap-3">
             <span className="text-[11px] font-sans text-foreground">{ind.label}</span>
             <span className="text-[11px] font-mono font-semibold text-foreground text-right">
-              {fmt(ind, last[1])}
+              {figureText(fmt(ind, last[1]))}
               <span className="font-sans font-normal text-muted-foreground"> · {last[0]}</span>
             </span>
           </div>

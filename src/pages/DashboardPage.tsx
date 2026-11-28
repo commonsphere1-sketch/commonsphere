@@ -32,6 +32,7 @@ import { WorldCard } from "../components/WorldCard";
 import { LogoImages } from "../components/SiteMark";
 import { SectorOutlook } from "../components/DashboardCitiesSectors";
 import { CountryLeaders, PlanetNow, WorldLiving } from "../components/DashboardSignals";
+import { figureText } from "../components/FigureText";
 
 /** Energy to 2050, the panel kept of the Trends & Projections desk, with the projections it draws on: loaded after the page. */
 const EnergyOutlook = lazy(() => import("../components/EnergyOutlook"));
@@ -2131,7 +2132,7 @@ function FocusCarousel({
                 className="text-[11px] font-bold font-mono truncate"
                 style={{ color: colour ?? headText }}
               >
-                {value}
+                {figureText(value)}
               </span>
             </div>
           ))}

@@ -30,6 +30,7 @@ import { PUBLIC_SECURITY, PUBLIC_SECURITY_SOURCES } from "../data/publicSecurity
 import { ACCENT, ChartNote, ChartTitle, worldFor } from "./ModalCharts";
 import { SourceLink } from "./SourceLink";
 import { SLIM_TRACK, slimFill } from "./SlimBars";
+import { figureText } from "./FigureText";
 
 const n = (v: number, dp = 0) => v.toLocaleString("en-US", { maximumFractionDigits: dp });
 
@@ -189,7 +190,7 @@ function Figure({ label, value, sub }: { label: string; value: string; sub: stri
     <li className="flex items-baseline justify-between gap-3 py-1.5 border-b border-border last:border-b-0">
       <span className="text-[11px] font-sans text-foreground min-w-0 leading-snug">{label}</span>
       <span className="text-[11px] font-mono font-semibold text-foreground text-right shrink-0">
-        {value}
+        {figureText(value)}
         <span className="font-normal text-muted-foreground"> · {sub}</span>
       </span>
     </li>

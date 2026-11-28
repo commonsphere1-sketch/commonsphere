@@ -35,6 +35,7 @@ import { WORLD } from "../data/worldview";
 import { has } from "../lib/na";
 import { ChartTitle, PartsDonut, worldFor } from "./ModalCharts";
 import { SourceLink } from "./SourceLink";
+import { figureText } from "./FigureText";
 
 const usd = (v: number) => (v >= 1e12 ? `$${(v / 1e12).toFixed(2)}T` : v >= 1e9 ? `$${(v / 1e9).toFixed(1)}bn` : `$${Math.round(v).toLocaleString("en-US")}`);
 const pct = (v: number, dp = 1) => `${v.toFixed(dp)}%`;
@@ -67,7 +68,7 @@ function Lines({ lines }: { lines: Line[] }) {
           <div className="flex items-baseline justify-between gap-3">
             <span className="text-[11px] font-sans text-foreground min-w-0">{l.label}</span>
             <span className="text-[13px] font-mono font-bold text-foreground shrink-0">
-              {l.value}
+              {figureText(l.value)}
               {l.year && <span className="text-[10px] font-normal text-muted-foreground"> · {l.year}</span>}
             </span>
           </div>

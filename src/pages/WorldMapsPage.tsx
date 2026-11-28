@@ -77,6 +77,7 @@ import {
   pm25Band,
 } from "../data/airQuality";
 import { StyledSelect } from "../components/StyledSelect";
+import { figureText } from "../components/FigureText";
 /** Who leads the world's regions and municipalities, with the places it maps: loaded after the page, which does not wait for it. */
 /** The third map: one division of the country in focus, with its counties and its municipalities. Loaded when the page reaches it. */
 const DivisionAtlas = lazy(() => import("../components/DivisionAtlas"));
@@ -4437,7 +4438,7 @@ export function WorldMapsPage() {
             {markInfo.stats.map(([k, v]) => (
               <div key={k} className="min-w-0">
                 <dt className="text-[9px] font-mono uppercase tracking-wider text-muted-foreground truncate">{k}</dt>
-                <dd className="text-[12px] font-mono font-bold text-foreground">{v}</dd>
+                <dd className="text-[12px] font-mono font-bold text-foreground">{figureText(v)}</dd>
               </div>
             ))}
           </dl>
@@ -4574,7 +4575,7 @@ export function WorldMapsPage() {
                   {markInfo.stats.map(([k, v]) => (
                     <div key={k} className="min-w-0">
                       <dt className="text-[9px] font-mono uppercase tracking-wider text-muted-foreground truncate">{k}</dt>
-                      <dd className="text-[12px] font-mono font-bold text-foreground">{v}</dd>
+                      <dd className="text-[12px] font-mono font-bold text-foreground">{figureText(v)}</dd>
                     </div>
                   ))}
                 </dl>
@@ -5191,7 +5192,7 @@ export function WorldMapsPage() {
                   <p className="text-[9px] font-mono uppercase tracking-wide text-muted-foreground">
                     {k.label}
                   </p>
-                  <p className="text-base font-bold font-mono text-foreground">{k.value}</p>
+                  <p className="text-base font-bold font-mono text-foreground">{figureText(k.value)}</p>
                 </div>
               ))}
             </div>

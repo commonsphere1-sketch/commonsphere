@@ -21,6 +21,7 @@ import { STATE_INDICATORS, STATE_SOURCES } from "../data/stateIndicators";
 import { countryPeople, peopleSource } from "../lib/countryPeople";
 import { inSentence } from "./CountryQuality";
 import { SourceLink } from "./SourceLink";
+import { figureText } from "./FigureText";
 
 type Source = { label: string; url: string };
 type Figure = { label: string; value: string; sub: string };
@@ -42,7 +43,7 @@ function Tiles({ title, note, figures, sources }: { title: string; note: string;
         {figures.map((f) => (
           <div key={f.label} className="modal-tile rounded-lg p-3">
             <p className="text-xs text-muted-foreground font-sans">{f.label}</p>
-            <p className="text-lg font-bold font-mono text-foreground">{f.value}</p>
+            <p className="text-lg font-bold font-mono text-foreground">{figureText(f.value)}</p>
             <p className="text-xs text-muted-foreground font-sans">{f.sub}</p>
           </div>
         ))}

@@ -94,6 +94,7 @@ import { HeadlinesBanner, SUBJECT } from "@/components/HeadlinesBanner";
 import { AgainstAverage } from "@/components/AgainstAverage";
 import { ECONOMY_PEERS, economyAverageRows } from "@/lib/placeAverages";
 import { FX_RATES, FX_SOURCES, FX_ECB_DATE } from "@/data/fxRates";
+import { figureText } from "../components/FigureText";
 
 
 // Default for economies without specific data
@@ -1520,7 +1521,7 @@ function EconomyModal({
                               : undefined
                         }
                         >
-                          {s.value}
+                          {figureText(s.value)}
                         </p>
                       </div>
                     </div>
@@ -1821,7 +1822,7 @@ function EconomyModal({
                                     )}
                                   </span>
                                   <span className="font-mono text-foreground shrink-0">
-                                    {r.value}
+                                    {figureText(r.value)}
                                     <span className="text-muted-foreground">
                                       {" "}
                                       {r.unit}
@@ -2271,7 +2272,7 @@ export function EconomiesPage() {
                   the name was set in the figures' face with its number. */}
               <p className="text-lg font-bold leading-snug">
                 {s.name && <span className="font-sans text-foreground">{s.name} </span>}
-                <span className={`font-mono ${s.color}`}>{s.value}</span>
+                <span className={`font-mono ${s.color}`}>{figureText(s.value)}</span>
               </p>
               <p className="text-xs text-muted-foreground font-sans mt-0.5">
                 {s.sub}
@@ -2775,7 +2776,7 @@ export function EconomiesPage() {
                                   <p
                                     className={`text-xs font-bold font-mono leading-tight ${s.color}`}
                                   >
-                                    {s.value}
+                                    {figureText(s.value)}
                                   </p>
                                 </div>
                               ))}

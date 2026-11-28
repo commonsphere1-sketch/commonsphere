@@ -22,6 +22,7 @@ import { ArrowRight, MagnifyingGlass, X } from "@phosphor-icons/react";
 import { Block, Empty, GoButton, Kpi, Label, Row, tooltipStyle, useTokens, type Tokens } from "./DataExplorer";
 import { StatWindow, statFacts, type StatCardData } from "./StatCard";
 import { SourceLink } from "./SourceLink";
+import { figureText } from "./FigureText";
 
 export interface StatGroup {
   title: string;
@@ -121,7 +122,7 @@ export function StatExplorer({
                       </span>
                     </span>
                     <span className="text-[11px] font-mono shrink-0" style={{ color: t.headText }}>
-                      {s.value}
+                      {figureText(s.value)}
                     </span>
                     <span className="text-[10px] font-mono shrink-0 w-16 text-right truncate" style={{ color: toneOf(t, s) }}>
                       {s.change?.chip ?? "—"}
@@ -307,7 +308,7 @@ function StatDetail({ t, group, s, onOpen }: { t: Tokens; group: StatGroup; s: S
                   {f.label}
                 </dt>
                 <dd className="text-[11px] font-mono font-bold text-right shrink-0" style={{ color: t.headText }}>
-                  {f.value}
+                  {figureText(f.value)}
                   {f.sub && (
                     <span className="block text-[9px] font-normal" style={{ color: t.mutedText }}>
                       {f.sub}

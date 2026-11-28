@@ -38,6 +38,7 @@ import {
   TreeStructure,
   CheckSquareOffset,
 } from "@phosphor-icons/react";
+import { figureText } from "./FigureText";
 
 interface SidebarNavProps {
   collapsed: boolean;
@@ -241,7 +242,7 @@ function AboutModal({ onClose }: { onClose: () => void }) {
                     className="modal-tile rounded-xl p-3 text-center"
                   >
                     <p className="text-xl font-bold font-mono text-secondary">
-                      {s.val}
+                      {figureText(s.val)}
                     </p>
                     <p className="text-[10px] text-muted-foreground font-sans mt-0.5">
                       {s.lbl}

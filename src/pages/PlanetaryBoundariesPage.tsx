@@ -5,6 +5,7 @@ import { BOUNDARIES, PHC_2026, TRANSGRESSED } from "../data/planetaryBoundaries"
 import { PlaceHistory } from "../components/PlaceHistory";
 import ClimateWatch from "../components/ClimateWatch";
 import EarthStatus from "../components/EarthStatus";
+import { figureText } from "../components/FigureText";
 
 /* ─── Main Page ──────────────────────────────────────────────────────────── */
 export function PlanetaryBoundariesPage() {
@@ -136,7 +137,7 @@ export function PlanetaryBoundariesPage() {
             .map((k) => (
               <div key={k.label} className="bg-card border border-border rounded-lg p-4">
                 <p className="text-xs text-muted-foreground font-sans">{k.label}</p>
-                <p className={`text-xl font-bold font-mono ${k.color}`}>{k.value}</p>
+                <p className={`text-xl font-bold font-mono ${k.color}`}>{figureText(k.value)}</p>
                 <a
                   href={k.href}
                   target="_blank"

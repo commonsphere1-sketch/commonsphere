@@ -47,6 +47,7 @@ import { ago, placeName, useHeadlines, type Headline } from "./HeadlinesBanner";
 import type { TopicHit } from "./PolicyContext";
 import { RESOURCES } from "../data/resourceList";
 import { ROW_GLOW } from "../lib/rowGlow";
+import { figureText } from "./FigureText";
 
 /** A policy headline's fuller detail, with the data it draws on: loaded when one is first shown. */
 const PolicyContext = lazy(() => import("./PolicyContext"));
@@ -407,7 +408,7 @@ export function Kpi({ t, label, value, color, sub }: { t: Tokens; label: string;
         {label}
       </p>
       <p className="text-sm font-bold font-mono" style={{ color }}>
-        {value}
+        {figureText(value)}
       </p>
       {sub && (
         <p className="text-[9px] font-mono" style={{ color: t.mutedText }}>
@@ -660,7 +661,7 @@ function CountryDetail({ t, c, all, onOpen }: { t: Tokens; c: Country; all: Coun
                 {m.year && m.value !== "—" ? ` · ${m.year}` : ""}
               </p>
               <p className="text-[12px] font-bold font-mono" style={{ color: m.color }}>
-                {m.value}
+                {figureText(m.value)}
               </p>
             </div>
           </div>
@@ -813,7 +814,7 @@ function EconomyList({ t, regions, selected, onPick }: { t: Tokens; regions: Reg
               {m.label} · {m.sub}
             </p>
             <p className="text-base font-bold font-mono" style={{ color: t.headText }}>
-              {m.value}
+              {figureText(m.value)}
             </p>
             {m.change && (
               <p className="text-[10px] font-mono" style={{ color: m.change.good === null ? t.mutedText : m.change.good ? GREEN : RED }}>

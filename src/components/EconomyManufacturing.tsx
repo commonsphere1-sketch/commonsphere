@@ -26,6 +26,7 @@ import { economiesData, type Economy } from "../data/economiesData";
 import { ECONOMY_MANUFACTURING, ECONOMY_MANUFACTURING_SOURCE, MANUFACTURING_BRANCHES, WORLD_MANUFACTURING_SHARE, type Latest } from "../data/economyManufacturing";
 import { ACCENT, ChartNote, ChartTitle, MeasureBars, PART_COLORS, PartsBar } from "./ModalCharts";
 import { SourceLink } from "./SourceLink";
+import { figureText } from "./FigureText";
 
 const usd = (bn: number) => (bn >= 1000 ? `$${(bn / 1000).toFixed(2)}T` : bn >= 1 ? `$${bn.toFixed(1)}B` : `$${Math.round(bn * 1000)}M`);
 const pct = (v: number) => `${v > 0 ? "+" : v < 0 ? "−" : ""}${Math.abs(v).toFixed(1)}%`;
@@ -46,7 +47,7 @@ const RANKED = economiesData
 const Tile = ({ label, value, sub }: { label: string; value: string; sub: string }) => (
   <div className="modal-tile rounded-lg px-3 py-2.5 min-w-0">
     <p className="text-[10px] font-sans text-muted-foreground leading-snug">{label}</p>
-    <p className="text-base font-bold font-mono leading-tight mt-0.5 text-foreground">{value}</p>
+    <p className="text-base font-bold font-mono leading-tight mt-0.5 text-foreground">{figureText(value)}</p>
     <p className="text-[9px] font-mono text-muted-foreground leading-snug mt-0.5">{sub}</p>
   </div>
 );

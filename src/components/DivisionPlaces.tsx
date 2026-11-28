@@ -65,6 +65,7 @@ import { useSecondOrder } from "../lib/secondOrder";
 import { flagFallback } from "../lib/cardFlag";
 import { OutlineMap } from "./OutlineMap";
 import { SeeAlso } from "./SeeAlso";
+import { figureText } from "./FigureText";
 
 /** The place's country's quality of life, as a city's window gives it: loaded when a window opens. */
 const CountryQuality = lazy(() => import("./CountryQuality"));
@@ -598,7 +599,7 @@ const Tile = ({ label, value, sub }: { label: string; value: string; sub?: strin
   <div className="modal-tile rounded-lg p-3 min-w-0">
     <p className="text-xs text-muted-foreground font-sans">{label}</p>
     <p className="text-base font-bold font-mono text-foreground truncate" title={value}>
-      {value}
+      {figureText(value)}
     </p>
     {sub && <p className="text-[10px] text-muted-foreground font-sans mt-0.5 leading-snug">{sub}</p>}
   </div>

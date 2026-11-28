@@ -33,6 +33,7 @@ import {
   type IntensityLevel,
 } from "../data/conflictsData";
 import { TONE, CHIP_TEXT } from "@/lib/chipTone";
+import { figureText } from "../components/FigureText";
 
 // ── Summary strip ─────────────────────────────────────────────────────────────
 function SummaryStrip() {
@@ -77,7 +78,7 @@ function SummaryStrip() {
           className="bg-card border border-border rounded-lg p-4"
         >
           <p className="text-xs text-muted-foreground font-sans">{s.label}</p>
-          <p className={`text-xl font-bold font-mono ${s.color}`}>{s.value}</p>
+          <p className={`text-xl font-bold font-mono ${s.color}`}>{figureText(s.value)}</p>
           <p className="text-xs text-muted-foreground font-sans mt-0.5">
             {s.sub}
           </p>
@@ -578,7 +579,7 @@ function ConflictModal({
                                         : "text-yellow-400"
                                   }`}
                                 >
-                                  {impact.value}
+                                  {figureText(impact.value)}
                                 </span>
                               </div>
                               <p className="text-xs text-muted-foreground font-sans leading-relaxed">

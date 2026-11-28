@@ -27,6 +27,7 @@ import { CLIMATE_CAUSES } from "../data/climateCauses";
 import { LIFE_CARDS } from "../data/lifeOnEarth";
 import { Block, Empty, GoButton, Kpi, Label, Row, useTokens } from "./DataExplorer";
 import { SourceLink } from "./SourceLink";
+import { figureText } from "./FigureText";
 
 const ACCENT = "#10b981";
 const ZONE: Record<Zone, { label: string; color: string }> = {
@@ -296,7 +297,7 @@ export function ClimateExplorer({
                             {x.label}
                           </span>
                           <span className="text-[11px] font-mono font-bold shrink-0 text-right" style={{ color: t.headText }}>
-                            {x.value}
+                            {figureText(x.value)}
                           </span>
                         </div>
                       ))}

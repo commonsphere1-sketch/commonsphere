@@ -17,6 +17,7 @@ import { ArrowsIn, ArrowsOut, X } from "@phosphor-icons/react";
 import { ALLIANCES, ALLIANCES_CHECKED, HUMAN_RIGHTS_CHECKED, type Alliance } from "../data/alliances";
 import { SourceLink } from "./SourceLink";
 import { WindowTitle } from "./WindowTitle";
+import { figureText } from "./FigureText";
 
 /** The bodies that say what they are working on. */
 export const AGENDAS = ALLIANCES.filter((a) => a.agenda?.length);
@@ -35,7 +36,7 @@ function Tile({ label, value, sub }: { label: string; value: string; sub?: strin
   return (
     <div className="modal-tile rounded-lg p-3 min-w-0">
       <p className="text-xs text-muted-foreground font-sans">{label}</p>
-      <p className={`font-bold font-mono text-foreground ${value.length > 14 ? "text-sm leading-snug" : "text-lg"}`}>{value}</p>
+      <p className={`font-bold font-mono text-foreground ${value.length > 14 ? "text-sm leading-snug" : "text-lg"}`}>{figureText(value)}</p>
       {sub && <p className="text-xs text-muted-foreground font-sans">{sub}</p>}
     </div>
   );

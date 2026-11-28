@@ -16,6 +16,7 @@ import { CORAL_REEFS, EARTH_STATUS_RETRIEVED, EARTH_STATUS_SOURCES as SRC, FORES
 import { regionName } from "../lib/regionName";
 import { SourceLink } from "./SourceLink";
 import { SLIM_TRACK, slimFill } from "./SlimBars";
+import { figureText } from "./FigureText";
 
 const WATER = "#0ea5e9";
 const FOREST = "#16a34a";
@@ -46,7 +47,7 @@ function Tiles({ tiles }: { tiles: { value: string; label: string; color?: strin
       {tiles.map((t) => (
         <div key={t.label} className="rounded-xl px-3 py-2.5 border border-border/60 bg-background/40">
           <p className="text-[15px] font-bold font-mono leading-tight" style={{ color: t.color ?? "var(--color-foreground)" }}>
-            {t.value}
+            {figureText(t.value)}
           </p>
           <p className="text-[10px] font-sans leading-tight mt-0.5 text-muted-foreground">{t.label}</p>
         </div>

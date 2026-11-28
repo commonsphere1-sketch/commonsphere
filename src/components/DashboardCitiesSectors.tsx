@@ -43,6 +43,7 @@ import { WORLD } from "../data/worldview";
 import { useTokens, type Tokens } from "./DataExplorer";
 import { SourceLink } from "./SourceLink";
 import SlimBars, { SLIM_TRACK, slimFill } from "./SlimBars";
+import { figureText } from "./FigureText";
 
 type Source = { label: string; url: string };
 type Point = [year: number, value: number];
@@ -218,7 +219,7 @@ export function CitiesContainer() {
             ].map((m) => (
               <div key={m.label} className="rounded-xl px-2 py-2 text-center" style={{ background: m.color + "10", border: `1px solid ${m.color}20` }}>
                 <p className="text-sm font-bold font-mono" style={{ color: t.headText }}>
-                  {m.value}
+                  {figureText(m.value)}
                 </p>
                 <p className="text-[9px] font-sans leading-snug" style={{ color: t.mutedText }}>
                   {m.label}

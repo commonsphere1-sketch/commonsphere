@@ -34,6 +34,7 @@ import { usdFromBillions } from "../lib/money";
 import { Label, useTokens, type Tokens } from "./DataExplorer";
 import { SourceLink } from "./SourceLink";
 import { StyledSelect } from "./StyledSelect";
+import { figureText } from "./FigureText";
 
 // ── The publishers, and the years each looks to ─────────────────────────────
 
@@ -116,7 +117,7 @@ function Figure({ t, label, value, sub, change, on, onPick, color = ACCENT }: { 
         {label}
       </span>
       <span className="block text-lg font-bold font-mono leading-tight mt-1" style={{ color: t.headText }}>
-        {value}
+        {figureText(value)}
       </span>
       {sub && (
         <span className="block text-[9px] font-mono leading-snug mt-0.5" style={{ color: t.mutedText }}>
@@ -249,7 +250,7 @@ function Legend({ t, items }: { t: Tokens; items: { color: string; label: string
           </span>
           {l.value && (
             <span className="text-[10px] font-mono font-bold" style={{ color: t.headText }}>
-              {l.value}
+              {figureText(l.value)}
             </span>
           )}
         </span>
@@ -472,7 +473,7 @@ function EconomyTab({ t }: { t: Tokens }) {
                   {f.label}
                 </dt>
                 <dd className="text-sm font-bold font-mono leading-tight mt-0.5" style={{ color: t.headText }}>
-                  {f.value}
+                  {figureText(f.value)}
                 </dd>
                 {f.sub && (
                   <dd className="text-[9px] font-mono leading-snug mt-0.5" style={{ color: t.mutedText }}>

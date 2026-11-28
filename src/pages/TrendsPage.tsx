@@ -97,6 +97,7 @@ import {
   type CountryOutlook,
   type Point,
 } from "../data/projections";
+import { figureText } from "../components/FigureText";
 
 // ── Look ───────────────────────────────────────────────────────────────────
 
@@ -244,7 +245,7 @@ function Legend({ items }: { items: { color: string; label: string; value?: stri
           </span>
           {l.value && (
             <span className="text-[10px] font-mono font-bold" style={{ color: head }}>
-              {l.value}
+              {figureText(l.value)}
             </span>
           )}
         </span>
@@ -636,7 +637,7 @@ function PopulationExplained() {
         {marks.map((m) => (
           <div key={m.label} className="modal-tile rounded-xl px-3 py-2.5 min-w-0">
             <dt className="text-[9px] font-mono uppercase tracking-wider text-muted-foreground leading-snug">{m.label}</dt>
-            <dd className="text-base font-bold font-mono text-foreground leading-tight mt-1">{m.value}</dd>
+            <dd className="text-base font-bold font-mono text-foreground leading-tight mt-1">{figureText(m.value)}</dd>
             <dd className="text-[10px] font-sans text-muted-foreground leading-snug mt-0.5">{m.sub}</dd>
           </div>
         ))}
